@@ -1,0 +1,29 @@
+{
+  "users": [
+    {
+      "userId": "demo_admin_001",
+      "email": "admin@pmtwin.com",
+      "password": "Admin123",
+      "role": "admin",
+      "name": "Admin User",
+      "description": "Full system access - Vetting, Moderation, Reports, Audit Trail"
+    },
+    {
+      "userId": "demo_individual_001",
+      "email": "individual@pmtwin.com",
+      "password": "User123",
+      "role": "individual",
+      "name": "John Doe",
+      "description": "Senior Civil Engineer - Task-based opportunities, proposals, profile management"
+    },
+    {
+      "userId": "demo_entity_001",
+      "email": "entity@pmtwin.com",
+      "password": "Entity123",
+      "role": "entity",
+      "name": "ABC Construction Co.",
+      "description": "General Contracting Company - Project creation, proposal management, financial overview"
+    }
+  ]
+}
+

@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PMTwin User Portal</title>
+    <link rel="stylesheet" href="css/main.css">
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="container">
+            <div class="navbar-content">
+                <a href="index.html" class="navbar-brand">PMTwin</a>
+                <button class="navbar-toggle" id="navbarToggle" aria-label="Toggle navigation">☰</button>
+                <ul class="navbar-nav" id="navbarNav">
+                    <li><a href="#dashboard" class="navbar-link" data-route="dashboard">Dashboard</a></li>
+                    <li id="navProjects" style="display: none;"><a href="#projects" class="navbar-link" data-route="projects">My Projects</a></li>
+                    <li id="navCreateProject" style="display: none;"><a href="#create-project" class="navbar-link" data-route="create-project">Create Project</a></li>
+                    <li><a href="#opportunities" class="navbar-link" data-route="opportunities">Opportunities</a></li>
+                    <li><a href="#collaboration-models" class="navbar-link" data-route="collaboration-models">Collaboration Models</a></li>
+                    <li><a href="#proposals" class="navbar-link" data-route="proposals">Proposals</a></li>
+                    <li><a href="#pipeline" class="navbar-link" data-route="pipeline">Pipeline</a></li>
+                    <li><a href="#profile" class="navbar-link" data-route="profile">Profile</a></li>
+                    <li><a href="#" onclick="if(window.UserPortal && window.UserPortal.logout) { window.UserPortal.logout(); } else { window.location.href = 'index.html'; } return false;" class="navbar-link">Logout</a></li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Login Section (shown when not authenticated) -->
+    <main id="loginSection" style="display: none; min-height: calc(100vh - 200px); padding: var(--spacing-8) 0;">
+        <div class="container" style="max-width: 400px;">
+            <h1 style="margin-bottom: var(--spacing-6); text-align: center;">
+                User Portal Login
+                <button 
+                    class="demo-info-button" 
+                    onclick="DemoCredentials.showModal('user', 'userLoginEmail', 'userLoginPassword')"
+                    title="View demo user credentials"
+                    aria-label="View demo user credentials"
+                >!</button>
+            </h1>
+            <div class="card">
+                <div class="card-body">
+                    <form id="userLoginForm">
+                        <div class="form-group">
+                            <label for="userLoginEmail" class="form-label">Email</label>
+                            <input type="email" id="userLoginEmail" class="form-control" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="userLoginPassword" class="form-label">Password</label>
+                            <input type="password" id="userLoginPassword" class="form-control" required>
+                        </div>
+                        <div id="userLoginError" class="alert alert-error" style="display: none;"></div>
+                        <button type="submit" class="btn btn-primary btn-block">Login</button>
+                    </form>
+                    <p style="text-align: center; margin-top: var(--spacing-4);">
+                        Don't have an account? <a href="public-portal.html#signup">Sign up here</a>
+                    </p>
+                    <p style="text-align: center; margin-top: var(--spacing-2);">
+                        <a href="index.html">Back to Home</a>
+                    </p>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Main Content (shown when authenticated) -->
+    <main id="mainContent" style="min-height: calc(100vh - 200px); padding: var(--spacing-8) 0;">
+        <!-- Dashboard Section -->
+        <section id="dashboard" class="route-section" style="display: none;">
+            <div id="userDashboard">
+                <!-- User dashboard will be dynamically injected here -->
+            </div>
+        </section>
+
+        <!-- Projects Section (Entity only) -->
+        <section id="projects" class="route-section" style="display: none;">
+            <div class="container">
+                <h1 style="margin-bottom: var(--spacing-6);">My Projects</h1>
+                <div id="projectsContent">
+                    <!-- Projects list loaded here -->
+                </div>
+            </div>
+        </section>
+
+        <!-- Create Project Section (Entity only) -->
+        <section id="create-project" class="route-section" style="display: none;">
+            <div class="container" style="max-width: 900px;">
+                <h1 style="margin-bottom: var(--spacing-6);">Create Mega-Project</h1>
+                <div class="card">
+                    <div class="card-body">
+                        <form id="projectForm" onsubmit="if(window.UserPortal && UserPortal.handleCreateProject) { return UserPortal.handleCreateProject(event); } return false;">
+                            <!-- Form loaded dynamically -->
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Opportunities Section -->
+        <section id="opportunities" class="route-section" style="display: none;">
+            <div id="opportunities">
+                <!-- Opportunities will be dynamically injected here -->
+            </div>
+        </section>
+
+        <!-- Proposals Section -->
+        <section id="proposals" class="route-section" style="display: none;">
+            <div id="proposals">
+                <!-- Proposals will be dynamically injected here -->
+            </div>
+        </section>
+
+        <!-- Pipeline Section -->
+        <section id="pipeline" class="route-section" style="display: none;">
+            <div id="servicePipeline">
+                <!-- Service pipeline will be dynamically injected here -->
+            </div>
+        </section>
+
+        <!-- Profile Section -->
+        <section id="profile" class="route-section" style="display: none;">
+            <div class="container" style="max-width: 800px;">
+                <h1 style="margin-bottom: var(--spacing-6);">Profile</h1>
+                <div id="profileContent">
+                    <!-- Profile loaded here -->
+                </div>
+            </div>
+        </section>
+
+        <!-- Onboarding Section -->
+        <section id="onboarding" class="route-section" style="display: none;">
+            <div class="container">
+                <h1 style="margin-bottom: var(--spacing-6);">Complete Your Profile</h1>
+                <div id="onboardingContent">
+                    <!-- Onboarding dashboard loaded here -->
+                </div>
+            </div>
+        </section>
+
+        <!-- Collaboration Models Section -->
+        <section id="collaboration-models" class="route-section" style="display: none;">
+            <div class="container">
+                <h1 style="margin-bottom: var(--spacing-6);">Collaboration Models</h1>
+                <div id="collaborationModelsContent">
+                    <!-- Model selection loaded here -->
+                </div>
+            </div>
+        </section>
+
+        <!-- Collaboration Category Detail Section -->
+        <section id="collaboration-category" class="route-section" style="display: none;">
+            <div class="container">
+                <div id="collaborationCategoryContent">
+                    <!-- Category detail loaded here -->
+                </div>
+            </div>
+        </section>
+
+        <!-- Create Collaboration Section -->
+        <section id="create-collaboration" class="route-section" style="display: none;">
+            <div class="container" style="max-width: 900px;">
+                <h1 style="margin-bottom: var(--spacing-6);">Create Collaboration Opportunity</h1>
+                <div id="createCollaborationContent">
+                    <!-- Form loaded here -->
+                </div>
+            </div>
+        </section>
+
+        <!-- Collaboration Opportunities Section -->
+        <section id="collaboration-opportunities" class="route-section" style="display: none;">
+            <div class="container">
+                <h1 style="margin-bottom: var(--spacing-6);">Collaboration Opportunities</h1>
+                <div id="collaborationOpportunitiesContent">
+                    <!-- Opportunities list loaded here -->
+                </div>
+            </div>
+        </section>
+
+        <!-- My Collaborations Section -->
+        <section id="my-collaborations" class="route-section" style="display: none;">
+            <div class="container">
+                <h1 style="margin-bottom: var(--spacing-6);">My Collaborations</h1>
+                <div id="myCollaborationsContent">
+                    <!-- User's collaborations loaded here -->
+                </div>
+            </div>
+        </section>
+
+        <!-- Collaboration Applications Section -->
+        <section id="collaboration-applications" class="route-section" style="display: none;">
+            <div class="container">
+                <h1 style="margin-bottom: var(--spacing-6);">My Applications</h1>
+                <div id="collaborationApplicationsContent">
+                    <!-- Applications loaded here -->
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Footer -->
+    <footer style="background: var(--bg-dark); color: var(--text-inverse); padding: var(--spacing-8) 0; margin-top: var(--spacing-16);">
+        <div class="container" style="text-align: center;">
+            <p>&copy; 2024 PMTwin. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <!-- Modals -->
+    <div id="modalBackdrop" class="modal-backdrop" onclick="if(window.UserPortal) { UserPortal.closeModal(); }"></div>
+    <div id="modal" class="modal">
+        <div class="modal-header">
+            <h2 class="modal-title" id="modalTitle">Modal Title</h2>
+            <button class="modal-close" onclick="if(window.UserPortal) { UserPortal.closeModal(); }">&times;</button>
+        </div>
+        <div class="modal-body" id="modalBody">
+            <!-- Modal content -->
+        </div>
+        <div class="modal-footer" id="modalFooter">
+            <!-- Modal footer -->
+        </div>
+    </div>
+
+    <script src="js/data.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/matching.js"></script>
+    <script src="js/collaboration-model-definitions.js"></script>
+    <script src="js/collaboration-matching.js"></script>
+    <script src="js/collaboration-models.js"></script>
+    <script src="js/demo-credentials.js"></script>
+    <!-- Load data files first -->
+    <script src="data/modelsData.js"></script>
+    <script src="data/adminData.js"></script>
+    <script src="data/dashboardData.js"></script>
+    <!-- Load renderer -->
+    <script src="js/renderer.js"></script>
+    <script src="js/user-portal.js"></script>
+    <script>
+        // Verify all modules loaded and provide detailed logging
+        (function() {
+            function checkModules() {
+                const checks = {
+                    PMTwinData: typeof window.PMTwinData !== 'undefined',
+                    PMTwinAuth: typeof window.PMTwinAuth !== 'undefined',
+                    CollaborationModels: typeof window.CollaborationModels !== 'undefined',
+                    CollaborationModelsUI: typeof window.CollaborationModelsUI !== 'undefined',
+                    UserPortal: typeof window.UserPortal !== 'undefined'
+                };
+
+                console.log('📦 Module Loading Status:');
+                Object.keys(checks).forEach(module => {
+                    if (checks[module]) {
+                        console.log(`✅ ${module} loaded`);
+                    } else {
+                        console.error(`❌ ${module} NOT loaded`);
+                    }
+                });
+
+                // Check UserPortal specifically
+                if (checks.UserPortal) {
+                    if (typeof window.UserPortal.logout === 'function') {
+                        console.log('✅ UserPortal.logout is available');
+                    } else {
+                        console.warn('⚠️ UserPortal.logout is not a function');
+                    }
+                    if (typeof window.UserPortal.init === 'function') {
+                        console.log('✅ UserPortal.init is available');
+                    } else {
+                        console.warn('⚠️ UserPortal.init is not a function');
+                    }
+                } else {
+                    console.error('❌ UserPortal object does not exist');
+                    console.error('Check browser console for JavaScript errors');
+                    // Create emergency fallback
+                    window.UserPortal = {
+                        logout: function() {
+                            console.warn('Using emergency fallback logout');
+                            window.location.href = 'index.html';
+                        }
+                    };
+                }
+
+                // Check CollaborationModels
+                if (checks.CollaborationModels) {
+                    try {
+                        const categories = window.CollaborationModels.getAllCategories();
+                        console.log(`✅ CollaborationModels: ${categories.length} categories loaded`);
+                    } catch (e) {
+                        console.error('❌ Error accessing CollaborationModels:', e);
+                    }
+                }
+
+                return checks.UserPortal;
+            }
+            
+            // Check immediately after scripts load
+            setTimeout(function() {
+                if (!checkModules()) {
+                    // Try again after a longer delay
+                    setTimeout(checkModules, 500);
+                }
+            }, 100);
+        })();
+
+        // Initialize rendering for data-driven sections
+        document.addEventListener('DOMContentLoaded', function() {
+            if (typeof Renderer !== 'undefined') {
+                // Initialize user dashboard
+                if (window.location.hash === '#dashboard' || window.location.hash === '') {
+                    Renderer.renderUserDashboard();
+                }
+                // Initialize opportunities
+                if (window.location.hash === '#opportunities') {
+                    Renderer.renderOpportunities();
+                }
+                // Initialize proposals
+                if (window.location.hash === '#proposals') {
+                    Renderer.renderProposals();
+                }
+                // Initialize pipeline
+                if (window.location.hash === '#pipeline') {
+                    Renderer.renderServicePipeline();
+                }
+            }
+        });
+    </script>
+</body>
+</html>
+

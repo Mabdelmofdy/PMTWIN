@@ -1,0 +1,844 @@
+/**
+ * PMTwin Admin Portal Data
+ * Comprehensive dummy data for admin portal sections
+ */
+
+const adminData = {
+  // Opportunities Management
+  opportunities: [
+    {
+      id: 'opp-001',
+      title: 'Riyadh Metro Station Design - Structural Engineering',
+      type: 'Task-Based Engagement',
+      status: 'active',
+      createdBy: 'Al-Mansouri Construction Group',
+      createdByEmail: 'contact@almansouri.com',
+      createdAt: '2024-01-15T10:30:00Z',
+      budget: { min: 500000, max: 800000, currency: 'SAR' },
+      location: { city: 'Riyadh', region: 'Riyadh Province', country: 'Saudi Arabia' },
+      description: 'Require structural engineering services for metro station design including foundation analysis, structural calculations, and shop drawing review.',
+      applicants: 12,
+      views: 45,
+      deadline: '2024-02-28T23:59:59Z',
+      requiredSkills: ['Structural Engineering', 'Foundation Design', 'Seismic Analysis'],
+      experienceLevel: 'Senior'
+    },
+    {
+      id: 'opp-002',
+      title: 'Dubai Marina Towers - MEP Design Consultation',
+      type: 'Task-Based Engagement',
+      status: 'active',
+      createdBy: 'Dubai Infrastructure Partners',
+      createdByEmail: 'info@dubaiinfra.com',
+      createdAt: '2024-01-18T14:20:00Z',
+      budget: { min: 300000, max: 500000, currency: 'AED' },
+      location: { city: 'Dubai', region: 'Dubai', country: 'UAE' },
+      description: 'Seeking MEP design consultation for luxury residential towers including HVAC, electrical, and plumbing systems optimization.',
+      applicants: 8,
+      views: 32,
+      deadline: '2024-03-15T23:59:59Z',
+      requiredSkills: ['MEP Design', 'HVAC Systems', 'Building Services'],
+      experienceLevel: 'Expert'
+    },
+    {
+      id: 'opp-003',
+      title: 'NEOM Industrial Zone - Consortium Formation',
+      type: 'Consortium',
+      status: 'active',
+      createdBy: 'Saudi Industrial Development Co.',
+      createdByEmail: 'projects@saudindustrial.com',
+      createdAt: '2024-01-10T09:15:00Z',
+      budget: { min: 50000000, max: 80000000, currency: 'SAR' },
+      location: { city: 'NEOM', region: 'Tabuk Province', country: 'Saudi Arabia' },
+      description: 'Forming consortium to bid on industrial zone development project. Seeking partners with infrastructure, industrial construction, and MEP capabilities.',
+      applicants: 15,
+      views: 78,
+      deadline: '2024-04-30T23:59:59Z',
+      requiredSkills: ['Infrastructure Construction', 'Industrial Projects', 'MEP'],
+      experienceLevel: 'Expert'
+    },
+    {
+      id: 'opp-004',
+      title: 'Cairo Airport Terminal - Project JV Partner',
+      type: 'Project-Specific Joint Venture',
+      status: 'active',
+      createdBy: 'Egyptian Construction Group',
+      createdByEmail: 'contact@egyptconstruction.com',
+      createdAt: '2024-01-20T11:45:00Z',
+      budget: { min: 200000000, max: 300000000, currency: 'EGP' },
+      location: { city: 'Cairo', region: 'Cairo Governorate', country: 'Egypt' },
+      description: 'Seeking JV partner for airport terminal expansion project. Require partner with international airport construction experience and financial capacity.',
+      applicants: 6,
+      views: 52,
+      deadline: '2024-05-15T23:59:59Z',
+      requiredSkills: ['Airport Construction', 'Terminal Design', 'Aviation Infrastructure'],
+      experienceLevel: 'Expert'
+    },
+    {
+      id: 'opp-005',
+      title: 'Abu Dhabi Cultural District - SPV Formation',
+      type: 'Special Purpose Vehicle (SPV)',
+      status: 'active',
+      createdBy: 'Abu Dhabi Development Authority',
+      createdByEmail: 'projects@addauthority.ae',
+      createdAt: '2024-01-12T08:00:00Z',
+      budget: { min: 1500000000, max: 2000000000, currency: 'AED' },
+      location: { city: 'Abu Dhabi', region: 'Abu Dhabi', country: 'UAE' },
+      description: 'Forming SPV for cultural district development including museums, theaters, and exhibition spaces. Seeking investors and development partners.',
+      applicants: 9,
+      views: 65,
+      deadline: '2024-06-30T23:59:59Z',
+      requiredSkills: ['Cultural Projects', 'Museum Design', 'Public Infrastructure'],
+      experienceLevel: 'Expert'
+    },
+    {
+      id: 'opp-006',
+      title: 'Steel Reinforcement - Bulk Purchasing Group',
+      type: 'Bulk Purchasing',
+      status: 'active',
+      createdBy: 'Riyadh Builders Association',
+      createdByEmail: 'info@riyadhbuilders.org',
+      createdAt: '2024-01-22T13:30:00Z',
+      budget: { min: 5000000, max: 10000000, currency: 'SAR' },
+      location: { city: 'Riyadh', region: 'Riyadh Province', country: 'Saudi Arabia' },
+      description: 'Forming bulk purchasing group for steel reinforcement. Multiple contractors combining orders to negotiate better prices and payment terms.',
+      applicants: 18,
+      views: 89,
+      deadline: '2024-03-01T23:59:59Z',
+      requiredSkills: ['Procurement', 'Material Sourcing'],
+      experienceLevel: 'Mid-Level'
+    },
+    {
+      id: 'opp-007',
+      title: 'Heavy Equipment Co-Ownership Pool',
+      type: 'Co-Ownership Pooling',
+      status: 'active',
+      createdBy: 'Jeddah Contractors Group',
+      createdByEmail: 'contact@jeddahcontractors.com',
+      createdAt: '2024-01-25T10:00:00Z',
+      budget: { min: 2000000, max: 5000000, currency: 'SAR' },
+      location: { city: 'Jeddah', region: 'Makkah Province', country: 'Saudi Arabia' },
+      description: 'Seeking co-ownership partners for heavy construction equipment fleet including excavators, cranes, and loaders. Shared ownership and utilization.',
+      applicants: 7,
+      views: 41,
+      deadline: '2024-04-15T23:59:59Z',
+      requiredSkills: ['Equipment Management', 'Fleet Operations'],
+      experienceLevel: 'Senior'
+    },
+    {
+      id: 'opp-008',
+      title: 'Senior Project Manager - Full-Time Position',
+      type: 'Professional Hiring',
+      status: 'active',
+      createdBy: 'Dubai Mega Projects LLC',
+      createdByEmail: 'hr@dubaimegaprojects.com',
+      createdAt: '2024-01-28T09:20:00Z',
+      budget: { min: 25000, max: 35000, currency: 'AED' },
+      location: { city: 'Dubai', region: 'Dubai', country: 'UAE' },
+      description: 'Hiring senior project manager for mega infrastructure project. Require PMP certification, 10+ years experience, and mega-project track record.',
+      applicants: 24,
+      views: 156,
+      deadline: '2024-03-20T23:59:59Z',
+      requiredSkills: ['Project Management', 'PMP Certification', 'Mega Projects'],
+      experienceLevel: 'Senior'
+    },
+    {
+      id: 'opp-009',
+      title: 'Sustainability Consultant - Green Building Certification',
+      type: 'Consultant Hiring',
+      status: 'active',
+      createdBy: 'Green Construction Co.',
+      createdByEmail: 'info@greenconstruction.com',
+      createdAt: '2024-01-30T14:10:00Z',
+      budget: { min: 80000, max: 120000, currency: 'SAR' },
+      location: { city: 'Riyadh', region: 'Riyadh Province', country: 'Saudi Arabia' },
+      description: 'Engaging sustainability consultant for LEED and Estidama certification process. Project-based engagement with potential for ongoing consultation.',
+      applicants: 11,
+      views: 67,
+      deadline: '2024-04-01T23:59:59Z',
+      requiredSkills: ['LEED Certification', 'Estidama', 'Sustainability Consulting'],
+      experienceLevel: 'Expert'
+    },
+    {
+      id: 'opp-010',
+      title: 'Landmark Building Design Competition',
+      type: 'Competition / RFP',
+      status: 'active',
+      createdBy: 'Visionary Development Group',
+      createdByEmail: 'competitions@visionarydev.com',
+      createdAt: '2024-02-01T11:00:00Z',
+      budget: { min: 500000, max: 1000000, currency: 'SAR' },
+      location: { city: 'Riyadh', region: 'Riyadh Province', country: 'Saudi Arabia' },
+      description: 'Open design competition for landmark mixed-use building. Seeking innovative architectural designs. Winner receives design contract worth 5M SAR.',
+      applicants: 35,
+      views: 234,
+      deadline: '2024-05-31T23:59:59Z',
+      requiredSkills: ['Architectural Design', 'Mixed-Use Development', 'Innovation'],
+      experienceLevel: 'Expert'
+    },
+    {
+      id: 'opp-011',
+      title: 'Strategic JV for Market Expansion',
+      type: 'Strategic Joint Venture',
+      status: 'draft',
+      createdBy: 'Regional Construction Partners',
+      createdByEmail: 'partnerships@regionalconstruction.com',
+      createdAt: '2024-02-03T10:15:00Z',
+      budget: { min: 10000000, max: 20000000, currency: 'SAR' },
+      location: { city: 'Multiple', region: 'GCC', country: 'Multiple' },
+      description: 'Seeking strategic JV partner for GCC market expansion. Long-term partnership for pursuing multiple projects across the region.',
+      applicants: 0,
+      views: 5,
+      deadline: '2024-06-30T23:59:59Z',
+      requiredSkills: ['Market Expansion', 'Strategic Planning', 'GCC Experience'],
+      experienceLevel: 'Expert'
+    },
+    {
+      id: 'opp-012',
+      title: 'Equipment Rental - Excavators Available',
+      type: 'Resource Sharing & Exchange',
+      status: 'active',
+      createdBy: 'Heavy Equipment Solutions',
+      createdByEmail: 'rental@heavyeq.com',
+      createdAt: '2024-02-05T08:30:00Z',
+      budget: { min: 15000, max: 25000, currency: 'SAR' },
+      location: { city: 'Dammam', region: 'Eastern Province', country: 'Saudi Arabia' },
+      description: 'Excess excavators available for rental. 3 units of 30-ton excavators available for short to medium-term projects. Well-maintained equipment.',
+      applicants: 9,
+      views: 43,
+      deadline: '2024-03-31T23:59:59Z',
+      requiredSkills: ['Equipment Operation', 'Construction'],
+      experienceLevel: 'Mid-Level'
+    },
+    {
+      id: 'opp-013',
+      title: 'Mentorship Program - Emerging Contractors',
+      type: 'Mentorship Program',
+      status: 'active',
+      createdBy: 'Construction Industry Association',
+      createdByEmail: 'programs@constructionassociation.org',
+      createdAt: '2024-02-07T12:00:00Z',
+      budget: { min: 0, max: 0, currency: 'SAR' },
+      location: { city: 'Riyadh', region: 'Riyadh Province', country: 'Saudi Arabia' },
+      description: 'Mentorship program connecting established contractors with emerging construction companies. Knowledge transfer, business development, and industry guidance.',
+      applicants: 14,
+      views: 78,
+      deadline: '2024-04-30T23:59:59Z',
+      requiredSkills: ['Business Development', 'Industry Knowledge'],
+      experienceLevel: 'Senior'
+    },
+    {
+      id: 'opp-014',
+      title: 'Strategic Alliance - Preferred Partner',
+      type: 'Long-Term Strategic Alliance',
+      status: 'active',
+      createdBy: 'Premier Engineering Group',
+      createdByEmail: 'alliances@premiereng.com',
+      createdAt: '2024-02-10T09:45:00Z',
+      budget: { min: 0, max: 0, currency: 'SAR' },
+      location: { city: 'Dubai', region: 'Dubai', country: 'UAE' },
+      description: 'Seeking strategic alliance partner for ongoing collaboration. Preferred partner status, cross-referrals, and joint bidding on opportunities.',
+      applicants: 6,
+      views: 38,
+      deadline: '2024-05-15T23:59:59Z',
+      requiredSkills: ['Strategic Planning', 'Partnership Development'],
+      experienceLevel: 'Senior'
+    },
+    {
+      id: 'opp-015',
+      title: 'Structural Engineer - Permanent Position',
+      type: 'Professional Hiring',
+      status: 'closed',
+      createdBy: 'Advanced Engineering Solutions',
+      createdByEmail: 'careers@advancedeng.com',
+      createdAt: '2024-01-05T10:00:00Z',
+      budget: { min: 18000, max: 25000, currency: 'AED' },
+      location: { city: 'Abu Dhabi', region: 'Abu Dhabi', country: 'UAE' },
+      description: 'Hiring structural engineer for permanent position. Position filled - opportunity closed.',
+      applicants: 28,
+      views: 189,
+      deadline: '2024-02-15T23:59:59Z',
+      requiredSkills: ['Structural Engineering', 'Seismic Design'],
+      experienceLevel: 'Mid-Level'
+    }
+  ],
+
+  // Proposals Review
+  proposals: [
+    {
+      id: 'prop-001',
+      opportunityId: 'opp-001',
+      opportunityTitle: 'Riyadh Metro Station Design - Structural Engineering',
+      submittedBy: 'Elite Structural Engineering',
+      submittedByEmail: 'contact@elitestructural.com',
+      status: 'pending',
+      submittedAt: '2024-01-20T14:30:00Z',
+      budget: { amount: 650000, currency: 'SAR' },
+      timeline: '45 days',
+      reviewStatus: 'pending',
+      reviewer: null,
+      reviewNotes: null,
+      proposalDetails: 'Comprehensive structural engineering services including foundation design, seismic analysis, and shop drawing review. Team of 3 senior engineers.',
+      relevantExperience: 'Completed 5 metro station projects in GCC region',
+      certifications: ['PE License', 'Seismic Design Certification']
+    },
+    {
+      id: 'prop-002',
+      opportunityId: 'opp-001',
+      opportunityTitle: 'Riyadh Metro Station Design - Structural Engineering',
+      submittedBy: 'Advanced Structures Ltd.',
+      submittedByEmail: 'info@advancedstructures.com',
+      status: 'under_review',
+      submittedAt: '2024-01-22T10:15:00Z',
+      budget: { amount: 720000, currency: 'SAR' },
+      timeline: '50 days',
+      reviewStatus: 'under_review',
+      reviewer: 'admin@pmtwin.com',
+      reviewNotes: 'Strong proposal, reviewing technical approach',
+      proposalDetails: 'Expert structural engineering team with 15+ years metro project experience. Includes BIM modeling and coordination.',
+      relevantExperience: 'Lead structural engineer on 3 major metro projects',
+      certifications: ['PE License', 'BIM Certification']
+    },
+    {
+      id: 'prop-003',
+      opportunityId: 'opp-002',
+      opportunityTitle: 'Dubai Marina Towers - MEP Design Consultation',
+      submittedBy: 'MEP Excellence Consultants',
+      submittedByEmail: 'contact@mepexcellence.com',
+      status: 'approved',
+      submittedAt: '2024-01-25T11:20:00Z',
+      budget: { amount: 450000, currency: 'AED' },
+      timeline: '60 days',
+      reviewStatus: 'approved',
+      reviewer: 'admin@pmtwin.com',
+      reviewNotes: 'Excellent proposal, approved for next stage',
+      proposalDetails: 'Comprehensive MEP design optimization including energy efficiency analysis and cost optimization recommendations.',
+      relevantExperience: 'Completed 12 luxury residential tower MEP projects',
+      certifications: ['MEP Engineering License', 'Energy Efficiency Certification']
+    },
+    {
+      id: 'prop-004',
+      opportunityId: 'opp-003',
+      opportunityTitle: 'NEOM Industrial Zone - Consortium Formation',
+      submittedBy: 'Gulf Infrastructure Partners',
+      submittedByEmail: 'partnerships@gulfinfra.com',
+      status: 'pending',
+      submittedAt: '2024-01-28T09:45:00Z',
+      budget: { amount: 65000000, currency: 'SAR' },
+      timeline: '36 months',
+      reviewStatus: 'pending',
+      reviewer: null,
+      reviewNotes: null,
+      proposalDetails: 'Consortium proposal with infrastructure, industrial construction, and MEP capabilities. Combined track record of 50+ industrial projects.',
+      relevantExperience: 'Completed 8 major industrial zone developments',
+      certifications: ['ISO 9001', 'Industrial Construction License']
+    },
+    {
+      id: 'prop-005',
+      opportunityId: 'opp-004',
+      opportunityTitle: 'Cairo Airport Terminal - Project JV Partner',
+      submittedBy: 'International Airport Builders',
+      submittedByEmail: 'projects@airportbuilders.com',
+      status: 'rejected',
+      submittedAt: '2024-01-30T13:10:00Z',
+      budget: { amount: 250000000, currency: 'EGP' },
+      timeline: '48 months',
+      reviewStatus: 'rejected',
+      reviewer: 'admin@pmtwin.com',
+      reviewNotes: 'Does not meet minimum financial capacity requirements',
+      proposalDetails: 'JV proposal with extensive airport construction experience including 5 international terminal projects.',
+      relevantExperience: 'Completed 3 major airport terminal projects',
+      certifications: ['Aviation Construction License']
+    },
+    {
+      id: 'prop-006',
+      opportunityId: 'opp-006',
+      opportunityTitle: 'Steel Reinforcement - Bulk Purchasing Group',
+      submittedBy: 'Riyadh Steel Suppliers',
+      submittedByEmail: 'sales@riyadhsteel.com',
+      status: 'approved',
+      submittedAt: '2024-02-01T10:30:00Z',
+      budget: { amount: 7500000, currency: 'SAR' },
+      timeline: 'Immediate',
+      reviewStatus: 'approved',
+      reviewer: 'admin@pmtwin.com',
+      reviewNotes: 'Approved - competitive pricing and good payment terms',
+      proposalDetails: 'Bulk pricing proposal for steel reinforcement. 15% discount on standard rates with 60-day payment terms.',
+      relevantExperience: 'Supplied to 200+ construction projects',
+      certifications: ['ISO 9001', 'Material Quality Certification']
+    },
+    {
+      id: 'prop-007',
+      opportunityId: 'opp-008',
+      opportunityTitle: 'Senior Project Manager - Full-Time Position',
+      submittedBy: 'Ahmed Al-Rashid',
+      submittedByEmail: 'ahmed.rashid@email.com',
+      status: 'under_review',
+      submittedAt: '2024-02-05T15:20:00Z',
+      budget: { amount: 30000, currency: 'AED' },
+      timeline: 'Immediate',
+      reviewStatus: 'under_review',
+      reviewer: 'admin@pmtwin.com',
+      reviewNotes: 'Strong candidate, scheduling interview',
+      proposalDetails: 'PMP certified project manager with 12 years experience including 3 mega infrastructure projects. Available immediately.',
+      relevantExperience: 'Managed 5 mega projects worth 500M+ total',
+      certifications: ['PMP', 'PMI-RMP', 'Mega Project Management']
+    },
+    {
+      id: 'prop-008',
+      opportunityId: 'opp-010',
+      opportunityTitle: 'Landmark Building Design Competition',
+      submittedBy: 'Innovative Architects Studio',
+      submittedByEmail: 'submissions@innovativearch.com',
+      status: 'pending',
+      submittedAt: '2024-02-08T11:00:00Z',
+      budget: { amount: 800000, currency: 'SAR' },
+      timeline: '90 days',
+      reviewStatus: 'pending',
+      reviewer: null,
+      reviewNotes: null,
+      proposalDetails: 'Innovative architectural design proposal featuring sustainable features, smart building integration, and cultural elements.',
+      relevantExperience: 'Won 3 international design competitions',
+      certifications: ['Architectural License', 'LEED AP']
+    },
+    {
+      id: 'prop-009',
+      opportunityId: 'opp-009',
+      opportunityTitle: 'Sustainability Consultant - Green Building Certification',
+      submittedBy: 'Green Solutions Consulting',
+      submittedByEmail: 'info@greensolutions.com',
+      status: 'approved',
+      submittedAt: '2024-02-10T09:15:00Z',
+      budget: { amount: 95000, currency: 'SAR' },
+      timeline: '120 days',
+      reviewStatus: 'approved',
+      reviewer: 'admin@pmtwin.com',
+      reviewNotes: 'Approved - excellent track record with LEED and Estidama',
+      proposalDetails: 'Comprehensive sustainability consulting including LEED and Estidama certification support, energy modeling, and green building strategies.',
+      relevantExperience: 'Certified 25+ buildings for LEED and Estidama',
+      certifications: ['LEED AP BD+C', 'Estidama PQP', 'BREEAM Assessor']
+    },
+    {
+      id: 'prop-010',
+      opportunityId: 'opp-007',
+      opportunityTitle: 'Heavy Equipment Co-Ownership Pool',
+      submittedBy: 'Jeddah Equipment Partners',
+      submittedByEmail: 'partnerships@jeddahpartners.com',
+      status: 'pending',
+      submittedAt: '2024-02-12T14:45:00Z',
+      budget: { amount: 3500000, currency: 'SAR' },
+      timeline: 'Ongoing',
+      reviewStatus: 'pending',
+      reviewer: null,
+      reviewNotes: null,
+      proposalDetails: 'Co-ownership proposal for heavy equipment fleet. 25% ownership share available. Includes maintenance and operational framework.',
+      relevantExperience: 'Managed equipment fleets for 10+ years',
+      certifications: ['Equipment Management Certification']
+    }
+  ],
+
+  // Service Pipeline
+  servicePipeline: {
+    stages: [
+      {
+        name: 'Discovery',
+        color: '#3b82f6',
+        count: 8,
+        opportunities: [
+          { id: 'opp-011', title: 'Strategic JV for Market Expansion', createdBy: 'Regional Construction Partners' },
+          { id: 'opp-012', title: 'Equipment Rental - Excavators Available', createdBy: 'Heavy Equipment Solutions' },
+          { id: 'opp-013', title: 'Mentorship Program - Emerging Contractors', createdBy: 'Construction Industry Association' },
+          { id: 'opp-014', title: 'Strategic Alliance - Preferred Partner', createdBy: 'Premier Engineering Group' }
+        ]
+      },
+      {
+        name: 'Qualification',
+        color: '#8b5cf6',
+        count: 5,
+        opportunities: [
+          { id: 'opp-001', title: 'Riyadh Metro Station Design', createdBy: 'Al-Mansouri Construction Group' },
+          { id: 'opp-002', title: 'Dubai Marina Towers - MEP Design', createdBy: 'Dubai Infrastructure Partners' },
+          { id: 'opp-006', title: 'Steel Reinforcement - Bulk Purchasing', createdBy: 'Riyadh Builders Association' }
+        ]
+      },
+      {
+        name: 'Proposal',
+        color: '#ec4899',
+        count: 4,
+        opportunities: [
+          { id: 'opp-003', title: 'NEOM Industrial Zone - Consortium', createdBy: 'Saudi Industrial Development Co.' },
+          { id: 'opp-004', title: 'Cairo Airport Terminal - Project JV', createdBy: 'Egyptian Construction Group' },
+          { id: 'opp-005', title: 'Abu Dhabi Cultural District - SPV', createdBy: 'Abu Dhabi Development Authority' }
+        ]
+      },
+      {
+        name: 'Negotiation',
+        color: '#f59e0b',
+        count: 3,
+        opportunities: [
+          { id: 'opp-007', title: 'Heavy Equipment Co-Ownership Pool', createdBy: 'Jeddah Contractors Group' },
+          { id: 'opp-008', title: 'Senior Project Manager - Full-Time', createdBy: 'Dubai Mega Projects LLC' },
+          { id: 'opp-009', title: 'Sustainability Consultant', createdBy: 'Green Construction Co.' }
+        ]
+      },
+      {
+        name: 'Closed',
+        color: '#10b981',
+        count: 1,
+        opportunities: [
+          { id: 'opp-015', title: 'Structural Engineer - Permanent Position', createdBy: 'Advanced Engineering Solutions' }
+        ]
+      }
+    ]
+  },
+
+  // Projects
+  projects: [
+    {
+      id: 'proj-001',
+      title: 'Riyadh Metro Line 3 Extension',
+      status: 'active',
+      owner: 'Al-Mansouri Construction Group',
+      ownerEmail: 'contact@almansouri.com',
+      startDate: '2023-06-01',
+      endDate: '2025-12-31',
+      budget: { total: 850000000, spent: 425000000, currency: 'SAR' },
+      progress: 50,
+      teamMembers: [
+        { name: 'Khalid Al-Mansouri', role: 'Project Director' },
+        { name: 'Sarah Hassan', role: 'Site Manager' },
+        { name: 'Omar Farid', role: 'Quality Manager' }
+      ],
+      milestones: [
+        { name: 'Design Phase Complete', date: '2023-12-31', status: 'completed' },
+        { name: 'Foundation Work Complete', date: '2024-06-30', status: 'in_progress' },
+        { name: 'Structure Complete', date: '2024-12-31', status: 'pending' },
+        { name: 'MEP Installation', date: '2025-06-30', status: 'pending' },
+        { name: 'Final Handover', date: '2025-12-31', status: 'pending' }
+      ],
+      risks: [
+        { level: 'medium', description: 'Weather delays during foundation work' },
+        { level: 'low', description: 'Material supply chain disruptions' }
+      ]
+    },
+    {
+      id: 'proj-002',
+      title: 'Dubai Marina Luxury Residences',
+      status: 'active',
+      owner: 'Dubai Infrastructure Partners',
+      ownerEmail: 'info@dubaiinfra.com',
+      startDate: '2023-09-15',
+      endDate: '2026-03-31',
+      budget: { total: 1200000000, spent: 360000000, currency: 'AED' },
+      progress: 30,
+      teamMembers: [
+        { name: 'Mohammed Al-Zahra', role: 'Project Manager' },
+        { name: 'Layla Ahmed', role: 'Design Manager' },
+        { name: 'Youssef Ibrahim', role: 'Construction Manager' }
+      ],
+      milestones: [
+        { name: 'Design Approval', date: '2024-01-31', status: 'completed' },
+        { name: 'Foundation Complete', date: '2024-08-31', status: 'in_progress' },
+        { name: 'Structure Complete', date: '2025-06-30', status: 'pending' },
+        { name: 'Interior Finishing', date: '2025-12-31', status: 'pending' },
+        { name: 'Handover', date: '2026-03-31', status: 'pending' }
+      ],
+      risks: [
+        { level: 'low', description: 'Minor design revisions expected' }
+      ]
+    },
+    {
+      id: 'proj-003',
+      title: 'NEOM Industrial Zone Phase 1',
+      status: 'active',
+      owner: 'Saudi Industrial Development Co.',
+      ownerEmail: 'projects@saudindustrial.com',
+      startDate: '2024-01-01',
+      endDate: '2026-12-31',
+      budget: { total: 2500000000, spent: 375000000, currency: 'SAR' },
+      progress: 15,
+      teamMembers: [
+        { name: 'Faisal Al-Rashid', role: 'Program Director' },
+        { name: 'Noura Al-Mahmoud', role: 'Infrastructure Manager' },
+        { name: 'Tariq Hassan', role: 'Environmental Manager' }
+      ],
+      milestones: [
+        { name: 'Site Preparation', date: '2024-03-31', status: 'in_progress' },
+        { name: 'Infrastructure Phase 1', date: '2024-12-31', status: 'pending' },
+        { name: 'Infrastructure Phase 2', date: '2025-12-31', status: 'pending' },
+        { name: 'Building Construction', date: '2026-06-30', status: 'pending' },
+        { name: 'Final Handover', date: '2026-12-31', status: 'pending' }
+      ],
+      risks: [
+        { level: 'high', description: 'Complex environmental approvals required' },
+        { level: 'medium', description: 'Large scale coordination challenges' }
+      ]
+    },
+    {
+      id: 'proj-004',
+      title: 'Cairo Airport Terminal 3 Expansion',
+      status: 'planning',
+      owner: 'Egyptian Construction Group',
+      ownerEmail: 'contact@egyptconstruction.com',
+      startDate: '2024-06-01',
+      endDate: '2027-05-31',
+      budget: { total: 1800000000, spent: 0, currency: 'EGP' },
+      progress: 5,
+      teamMembers: [
+        { name: 'Ahmed Farouk', role: 'Project Director' },
+        { name: 'Mona El-Sayed', role: 'Design Coordinator' }
+      ],
+      milestones: [
+        { name: 'Design Phase', date: '2024-12-31', status: 'in_progress' },
+        { name: 'Tender Award', date: '2025-03-31', status: 'pending' },
+        { name: 'Construction Start', date: '2025-06-01', status: 'pending' },
+        { name: 'Structure Complete', date: '2026-12-31', status: 'pending' },
+        { name: 'Operational Handover', date: '2027-05-31', status: 'pending' }
+      ],
+      risks: [
+        { level: 'high', description: 'Complex aviation regulations and approvals' },
+        { level: 'medium', description: 'Operational constraints during construction' }
+      ]
+    },
+    {
+      id: 'proj-005',
+      title: 'Abu Dhabi Cultural District',
+      status: 'active',
+      owner: 'Abu Dhabi Development Authority',
+      ownerEmail: 'projects@addauthority.ae',
+      startDate: '2023-03-01',
+      endDate: '2026-09-30',
+      budget: { total: 3200000000, spent: 1280000000, currency: 'AED' },
+      progress: 40,
+      teamMembers: [
+        { name: 'Sheikh Khalid Al-Nahyan', role: 'Program Director' },
+        { name: 'Fatima Al-Mazrouei', role: 'Cultural Programs Manager' },
+        { name: 'Sultan Al-Dhaheri', role: 'Construction Manager' }
+      ],
+      milestones: [
+        { name: 'Design Competition Complete', date: '2023-09-30', status: 'completed' },
+        { name: 'Foundation Work', date: '2024-03-31', status: 'completed' },
+        { name: 'Museum Structures', date: '2025-06-30', status: 'in_progress' },
+        { name: 'Theater Construction', date: '2025-12-31', status: 'pending' },
+        { name: 'Final Handover', date: '2026-09-30', status: 'pending' }
+      ],
+      risks: [
+        { level: 'low', description: 'Design complexity requiring specialized contractors' }
+      ]
+    },
+    {
+      id: 'proj-006',
+      title: 'Jeddah Waterfront Development',
+      status: 'completed',
+      owner: 'Jeddah Development Company',
+      ownerEmail: 'projects@jeddahdev.com',
+      startDate: '2021-01-01',
+      endDate: '2023-12-31',
+      budget: { total: 950000000, spent: 950000000, currency: 'SAR' },
+      progress: 100,
+      teamMembers: [
+        { name: 'Majed Al-Ghamdi', role: 'Project Director' },
+        { name: 'Reem Al-Saud', role: 'Design Manager' }
+      ],
+      milestones: [
+        { name: 'Design Phase', date: '2021-06-30', status: 'completed' },
+        { name: 'Infrastructure', date: '2022-06-30', status: 'completed' },
+        { name: 'Building Construction', date: '2023-06-30', status: 'completed' },
+        { name: 'Final Handover', date: '2023-12-31', status: 'completed' }
+      ],
+      risks: []
+    }
+  ],
+
+  // Users & Roles
+  users: [
+    {
+      id: 'user-001',
+      name: 'Al-Mansouri Construction Group',
+      email: 'contact@almansouri.com',
+      role: 'company',
+      userType: 'company',
+      status: 'active',
+      registeredAt: '2023-05-15T10:00:00Z',
+      lastActive: '2024-02-10T14:30:00Z',
+      profileCompletion: 95,
+      verificationStatus: 'verified',
+      location: { city: 'Riyadh', country: 'Saudi Arabia' }
+    },
+    {
+      id: 'user-002',
+      name: 'Dubai Infrastructure Partners',
+      email: 'info@dubaiinfra.com',
+      role: 'entity',
+      userType: 'company',
+      status: 'active',
+      registeredAt: '2023-06-20T09:15:00Z',
+      lastActive: '2024-02-09T16:20:00Z',
+      profileCompletion: 88,
+      verificationStatus: 'verified',
+      location: { city: 'Dubai', country: 'UAE' }
+    },
+    {
+      id: 'user-003',
+      name: 'Ahmed Al-Rashid',
+      email: 'ahmed.rashid@email.com',
+      role: 'individual',
+      userType: 'individual',
+      status: 'active',
+      registeredAt: '2023-08-10T11:30:00Z',
+      lastActive: '2024-02-11T09:45:00Z',
+      profileCompletion: 75,
+      verificationStatus: 'verified',
+      location: { city: 'Dubai', country: 'UAE' }
+    },
+    {
+      id: 'user-004',
+      name: 'Elite Structural Engineering',
+      email: 'contact@elitestructural.com',
+      role: 'entity',
+      userType: 'consultant',
+      status: 'active',
+      registeredAt: '2023-07-05T14:20:00Z',
+      lastActive: '2024-02-10T10:15:00Z',
+      profileCompletion: 92,
+      verificationStatus: 'verified',
+      location: { city: 'Riyadh', country: 'Saudi Arabia' }
+    },
+    {
+      id: 'user-005',
+      name: 'MEP Excellence Consultants',
+      email: 'contact@mepexcellence.com',
+      role: 'entity',
+      userType: 'consultant',
+      status: 'active',
+      registeredAt: '2023-09-12T08:45:00Z',
+      lastActive: '2024-02-11T11:30:00Z',
+      profileCompletion: 90,
+      verificationStatus: 'verified',
+      location: { city: 'Dubai', country: 'UAE' }
+    },
+    {
+      id: 'user-006',
+      name: 'Saudi Industrial Development Co.',
+      email: 'projects@saudindustrial.com',
+      role: 'entity',
+      userType: 'company',
+      status: 'active',
+      registeredAt: '2023-04-18T13:00:00Z',
+      lastActive: '2024-02-08T15:20:00Z',
+      profileCompletion: 85,
+      verificationStatus: 'verified',
+      location: { city: 'Riyadh', country: 'Saudi Arabia' }
+    },
+    {
+      id: 'user-007',
+      name: 'Sarah Hassan',
+      email: 'sarah.hassan@email.com',
+      role: 'individual',
+      userType: 'individual',
+      status: 'active',
+      registeredAt: '2023-10-22T10:30:00Z',
+      lastActive: '2024-02-09T14:10:00Z',
+      profileCompletion: 70,
+      verificationStatus: 'verified',
+      location: { city: 'Abu Dhabi', country: 'UAE' }
+    },
+    {
+      id: 'user-008',
+      name: 'Green Construction Co.',
+      email: 'info@greenconstruction.com',
+      role: 'entity',
+      userType: 'company',
+      status: 'pending',
+      registeredAt: '2024-01-25T09:00:00Z',
+      lastActive: '2024-02-01T12:00:00Z',
+      profileCompletion: 60,
+      verificationStatus: 'pending',
+      location: { city: 'Riyadh', country: 'Saudi Arabia' }
+    },
+    {
+      id: 'user-009',
+      name: 'Innovative Architects Studio',
+      email: 'submissions@innovativearch.com',
+      role: 'entity',
+      userType: 'consultant',
+      status: 'active',
+      registeredAt: '2023-11-08T11:15:00Z',
+      lastActive: '2024-02-11T13:45:00Z',
+      profileCompletion: 87,
+      verificationStatus: 'verified',
+      location: { city: 'Dubai', country: 'UAE' }
+    },
+    {
+      id: 'user-010',
+      name: 'Mohammed Farid',
+      email: 'mohammed.farid@email.com',
+      role: 'individual',
+      userType: 'individual',
+      status: 'active',
+      registeredAt: '2023-12-15T08:20:00Z',
+      lastActive: '2024-02-10T16:30:00Z',
+      profileCompletion: 65,
+      verificationStatus: 'verified',
+      location: { city: 'Cairo', country: 'Egypt' }
+    }
+  ],
+
+  // Approval Flows
+  approvalFlows: [
+    {
+      id: 'approval-001',
+      type: 'user_registration',
+      entity: 'Green Construction Co.',
+      entityId: 'user-008',
+      submittedBy: 'user-008',
+      submittedAt: '2024-01-25T09:00:00Z',
+      status: 'pending',
+      reviewer: null,
+      reviewNotes: null,
+      requiredDocuments: ['Commercial Registration', 'VAT Certificate', 'Company Profile']
+    },
+    {
+      id: 'approval-002',
+      type: 'proposal',
+      entity: 'Riyadh Metro Station Design Proposal',
+      entityId: 'prop-001',
+      submittedBy: 'user-004',
+      submittedAt: '2024-01-20T14:30:00Z',
+      status: 'pending',
+      reviewer: null,
+      reviewNotes: null,
+      requiredDocuments: ['Technical Proposal', 'Company Credentials']
+    },
+    {
+      id: 'approval-003',
+      type: 'opportunity',
+      entity: 'Strategic JV for Market Expansion',
+      entityId: 'opp-011',
+      submittedBy: 'user-012',
+      submittedAt: '2024-02-03T10:15:00Z',
+      status: 'pending',
+      reviewer: null,
+      reviewNotes: null,
+      requiredDocuments: ['Business Plan', 'Financial Statements']
+    },
+    {
+      id: 'approval-004',
+      type: 'user_registration',
+      entity: 'New Consultant Firm',
+      entityId: 'user-013',
+      submittedBy: 'user-013',
+      submittedAt: '2024-02-05T11:00:00Z',
+      status: 'under_review',
+      reviewer: 'admin@pmtwin.com',
+      reviewNotes: 'Reviewing professional licenses and certifications',
+      requiredDocuments: ['Professional License', 'CV', 'Certifications']
+    }
+  ]
+};
+
+// Export for global access
+if (typeof window !== 'undefined') {
+  window.adminData = adminData;
+}
+

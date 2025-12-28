@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PMTwin - Fix Accounts</title>
+    <link rel="stylesheet" href="css/main.css">
+    <style>
+        body {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            background: var(--bg-secondary);
+        }
+        .fix-container {
+            max-width: 600px;
+            width: 100%;
+            padding: var(--spacing-4);
+        }
+    </style>
+</head>
+<body>
+    <div class="fix-container">
+        <div class="card">
+            <div class="card-body" style="text-align: center;">
+                <h1 style="margin-bottom: var(--spacing-4);">Fix Test Accounts</h1>
+                <p style="margin-bottom: var(--spacing-6); color: var(--text-secondary);">
+                    This page will recreate all test accounts with correct credentials.
+                </p>
+                
+                <div id="statusMessage" style="margin-bottom: var(--spacing-4);"></div>
+                
+                <button id="fixBtn" class="btn btn-primary btn-lg btn-block" onclick="fixAccounts()">
+                    Fix Accounts Now
+                </button>
+                
+                <div id="results" style="margin-top: var(--spacing-6); text-align: left;"></div>
+                
+                <div style="margin-top: var(--spacing-6); padding-top: var(--spacing-6); border-top: 1px solid var(--border-color);">
+                    <h3 style="margin-bottom: var(--spacing-4);">Login Credentials</h3>
+                    <table class="table" style="margin-bottom: 0;">
+                        <thead>
+                            <tr>
+                                <th>Portal</th>
+                                <th>Email</th>
+                                <th>Password</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>Admin Portal</td>
+                                <td>admin@pmtwin.com</td>
+                                <td>Admin123</td>
+                            </tr>
+                            <tr>
+                                <td>User Portal</td>
+                                <td>individual@pmtwin.com</td>
+                                <td>User123</td>
+                            </tr>
+                            <tr>
+                                <td>User Portal</td>
+                                <td>entity@pmtwin.com</td>
+                                <td>Entity123</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                
+                <div style="margin-top: var(--spacing-6);">
+                    <a href="index.html" class="btn btn-outline">Back to Home</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/data.js"></script>
+    <script src="js/auth.js"></script>
+    <script>
+        function fixAccounts() {
+            const btn = document.getElementById('fixBtn');
+            const status = document.getElementById('statusMessage');
+            const results = document.getElementById('results');
+            
+            btn.disabled = true;
+            btn.textContent = 'Fixing...';
+            status.innerHTML = '<div class="alert alert-info">Creating accounts...</div>';
+            results.innerHTML = '';
+            
+            try {
+                // Force create accounts
+                if (typeof PMTwinData !== 'undefined' && PMTwinData.forceCreateTestAccounts) {
+                    PMTwinData.forceCreateTestAccounts();
+                    
+                    // Verify accounts
+                    const accounts = PMTwinData.checkAccounts();
+                    
+                    status.innerHTML = '<div class="alert alert-success">✅ Accounts created successfully!</div>';
+                    results.innerHTML = `
+                        <h4>Account Status:</h4>
+                        <ul>
+                            ${accounts.map(acc => `
+                                <li>
+                                    <strong>${acc.email}</strong><br>
+                                    Role: ${acc.role} | Status: ${acc.profile?.status || 'unknown'}
+                                </li>
+                            `).join('')}
+                        </ul>
+                        <p style="margin-top: var(--spacing-4);">
+                            <strong>You can now login to any portal using the credentials above.</strong>
+                        </p>
+                    `;
+                } else {
+                    throw new Error('PMTwinData not loaded. Please refresh the page.');
+                }
+            } catch (error) {
+                status.innerHTML = `<div class="alert alert-error">Error: ${error.message}</div>`;
+                results.innerHTML = '<p>Please refresh the page and try again.</p>';
+            }
+            
+            btn.disabled = false;
+            btn.textContent = 'Fix Accounts Now';
+        }
+        
+        // Auto-check on load
+        window.addEventListener('load', function() {
+            setTimeout(function() {
+                if (typeof PMTwinData !== 'undefined') {
+                    const accounts = PMTwinData.checkAccounts();
+                    const status = document.getElementById('statusMessage');
+                    
+                    if (accounts.length === 3) {
+                        status.innerHTML = '<div class="alert alert-success">✅ All test accounts exist and are ready!</div>';
+                    } else if (accounts.length > 0) {
+                        status.innerHTML = `<div class="alert alert-warning">⚠️ Only ${accounts.length} account(s) found. Click "Fix Accounts Now" to create missing ones.</div>`;
+                    } else {
+                        status.innerHTML = '<div class="alert alert-error">❌ No test accounts found. Click "Fix Accounts Now" to create them.</div>';
+                    }
+                }
+            }, 500);
+        });
+    </script>
+</body>
+</html>
+

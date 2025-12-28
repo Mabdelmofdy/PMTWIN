@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>PMTwin Mobile</title>
+    <link rel="stylesheet" href="css/main.css">
+    <style>
+        /* Mobile-specific overrides */
+        body {
+            margin: 0;
+            padding: 0;
+            background: var(--bg-primary);
+        }
+        .mobile-page {
+            padding-bottom: 80px;
+            min-height: calc(100vh - 60px);
+        }
+        .mobile-header {
+            position: sticky;
+            top: 0;
+            z-index: var(--z-sticky);
+        }
+    </style>
+</head>
+<body>
+    <!-- Mobile Header -->
+    <div class="mobile-header">
+        <div style="display: flex; align-items: center; justify-content: space-between; padding: var(--spacing-4);">
+            <h2 style="margin: 0; color: white;">PMTwin</h2>
+            <button id="mobileMenuBtn" style="background: none; border: none; color: white; font-size: 1.5rem; cursor: pointer;">☰</button>
+        </div>
+    </div>
+
+    <!-- Offline Indicator -->
+    <div id="offlineIndicator" class="offline-indicator" style="display: none;">
+        Offline Mode - Data will sync when connection is restored
+    </div>
+
+    <!-- Login Section (shown when not authenticated) -->
+    <main id="loginSection" style="display: none; min-height: calc(100vh - 60px); padding: var(--spacing-4);">
+        <div style="max-width: 400px; margin: 0 auto; padding-top: var(--spacing-8);">
+            <h2 style="margin-bottom: var(--spacing-6); text-align: center; color: white;">
+                Mobile App Login
+                <button 
+                    class="demo-info-button" 
+                    onclick="DemoCredentials.showModal('mobile', 'mobileLoginEmail', 'mobileLoginPassword')"
+                    title="View demo user credentials"
+                    aria-label="View demo user credentials"
+                >!</button>
+            </h2>
+            <div class="card">
+                <div class="card-body">
+                    <form id="mobileLoginForm" onsubmit="return MobileApp.handleLogin(event)">
+                        <div class="form-group">
+                            <label for="mobileLoginEmail" class="form-label">Email</label>
+                            <input type="email" id="mobileLoginEmail" class="form-control" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="mobileLoginPassword" class="form-label">Password</label>
+                            <input type="password" id="mobileLoginPassword" class="form-control" required>
+                        </div>
+                        <div id="mobileLoginError" class="alert alert-error" style="display: none;"></div>
+                        <button type="submit" class="btn btn-primary btn-block">Login</button>
+                    </form>
+                    <p style="text-align: center; margin-top: var(--spacing-4);">
+                        <a href="index.html" style="color: var(--text-link);">Back to Home</a>
+                    </p>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Main Content (shown when authenticated) -->
+    <main id="mainContent" class="mobile-page">
+        <!-- Dashboard Section -->
+        <section id="dashboard" class="route-section" style="display: none; padding: var(--spacing-4);">
+            <h2 style="margin-bottom: var(--spacing-4);">Dashboard</h2>
+            <div id="dashboardContent">
+                <!-- Dashboard loaded here -->
+            </div>
+        </section>
+
+        <!-- Biometric Approval Section -->
+        <section id="approval" class="route-section" style="display: none; padding: var(--spacing-4);">
+            <h2 style="margin-bottom: var(--spacing-4);">Biometric Approval</h2>
+            <div id="approvalContent">
+                <!-- Approval form loaded here -->
+            </div>
+        </section>
+
+        <!-- Site Log Section -->
+        <section id="site-log" class="route-section" style="display: none; padding: var(--spacing-4);">
+            <h2 style="margin-bottom: var(--spacing-4);">Site Log</h2>
+            <div id="siteLogContent">
+                <!-- Site log form loaded here -->
+            </div>
+        </section>
+
+        <!-- Notifications Section -->
+        <section id="notifications" class="route-section" style="display: none; padding: var(--spacing-4);">
+            <h2 style="margin-bottom: var(--spacing-4);">Notifications</h2>
+            <div id="notificationsContent">
+                <!-- Notifications loaded here -->
+            </div>
+        </section>
+
+        <!-- Sync Section -->
+        <section id="sync" class="route-section" style="display: none; padding: var(--spacing-4);">
+            <h2 style="margin-bottom: var(--spacing-4);">Sync Status</h2>
+            <div id="syncContent">
+                <!-- Sync status loaded here -->
+            </div>
+        </section>
+    </main>
+
+    <!-- Bottom Navigation (hidden when not authenticated) -->
+    <nav class="bottom-nav" id="bottomNav" style="display: none;">
+        <div class="bottom-nav-items">
+            <a href="#dashboard" class="bottom-nav-item" data-route="dashboard">
+                <span style="font-size: 1.5rem;">🏠</span>
+                <span>Home</span>
+            </a>
+            <a href="#approval" class="bottom-nav-item" data-route="approval">
+                <span style="font-size: 1.5rem;">✍️</span>
+                <span>Approve</span>
+            </a>
+            <a href="#site-log" class="bottom-nav-item" data-route="site-log">
+                <span style="font-size: 1.5rem;">📷</span>
+                <span>Log</span>
+            </a>
+            <a href="#notifications" class="bottom-nav-item" data-route="notifications">
+                <span style="font-size: 1.5rem;">🔔</span>
+                <span>Alerts</span>
+                <span id="notificationBadge" class="badge badge-error" style="display: none; position: absolute; top: 0; right: 0;">0</span>
+            </a>
+            <a href="#sync" class="bottom-nav-item" data-route="sync">
+                <span style="font-size: 1.5rem;">🔄</span>
+                <span>Sync</span>
+            </a>
+        </div>
+    </nav>
+
+    <script src="js/data.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/demo-credentials.js"></script>
+    <script src="js/mobile-app.js"></script>
+</body>
+</html>
+

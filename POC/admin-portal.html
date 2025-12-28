@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PMTwin Admin Portal</title>
+    <link rel="stylesheet" href="css/main.css">
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="container">
+            <div class="navbar-content">
+                <a href="index.html" class="navbar-brand">PMTwin Admin</a>
+                <button class="navbar-toggle" id="navbarToggle" aria-label="Toggle navigation">☰</button>
+                <ul class="navbar-nav" id="navbarNav">
+                    <li><a href="#dashboard" class="navbar-link" data-route="dashboard">Dashboard</a></li>
+                    <li><a href="#vetting" class="navbar-link" data-route="vetting">Vetting</a></li>
+                    <li><a href="#moderation" class="navbar-link" data-route="moderation">Moderation</a></li>
+                    <li><a href="#reports" class="navbar-link" data-route="reports">Reports</a></li>
+                    <li><a href="#audit" class="navbar-link" data-route="audit">Audit Trail</a></li>
+                    <li><a href="#" onclick="AdminPortal.logout(); return false;" class="navbar-link">Logout</a></li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Login Section (shown when not authenticated) -->
+    <main id="loginSection" style="display: none; min-height: calc(100vh - 200px); padding: var(--spacing-8) 0;">
+        <div class="container" style="max-width: 400px;">
+            <h1 style="margin-bottom: var(--spacing-6); text-align: center;">
+                Admin Portal Login
+                <button 
+                    class="demo-info-button" 
+                    onclick="DemoCredentials.showModal('admin', 'adminLoginEmail', 'adminLoginPassword')"
+                    title="View demo user credentials"
+                    aria-label="View demo user credentials"
+                >!</button>
+            </h1>
+            <div class="card">
+                <div class="card-body">
+                    <form id="adminLoginForm" onsubmit="return AdminPortal.handleLogin(event)">
+                        <div class="form-group">
+                            <label for="adminLoginEmail" class="form-label">Email</label>
+                            <input type="email" id="adminLoginEmail" class="form-control" required value="admin@pmtwin.com">
+                        </div>
+                        <div class="form-group">
+                            <label for="adminLoginPassword" class="form-label">Password</label>
+                            <input type="password" id="adminLoginPassword" class="form-control" required>
+                            <div class="form-help">Default: Admin123</div>
+                        </div>
+                        <div id="adminLoginError" class="alert alert-error" style="display: none;"></div>
+                        <button type="submit" class="btn btn-primary btn-block" id="adminLoginBtn">Login</button>
+                    </form>
+                    <div style="margin-top: var(--spacing-4); text-align: center;">
+                        <button type="button" class="btn btn-outline btn-sm" onclick="AdminPortal.testLogin()" style="margin-right: var(--spacing-2);">Test Login</button>
+                        <button type="button" class="btn btn-outline btn-sm" onclick="AdminPortal.fixAccounts()" style="margin-right: var(--spacing-2);">Fix Accounts</button>
+                        <button type="button" class="btn btn-outline btn-sm" onclick="if(typeof debugAdminLogin !== 'undefined') debugAdminLogin(); else alert('Debug script not loaded. Refresh page.');">Debug</button>
+                    </div>
+                    <p style="text-align: center; margin-top: var(--spacing-4);">
+                        <a href="index.html">Back to Home</a> | 
+                        <a href="fix-accounts.html">Fix Accounts Page</a>
+                    </p>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Main Content (shown when authenticated) -->
+    <main id="mainContent" style="min-height: calc(100vh - 200px); padding: var(--spacing-8) 0;">
+        <!-- Dashboard Section -->
+        <section id="dashboard" class="route-section" style="display: none;">
+            <div id="adminDashboard">
+                <!-- Admin dashboard will be dynamically injected here -->
+            </div>
+        </section>
+
+        <!-- Proposals Section -->
+        <section id="proposals" class="route-section" style="display: none;">
+            <div id="proposals">
+                <!-- Proposals will be dynamically injected here -->
+            </div>
+        </section>
+
+        <!-- Service Pipeline Section -->
+        <section id="servicePipeline" class="route-section" style="display: none;">
+            <div id="servicePipeline">
+                <!-- Service pipeline will be dynamically injected here -->
+            </div>
+        </section>
+
+        <!-- Projects Section -->
+        <section id="projects" class="route-section" style="display: none;">
+            <div id="projects">
+                <!-- Projects will be dynamically injected here -->
+            </div>
+        </section>
+
+        <!-- Admin Tables Section -->
+        <section id="adminTables" class="route-section" style="display: none;">
+            <div id="adminTables">
+                <!-- Admin tables will be dynamically injected here -->
+            </div>
+        </section>
+
+        <!-- Vetting Section -->
+        <section id="vetting" class="route-section" style="display: none;">
+            <div class="container">
+                <h1 style="margin-bottom: var(--spacing-6);">User Vetting</h1>
+                <div id="vettingContent">
+                    <!-- Vetting queue loaded here -->
+                </div>
+            </div>
+        </section>
+
+        <!-- Moderation Section -->
+        <section id="moderation" class="route-section" style="display: none;">
+            <div class="container">
+                <h1 style="margin-bottom: var(--spacing-6);">Marketplace Moderation</h1>
+                <div id="moderationContent">
+                    <!-- Moderation content loaded here -->
+                </div>
+            </div>
+        </section>
+
+        <!-- Reports Section -->
+        <section id="reports" class="route-section" style="display: none;">
+            <div class="container">
+                <h1 style="margin-bottom: var(--spacing-6);">Financial Reports</h1>
+                <div id="reportsContent">
+                    <!-- Reports loaded here -->
+                </div>
+            </div>
+        </section>
+
+        <!-- Audit Trail Section -->
+        <section id="audit" class="route-section" style="display: none;">
+            <div class="container">
+                <h1 style="margin-bottom: var(--spacing-6);">Audit Trail</h1>
+                <div id="auditContent">
+                    <!-- Audit trail loaded here -->
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Footer -->
+    <footer style="background: var(--bg-dark); color: var(--text-inverse); padding: var(--spacing-8) 0; margin-top: var(--spacing-16);">
+        <div class="container" style="text-align: center;">
+            <p>&copy; 2024 PMTwin. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <!-- Modals -->
+    <div id="modalBackdrop" class="modal-backdrop" onclick="AdminPortal.closeModal()"></div>
+    <div id="modal" class="modal">
+        <div class="modal-header">
+            <h2 class="modal-title" id="modalTitle">Modal Title</h2>
+            <button class="modal-close" onclick="AdminPortal.closeModal()">&times;</button>
+        </div>
+        <div class="modal-body" id="modalBody">
+            <!-- Modal content -->
+        </div>
+        <div class="modal-footer" id="modalFooter">
+            <!-- Modal footer -->
+        </div>
+    </div>
+
+    <script src="js/data.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/debug-login.js"></script>
+    <script src="js/demo-credentials.js"></script>
+    <!-- Load data files first -->
+    <script src="data/modelsData.js"></script>
+    <script src="data/adminData.js"></script>
+    <script src="data/dashboardData.js"></script>
+    <!-- Load renderer -->
+    <script src="js/renderer.js"></script>
+    <script src="js/admin-portal.js"></script>
+    <script>
+        // Initialize admin dashboard rendering when dashboard route is loaded
+        if (window.location.hash === '#dashboard') {
+            document.addEventListener('DOMContentLoaded', function() {
+                if (typeof Renderer !== 'undefined') {
+                    Renderer.renderAdminDashboard();
+                }
+            });
+        }
+        // Initialize proposals rendering
+        if (window.location.hash === '#proposals') {
+            document.addEventListener('DOMContentLoaded', function() {
+                if (typeof Renderer !== 'undefined') {
+                    Renderer.renderProposals();
+                }
+            });
+        }
+        // Initialize pipeline rendering
+        if (window.location.hash === '#servicePipeline') {
+            document.addEventListener('DOMContentLoaded', function() {
+                if (typeof Renderer !== 'undefined') {
+                    Renderer.renderServicePipeline();
+                }
+            });
+        }
+        // Initialize projects rendering
+        if (window.location.hash === '#projects') {
+            document.addEventListener('DOMContentLoaded', function() {
+                if (typeof Renderer !== 'undefined') {
+                    Renderer.renderProjects();
+                }
+            });
+        }
+    </script>
+</body>
+</html>
+
