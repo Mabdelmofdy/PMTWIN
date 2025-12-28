@@ -72,6 +72,9 @@
     
     // Migrate existing users to new data model
     migrateUsersToOnboardingModel();
+    
+    // Load sample notifications if none exist
+    loadSampleNotifications();
   }
 
   // ============================================
@@ -466,6 +469,93 @@
     console.log('🔧 Force creating test accounts...');
     autoCreateTestAccounts();
     console.log('✅ Test accounts ready!');
+  }
+
+  // Load sample notifications from notification.json file
+  async function loadSampleNotifications(forceReload = false) {
+    const existingNotifications = Notifications.getAll();
+    
+    // Only load if no notifications exist, unless forceReload is true
+    if (existingNotifications.length > 0 && !forceReload) {
+      // Check if notifications have old demo user IDs that need to be remapped
+      const hasOldIds = existingNotifications.some(n => 
+        n.userId === 'demo_admin_001' || 
+        n.userId === 'demo_individual_001' || 
+        n.userId === 'demo_entity_001'
+      );
+      if (!hasOldIds) {
+        return; // Notifications already loaded with correct IDs
+      }
+      // Clear old notifications with wrong IDs
+      console.log('🔄 Found notifications with old user IDs, reloading...');
+      set(STORAGE_KEYS.NOTIFICATIONS, []);
+    }
+    
+    // Wait a bit for users to be created first
+    await new Promise(resolve => setTimeout(resolve, 100));
+    
+    try {
+      const response = await fetch('data/notification.json');
+      if (!response.ok) {
+        console.warn('⚠️ Could not load notification.json file');
+        return;
+      }
+      
+      const data = await response.json();
+      if (data.notifications && Array.isArray(data.notifications)) {
+        // Map userIds from JSON to actual user IDs based on email
+        const userIdMapping = {
+          'demo_admin_001': 'admin@pmtwin.com',
+          'demo_individual_001': 'individual@pmtwin.com',
+          'demo_entity_001': 'entity@pmtwin.com'
+        };
+        
+        // Get users - retry if not found yet
+        let users = Users.getAll();
+        let retries = 0;
+        while (users.length === 0 && retries < 5) {
+          await new Promise(resolve => setTimeout(resolve, 200));
+          users = Users.getAll();
+          retries++;
+        }
+        
+        if (users.length === 0) {
+          console.warn('⚠️ No users found, skipping notification loading');
+          return;
+        }
+        
+        const mappedNotifications = data.notifications.map(notif => {
+          // Find the actual user ID by email
+          const email = userIdMapping[notif.userId];
+          if (email) {
+            const user = users.find(u => u.email === email);
+            if (user) {
+              return {
+                ...notif,
+                userId: user.id
+              };
+            } else {
+              console.warn(`⚠️ User not found for email: ${email}, skipping notification ${notif.id}`);
+              return null;
+            }
+          }
+          // If mapping not found, skip this notification
+          console.warn(`⚠️ No mapping found for userId: ${notif.userId}, skipping notification ${notif.id}`);
+          return null;
+        }).filter(notif => notif !== null); // Remove null entries
+        
+        if (mappedNotifications.length > 0) {
+          // Store all notifications
+          set(STORAGE_KEYS.NOTIFICATIONS, mappedNotifications);
+          console.log(`✅ Loaded ${mappedNotifications.length} sample notifications from notification.json`);
+        } else {
+          console.warn('⚠️ No notifications could be mapped to existing users');
+        }
+      }
+    } catch (error) {
+      console.warn('⚠️ Error loading sample notifications:', error);
+      // Silently fail - notifications are optional
+    }
   }
 
   // Generic get function
@@ -1771,7 +1861,8 @@
     submitProfileForReview,
     uploadDocument,
     generateOTP,
-    checkFeatureAccess
+    checkFeatureAccess,
+    loadSampleNotifications: () => loadSampleNotifications(true)
   };
 
   // Initialize on load

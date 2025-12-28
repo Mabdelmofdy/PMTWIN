@@ -1,6 +1,6 @@
 /**
  * PMTwin Landing Page Renderer
- * Dynamically renders all sections from siteData.js
+ * Dynamically renders all sections from siteData.json
  */
 
 (function() {
@@ -9,7 +9,7 @@
   // Wait for DOM and siteData to be available
   function initLandingPage() {
     if (typeof siteData === 'undefined') {
-      console.error('siteData is not loaded. Make sure siteData.js is loaded before main.js');
+      console.error('siteData is not loaded. Make sure data/data-loader.js is loaded before main.js');
       return;
     }
 

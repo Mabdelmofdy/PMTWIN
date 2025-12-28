@@ -1,0 +1,507 @@
+{
+  "kpis": {
+    "totalOpportunities": 156,
+    "activeProjects": 47,
+    "pendingProposals": 23,
+    "revenuePipeline": 2850000000,
+    "resourceUtilization": 72,
+    "modelUsageDistribution": {
+      "Task-Based Engagement": 35,
+      "Consortium": 18,
+      "Project JV": 12,
+      "SPV": 8,
+      "Strategic JV": 7,
+      "Strategic Alliance": 6,
+      "Bulk Purchasing": 5,
+      "Co-Ownership": 4,
+      "Resource Sharing": 3,
+      "Professional Hiring": 2,
+      "Consultant Hiring": 1,
+      "Competition/RFP": 1,
+      "Mentorship": 0.5
+    },
+    "activeUsers": 1247,
+    "completedProjects": 89,
+    "averageProjectValue": 125000000,
+    "successRate": 68
+  },
+  "charts": {
+    "modelUsage": {
+      "labels": [
+        "Task-Based",
+        "Consortium",
+        "Project JV",
+        "SPV",
+        "Strategic JV",
+        "Bulk Purchasing",
+        "Others"
+      ],
+      "values": [
+        35,
+        18,
+        12,
+        8,
+        7,
+        5,
+        15
+      ]
+    },
+    "revenueTrend": {
+      "labels": [
+        "Aug 2023",
+        "Sep 2023",
+        "Oct 2023",
+        "Nov 2023",
+        "Dec 2023",
+        "Jan 2024",
+        "Feb 2024"
+      ],
+      "values": [
+        180000000,
+        210000000,
+        195000000,
+        240000000,
+        275000000,
+        320000000,
+        285000000
+      ]
+    },
+    "statusDistribution": {
+      "labels": [
+        "Active",
+        "Pending",
+        "Under Review",
+        "Closed",
+        "Draft"
+      ],
+      "values": [
+        47,
+        23,
+        15,
+        89,
+        8
+      ]
+    },
+    "geographicDistribution": {
+      "labels": [
+        "Saudi Arabia",
+        "UAE",
+        "Egypt",
+        "Kuwait",
+        "Qatar",
+        "Other GCC"
+      ],
+      "values": [
+        65,
+        18,
+        8,
+        4,
+        3,
+        2
+      ]
+    },
+    "monthlyOpportunities": {
+      "labels": [
+        "Aug",
+        "Sep",
+        "Oct",
+        "Nov",
+        "Dec",
+        "Jan",
+        "Feb"
+      ],
+      "values": [
+        18,
+        22,
+        19,
+        25,
+        28,
+        24,
+        20
+      ]
+    },
+    "proposalStatus": {
+      "labels": [
+        "Approved",
+        "Pending",
+        "Under Review",
+        "Rejected"
+      ],
+      "values": [
+        45,
+        23,
+        18,
+        12
+      ]
+    }
+  },
+  "recentActivities": [
+    {
+      "id": "act-001",
+      "timestamp": "2024-02-11T14:30:00Z",
+      "type": "proposal_submitted",
+      "user": "Elite Structural Engineering",
+      "userEmail": "contact@elitestructural.com",
+      "action": "submitted proposal",
+      "entity": "Riyadh Metro Station Design",
+      "entityId": "prop-001",
+      "details": "Submitted proposal for structural engineering services",
+      "icon": "📄"
+    },
+    {
+      "id": "act-002",
+      "timestamp": "2024-02-11T13:15:00Z",
+      "type": "opportunity_created",
+      "user": "Al-Mansouri Construction Group",
+      "userEmail": "contact@almansouri.com",
+      "action": "created opportunity",
+      "entity": "Riyadh Metro Station Design",
+      "entityId": "opp-001",
+      "details": "Created new Task-Based Engagement opportunity",
+      "icon": "✨"
+    },
+    {
+      "id": "act-003",
+      "timestamp": "2024-02-11T12:45:00Z",
+      "type": "proposal_approved",
+      "user": "MEP Excellence Consultants",
+      "userEmail": "contact@mepexcellence.com",
+      "action": "proposal approved",
+      "entity": "Dubai Marina Towers MEP Design",
+      "entityId": "prop-003",
+      "details": "Proposal approved and moved to negotiation stage",
+      "icon": "✅"
+    },
+    {
+      "id": "act-004",
+      "timestamp": "2024-02-11T11:20:00Z",
+      "type": "project_milestone",
+      "user": "Dubai Infrastructure Partners",
+      "userEmail": "info@dubaiinfra.com",
+      "action": "milestone completed",
+      "entity": "Dubai Marina Luxury Residences",
+      "entityId": "proj-002",
+      "details": "Design Approval milestone completed",
+      "icon": "🎯"
+    },
+    {
+      "id": "act-005",
+      "timestamp": "2024-02-11T10:00:00Z",
+      "type": "user_registered",
+      "user": "Green Construction Co.",
+      "userEmail": "info@greenconstruction.com",
+      "action": "registered",
+      "entity": "New company registration",
+      "entityId": "user-008",
+      "details": "New company registered and pending approval",
+      "icon": "👤"
+    },
+    {
+      "id": "act-006",
+      "timestamp": "2024-02-10T16:30:00Z",
+      "type": "match_generated",
+      "user": "System",
+      "userEmail": "system@pmtwin.com",
+      "action": "generated match",
+      "entity": "NEOM Industrial Zone Consortium",
+      "entityId": "match-045",
+      "details": "Generated 3 potential consortium partners",
+      "icon": "🔗"
+    },
+    {
+      "id": "act-007",
+      "timestamp": "2024-02-10T15:15:00Z",
+      "type": "proposal_submitted",
+      "user": "Gulf Infrastructure Partners",
+      "userEmail": "partnerships@gulfinfra.com",
+      "action": "submitted proposal",
+      "entity": "NEOM Industrial Zone Consortium",
+      "entityId": "prop-004",
+      "details": "Submitted consortium proposal",
+      "icon": "📄"
+    },
+    {
+      "id": "act-008",
+      "timestamp": "2024-02-10T14:00:00Z",
+      "type": "opportunity_closed",
+      "user": "Advanced Engineering Solutions",
+      "userEmail": "careers@advancedeng.com",
+      "action": "closed opportunity",
+      "entity": "Structural Engineer Position",
+      "entityId": "opp-015",
+      "details": "Position filled, opportunity closed",
+      "icon": "🔒"
+    },
+    {
+      "id": "act-009",
+      "timestamp": "2024-02-10T12:30:00Z",
+      "type": "project_update",
+      "user": "Saudi Industrial Development Co.",
+      "userEmail": "projects@saudindustrial.com",
+      "action": "updated project",
+      "entity": "NEOM Industrial Zone Phase 1",
+      "entityId": "proj-003",
+      "details": "Updated project progress to 15%",
+      "icon": "📊"
+    },
+    {
+      "id": "act-010",
+      "timestamp": "2024-02-10T11:00:00Z",
+      "type": "proposal_rejected",
+      "user": "International Airport Builders",
+      "userEmail": "projects@airportbuilders.com",
+      "action": "proposal rejected",
+      "entity": "Cairo Airport Terminal JV",
+      "entityId": "prop-005",
+      "details": "Proposal rejected - does not meet financial requirements",
+      "icon": "❌"
+    },
+    {
+      "id": "act-011",
+      "timestamp": "2024-02-09T17:45:00Z",
+      "type": "opportunity_created",
+      "user": "Visionary Development Group",
+      "userEmail": "competitions@visionarydev.com",
+      "action": "created opportunity",
+      "entity": "Landmark Building Design Competition",
+      "entityId": "opp-010",
+      "details": "Launched design competition with 5M SAR prize",
+      "icon": "✨"
+    },
+    {
+      "id": "act-012",
+      "timestamp": "2024-02-09T16:20:00Z",
+      "type": "user_approved",
+      "user": "Admin",
+      "userEmail": "admin@pmtwin.com",
+      "action": "approved user",
+      "entity": "MEP Excellence Consultants",
+      "entityId": "user-005",
+      "details": "User account approved and activated",
+      "icon": "✅"
+    },
+    {
+      "id": "act-013",
+      "timestamp": "2024-02-09T15:00:00Z",
+      "type": "bulk_purchase",
+      "user": "Riyadh Builders Association",
+      "userEmail": "info@riyadhbuilders.org",
+      "action": "formed purchasing group",
+      "entity": "Steel Reinforcement Bulk Purchase",
+      "entityId": "opp-006",
+      "details": "Formed bulk purchasing group with 18 members",
+      "icon": "🛒"
+    },
+    {
+      "id": "act-014",
+      "timestamp": "2024-02-09T13:30:00Z",
+      "type": "proposal_submitted",
+      "user": "Riyadh Steel Suppliers",
+      "userEmail": "sales@riyadhsteel.com",
+      "action": "submitted proposal",
+      "entity": "Steel Reinforcement Bulk Purchase",
+      "entityId": "prop-006",
+      "details": "Submitted bulk pricing proposal with 15% discount",
+      "icon": "📄"
+    },
+    {
+      "id": "act-015",
+      "timestamp": "2024-02-09T12:00:00Z",
+      "type": "project_completed",
+      "user": "Jeddah Development Company",
+      "userEmail": "projects@jeddahdev.com",
+      "action": "project completed",
+      "entity": "Jeddah Waterfront Development",
+      "entityId": "proj-006",
+      "details": "Project completed and handed over successfully",
+      "icon": "🎉"
+    },
+    {
+      "id": "act-016",
+      "timestamp": "2024-02-08T16:00:00Z",
+      "type": "consortium_formed",
+      "user": "Saudi Industrial Development Co.",
+      "userEmail": "projects@saudindustrial.com",
+      "action": "consortium formed",
+      "entity": "NEOM Industrial Zone Consortium",
+      "entityId": "consortium-012",
+      "details": "Successfully formed consortium with 3 partners",
+      "icon": "🤝"
+    },
+    {
+      "id": "act-017",
+      "timestamp": "2024-02-08T14:30:00Z",
+      "type": "opportunity_created",
+      "user": "Dubai Mega Projects LLC",
+      "userEmail": "hr@dubaimegaprojects.com",
+      "action": "created opportunity",
+      "entity": "Senior Project Manager Position",
+      "entityId": "opp-008",
+      "details": "Posted full-time project manager position",
+      "icon": "✨"
+    },
+    {
+      "id": "act-018",
+      "timestamp": "2024-02-08T13:00:00Z",
+      "type": "proposal_submitted",
+      "user": "Ahmed Al-Rashid",
+      "userEmail": "ahmed.rashid@email.com",
+      "action": "submitted application",
+      "entity": "Senior Project Manager Position",
+      "entityId": "prop-007",
+      "details": "Submitted job application with PMP certification",
+      "icon": "📄"
+    },
+    {
+      "id": "act-019",
+      "timestamp": "2024-02-08T11:15:00Z",
+      "type": "match_generated",
+      "user": "System",
+      "userEmail": "system@pmtwin.com",
+      "action": "generated match",
+      "entity": "Dubai Marina Towers MEP",
+      "entityId": "match-044",
+      "details": "Generated 8 potential MEP consultants",
+      "icon": "🔗"
+    },
+    {
+      "id": "act-020",
+      "timestamp": "2024-02-08T10:00:00Z",
+      "type": "resource_exchange",
+      "user": "Heavy Equipment Solutions",
+      "userEmail": "rental@heavyeq.com",
+      "action": "listed equipment",
+      "entity": "Excavator Rental",
+      "entityId": "opp-012",
+      "details": "Listed 3 excavators available for rental",
+      "icon": "🚜"
+    }
+  ],
+  "upcomingDeadlines": [
+    {
+      "id": "deadline-001",
+      "title": "Riyadh Metro Station Design - Proposal Deadline",
+      "entityId": "opp-001",
+      "entityType": "opportunity",
+      "deadline": "2024-02-28T23:59:59Z",
+      "priority": "high",
+      "daysRemaining": 17
+    },
+    {
+      "id": "deadline-002",
+      "title": "Dubai Marina Towers MEP - Proposal Deadline",
+      "entityId": "opp-002",
+      "entityType": "opportunity",
+      "deadline": "2024-03-15T23:59:59Z",
+      "priority": "medium",
+      "daysRemaining": 33
+    },
+    {
+      "id": "deadline-003",
+      "title": "NEOM Industrial Zone - Consortium Deadline",
+      "entityId": "opp-003",
+      "entityType": "opportunity",
+      "deadline": "2024-04-30T23:59:59Z",
+      "priority": "high",
+      "daysRemaining": 79
+    },
+    {
+      "id": "deadline-004",
+      "title": "Cairo Airport Terminal - JV Proposal Deadline",
+      "entityId": "opp-004",
+      "entityType": "opportunity",
+      "deadline": "2024-05-15T23:59:59Z",
+      "priority": "high",
+      "daysRemaining": 94
+    },
+    {
+      "id": "deadline-005",
+      "title": "Riyadh Metro Line 3 - Foundation Milestone",
+      "entityId": "proj-001",
+      "entityType": "project",
+      "deadline": "2024-06-30T23:59:59Z",
+      "priority": "medium",
+      "daysRemaining": 140
+    },
+    {
+      "id": "deadline-006",
+      "title": "Landmark Building Design Competition",
+      "entityId": "opp-010",
+      "entityType": "opportunity",
+      "deadline": "2024-05-31T23:59:59Z",
+      "priority": "medium",
+      "daysRemaining": 110
+    }
+  ],
+  "topPerformers": [
+    {
+      "rank": 1,
+      "name": "Al-Mansouri Construction Group",
+      "type": "company",
+      "metrics": {
+        "opportunitiesCreated": 12,
+        "proposalsSubmitted": 8,
+        "projectsActive": 3,
+        "successRate": 85,
+        "totalValue": 1250000000
+      }
+    },
+    {
+      "rank": 2,
+      "name": "Dubai Infrastructure Partners",
+      "type": "company",
+      "metrics": {
+        "opportunitiesCreated": 10,
+        "proposalsSubmitted": 6,
+        "projectsActive": 2,
+        "successRate": 78,
+        "totalValue": 980000000
+      }
+    },
+    {
+      "rank": 3,
+      "name": "Elite Structural Engineering",
+      "type": "consultant",
+      "metrics": {
+        "opportunitiesCreated": 2,
+        "proposalsSubmitted": 15,
+        "projectsActive": 5,
+        "successRate": 73,
+        "totalValue": 45000000
+      }
+    },
+    {
+      "rank": 4,
+      "name": "Saudi Industrial Development Co.",
+      "type": "company",
+      "metrics": {
+        "opportunitiesCreated": 8,
+        "proposalsSubmitted": 4,
+        "projectsActive": 2,
+        "successRate": 70,
+        "totalValue": 2500000000
+      }
+    },
+    {
+      "rank": 5,
+      "name": "MEP Excellence Consultants",
+      "type": "consultant",
+      "metrics": {
+        "opportunitiesCreated": 1,
+        "proposalsSubmitted": 12,
+        "projectsActive": 8,
+        "successRate": 75,
+        "totalValue": 38000000
+      }
+    }
+  ],
+  "userDashboard": {
+    "myOpportunities": 5,
+    "myProposals": 8,
+    "activeMatches": 12,
+    "pendingReviews": 3,
+    "completedProjects": 2,
+    "profileViews": 45,
+    "endorsementCount": 7
+  }
+}

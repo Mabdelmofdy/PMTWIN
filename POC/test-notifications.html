@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Notifications</title>
+</head>
+<body>
+    <h1>Notification Test</h1>
+    <button onclick="testNotifications()">Load Notifications</button>
+    <button onclick="clearNotifications()">Clear All Notifications</button>
+    <button onclick="reloadNotifications()">Reload Sample Notifications</button>
+    <div id="output" style="margin-top: 20px; padding: 20px; border: 1px solid #ccc;"></div>
+
+    <script src="js/data.js"></script>
+    <script>
+        async function testNotifications() {
+            const output = document.getElementById('output');
+            output.innerHTML = '<p>Loading...</p>';
+
+            // Wait for data to initialize
+            await new Promise(resolve => setTimeout(resolve, 500));
+
+            const users = PMTwinData.Users.getAll();
+            const notifications = PMTwinData.Notifications.getAll();
+
+            let html = '<h2>Users:</h2><ul>';
+            users.forEach(user => {
+                html += `<li>ID: ${user.id}, Email: ${user.email}</li>`;
+            });
+            html += '</ul>';
+
+            html += '<h2>All Notifications:</h2><ul>';
+            notifications.forEach(notif => {
+                html += `<li>ID: ${notif.id}, UserID: ${notif.userId}, Title: ${notif.title}</li>`;
+            });
+            html += '</ul>';
+
+            html += '<h2>Notifications by User:</h2>';
+            users.forEach(user => {
+                const userNotifs = PMTwinData.Notifications.getByUser(user.id);
+                html += `<h3>${user.email} (${user.id}):</h3><ul>`;
+                userNotifs.forEach(notif => {
+                    html += `<li>${notif.title} - ${notif.message}</li>`;
+                });
+                html += '</ul>';
+            });
+
+            output.innerHTML = html;
+        }
+
+        function clearNotifications() {
+            localStorage.setItem('pmtwin_notifications', JSON.stringify([]));
+            alert('Notifications cleared!');
+        }
+
+        async function reloadNotifications() {
+            await PMTwinData.loadSampleNotifications();
+            alert('Notifications reloaded! Check console for details.');
+            testNotifications();
+        }
+
+        // Auto-run on load
+        window.addEventListener('load', () => {
+            setTimeout(testNotifications, 1000);
+        });
+    </script>
+</body>
+</html>
+

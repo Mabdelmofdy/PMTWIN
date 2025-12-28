@@ -1,0 +1,782 @@
+{
+  "categories": [
+    {
+      "id": "1",
+      "name": "Project-Based Collaboration",
+      "description": "Partnerships formed to deliver specific projects or defined objectives with a clear start and end point.",
+      "subModels": [
+        {
+          "id": "1.1",
+          "title": "Task-Based Engagement",
+          "shortDescription": "Short-term collaboration for executing specific tasks, deliverables, or providing expert consultation.",
+          "detailedDescription": "Task-Based Engagement is ideal for companies that need specialized expertise or services for a specific, well-defined task without committing to a full project partnership. This model allows businesses to access professional services on-demand, whether it's design review, engineering consultation, quality control, or technical analysis. Perfect for projects requiring specific certifications or expertise that your team doesn't possess in-house.",
+          "useCases": [
+            "A construction company needs structural engineering review for shop drawings before submission to authorities",
+            "A developer requires environmental impact assessment for a new project site",
+            "A contractor needs temporary project management support during peak workload periods",
+            "A company requires specialized MEP design consultation for a complex building system",
+            "An infrastructure project needs geotechnical analysis and soil testing services"
+          ],
+          "benefits": [
+            "Access specialized expertise without long-term commitments",
+            "Cost-effective solution for one-time or periodic needs",
+            "Flexible engagement terms with clear deliverables",
+            "Quick turnaround for urgent project requirements",
+            "Reduced overhead compared to full-time hires",
+            "Access to certified professionals with proven track records"
+          ],
+          "processSteps": [
+            {
+              "step": 1,
+              "title": "Define Task Requirements",
+              "description": "Clearly outline the task scope, deliverables, timeline, and required skills or certifications."
+            },
+            {
+              "step": 2,
+              "title": "Post Opportunity",
+              "description": "Create a task-based opportunity on PMTwin with detailed requirements and budget range."
+            },
+            {
+              "step": 3,
+              "title": "Receive Proposals",
+              "description": "Review proposals from qualified professionals or consultants matching your requirements."
+            },
+            {
+              "step": 4,
+              "title": "Select Partner",
+              "description": "Choose the best match based on expertise, availability, and proposed terms."
+            },
+            {
+              "step": 5,
+              "title": "Execute & Deliver",
+              "description": "Work with the selected partner to complete the task and receive deliverables."
+            }
+          ],
+          "image": "https://picsum.photos/600/400?random=task",
+          "category": "Project-Based Collaboration",
+          "applicability": [
+            "B2B",
+            "B2P",
+            "P2B",
+            "P2P"
+          ]
+        },
+        {
+          "id": "1.2",
+          "title": "Consortium",
+          "shortDescription": "A temporary contractual alliance among independent entities formed to pursue a specific opportunity.",
+          "detailedDescription": "Consortiums are temporary partnerships formed specifically to bid on and execute large-scale projects that require combined capabilities. This model is common in mega-infrastructure projects, government tenders, and complex developments where no single company has all the required expertise, financial capacity, or certifications. Consortium members share risks, responsibilities, and rewards according to their defined roles and equity participation.",
+          "useCases": [
+            "Multiple companies form a consortium to bid on a $500M metro system construction project",
+            "A group of contractors join forces to pursue a large-scale airport terminal expansion",
+            "Engineering firms collaborate to handle a complex water treatment facility project",
+            "Construction companies partner to execute a mixed-use development requiring diverse expertise",
+            "Companies combine resources to bid on government infrastructure tenders"
+          ],
+          "benefits": [
+            "Access to larger projects beyond individual capacity",
+            "Combined expertise and certifications from multiple partners",
+            "Shared financial risk and investment requirements",
+            "Enhanced credibility and track record through partnership",
+            "Complementary capabilities strengthen the bid",
+            "Flexible structure adaptable to project requirements"
+          ],
+          "processSteps": [
+            {
+              "step": 1,
+              "title": "Identify Opportunity",
+              "description": "Identify a project or tender that requires consortium formation."
+            },
+            {
+              "step": 2,
+              "title": "Define Consortium Structure",
+              "description": "Determine lead member, member roles, equity distribution, and responsibilities."
+            },
+            {
+              "step": 3,
+              "title": "Find Consortium Partners",
+              "description": "Use PMTwin to find companies with complementary capabilities and required certifications."
+            },
+            {
+              "step": 4,
+              "title": "Form Consortium Agreement",
+              "description": "Establish legal framework, roles, responsibilities, and profit-sharing structure."
+            },
+            {
+              "step": 5,
+              "title": "Submit Joint Bid",
+              "description": "Prepare and submit consortium bid with combined capabilities and track record."
+            },
+            {
+              "step": 6,
+              "title": "Execute Project",
+              "description": "Work together to deliver the project according to agreed roles and responsibilities."
+            }
+          ],
+          "image": "https://picsum.photos/600/400?random=consortium",
+          "category": "Project-Based Collaboration",
+          "applicability": [
+            "B2B",
+            "B2P",
+            "P2B",
+            "P2P"
+          ]
+        },
+        {
+          "id": "1.3",
+          "title": "Project-Specific Joint Venture",
+          "shortDescription": "A separate legal entity created by two or more parties specifically for a single project.",
+          "detailedDescription": "Project-Specific Joint Ventures (JVs) create a new legal entity dedicated to a single project, providing clear separation of assets, liabilities, and operations. This model offers stronger legal protection and clearer governance compared to consortiums, making it ideal for high-value, long-duration projects where parties want formal equity participation and decision-making structures.",
+          "useCases": [
+            "Two construction companies form a JV to develop a $200M residential complex",
+            "A local company partners with an international firm to execute a landmark cultural project",
+            "Engineering firms create a JV for a multi-year infrastructure development",
+            "A developer and contractor form a JV for a large-scale mixed-use development",
+            "Companies establish a JV to pursue a public-private partnership (PPP) project"
+          ],
+          "benefits": [
+            "Clear legal separation of project assets and liabilities",
+            "Formal governance structure with defined decision-making processes",
+            "Equity-based participation ensures aligned interests",
+            "Enhanced credibility for large-scale project execution",
+            "Flexible profit-sharing based on contribution and risk",
+            "Professional management structure for complex projects"
+          ],
+          "processSteps": [
+            {
+              "step": 1,
+              "title": "Identify Project Opportunity",
+              "description": "Identify a project suitable for joint venture formation."
+            },
+            {
+              "step": 2,
+              "title": "Find JV Partner",
+              "description": "Use PMTwin to find compatible partners with complementary strengths."
+            },
+            {
+              "step": 3,
+              "title": "Negotiate JV Terms",
+              "description": "Define equity split, management structure, capital contribution, and profit-sharing."
+            },
+            {
+              "step": 4,
+              "title": "Establish Legal Entity",
+              "description": "Create the JV company with proper legal documentation and registration."
+            },
+            {
+              "step": 5,
+              "title": "Execute Project",
+              "description": "Operate the JV to deliver the project according to agreed terms."
+            },
+            {
+              "step": 6,
+              "title": "Dissolve JV",
+              "description": "Upon project completion, distribute assets and dissolve the JV entity."
+            }
+          ],
+          "image": "https://picsum.photos/600/400?random=jv",
+          "category": "Project-Based Collaboration",
+          "applicability": [
+            "B2B",
+            "B2P",
+            "P2B",
+            "P2P"
+          ]
+        },
+        {
+          "id": "1.4",
+          "title": "Special Purpose Vehicle (SPV)",
+          "shortDescription": "A separate legal entity created specifically to isolate financial and operational risks of a project.",
+          "detailedDescription": "Special Purpose Vehicles (SPVs) are independent legal entities created solely for a specific project, providing complete risk isolation from parent companies. This model is essential for large infrastructure projects, PPP arrangements, and developments where financial and legal separation is critical. SPVs allow companies to participate in high-risk, high-reward projects while protecting their core business assets.",
+          "useCases": [
+            "Multiple investors create an SPV for a $1B infrastructure PPP project",
+            "Companies form an SPV to develop a large-scale industrial zone",
+            "An SPV is established for a long-term airport operations and maintenance contract",
+            "Investors create an SPV for a renewable energy power plant project",
+            "Companies form an SPV for a major transportation hub development"
+          ],
+          "benefits": [
+            "Complete isolation of project risks from parent companies",
+            "Attractive structure for project financing and investment",
+            "Clear asset and liability separation",
+            "Suitable for complex PPP and infrastructure projects",
+            "Professional governance and management structure",
+            "Enhanced ability to secure project financing"
+          ],
+          "processSteps": [
+            {
+              "step": 1,
+              "title": "Identify SPV Opportunity",
+              "description": "Identify a project requiring SPV structure, typically large infrastructure or PPP projects."
+            },
+            {
+              "step": 2,
+              "title": "Assemble SPV Partners",
+              "description": "Find investors and partners with complementary capabilities and financial capacity."
+            },
+            {
+              "step": 3,
+              "title": "Structure SPV Framework",
+              "description": "Define equity structure, governance, financing, and operational framework."
+            },
+            {
+              "step": 4,
+              "title": "Establish SPV Entity",
+              "description": "Legally establish the SPV with proper registration and documentation."
+            },
+            {
+              "step": 5,
+              "title": "Secure Project Financing",
+              "description": "Obtain financing based on SPV structure and project viability."
+            },
+            {
+              "step": 6,
+              "title": "Execute & Operate",
+              "description": "Execute the project and operate through the SPV structure."
+            }
+          ],
+          "image": "https://picsum.photos/600/400?random=spv",
+          "category": "Project-Based Collaboration",
+          "applicability": [
+            "B2B",
+            "B2P",
+            "P2B",
+            "P2P"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "2",
+      "name": "Strategic Partnerships",
+      "description": "Long-term alliances formed for ongoing collaboration, mutual growth, and strategic objectives.",
+      "subModels": [
+        {
+          "id": "2.1",
+          "title": "Strategic Joint Venture",
+          "shortDescription": "A long-term partnership between companies to pursue multiple opportunities together.",
+          "detailedDescription": "Strategic Joint Ventures are long-term partnerships where companies combine resources, expertise, and market presence to pursue multiple opportunities over an extended period. Unlike project-specific JVs, strategic JVs focus on ongoing collaboration, market expansion, and mutual growth. This model is ideal for companies looking to enter new markets, expand capabilities, or strengthen competitive positioning through sustained partnership.",
+          "useCases": [
+            "A local construction company partners with an international firm to access new markets",
+            "Two complementary companies form a strategic JV to offer integrated services",
+            "A developer and contractor establish a long-term partnership for multiple projects",
+            "Engineering firms create a strategic JV to expand service offerings",
+            "Companies form a strategic JV to pursue government contracts together"
+          ],
+          "benefits": [
+            "Long-term strategic alignment and mutual growth",
+            "Combined market presence and competitive advantage",
+            "Shared resources and capabilities over multiple projects",
+            "Reduced transaction costs through established partnership",
+            "Enhanced credibility and track record development",
+            "Flexible structure for various project types"
+          ],
+          "processSteps": [
+            {
+              "step": 1,
+              "title": "Identify Strategic Objectives",
+              "description": "Define mutual goals, target markets, and collaboration scope."
+            },
+            {
+              "step": 2,
+              "title": "Find Strategic Partner",
+              "description": "Use PMTwin to identify companies with complementary strengths and aligned objectives."
+            },
+            {
+              "step": 3,
+              "title": "Negotiate Partnership Terms",
+              "description": "Establish equity structure, governance, decision-making, and profit-sharing framework."
+            },
+            {
+              "step": 4,
+              "title": "Form Strategic JV",
+              "description": "Legally establish the strategic joint venture entity."
+            },
+            {
+              "step": 5,
+              "title": "Pursue Opportunities",
+              "description": "Collaboratively pursue projects and opportunities aligned with strategic objectives."
+            }
+          ],
+          "image": "https://picsum.photos/600/400?random=strategic",
+          "category": "Strategic Partnerships",
+          "applicability": [
+            "B2B",
+            "B2P",
+            "P2B",
+            "P2P"
+          ]
+        },
+        {
+          "id": "2.2",
+          "title": "Long-Term Strategic Alliance",
+          "shortDescription": "A non-equity partnership agreement for ongoing collaboration without forming a legal entity.",
+          "detailedDescription": "Long-Term Strategic Alliances are formal partnership agreements between companies for ongoing collaboration without creating a separate legal entity. This model provides flexibility while establishing a framework for repeated collaboration, preferred partner status, and mutual support. Ideal for companies that want strategic benefits without the complexity of equity structures.",
+          "useCases": [
+            "A contractor and supplier establish a strategic alliance for preferred pricing and priority service",
+            "Engineering firms form an alliance to cross-refer clients and collaborate on complex projects",
+            "A developer and consultant firm create an alliance for ongoing project support",
+            "Companies establish an alliance to share resources and capabilities regularly",
+            "Construction companies form an alliance for joint bidding on recurring opportunities"
+          ],
+          "benefits": [
+            "Flexible partnership without legal entity complexity",
+            "Preferred partner status and priority access",
+            "Reduced transaction costs through established relationship",
+            "Mutual support and resource sharing",
+            "Enhanced market presence through alliance",
+            "Easy to modify or terminate as needed"
+          ],
+          "processSteps": [
+            {
+              "step": 1,
+              "title": "Define Alliance Objectives",
+              "description": "Identify mutual benefits, collaboration scope, and partnership goals."
+            },
+            {
+              "step": 2,
+              "title": "Find Alliance Partner",
+              "description": "Use PMTwin to find companies with complementary capabilities and aligned interests."
+            },
+            {
+              "step": 3,
+              "title": "Negotiate Alliance Agreement",
+              "description": "Establish terms, responsibilities, preferred partner benefits, and collaboration framework."
+            },
+            {
+              "step": 4,
+              "title": "Formalize Alliance",
+              "description": "Sign alliance agreement and establish partnership framework."
+            },
+            {
+              "step": 5,
+              "title": "Execute Collaborations",
+              "description": "Work together on projects and opportunities according to alliance terms."
+            }
+          ],
+          "image": "https://picsum.photos/600/400?random=alliance",
+          "category": "Strategic Partnerships",
+          "applicability": [
+            "B2B",
+            "B2P",
+            "P2B",
+            "P2P"
+          ]
+        },
+        {
+          "id": "2.3",
+          "title": "Mentorship Program",
+          "shortDescription": "Structured programs where experienced companies mentor and support emerging businesses.",
+          "detailedDescription": "Mentorship Programs connect established companies with emerging businesses, providing guidance, knowledge transfer, and support for growth. This model benefits both parties: mentors gain access to innovative approaches and potential partners, while mentees receive valuable industry knowledge, network access, and business development support. Essential for industry growth and knowledge transfer in the MENA construction sector.",
+          "useCases": [
+            "An established contractor mentors a startup construction company",
+            "A large engineering firm provides mentorship to emerging consultants",
+            "An experienced developer guides a new real estate company",
+            "A successful company mentors women-owned construction businesses",
+            "International firms mentor local companies for market entry support"
+          ],
+          "benefits": [
+            "Knowledge transfer and industry best practices sharing",
+            "Network access and business development opportunities",
+            "Enhanced credibility for emerging businesses",
+            "Innovation and fresh perspectives for mentors",
+            "Industry growth and capacity building",
+            "Potential for future partnerships and collaborations"
+          ],
+          "processSteps": [
+            {
+              "step": 1,
+              "title": "Define Mentorship Goals",
+              "description": "Establish objectives, scope, duration, and expected outcomes for the program."
+            },
+            {
+              "step": 2,
+              "title": "Match Mentor and Mentee",
+              "description": "Use PMTwin to connect experienced companies with emerging businesses seeking mentorship."
+            },
+            {
+              "step": 3,
+              "title": "Structure Program",
+              "description": "Define mentorship activities, meeting frequency, and support framework."
+            },
+            {
+              "step": 4,
+              "title": "Launch Program",
+              "description": "Begin mentorship relationship with initial meetings and goal setting."
+            },
+            {
+              "step": 5,
+              "title": "Execute & Monitor",
+              "description": "Conduct regular mentorship activities and monitor progress toward goals."
+            }
+          ],
+          "image": "https://picsum.photos/600/400?random=mentorship",
+          "category": "Strategic Partnerships",
+          "applicability": [
+            "B2B",
+            "B2P",
+            "P2B",
+            "P2P"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "3",
+      "name": "Resource Pooling & Sharing",
+      "description": "Collaboration focused on pooling financial resources, co-owning assets, or sharing/exchanging excess resources.",
+      "subModels": [
+        {
+          "id": "3.1",
+          "title": "Bulk Purchasing",
+          "shortDescription": "Multiple companies combine orders to negotiate better prices and terms from suppliers.",
+          "detailedDescription": "Bulk Purchasing allows multiple companies to combine their purchasing power to negotiate better prices, payment terms, and delivery conditions from suppliers. This model is particularly effective for common materials, equipment, and services used across the construction industry. By aggregating demand, companies can achieve significant cost savings and improved supplier relationships.",
+          "useCases": [
+            "Multiple contractors combine orders for steel reinforcement to get volume discounts",
+            "Construction companies pool orders for concrete to negotiate better pricing",
+            "Engineering firms combine software license purchases for cost savings",
+            "Companies aggregate equipment rental needs for better rates",
+            "Contractors pool orders for safety equipment and personal protective gear"
+          ],
+          "benefits": [
+            "Significant cost savings through volume discounts",
+            "Improved payment terms and credit facilities",
+            "Better supplier relationships and priority service",
+            "Reduced procurement overhead and administrative costs",
+            "Access to premium suppliers through combined volume",
+            "Shared risk in large material purchases"
+          ],
+          "processSteps": [
+            {
+              "step": 1,
+              "title": "Identify Purchasing Needs",
+              "description": "Companies identify common materials, equipment, or services needed."
+            },
+            {
+              "step": 2,
+              "title": "Form Purchasing Group",
+              "description": "Use PMTwin to find companies with similar purchasing needs."
+            },
+            {
+              "step": 3,
+              "title": "Aggregate Requirements",
+              "description": "Combine order quantities and specifications from all group members."
+            },
+            {
+              "step": 4,
+              "title": "Negotiate with Suppliers",
+              "description": "Leverage combined volume to negotiate better prices and terms."
+            },
+            {
+              "step": 5,
+              "title": "Execute Purchase",
+              "description": "Place orders and coordinate delivery according to negotiated terms."
+            }
+          ],
+          "image": "https://picsum.photos/600/400?random=bulk",
+          "category": "Resource Pooling & Sharing",
+          "applicability": [
+            "B2B",
+            "B2P",
+            "P2B",
+            "P2P"
+          ]
+        },
+        {
+          "id": "3.2",
+          "title": "Co-Ownership Pooling",
+          "shortDescription": "Multiple companies co-own expensive equipment or assets to share costs and utilization.",
+          "detailedDescription": "Co-Ownership Pooling enables companies to share ownership of expensive equipment, facilities, or assets that would be underutilized if owned individually. This model reduces capital investment requirements while providing access to high-value resources. Common examples include heavy machinery, specialized equipment, testing facilities, and storage warehouses.",
+          "useCases": [
+            "Multiple contractors co-own a fleet of heavy construction equipment",
+            "Engineering firms share ownership of specialized testing laboratories",
+            "Companies co-own large storage and logistics facilities",
+            "Contractors pool resources to own premium construction machinery",
+            "Companies share ownership of specialized surveying and measurement equipment"
+          ],
+          "benefits": [
+            "Reduced capital investment per company",
+            "Access to high-value equipment without full ownership cost",
+            "Shared maintenance and operational costs",
+            "Better asset utilization through shared access",
+            "Flexible usage scheduling among co-owners",
+            "Reduced financial risk through shared ownership"
+          ],
+          "processSteps": [
+            {
+              "step": 1,
+              "title": "Identify Asset Need",
+              "description": "Companies identify expensive equipment or assets needed but underutilized individually."
+            },
+            {
+              "step": 2,
+              "title": "Find Co-Ownership Partners",
+              "description": "Use PMTwin to find companies with similar asset needs and compatible usage patterns."
+            },
+            {
+              "step": 3,
+              "title": "Structure Co-Ownership",
+              "description": "Define ownership shares, usage rights, maintenance responsibilities, and cost sharing."
+            },
+            {
+              "step": 4,
+              "title": "Acquire Asset",
+              "description": "Purchase or acquire the asset according to co-ownership structure."
+            },
+            {
+              "step": 5,
+              "title": "Manage & Utilize",
+              "description": "Establish usage scheduling, maintenance, and operational procedures for shared asset."
+            }
+          ],
+          "image": "https://picsum.photos/600/400?random=coownership",
+          "category": "Resource Pooling & Sharing",
+          "applicability": [
+            "B2B",
+            "B2P",
+            "P2B",
+            "P2P"
+          ]
+        },
+        {
+          "id": "3.3",
+          "title": "Resource Sharing & Exchange",
+          "shortDescription": "Companies share or exchange excess resources, equipment, or services on a temporary basis.",
+          "detailedDescription": "Resource Sharing & Exchange allows companies to optimize resource utilization by sharing excess capacity, equipment, or services with others. This model includes equipment rental between companies, temporary staff sharing, facility sharing, and service exchanges. It helps companies reduce idle resources while generating revenue or accessing needed resources without purchase.",
+          "useCases": [
+            "A company rents out excess construction equipment to other contractors",
+            "Engineering firms share office space and facilities during peak periods",
+            "Companies exchange services: one provides design, another provides construction",
+            "Contractors share specialized workers during project peaks",
+            "Companies temporarily share warehouse and storage facilities"
+          ],
+          "benefits": [
+            "Generate revenue from underutilized resources",
+            "Access needed resources without capital investment",
+            "Improved resource utilization and efficiency",
+            "Flexible arrangements for temporary needs",
+            "Cost savings compared to purchasing or hiring",
+            "Network building through resource exchanges"
+          ],
+          "processSteps": [
+            {
+              "step": 1,
+              "title": "Identify Available or Needed Resources",
+              "description": "Companies identify excess resources to share or resources they need."
+            },
+            {
+              "step": 2,
+              "title": "Find Exchange Partners",
+              "description": "Use PMTwin to find companies with complementary resource needs or availability."
+            },
+            {
+              "step": 3,
+              "title": "Negotiate Exchange Terms",
+              "description": "Establish rental rates, exchange terms, duration, and responsibilities."
+            },
+            {
+              "step": 4,
+              "title": "Execute Exchange",
+              "description": "Share or exchange resources according to agreed terms."
+            },
+            {
+              "step": 5,
+              "title": "Monitor & Settle",
+              "description": "Track usage, settle payments, and evaluate exchange success."
+            }
+          ],
+          "image": "https://picsum.photos/600/400?random=sharing",
+          "category": "Resource Pooling & Sharing",
+          "applicability": [
+            "B2B",
+            "B2P",
+            "P2B",
+            "P2P"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "4",
+      "name": "Hiring a Resource",
+      "description": "Recruiting professionals or consultants for employment or service engagements.",
+      "subModels": [
+        {
+          "id": "4.1",
+          "title": "Professional Hiring",
+          "shortDescription": "Recruiting full-time or part-time professionals for employment positions.",
+          "detailedDescription": "Professional Hiring connects companies with qualified professionals seeking employment opportunities. This model supports both permanent and contract positions across various construction industry roles including engineers, project managers, architects, quantity surveyors, and specialized technicians. PMTwin facilitates matching based on skills, experience, certifications, and cultural fit.",
+          "useCases": [
+            "A construction company needs to hire a senior project manager for a mega-project",
+            "An engineering firm seeks experienced structural engineers for permanent positions",
+            "A developer requires a full-time sustainability consultant",
+            "A contractor needs specialized MEP engineers for long-term employment",
+            "Companies hire quantity surveyors and cost estimators for their teams"
+          ],
+          "benefits": [
+            "Access to verified professionals with proven track records",
+            "Skill-matched candidates based on specific requirements",
+            "Reduced hiring time through pre-screened candidates",
+            "Access to professionals with industry certifications",
+            "Cultural and company fit assessment",
+            "Long-term talent acquisition for company growth"
+          ],
+          "processSteps": [
+            {
+              "step": 1,
+              "title": "Define Position Requirements",
+              "description": "Specify role, responsibilities, required skills, experience level, and qualifications."
+            },
+            {
+              "step": 2,
+              "title": "Post Job Opportunity",
+              "description": "Create a hiring opportunity on PMTwin with detailed position requirements."
+            },
+            {
+              "step": 3,
+              "title": "Receive Applications",
+              "description": "Review applications from qualified professionals matching your requirements."
+            },
+            {
+              "step": 4,
+              "title": "Screen & Interview",
+              "description": "Conduct interviews and assessments to evaluate candidates."
+            },
+            {
+              "step": 5,
+              "title": "Make Offer & Onboard",
+              "description": "Extend employment offer to selected candidate and complete onboarding."
+            }
+          ],
+          "image": "https://picsum.photos/600/400?random=professional",
+          "category": "Hiring a Resource",
+          "applicability": [
+            "B2B",
+            "B2P",
+            "P2B",
+            "P2P"
+          ]
+        },
+        {
+          "id": "4.2",
+          "title": "Consultant Hiring",
+          "shortDescription": "Engaging consultants or experts for project-based or ongoing advisory services.",
+          "detailedDescription": "Consultant Hiring enables companies to engage experienced consultants and experts for specialized advisory services, project support, or ongoing consultation. This model is ideal for accessing senior expertise, industry knowledge, and strategic guidance without full-time employment commitments. Consultants provide flexible support tailored to specific project needs or business challenges.",
+          "useCases": [
+            "A company hires a construction management consultant for project oversight",
+            "An engineering firm engages a sustainability expert for green building certification",
+            "A developer hires a financial consultant for project financing strategy",
+            "A contractor engages a safety consultant for compliance and training",
+            "Companies hire strategic consultants for market entry or expansion planning"
+          ],
+          "benefits": [
+            "Access to senior-level expertise and industry knowledge",
+            "Flexible engagement terms without long-term commitments",
+            "Specialized knowledge for specific challenges or projects",
+            "Objective perspective and strategic guidance",
+            "Cost-effective compared to full-time senior hires",
+            "Quick access to experienced professionals"
+          ],
+          "processSteps": [
+            {
+              "step": 1,
+              "title": "Define Consulting Needs",
+              "description": "Identify specific consulting requirements, scope, and expected outcomes."
+            },
+            {
+              "step": 2,
+              "title": "Post Consulting Opportunity",
+              "description": "Create a consultant hiring opportunity with detailed requirements and engagement terms."
+            },
+            {
+              "step": 3,
+              "title": "Review Consultant Proposals",
+              "description": "Evaluate proposals from qualified consultants matching your needs."
+            },
+            {
+              "step": 4,
+              "title": "Select Consultant",
+              "description": "Choose the best consultant based on expertise, approach, and proposed terms."
+            },
+            {
+              "step": 5,
+              "title": "Engage & Collaborate",
+              "description": "Work with the consultant to deliver advisory services and achieve objectives."
+            }
+          ],
+          "image": "https://picsum.photos/600/400?random=consultant",
+          "category": "Hiring a Resource",
+          "applicability": [
+            "B2B",
+            "B2P",
+            "P2B",
+            "P2P"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "5",
+      "name": "Call for Competition",
+      "description": "Competitive sourcing of solutions, designs, or talent through open or invited competitions.",
+      "subModels": [
+        {
+          "id": "5.1",
+          "title": "Competition / RFP",
+          "shortDescription": "Open or invited competitions for designs, solutions, or proposals through Request for Proposals (RFP).",
+          "detailedDescription": "Competitions and RFPs enable companies to source innovative solutions, designs, or proposals through competitive processes. This model is ideal for projects requiring creative solutions, design competitions, technology innovations, or when companies want to evaluate multiple approaches. Competitions can be open to all qualified participants or restricted to invited firms, with clear evaluation criteria and prizes or contracts for winners.",
+          "useCases": [
+            "A developer launches a design competition for a landmark building project",
+            "A government entity issues an RFP for innovative infrastructure solutions",
+            "A company holds a competition for sustainable construction technologies",
+            "An organization seeks creative proposals for urban development projects",
+            "Companies launch competitions for innovative project management solutions"
+          ],
+          "benefits": [
+            "Access to diverse and innovative solutions",
+            "Competitive pricing through multiple proposals",
+            "Opportunity to discover new talent and approaches",
+            "Transparent evaluation process with clear criteria",
+            "Enhanced project outcomes through best solutions",
+            "Market engagement and industry participation"
+          ],
+          "processSteps": [
+            {
+              "step": 1,
+              "title": "Define Competition Scope",
+              "description": "Establish competition objectives, requirements, evaluation criteria, and prizes or contracts."
+            },
+            {
+              "step": 2,
+              "title": "Launch Competition/RFP",
+              "description": "Publish competition details on PMTwin with clear guidelines and submission requirements."
+            },
+            {
+              "step": 3,
+              "title": "Receive Submissions",
+              "description": "Collect and organize submissions from participants according to competition rules."
+            },
+            {
+              "step": 4,
+              "title": "Evaluate & Judge",
+              "description": "Review submissions against evaluation criteria and select winners."
+            },
+            {
+              "step": 5,
+              "title": "Award & Execute",
+              "description": "Announce winners, award prizes or contracts, and proceed with selected solutions."
+            }
+          ],
+          "image": "https://picsum.photos/600/400?random=competition",
+          "category": "Call for Competition",
+          "applicability": [
+            "B2B",
+            "B2P",
+            "P2B",
+            "P2P"
+          ]
+        }
+      ]
+    }
+  ]
+}

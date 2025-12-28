@@ -1,9 +1,14 @@
 <div class="container" style="padding: 2rem 0;">
     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
         <h1 style="margin: 0;">Notifications</h1>
-        <button onclick="notificationsComponent.markAllAsRead()" class="btn btn-primary">
-            Mark All as Read
-        </button>
+        <div style="display: flex; gap: 0.5rem;">
+            <button onclick="notificationsComponent.reloadSampleNotifications()" class="btn btn-secondary" title="Reload sample notifications from notification.json">
+                🔄 Reload Samples
+            </button>
+            <button onclick="notificationsComponent.markAllAsRead()" class="btn btn-primary">
+                Mark All as Read
+            </button>
+        </div>
     </div>
 
     <!-- Filter Section - Trigger getNotifications with filters -->

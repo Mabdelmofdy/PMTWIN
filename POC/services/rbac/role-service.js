@@ -174,6 +174,26 @@
   // ============================================
   // Feature Access
   // ============================================
+  // Map router feature names to role feature names
+  function mapFeatureToRoleFeatures(routerFeature) {
+    const featureMap = {
+      'dashboard': ['user_dashboard', 'admin_dashboard'],
+      'projects': ['project_creation', 'project_management', 'project_browsing'],
+      'proposals': ['proposal_creation', 'proposal_management', 'proposal_review'],
+      'matching': ['matches_view'],
+      'profile': ['profile_management'],
+      'notifications': ['notifications'],
+      'collaboration': ['collaboration_opportunities', 'collaboration_applications'],
+      'pipeline': ['pipeline_management'],
+      'onboarding': ['profile_management'], // Onboarding is part of profile management
+      'admin': ['admin_dashboard', 'user_vetting', 'user_management', 'project_moderation', 'audit_trail', 'reports'],
+      'public': ['public_portal', 'project_discovery_limited', 'pmtwin_wizard', 'knowledge_hub', 'registration'],
+      'auth': ['registration'] // Auth features are public
+    };
+    
+    return featureMap[routerFeature] || [routerFeature];
+  }
+
   async function hasFeatureAccess(userId, feature, email = null) {
     const roleId = await getUserRole(userId, email);
     const roleDef = await getRoleDefinition(roleId);
@@ -183,7 +203,12 @@
     // Admin has all features
     if (roleDef.features.includes('*')) return true;
     
-    return roleDef.features.includes(feature);
+    // Check if feature is directly in the role
+    if (roleDef.features.includes(feature)) return true;
+    
+    // Map router feature to role features and check if any match
+    const mappedFeatures = mapFeatureToRoleFeatures(feature);
+    return mappedFeatures.some(mappedFeature => roleDef.features.includes(mappedFeature));
   }
 
   async function getAvailableFeatures(userId, email = null) {

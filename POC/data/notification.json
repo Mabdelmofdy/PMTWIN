@@ -1,0 +1,138 @@
+{
+  "notifications": [
+    {
+      "id": "notif_001",
+      "userId": "demo_admin_001",
+      "type": "user_review_pending",
+      "title": "New User Pending Review",
+      "message": "John Doe (individual) has submitted their profile for review",
+      "read": false,
+      "createdAt": "2024-01-15T10:30:00.000Z",
+      "relatedEntityType": "user",
+      "relatedEntityId": "demo_individual_001",
+      "actionUrl": "#vetting",
+      "actionLabel": "Review User"
+    },
+    {
+      "id": "notif_002",
+      "userId": "demo_individual_001",
+      "type": "match_found",
+      "title": "New Match Found!",
+      "message": "A new project opportunity matches your skills: High-rise Building Design in Dubai",
+      "read": false,
+      "createdAt": "2024-01-16T09:15:00.000Z",
+      "relatedEntityType": "project",
+      "relatedEntityId": "proj_001",
+      "actionUrl": "#matches",
+      "actionLabel": "View Match"
+    },
+    {
+      "id": "notif_003",
+      "userId": "demo_individual_001",
+      "type": "proposal_received",
+      "title": "Proposal Received",
+      "message": "ABC Construction Co. has received your proposal for the Commercial Complex project",
+      "read": true,
+      "createdAt": "2024-01-14T14:20:00.000Z",
+      "readAt": "2024-01-14T15:00:00.000Z",
+      "relatedEntityType": "proposal",
+      "relatedEntityId": "prop_001",
+      "actionUrl": "#proposals",
+      "actionLabel": "View Proposal"
+    },
+    {
+      "id": "notif_004",
+      "userId": "demo_entity_001",
+      "type": "proposal_approved",
+      "title": "Proposal Approved",
+      "message": "Your proposal for the Infrastructure Development project has been approved",
+      "read": false,
+      "createdAt": "2024-01-17T11:45:00.000Z",
+      "relatedEntityType": "proposal",
+      "relatedEntityId": "prop_002",
+      "actionUrl": "#proposals",
+      "actionLabel": "View Details"
+    },
+    {
+      "id": "notif_005",
+      "userId": "demo_entity_001",
+      "type": "proposal_received",
+      "title": "New Proposal Received",
+      "message": "You have received a new proposal from John Doe for the Residential Complex project",
+      "read": false,
+      "createdAt": "2024-01-18T08:30:00.000Z",
+      "relatedEntityType": "proposal",
+      "relatedEntityId": "prop_003",
+      "actionUrl": "#proposals",
+      "actionLabel": "Review Proposal"
+    },
+    {
+      "id": "notif_006",
+      "userId": "demo_individual_001",
+      "type": "account_approved",
+      "title": "Account Approved",
+      "message": "Congratulations! Your account has been approved. You can now access all features.",
+      "read": true,
+      "createdAt": "2024-01-10T12:00:00.000Z",
+      "readAt": "2024-01-10T12:15:00.000Z",
+      "relatedEntityType": "user",
+      "relatedEntityId": "demo_individual_001",
+      "actionUrl": "#dashboard",
+      "actionLabel": "Go to Dashboard"
+    },
+    {
+      "id": "notif_007",
+      "userId": "demo_admin_001",
+      "type": "user_review_pending",
+      "title": "New User Pending Review",
+      "message": "ABC Construction Co. (entity) has submitted their profile for review",
+      "read": false,
+      "createdAt": "2024-01-19T09:00:00.000Z",
+      "relatedEntityType": "user",
+      "relatedEntityId": "demo_entity_001",
+      "actionUrl": "#vetting",
+      "actionLabel": "Review User"
+    },
+    {
+      "id": "notif_008",
+      "userId": "demo_entity_001",
+      "type": "match_found",
+      "title": "Potential Consultant Match",
+      "message": "We found a consultant that matches your project requirements: Senior Civil Engineer",
+      "read": false,
+      "createdAt": "2024-01-18T16:20:00.000Z",
+      "relatedEntityType": "match",
+      "relatedEntityId": "match_001",
+      "actionUrl": "#matches",
+      "actionLabel": "View Match"
+    },
+    {
+      "id": "notif_009",
+      "userId": "demo_individual_001",
+      "type": "proposal_rejected",
+      "title": "Proposal Status Update",
+      "message": "Your proposal for the Office Building project was not selected at this time",
+      "read": false,
+      "createdAt": "2024-01-17T13:10:00.000Z",
+      "relatedEntityType": "proposal",
+      "relatedEntityId": "prop_004",
+      "actionUrl": "#proposals",
+      "actionLabel": "View Details"
+    },
+    {
+      "id": "notif_010",
+      "userId": "demo_admin_001",
+      "type": "user_review_pending",
+      "title": "Account Review Required",
+      "message": "3 new user accounts are pending review",
+      "read": true,
+      "createdAt": "2024-01-12T10:00:00.000Z",
+      "readAt": "2024-01-12T10:30:00.000Z",
+      "relatedEntityType": "admin",
+      "relatedEntityId": "admin_dashboard",
+      "actionUrl": "#vetting",
+      "actionLabel": "Review Accounts"
+    }
+  ]
+}
+

@@ -7,8 +7,22 @@
 
   let currentFilters = {};
 
-  function init(params) {
-    loadNotifications();
+  async function init(params) {
+    // Wait a bit for data to be ready, then try to load sample notifications if none exist
+    if (typeof PMTwinData !== 'undefined') {
+      const existingNotifications = PMTwinData.Notifications.getAll();
+      if (existingNotifications.length === 0) {
+        // Try to load sample notifications
+        try {
+          await PMTwinData.loadSampleNotifications();
+        } catch (error) {
+          console.warn('Could not auto-load sample notifications:', error);
+        }
+      }
+    }
+    
+    // Load and display notifications
+    await loadNotifications();
   }
 
   // ============================================
@@ -111,6 +125,40 @@
     }
   }
 
+  // Reload sample notifications from notification.json
+  async function reloadSampleNotifications() {
+    if (!confirm('This will clear all existing notifications and reload sample notifications from notification.json. Continue?')) {
+      return;
+    }
+
+    const container = document.getElementById('notificationsList');
+    if (!container) return;
+
+    try {
+      container.innerHTML = '<p>Reloading sample notifications...</p>';
+
+      if (typeof PMTwinData === 'undefined') {
+        container.innerHTML = '<p class="alert alert-error">Data service not available</p>';
+        return;
+      }
+
+      // Clear existing notifications
+      localStorage.setItem('pmtwin_notifications', JSON.stringify([]));
+      
+      // Reload sample notifications
+      await PMTwinData.loadSampleNotifications();
+      
+      // Reload the notifications list
+      await loadNotifications();
+      
+      alert('Sample notifications reloaded successfully!');
+    } catch (error) {
+      console.error('Error reloading sample notifications:', error);
+      container.innerHTML = '<p class="alert alert-error">Error reloading notifications. Please check the console for details.</p>';
+      alert('Error reloading notifications. Please check the console.');
+    }
+  }
+
   // ============================================
   // Rendering Functions
   // ============================================
@@ -176,7 +224,8 @@
     applyFilters,
     clearFilters,
     markAsRead,
-    markAllAsRead
+    markAllAsRead,
+    reloadSampleNotifications
   };
 
   // Global reference for onclick handlers

@@ -1026,6 +1026,19 @@ select.form-control {
   font-weight: var(--font-weight-semibold);
 }
 
+.navbar-link.logout-link {
+  color: var(--color-danger, #dc3545);
+  font-weight: var(--font-weight-medium);
+  margin-left: var(--spacing-2);
+  padding-left: var(--spacing-4);
+  border-left: 1px solid var(--border-color);
+}
+
+.navbar-link.logout-link:hover {
+  background-color: rgba(220, 53, 69, 0.1);
+  color: var(--color-danger, #dc3545);
+}
+
 /* Mobile Navigation */
 .navbar-toggle {
   display: none;
