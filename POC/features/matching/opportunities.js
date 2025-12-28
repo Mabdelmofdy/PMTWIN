@@ -38,7 +38,7 @@
               <p style="color: var(--text-secondary); margin-top: 1rem;">
                 Complete your profile to get better matches!
               </p>
-              <a href="#profile" class="btn btn-primary" style="margin-top: 1rem;">Update Profile</a>
+              <a href="profile.html" class="btn btn-primary" style="margin-top: 1rem;">Update Profile</a>
             </div>
           </div>
         `;

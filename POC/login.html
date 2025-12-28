@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - PMTwin</title>
+    <link rel="stylesheet" href="css/main.css">
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="container">
+            <div class="navbar-content">
+                <a href="home.html" class="navbar-brand">PMTwin</a>
+                <button class="navbar-toggle" id="navbarToggle" aria-label="Toggle navigation">☰</button>
+                <ul class="navbar-nav" id="navbarNav">
+                    <li><a href="home.html" class="navbar-link">Home</a></li>
+                    <li><a href="discovery.html" class="navbar-link">Discover Projects</a></li>
+                    <li><a href="wizard.html" class="navbar-link">PMTwin Wizard</a></li>
+                    <li><a href="knowledge.html" class="navbar-link">Knowledge Hub</a></li>
+                    <li><a href="signup.html" class="navbar-link">Sign Up</a></li>
+                    <li><a href="login.html" class="navbar-link active">Login</a></li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main>
+        <div class="container" style="max-width: 400px; padding: 2rem 0;">
+            <h1 style="margin-bottom: var(--spacing-6); text-align: center;">
+                Login
+                <button 
+                    class="demo-info-button" 
+                    id="demoCredentialsBtn"
+                    type="button"
+                    title="View demo user credentials"
+                    aria-label="View demo user credentials"
+                >!</button>
+            </h1>
+            <div class="card">
+                <div class="card-body">
+                    <form id="loginForm">
+                        <div class="form-group">
+                            <label for="loginEmail" class="form-label">Email</label>
+                            <input type="email" id="loginEmail" class="form-control" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="loginPassword" class="form-label">Password</label>
+                            <input type="password" id="loginPassword" class="form-control" required>
+                        </div>
+                        <div id="loginError" class="alert alert-error" style="display: none;"></div>
+                        <button type="submit" class="btn btn-primary btn-block">Login</button>
+                    </form>
+                    <p style="text-align: center; margin-top: var(--spacing-4);">
+                        Don't have an account? <a href="signup.html">Sign up here</a>
+                    </p>
+                    <p style="text-align: center; margin-top: var(--spacing-2);">
+                        <a href="home.html">Back to Home</a>
+                    </p>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Configuration (must load first) -->
+    <script src="js/config.js"></script>
+    
+    <!-- API Layer (for future Java backend integration) -->
+    <script src="js/api/api-client.js"></script>
+    <script src="js/api/api-service.js"></script>
+    
+    <!-- Core Scripts -->
+    <script src="js/data.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/demo-credentials.js"></script>
+    <script src="services/services-loader.js"></script>
+    
+    <!-- Component Scripts -->
+    <script src="features/auth/login.js"></script>
+    
+    <!-- Initialize Component -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Check for redirect after login
+            const redirect = AuthCheck ? AuthCheck.getLoginRedirect() : null;
+            
+            if (window.auth && window.auth.login) {
+                window.auth.login.init({ redirect: redirect });
+            }
+        });
+    </script>
+</body>
+</html>
+

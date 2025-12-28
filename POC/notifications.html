@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Notifications - PMTwin</title>
+    <link rel="stylesheet" href="css/main.css">
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar" id="mainNavbar">
+        <div class="container">
+            <div class="navbar-content">
+                <a href="home.html" class="navbar-brand">PMTwin</a>
+                <button class="navbar-toggle" id="navbarToggle" aria-label="Toggle navigation">☰</button>
+                <ul class="navbar-nav" id="navbarNav">
+                    <!-- Navigation will be dynamically loaded based on user role -->
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main>
+        <div class="container" style="padding: 2rem 0;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+                <h1 style="margin: 0;">Notifications</h1>
+                <div style="display: flex; gap: 0.5rem;">
+                    <button onclick="notificationsComponent.reloadSampleNotifications()" class="btn btn-secondary" title="Reload sample notifications from notification.json">
+                        🔄 Reload Samples
+                    </button>
+                    <button onclick="notificationsComponent.markAllAsRead()" class="btn btn-primary">
+                        Mark All as Read
+                    </button>
+                </div>
+            </div>
+
+            <!-- Filter Section - Trigger getNotifications with filters -->
+            <div class="card" style="margin-bottom: 2rem;">
+                <div class="card-body">
+                    <h3>Filter Notifications</h3>
+                    <form id="notificationFiltersForm" onsubmit="return notificationsComponent.applyFilters(event)">
+                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">
+                            <div class="form-group">
+                                <label for="notificationTypeFilter" class="form-label">Type</label>
+                                <select id="notificationTypeFilter" class="form-control">
+                                    <option value="">All Types</option>
+                                    <option value="match_found">Match Found</option>
+                                    <option value="proposal_received">Proposal Received</option>
+                                    <option value="proposal_approved">Proposal Approved</option>
+                                    <option value="proposal_rejected">Proposal Rejected</option>
+                                    <option value="account_approved">Account Approved</option>
+                                    <option value="account_rejected">Account Rejected</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="notificationReadFilter" class="form-label">Status</label>
+                                <select id="notificationReadFilter" class="form-control">
+                                    <option value="">All</option>
+                                    <option value="true">Read</option>
+                                    <option value="false">Unread</option>
+                                </select>
+                            </div>
+                        </div>
+                        <button type="submit" class="btn btn-primary" style="margin-top: 1rem;">Apply Filters</button>
+                        <button type="button" onclick="notificationsComponent.clearFilters()" class="btn btn-secondary" style="margin-top: 1rem; margin-left: 0.5rem;">Clear</button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Notifications List -->
+            <div id="notificationsList">
+                <!-- Notifications will be loaded here -->
+            </div>
+        </div>
+    </main>
+
+    <!-- Configuration (must load first) -->
+    <script src="js/config.js"></script>
+    
+    <!-- API Layer (for future Java backend integration) -->
+    <script src="js/api/api-client.js"></script>
+    <script src="js/api/api-service.js"></script>
+    
+    <!-- Core Scripts -->
+    <script src="js/data.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/auth-check.js"></script>
+    <script src="js/demo-credentials.js"></script>
+    <script src="services/services-loader.js"></script>
+    
+    <!-- Component Scripts -->
+    <script src="features/notifications/notifications.js"></script>
+    
+    <!-- Initialize Component -->
+    <script>
+        document.addEventListener('DOMContentLoaded', async function() {
+            // Check authentication
+            const isAuth = await AuthCheck.checkAuth({ requireAuth: true });
+            if (!isAuth) return;
+            
+            // Initialize notifications
+            if (window.notifications && window.notifications.notifications) {
+                window.notifications.notifications.init();
+            }
+        });
+    </script>
+</body>
+</html>
+

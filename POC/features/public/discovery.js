@@ -104,11 +104,11 @@
             </p>
             <p style="margin-bottom: 1rem;">${(project.description || '').substring(0, 150)}...</p>
             <div style="display: flex; gap: 1rem;">
-              <a href="#project/${project.id}" class="btn btn-primary btn-sm">View Details</a>
+              <a href="project.html?id=${project.id}" class="btn btn-primary btn-sm">View Details</a>
               ${typeof PMTwinAuth !== 'undefined' && PMTwinAuth.isAuthenticated() ? `
-                <a href="#create-proposal?projectId=${project.id}" class="btn btn-success btn-sm">Submit Proposal</a>
+                <a href="create-proposal.html?projectId=${project.id}" class="btn btn-success btn-sm">Submit Proposal</a>
               ` : `
-                <a href="#signup" class="btn btn-secondary btn-sm">Sign Up to Submit</a>
+                <a href="signup.html" class="btn btn-secondary btn-sm">Sign Up to Submit</a>
               `}
             </div>
           </div>

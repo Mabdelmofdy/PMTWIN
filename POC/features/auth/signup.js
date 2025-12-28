@@ -80,12 +80,12 @@
         // If OTP is required, redirect to verification page
         if (result.requiresOTP) {
           setTimeout(() => {
-            window.location.hash = '#verify-email';
+            window.location.href = 'onboarding.html';
           }, 2000);
         } else {
           // Auto-login and redirect
           setTimeout(() => {
-            window.location.hash = '#dashboard';
+            window.location.href = 'dashboard.html';
           }, 2000);
         }
       } else {

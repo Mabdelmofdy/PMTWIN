@@ -68,7 +68,7 @@
       if (result.success) {
         showMessage('Project created successfully!', 'success');
         setTimeout(() => {
-          window.location.hash = `#project/${result.project.id}`;
+          window.location.href = `project.html?id=${result.project.id}`;
         }, 1500);
       } else {
         showMessage(result.error || 'Failed to create project', 'error');
@@ -133,7 +133,7 @@
       
       if (result.success) {
         alert('Project deleted successfully');
-        window.location.hash = '#projects';
+        window.location.href = 'projects.html';
       } else {
         alert(result.error || 'Failed to delete project');
       }

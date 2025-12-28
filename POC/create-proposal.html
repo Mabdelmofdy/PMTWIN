@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Create Proposal - PMTwin</title>
+    <link rel="stylesheet" href="css/main.css">
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar" id="mainNavbar">
+        <div class="container">
+            <div class="navbar-content">
+                <a href="home.html" class="navbar-brand">PMTwin</a>
+                <button class="navbar-toggle" id="navbarToggle" aria-label="Toggle navigation">☰</button>
+                <ul class="navbar-nav" id="navbarNav">
+                    <!-- Navigation will be dynamically loaded based on user role -->
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main>
+        <div class="container" style="max-width: 900px; padding: 2rem 0;">
+            <h1 style="margin-bottom: var(--spacing-6);">Create Proposal</h1>
+            
+            <!-- Form to trigger ProposalService.createProposal() -->
+            <form id="proposalCreateForm" onsubmit="return proposalCreateComponent.handleSubmit(event)">
+                <div class="card">
+                    <div class="card-body">
+                        <!-- Project Selection -->
+                        <div class="form-group">
+                            <label for="proposalProjectId" class="form-label">Project *</label>
+                            <select id="proposalProjectId" class="form-control" required>
+                                <option value="">Select Project</option>
+                                <!-- Projects will be loaded dynamically -->
+                            </select>
+                        </div>
+
+                        <!-- Proposal Type -->
+                        <div class="form-group">
+                            <label class="form-label">Proposal Type *</label>
+                            <div style="display: flex; gap: 1rem; margin-top: 0.5rem;">
+                                <label style="flex: 1; cursor: pointer;">
+                                    <input type="radio" name="proposalType" value="cash" checked style="margin-right: 0.5rem;">
+                                    Cash Proposal
+                                </label>
+                                <label style="flex: 1; cursor: pointer;">
+                                    <input type="radio" name="proposalType" value="barter" style="margin-right: 0.5rem;">
+                                    Barter Proposal
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- Service Description -->
+                        <div class="form-group">
+                            <label for="proposalDescription" class="form-label">Service Description *</label>
+                            <textarea id="proposalDescription" class="form-control" rows="4" required placeholder="Describe the services you will provide..."></textarea>
+                        </div>
+
+                        <!-- Cash Proposal Fields -->
+                        <div id="cashProposalFields">
+                            <h3 style="margin-top: 2rem; margin-bottom: 1rem;">Pricing</h3>
+                            <div id="pricingItems">
+                                <!-- Pricing items will be added dynamically -->
+                            </div>
+                            <button type="button" onclick="proposalCreateComponent.addPricingItem()" class="btn btn-secondary btn-sm" style="margin-top: 1rem;">
+                                Add Pricing Item
+                            </button>
+                        </div>
+
+                        <!-- Barter Proposal Fields -->
+                        <div id="barterProposalFields" style="display: none;">
+                            <h3 style="margin-top: 2rem; margin-bottom: 1rem;">Services Offered</h3>
+                            <div id="servicesOffered">
+                                <!-- Services will be added dynamically -->
+                            </div>
+                            <button type="button" onclick="proposalCreateComponent.addServiceOffered()" class="btn btn-secondary btn-sm" style="margin-top: 1rem;">
+                                Add Service
+                            </button>
+                            
+                            <h3 style="margin-top: 2rem; margin-bottom: 1rem;">Services Requested</h3>
+                            <div id="servicesRequested">
+                                <!-- Services will be added dynamically -->
+                            </div>
+                            <button type="button" onclick="proposalCreateComponent.addServiceRequested()" class="btn btn-secondary btn-sm" style="margin-top: 1rem;">
+                                Add Service
+                            </button>
+                        </div>
+
+                        <!-- Error/Success Messages -->
+                        <div id="proposalCreateMessage" style="display: none; margin-top: 1rem;"></div>
+
+                        <!-- Action Buttons -->
+                        <div style="display: flex; gap: 1rem; margin-top: 2rem;">
+                            <button type="submit" class="btn btn-primary">Submit Proposal</button>
+                            <a href="proposals.html" class="btn btn-secondary">Cancel</a>
+                        </div>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </main>
+
+    <!-- Configuration (must load first) -->
+    <script src="js/config.js"></script>
+    
+    <!-- API Layer (for future Java backend integration) -->
+    <script src="js/api/api-client.js"></script>
+    <script src="js/api/api-service.js"></script>
+    
+    <!-- Core Scripts -->
+    <script src="js/data.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/auth-check.js"></script>
+    <script src="js/demo-credentials.js"></script>
+    <script src="services/services-loader.js"></script>
+    
+    <!-- Component Scripts -->
+    <script src="features/proposals/proposal-create.js"></script>
+    
+    <!-- Initialize Component -->
+    <script>
+        document.addEventListener('DOMContentLoaded', async function() {
+            // Check authentication
+            const isAuth = await AuthCheck.checkAuth({ requireAuth: true });
+            if (!isAuth) return;
+            
+            // Get project ID from query parameter if provided
+            const urlParams = new URLSearchParams(window.location.search);
+            const projectId = urlParams.get('projectId');
+            
+            // Initialize proposal create
+            if (window.proposals && window.proposals['proposal-create']) {
+                window.proposals['proposal-create'].init({ projectId: projectId });
+            }
+        });
+    </script>
+</body>
+</html>
+

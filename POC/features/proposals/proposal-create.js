@@ -181,7 +181,7 @@
       if (result.success) {
         showMessage('Proposal created successfully!', 'success');
         setTimeout(() => {
-          window.location.hash = '#proposals';
+          window.location.href = 'proposals.html';
         }, 1500);
       } else {
         showMessage(result.error || 'Failed to create proposal', 'error');

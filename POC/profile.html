@@ -3,15 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PMTwin - Digitize Construction Collaboration in MENA</title>
+    <title>My Profile - PMTwin</title>
     <link rel="stylesheet" href="css/main.css">
 </head>
 <body>
     <!-- Navigation -->
-    <nav class="navbar" id="mainNavbar" style="display: none;">
+    <nav class="navbar" id="mainNavbar">
         <div class="container">
             <div class="navbar-content">
-                <a href="#home" class="navbar-brand" data-route="home">PMTwin</a>
+                <a href="home.html" class="navbar-brand">PMTwin</a>
                 <button class="navbar-toggle" id="navbarToggle" aria-label="Toggle navigation">☰</button>
                 <ul class="navbar-nav" id="navbarNav">
                     <!-- Navigation will be dynamically loaded based on user role -->
@@ -20,11 +20,15 @@
         </div>
     </nav>
 
-    <!-- Main Content Container -->
-    <main id="mainContent">
-        <!-- Content will be dynamically loaded based on route -->
-        <div id="loadingIndicator" style="display: none; text-align: center; padding: 2rem;">
-            <p>Loading...</p>
+    <!-- Main Content -->
+    <main>
+        <div class="container" style="max-width: 900px; padding: 2rem 0;">
+            <h1 style="margin-bottom: var(--spacing-6);">My Profile</h1>
+
+            <!-- Profile Content -->
+            <div id="profileContent">
+                <!-- Profile will be loaded here -->
+            </div>
         </div>
     </main>
 
@@ -38,26 +42,26 @@
     <!-- Core Scripts -->
     <script src="js/data.js"></script>
     <script src="js/auth.js"></script>
+    <script src="js/auth-check.js"></script>
     <script src="js/demo-credentials.js"></script>
     <script src="services/services-loader.js"></script>
     
-    <!-- Router Script -->
-    <script src="js/router.js"></script>
+    <!-- Component Scripts -->
+    <script src="features/profile/profile.js"></script>
     
-    <!-- Initialize Router -->
+    <!-- Initialize Component -->
     <script>
-        // Initialize router when DOM is ready
-        if (document.readyState === 'loading') {
-            document.addEventListener('DOMContentLoaded', function() {
-                if (window.AppRouter) {
-                    window.AppRouter.init();
-                }
-            });
-        } else {
-            if (window.AppRouter) {
-                window.AppRouter.init();
+        document.addEventListener('DOMContentLoaded', async function() {
+            // Check authentication
+            const isAuth = await AuthCheck.checkAuth({ requireAuth: true });
+            if (!isAuth) return;
+            
+            // Initialize profile
+            if (window.profile && window.profile.profile) {
+                window.profile.profile.init();
             }
-        }
+        });
     </script>
 </body>
 </html>
+
