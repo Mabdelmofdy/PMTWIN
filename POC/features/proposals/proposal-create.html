@@ -1,0 +1,80 @@
+<div class="container" style="max-width: 900px; padding: 2rem 0;">
+    <h1 style="margin-bottom: var(--spacing-6);">Create Proposal</h1>
+    
+    <!-- Form to trigger ProposalService.createProposal() -->
+    <form id="proposalCreateForm" onsubmit="return proposalCreateComponent.handleSubmit(event)">
+        <div class="card">
+            <div class="card-body">
+                <!-- Project Selection -->
+                <div class="form-group">
+                    <label for="proposalProjectId" class="form-label">Project *</label>
+                    <select id="proposalProjectId" class="form-control" required>
+                        <option value="">Select Project</option>
+                        <!-- Projects will be loaded dynamically -->
+                    </select>
+                </div>
+
+                <!-- Proposal Type -->
+                <div class="form-group">
+                    <label class="form-label">Proposal Type *</label>
+                    <div style="display: flex; gap: 1rem; margin-top: 0.5rem;">
+                        <label style="flex: 1; cursor: pointer;">
+                            <input type="radio" name="proposalType" value="cash" checked style="margin-right: 0.5rem;">
+                            Cash Proposal
+                        </label>
+                        <label style="flex: 1; cursor: pointer;">
+                            <input type="radio" name="proposalType" value="barter" style="margin-right: 0.5rem;">
+                            Barter Proposal
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Service Description -->
+                <div class="form-group">
+                    <label for="proposalDescription" class="form-label">Service Description *</label>
+                    <textarea id="proposalDescription" class="form-control" rows="4" required placeholder="Describe the services you will provide..."></textarea>
+                </div>
+
+                <!-- Cash Proposal Fields -->
+                <div id="cashProposalFields">
+                    <h3 style="margin-top: 2rem; margin-bottom: 1rem;">Pricing</h3>
+                    <div id="pricingItems">
+                        <!-- Pricing items will be added dynamically -->
+                    </div>
+                    <button type="button" onclick="proposalCreateComponent.addPricingItem()" class="btn btn-secondary btn-sm" style="margin-top: 1rem;">
+                        Add Pricing Item
+                    </button>
+                </div>
+
+                <!-- Barter Proposal Fields -->
+                <div id="barterProposalFields" style="display: none;">
+                    <h3 style="margin-top: 2rem; margin-bottom: 1rem;">Services Offered</h3>
+                    <div id="servicesOffered">
+                        <!-- Services will be added dynamically -->
+                    </div>
+                    <button type="button" onclick="proposalCreateComponent.addServiceOffered()" class="btn btn-secondary btn-sm" style="margin-top: 1rem;">
+                        Add Service
+                    </button>
+                    
+                    <h3 style="margin-top: 2rem; margin-bottom: 1rem;">Services Requested</h3>
+                    <div id="servicesRequested">
+                        <!-- Services will be added dynamically -->
+                    </div>
+                    <button type="button" onclick="proposalCreateComponent.addServiceRequested()" class="btn btn-secondary btn-sm" style="margin-top: 1rem;">
+                        Add Service
+                    </button>
+                </div>
+
+                <!-- Error/Success Messages -->
+                <div id="proposalCreateMessage" style="display: none; margin-top: 1rem;"></div>
+
+                <!-- Action Buttons -->
+                <div style="display: flex; gap: 1rem; margin-top: 2rem;">
+                    <button type="submit" class="btn btn-primary">Submit Proposal</button>
+                    <button type="button" onclick="window.location.hash='#proposals'" class="btn btn-secondary">Cancel</button>
+                </div>
+            </div>
+        </div>
+    </form>
+</div>
+

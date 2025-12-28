@@ -1,0 +1,47 @@
+<div class="container" style="padding: 2rem 0;">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+        <h1 style="margin: 0;">Notifications</h1>
+        <button onclick="notificationsComponent.markAllAsRead()" class="btn btn-primary">
+            Mark All as Read
+        </button>
+    </div>
+
+    <!-- Filter Section - Trigger getNotifications with filters -->
+    <div class="card" style="margin-bottom: 2rem;">
+        <div class="card-body">
+            <h3>Filter Notifications</h3>
+            <form id="notificationFiltersForm" onsubmit="return notificationsComponent.applyFilters(event)">
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">
+                    <div class="form-group">
+                        <label for="notificationTypeFilter" class="form-label">Type</label>
+                        <select id="notificationTypeFilter" class="form-control">
+                            <option value="">All Types</option>
+                            <option value="match_found">Match Found</option>
+                            <option value="proposal_received">Proposal Received</option>
+                            <option value="proposal_approved">Proposal Approved</option>
+                            <option value="proposal_rejected">Proposal Rejected</option>
+                            <option value="account_approved">Account Approved</option>
+                            <option value="account_rejected">Account Rejected</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="notificationReadFilter" class="form-label">Status</label>
+                        <select id="notificationReadFilter" class="form-control">
+                            <option value="">All</option>
+                            <option value="true">Read</option>
+                            <option value="false">Unread</option>
+                        </select>
+                    </div>
+                </div>
+                <button type="submit" class="btn btn-primary" style="margin-top: 1rem;">Apply Filters</button>
+                <button type="button" onclick="notificationsComponent.clearFilters()" class="btn btn-secondary" style="margin-top: 1rem; margin-left: 0.5rem;">Clear</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Notifications List -->
+    <div id="notificationsList">
+        <!-- Notifications will be loaded here -->
+    </div>
+</div>
+

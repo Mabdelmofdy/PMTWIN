@@ -1,0 +1,27 @@
+<div class="container" style="max-width: 1000px; padding: 2rem 0;">
+    <h1 style="margin-bottom: var(--spacing-6);">Knowledge Hub</h1>
+
+    <!-- Search Section -->
+    <div class="card" style="margin-bottom: 2rem;">
+        <div class="card-body">
+            <form id="knowledgeSearchForm" onsubmit="return knowledgeComponent.search(event)">
+                <div class="form-group">
+                    <label for="knowledgeSearch" class="form-label">Search Articles</label>
+                    <input type="text" id="knowledgeSearch" class="form-control" placeholder="Search for articles, guides, FAQs...">
+                </div>
+                <button type="submit" class="btn btn-primary">Search</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Categories -->
+    <div id="knowledgeCategories" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1.5rem; margin-bottom: 2rem;">
+        <!-- Categories will be loaded here -->
+    </div>
+
+    <!-- Articles List -->
+    <div id="knowledgeArticles">
+        <!-- Articles will be loaded here -->
+    </div>
+</div>
+

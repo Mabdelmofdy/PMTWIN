@@ -1,0 +1,39 @@
+<div class="container" style="padding: 2rem 0;">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+        <h1 style="margin: 0;">Proposals</h1>
+        <a href="#create-proposal" class="btn btn-primary">Create New Proposal</a>
+    </div>
+
+    <!-- Filter Section - Trigger getProposals with filters -->
+    <div class="card" style="margin-bottom: 2rem;">
+        <div class="card-body">
+            <h3>Filter Proposals</h3>
+            <form id="proposalFiltersForm" onsubmit="return proposalsListComponent.applyFilters(event)">
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">
+                    <div class="form-group">
+                        <label for="proposalStatusFilter" class="form-label">Status</label>
+                        <select id="proposalStatusFilter" class="form-control">
+                            <option value="">All Statuses</option>
+                            <option value="in_review">In Review</option>
+                            <option value="approved">Approved</option>
+                            <option value="rejected">Rejected</option>
+                            <option value="completed">Completed</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="proposalProjectFilter" class="form-label">Project ID</label>
+                        <input type="text" id="proposalProjectFilter" class="form-control" placeholder="Filter by project">
+                    </div>
+                </div>
+                <button type="submit" class="btn btn-primary" style="margin-top: 1rem;">Apply Filters</button>
+                <button type="button" onclick="proposalsListComponent.clearFilters()" class="btn btn-secondary" style="margin-top: 1rem; margin-left: 0.5rem;">Clear</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Proposals List -->
+    <div id="proposalsList">
+        <!-- Proposals will be loaded here -->
+    </div>
+</div>
+

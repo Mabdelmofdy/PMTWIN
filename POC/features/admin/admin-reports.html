@@ -1,0 +1,30 @@
+<div class="container" style="padding: 2rem 0;">
+    <h1 style="margin-bottom: var(--spacing-6);">Reports</h1>
+
+    <!-- Report Options -->
+    <div class="card" style="margin-bottom: 2rem;">
+        <div class="card-body">
+            <h2 style="margin-bottom: 1rem;">Generate Reports</h2>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1rem;">
+                <button onclick="adminReportsComponent.generateUserReport()" class="btn btn-primary">
+                    User Registration Report
+                </button>
+                <button onclick="adminReportsComponent.generateProjectReport()" class="btn btn-primary">
+                    Project Activity Report
+                </button>
+                <button onclick="adminReportsComponent.generateProposalReport()" class="btn btn-primary">
+                    Proposal Statistics Report
+                </button>
+                <button onclick="adminReportsComponent.generateFinancialReport()" class="btn btn-primary">
+                    Financial Summary Report
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Report Output -->
+    <div id="reportOutput">
+        <!-- Reports will be displayed here -->
+    </div>
+</div>
+

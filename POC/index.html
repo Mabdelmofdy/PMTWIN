@@ -8,207 +8,49 @@
 </head>
 <body>
     <!-- Navigation -->
-    <nav class="navbar">
+    <nav class="navbar" id="mainNavbar" style="display: none;">
         <div class="container">
             <div class="navbar-content">
-                <a href="index.html" class="navbar-brand">PMTwin</a>
+                <a href="#home" class="navbar-brand" data-route="home">PMTwin</a>
                 <button class="navbar-toggle" id="navbarToggle" aria-label="Toggle navigation">☰</button>
                 <ul class="navbar-nav" id="navbarNav">
-                    <li><a href="index.html" class="navbar-link active">Home</a></li>
-                    <li><a href="public-portal.html#discovery" class="navbar-link">Discover Projects</a></li>
-                    <li><a href="public-portal.html#wizard" class="navbar-link">PMTwin Wizard</a></li>
-                    <li><a href="public-portal.html#knowledge" class="navbar-link">Knowledge Hub</a></li>
-                    <li><a href="public-portal.html#signup" class="navbar-link">Sign Up</a></li>
-                    <li><a href="public-portal.html#login" class="navbar-link">Login</a></li>
+                    <!-- Navigation will be dynamically loaded based on user role -->
                 </ul>
             </div>
         </div>
     </nav>
 
-    <!-- Hero Section -->
-    <section id="hero" class="hero" style="position: relative; min-height: 500px; display: flex; align-items: center;">
-        <!-- Content will be dynamically injected here -->
-    </section>
-
-    <!-- About Section -->
-    <section id="about">
-        <!-- Content will be dynamically injected here -->
-    </section>
-
-    <!-- Services Section -->
-    <section id="services">
-        <!-- Content will be dynamically injected here -->
-    </section>
-
-    <!-- Portfolio Section -->
-    <section id="portfolio">
-        <!-- Content will be dynamically injected here -->
-    </section>
-
-    <!-- Discovery Engine Preview (Legacy - kept for compatibility) -->
-    <section class="container" style="padding: var(--spacing-16) var(--container-padding);">
-        <h2 style="text-align: center; margin-bottom: var(--spacing-8);">Active Mega-Projects</h2>
-        <div id="projectsPreview" class="grid grid-cols-1 grid-cols-md-3 gap-6">
-            <!-- Projects will be loaded here -->
+    <!-- Main Content Container -->
+    <main id="mainContent">
+        <!-- Content will be dynamically loaded based on route -->
+        <div id="loadingIndicator" style="display: none; text-align: center; padding: 2rem;">
+            <p>Loading...</p>
         </div>
-        <div style="text-align: center; margin-top: var(--spacing-8);">
-            <a href="public-portal.html#discovery" class="btn btn-primary">View All Projects</a>
-        </div>
-    </section>
+    </main>
 
-    <!-- PMTwin Wizard Entry -->
-    <section style="background: var(--bg-secondary); padding: var(--spacing-16) 0;">
-        <div class="container">
-            <div class="card" style="max-width: 800px; margin: 0 auto; text-align: center;">
-                <div class="card-body">
-                    <h2 style="margin-bottom: var(--spacing-4);">Not sure where to start?</h2>
-                    <p class="card-text" style="margin-bottom: var(--spacing-6);">
-                        Use our interactive PMTwin Wizard to find the right collaboration model for your needs.
-                        Whether you're looking for Joint Ventures, Consortia, or Barter exchanges, we'll guide you.
-                    </p>
-                    <a href="public-portal.html#wizard" class="btn btn-primary btn-lg">Help me choose</a>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- Knowledge Hub Links -->
-    <section class="container" style="padding: var(--spacing-16) var(--container-padding);">
-        <h2 style="text-align: center; margin-bottom: var(--spacing-8);">Knowledge Hub</h2>
-        <div class="grid grid-cols-1 grid-cols-md-2 gap-6">
-            <div class="card">
-                <div class="card-body">
-                    <h3 class="card-title">What is an SPV?</h3>
-                    <p class="card-text">
-                        Learn about Special Purpose Vehicles (SPVs) and how they're used in construction projects
-                        for risk management and project structuring.
-                    </p>
-                    <a href="public-portal.html#knowledge/spv" class="btn btn-outline">Read More</a>
-                </div>
-            </div>
-            <div class="card">
-                <div class="card-body">
-                    <h3 class="card-title">Barter Guide for Construction</h3>
-                    <p class="card-text">
-                        Discover how barter exchanges work in the construction industry and how PMTwin
-                        facilitates service-for-service transactions.
-                    </p>
-                    <a href="public-portal.html#knowledge/barter" class="btn btn-outline">Read More</a>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- Testimonials Section -->
-    <section id="testimonials">
-        <!-- Content will be dynamically injected here -->
-    </section>
-
-    <!-- Team Section -->
-    <section id="team">
-        <!-- Content will be dynamically injected here -->
-    </section>
-
-    <!-- Contact Section -->
-    <section id="contact">
-        <!-- Content will be dynamically injected here -->
-    </section>
-
-    <!-- Signup CTAs -->
-    <section style="background: var(--color-primary); color: white; padding: var(--spacing-16) 0;">
-        <div class="container">
-            <h2 style="text-align: center; margin-bottom: var(--spacing-8); color: white;">Join PMTwin Today</h2>
-            <div class="grid grid-cols-1 grid-cols-md-2 gap-6" style="max-width: 900px; margin: 0 auto;">
-                <div class="card" style="background: white;">
-                    <div class="card-body" style="text-align: center;">
-                        <h3 class="card-title" style="color: var(--text-primary);">Join as Individual</h3>
-                        <p class="card-text" style="color: var(--text-secondary);">
-                            Professionals, consultants, and experts can find task-based opportunities
-                            and build their reputation through endorsements.
-                        </p>
-                        <ul style="text-align: left; margin: var(--spacing-4) 0; color: var(--text-secondary);">
-                            <li>Skill-matched opportunities</li>
-                            <li>Flexible engagement models</li>
-                            <li>Profile endorsements</li>
-                            <li>Real-time notifications</li>
-                        </ul>
-                        <a href="public-portal.html#signup/individual" class="btn btn-primary btn-block">Sign Up as Individual</a>
-                    </div>
-                </div>
-                <div class="card" style="background: white;">
-                    <div class="card-body" style="text-align: center;">
-                        <h3 class="card-title" style="color: var(--text-primary);">Join as Entity</h3>
-                        <p class="card-text" style="color: var(--text-secondary);">
-                            Companies, contractors, and suppliers can create mega-projects, find partners,
-                            and access bulk purchasing opportunities.
-                        </p>
-                        <ul style="text-align: left; margin: var(--spacing-4) 0; color: var(--text-secondary);">
-                            <li>Create and manage projects</li>
-                            <li>AI-powered partner matching</li>
-                            <li>Bulk purchasing discounts</li>
-                            <li>Financial health tracking</li>
-                        </ul>
-                        <a href="public-portal.html#signup/entity" class="btn btn-primary btn-block">Sign Up as Entity</a>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- Footer -->
-    <footer id="footer" style="background: var(--bg-dark); color: var(--text-inverse); padding: var(--spacing-8) 0; margin-top: var(--spacing-16);">
-        <!-- Content will be dynamically injected here -->
-    </footer>
-
+    <!-- Core Scripts (must load first) -->
     <script src="js/data.js"></script>
     <script src="js/auth.js"></script>
-    <!-- Load site data first, then main renderer -->
-    <script src="data/siteData.js"></script>
-    <script src="js/main.js"></script>
+    <script src="js/demo-credentials.js"></script>
+    <script src="services/services-loader.js"></script>
+    
+    <!-- Router Script -->
+    <script src="js/router.js"></script>
+    
+    <!-- Initialize Router -->
     <script>
-        // Initialize data
-        PMTwinData.init();
-
-        // Mobile navigation toggle
-        document.getElementById('navbarToggle')?.addEventListener('click', function() {
-            const nav = document.getElementById('navbarNav');
-            nav.classList.toggle('show');
-        });
-
-        // Load projects preview
-        function loadProjectsPreview() {
-            const projects = PMTwinData.Projects.getActive().slice(0, 3);
-            const container = document.getElementById('projectsPreview');
-            
-            if (projects.length === 0) {
-                container.innerHTML = `
-                    <div class="empty-state" style="grid-column: 1 / -1;">
-                        <p>No active projects yet. Be the first to create one!</p>
-                    </div>
-                `;
-                return;
+        // Initialize router when DOM is ready
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', function() {
+                if (window.AppRouter) {
+                    window.AppRouter.init();
+                }
+            });
+        } else {
+            if (window.AppRouter) {
+                window.AppRouter.init();
             }
-
-            container.innerHTML = projects.map(project => `
-                <div class="card project-card" style="position: relative; overflow: hidden;">
-                    <div class="card-body">
-                        <h3 class="card-title">${project.title}</h3>
-                        <p class="card-text">
-                            <strong>Category:</strong> ${project.category}<br>
-                            <strong>Location:</strong> ${project.location?.city || 'N/A'}<br>
-                            <strong>Budget:</strong> Sign up to see details
-                        </p>
-                    </div>
-                    <div class="project-card-overlay">
-                        <a href="public-portal.html#signup" class="btn btn-primary" style="color: white;">Sign Up to View Details</a>
-                    </div>
-                </div>
-            `).join('');
         }
-
-        // Load on page load
-        document.addEventListener('DOMContentLoaded', loadProjectsPreview);
     </script>
 </body>
 </html>
-

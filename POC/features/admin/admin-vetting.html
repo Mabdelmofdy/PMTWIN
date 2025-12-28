@@ -1,0 +1,42 @@
+<div class="container" style="padding: 2rem 0;">
+    <h1 style="margin-bottom: var(--spacing-6);">User Vetting</h1>
+
+    <!-- Filter Section - Trigger getUsersForVetting with filters -->
+    <div class="card" style="margin-bottom: 2rem;">
+        <div class="card-body">
+            <h3>Filter Users</h3>
+            <form id="vettingFiltersForm" onsubmit="return adminVettingComponent.applyFilters(event)">
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">
+                    <div class="form-group">
+                        <label for="userStatusFilter" class="form-label">Status</label>
+                        <select id="userStatusFilter" class="form-control">
+                            <option value="">All Statuses</option>
+                            <option value="pending">Pending</option>
+                            <option value="approved">Approved</option>
+                            <option value="rejected">Rejected</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="onboardingStageFilter" class="form-label">Onboarding Stage</label>
+                        <select id="onboardingStageFilter" class="form-control">
+                            <option value="">All Stages</option>
+                            <option value="registered">Registered</option>
+                            <option value="profile_in_progress">Profile In Progress</option>
+                            <option value="under_review">Under Review</option>
+                            <option value="approved">Approved</option>
+                            <option value="rejected">Rejected</option>
+                        </select>
+                    </div>
+                </div>
+                <button type="submit" class="btn btn-primary" style="margin-top: 1rem;">Apply Filters</button>
+                <button type="button" onclick="adminVettingComponent.clearFilters()" class="btn btn-secondary" style="margin-top: 1rem; margin-left: 0.5rem;">Clear</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Users List -->
+    <div id="usersList">
+        <!-- Users will be loaded here -->
+    </div>
+</div>
+

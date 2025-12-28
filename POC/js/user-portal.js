@@ -50,16 +50,31 @@
         return;
       }
 
-      // Check if user has correct role (individual or entity)
-      if (currentUser.role !== 'individual' && currentUser.role !== 'entity') {
-        // Redirect to appropriate portal based on role
-        if (currentUser.role === 'admin') {
-          window.location.href = 'admin-portal.html';
-          return;
-        } else {
-          // Unknown role, redirect to public portal
-          window.location.href = 'public-portal.html';
-          return;
+      // Check if user has access to user portal using RBAC
+      if (typeof PMTwinRBAC !== 'undefined') {
+        const userRole = await PMTwinRBAC.getUserRole(currentUser.id, currentUser.email);
+        const roleDef = await PMTwinRBAC.getRoleDefinition(userRole);
+        
+        if (roleDef && !roleDef.portals.includes('user_portal')) {
+          // Redirect to appropriate portal
+          if (roleDef.portals.includes('admin_portal')) {
+            window.location.href = 'admin-portal.html';
+            return;
+          } else {
+            window.location.href = 'public-portal.html';
+            return;
+          }
+        }
+      } else {
+        // Fallback to legacy role checking
+        if (currentUser.role !== 'individual' && currentUser.role !== 'entity') {
+          if (currentUser.role === 'admin') {
+            window.location.href = 'admin-portal.html';
+            return;
+          } else {
+            window.location.href = 'public-portal.html';
+            return;
+          }
         }
       }
 
@@ -68,13 +83,17 @@
       if (mainContent) mainContent.style.display = 'block';
       if (navbar) navbar.style.display = 'block';
 
-      // Show/hide navigation based on role
-      if (currentUser.role === 'entity') {
-        const navProjects = document.getElementById('navProjects');
-        const navCreateProject = document.getElementById('navCreateProject');
-        if (navProjects) navProjects.style.display = 'block';
-        if (navCreateProject) navCreateProject.style.display = 'block';
-      }
+      // Filter navigation based on role and features (async, non-blocking)
+      filterNavigationByRole().catch(err => {
+        console.error('Error filtering navigation:', err);
+        // Fallback to legacy behavior
+        if (currentUser.role === 'entity') {
+          const navProjects = document.getElementById('navProjects');
+          const navCreateProject = document.getElementById('navCreateProject');
+          if (navProjects) navProjects.style.display = 'block';
+          if (navCreateProject) navCreateProject.style.display = 'block';
+        }
+      });
 
       // Initialize routing
       initRouting();
@@ -105,6 +124,103 @@
       }
     }
     if (mainContent) mainContent.style.display = 'none';
+  }
+
+  // ============================================
+  // Role-Based Navigation Filtering
+  // ============================================
+  async function filterNavigationByRole() {
+    try {
+      const currentUser = PMTwinData.Sessions.getCurrentUser();
+      if (!currentUser) return;
+
+      // Use DashboardService if available for role-based menu filtering
+      if (typeof DashboardService !== 'undefined') {
+        const menuResult = await DashboardService.getMenuItems();
+        if (menuResult.success && menuResult.items) {
+          const availableMenuIds = menuResult.items.map(item => item.id);
+          
+          // Hide/show menu items based on available features
+          const menuItems = {
+            'navProjects': 'projects',
+            'navCreateProject': 'create-project',
+            'navOpportunities': 'opportunities',
+            'navCollaboration': 'collaboration-models',
+            'navProposals': 'proposals',
+            'navPipeline': 'pipeline',
+            'navProfile': 'profile',
+            'navNotifications': 'notifications'
+          };
+
+          Object.keys(menuItems).forEach(navId => {
+            const navElement = document.getElementById(navId);
+            const menuId = menuItems[navId];
+            if (navElement) {
+              if (availableMenuIds.includes(menuId)) {
+                navElement.style.display = 'block';
+              } else {
+                navElement.style.display = 'none';
+              }
+            }
+          });
+
+          // Also filter navbar links
+          const navLinks = document.querySelectorAll('.navbar-link[data-route]');
+          navLinks.forEach(link => {
+            const route = link.getAttribute('data-route');
+            const menuItem = menuResult.items.find(item => item.route === `#${route}`);
+            if (menuItem) {
+              link.closest('li').style.display = 'block';
+            } else if (route !== 'dashboard' && route !== 'profile') {
+              // Keep dashboard and profile visible, hide others without permission
+              link.closest('li').style.display = 'none';
+            }
+          });
+        }
+      } else if (typeof PMTwinRBAC !== 'undefined') {
+        // Fallback: use RBAC directly
+        const availableFeatures = await PMTwinRBAC.getCurrentUserFeatures();
+        
+        // Feature to menu item mapping
+        const featureMenuMap = {
+          'project_creation': ['navCreateProject'],
+          'project_management': ['navProjects'],
+          'project_browsing': ['navOpportunities'],
+          'collaboration_opportunities': ['navCollaboration'],
+          'proposal_management': ['navProposals'],
+          'pipeline_management': ['navPipeline'],
+          'notifications': ['navNotifications']
+        };
+
+        Object.keys(featureMenuMap).forEach(feature => {
+          const menuIds = featureMenuMap[feature];
+          const hasFeature = availableFeatures.includes(feature);
+          menuIds.forEach(menuId => {
+            const element = document.getElementById(menuId);
+            if (element) {
+              element.style.display = hasFeature ? 'block' : 'none';
+            }
+          });
+        });
+      } else {
+        // Legacy fallback: use role-based visibility
+        if (currentUser.role === 'entity') {
+          const navProjects = document.getElementById('navProjects');
+          const navCreateProject = document.getElementById('navCreateProject');
+          if (navProjects) navProjects.style.display = 'block';
+          if (navCreateProject) navCreateProject.style.display = 'block';
+        }
+      }
+    } catch (error) {
+      console.error('Error filtering navigation by role:', error);
+      // Fallback to legacy behavior
+      if (currentUser && currentUser.role === 'entity') {
+        const navProjects = document.getElementById('navProjects');
+        const navCreateProject = document.getElementById('navCreateProject');
+        if (navProjects) navProjects.style.display = 'block';
+        if (navCreateProject) navCreateProject.style.display = 'block';
+      }
+    }
   }
 
   // ============================================

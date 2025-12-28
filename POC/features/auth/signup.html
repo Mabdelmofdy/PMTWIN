@@ -1,0 +1,57 @@
+<div class="container" style="max-width: 500px; padding: 2rem 0;">
+    <h1 style="margin-bottom: var(--spacing-6); text-align: center;">Sign Up</h1>
+    
+    <!-- Form to trigger AuthService.register() -->
+    <div class="card">
+        <div class="card-body">
+            <form id="signupForm" onsubmit="return signupComponent.handleSubmit(event)">
+                <!-- User Type Selection -->
+                <div class="form-group">
+                    <label class="form-label">I want to join as:</label>
+                    <div style="display: flex; gap: 1rem; margin-top: 0.5rem;">
+                        <label style="flex: 1; cursor: pointer;">
+                            <input type="radio" name="userType" value="individual" checked style="margin-right: 0.5rem;">
+                            Individual Professional
+                        </label>
+                        <label style="flex: 1; cursor: pointer;">
+                            <input type="radio" name="userType" value="entity" style="margin-right: 0.5rem;">
+                            Company/Entity
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Basic Information -->
+                <div class="form-group">
+                    <label for="signupEmail" class="form-label">Email *</label>
+                    <input type="email" id="signupEmail" class="form-control" required>
+                </div>
+                <div class="form-group">
+                    <label for="signupMobile" class="form-label">Mobile Number</label>
+                    <input type="tel" id="signupMobile" class="form-control" placeholder="+966501234567">
+                </div>
+                <div class="form-group">
+                    <label for="signupPassword" class="form-label">Password *</label>
+                    <input type="password" id="signupPassword" class="form-control" required>
+                    <small class="form-help">Must be at least 8 characters with uppercase, lowercase, and number</small>
+                </div>
+                <div class="form-group">
+                    <label for="signupPasswordConfirm" class="form-label">Confirm Password *</label>
+                    <input type="password" id="signupPasswordConfirm" class="form-control" required>
+                </div>
+
+                <!-- Error/Success Messages -->
+                <div id="signupMessage" style="display: none; margin-top: 1rem;"></div>
+
+                <!-- Action Buttons -->
+                <button type="submit" class="btn btn-primary btn-block" style="margin-top: 1rem;">Sign Up</button>
+                <p style="text-align: center; margin-top: var(--spacing-4);">
+                    Already have an account? <a href="#login">Login here</a>
+                </p>
+                <p style="text-align: center; margin-top: var(--spacing-2);">
+                    <a href="#home">Back to Home</a>
+                </p>
+            </form>
+        </div>
+    </div>
+</div>
+

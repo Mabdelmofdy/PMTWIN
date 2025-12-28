@@ -1,0 +1,27 @@
+<div class="container" style="max-width: 800px; padding: 2rem 0;">
+    <h1 style="margin-bottom: var(--spacing-6); text-align: center;">PMTwin Wizard</h1>
+    <p style="text-align: center; margin-bottom: 2rem; color: var(--text-secondary);">
+        Answer a few questions to find the perfect collaboration model for your needs
+    </p>
+
+    <!-- Wizard Steps -->
+    <div id="wizardSteps">
+        <!-- Wizard steps will be loaded here -->
+    </div>
+
+    <!-- Navigation Buttons -->
+    <div id="wizardNavigation" style="display: flex; justify-content: space-between; margin-top: 2rem;">
+        <button id="wizardPrevBtn" onclick="wizardComponent.previousStep()" class="btn btn-secondary" style="display: none;">
+            Previous
+        </button>
+        <button id="wizardNextBtn" onclick="wizardComponent.nextStep()" class="btn btn-primary">
+            Next
+        </button>
+    </div>
+
+    <!-- Results -->
+    <div id="wizardResults" style="display: none;">
+        <!-- Results will be shown here -->
+    </div>
+</div>
+

@@ -1,0 +1,42 @@
+{
+  "userRoles": [
+    {
+      "userId": "user_admin_001",
+      "email": "admin@pmtwin.com",
+      "roleId": "admin",
+      "assignedAt": "2024-01-01T00:00:00Z",
+      "assignedBy": "system",
+      "isActive": true
+    },
+    {
+      "userId": "user_individual_001",
+      "email": "individual@pmtwin.com",
+      "roleId": "individual",
+      "assignedAt": "2024-01-01T00:00:00Z",
+      "assignedBy": "system",
+      "isActive": true
+    },
+    {
+      "userId": "user_entity_001",
+      "email": "entity@pmtwin.com",
+      "roleId": "entity",
+      "assignedAt": "2024-01-01T00:00:00Z",
+      "assignedBy": "system",
+      "isActive": true
+    }
+  ],
+  "defaultRole": "guest",
+  "roleAssignmentRules": {
+    "onRegistration": {
+      "individual": "individual",
+      "entity": "entity"
+    },
+    "onApproval": {
+      "company": "entity",
+      "consultant": "consultant",
+      "individual": "individual"
+    }
+  }
+}
+
+

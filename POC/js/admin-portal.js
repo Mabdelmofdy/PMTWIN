@@ -72,25 +72,83 @@
       return;
     }
 
-    // If user is authenticated but not admin, redirect to appropriate portal
-    if (currentUser.role !== 'admin') {
-      if (currentUser.role === 'individual' || currentUser.role === 'entity') {
-        window.location.href = 'user-portal.html';
-        return;
-      } else {
-        // Unknown role, redirect to public portal
-        window.location.href = 'public-portal.html';
-        return;
+    // Check if user has access to admin portal using RBAC
+    if (typeof PMTwinRBAC !== 'undefined') {
+      // Use async check (non-blocking)
+      PMTwinRBAC.getUserRole(currentUser.id, currentUser.email).then(userRole => {
+        return PMTwinRBAC.getRoleDefinition(userRole);
+      }).then(roleDef => {
+        if (!roleDef || !roleDef.portals.includes('admin_portal')) {
+          // Redirect to appropriate portal
+          if (roleDef && roleDef.portals.includes('user_portal')) {
+            window.location.href = 'user-portal.html';
+            return;
+          } else {
+            window.location.href = 'public-portal.html';
+            return;
+          }
+        }
+        
+        // User has admin access - show main content
+        if (loginSection) loginSection.style.display = 'none';
+        if (mainContent) mainContent.style.display = 'block';
+        if (navbar) navbar.style.display = 'block';
+        
+        // Filter navigation by role
+        filterAdminNavigationByRole();
+        
+        // Initialize routing
+        initRouting();
+        
+        // Load dashboard by default
+        loadRoute('dashboard');
+      }).catch(err => {
+        console.error('Error checking role:', err);
+        // Fallback to legacy behavior
+        if (currentUser.role !== 'admin') {
+          if (currentUser.role === 'individual' || currentUser.role === 'entity') {
+            window.location.href = 'user-portal.html';
+            return;
+          } else {
+            window.location.href = 'public-portal.html';
+            return;
+          }
+        }
+        
+        // User is authenticated as admin - show main content, hide login
+        if (loginSection) loginSection.style.display = 'none';
+        if (mainContent) mainContent.style.display = 'block';
+        if (navbar) navbar.style.display = 'block';
+        
+        // Initialize routing
+        initRouting();
+        
+        // Load dashboard by default
+        loadRoute('dashboard');
+      });
+    } else {
+      // Fallback to legacy role checking
+      if (currentUser.role !== 'admin') {
+        if (currentUser.role === 'individual' || currentUser.role === 'entity') {
+          window.location.href = 'user-portal.html';
+          return;
+        } else {
+          window.location.href = 'public-portal.html';
+          return;
+        }
       }
+
+      // User is authenticated as admin - show main content, hide login
+      if (loginSection) loginSection.style.display = 'none';
+      if (mainContent) mainContent.style.display = 'block';
+      if (navbar) navbar.style.display = 'block';
+
+      // Initialize routing
+      initRouting();
+
+      // Load dashboard by default
+      loadRoute('dashboard');
     }
-
-    // User is authenticated as admin - show main content, hide login
-    if (loginSection) loginSection.style.display = 'none';
-    if (mainContent) mainContent.style.display = 'block';
-    if (navbar) navbar.style.display = 'block';
-
-    // Initialize routing
-    initRouting();
 
     // Load dashboard by default
     loadRoute('dashboard');
@@ -109,6 +167,68 @@
       }
     }
     if (mainContent) mainContent.style.display = 'none';
+  }
+
+  // ============================================
+  // Role-Based Navigation Filtering
+  // ============================================
+  async function filterAdminNavigationByRole() {
+    try {
+      const currentUser = PMTwinData.Sessions.getCurrentUser();
+      if (!currentUser) return;
+
+      // Use DashboardService if available for role-based menu filtering
+      if (typeof DashboardService !== 'undefined') {
+        const menuResult = await DashboardService.getMenuItems();
+        if (menuResult.success && menuResult.items) {
+          const availableMenuIds = menuResult.items.map(item => item.id);
+          
+          // Filter navbar links based on available features
+          const navLinks = document.querySelectorAll('.navbar-link[data-route]');
+          navLinks.forEach(link => {
+            const route = link.getAttribute('data-route');
+            const menuItem = menuResult.items.find(item => item.route === `#${route}`);
+            if (menuItem) {
+              link.closest('li').style.display = 'block';
+            } else {
+              link.closest('li').style.display = 'none';
+            }
+          });
+        }
+      } else if (typeof PMTwinRBAC !== 'undefined') {
+        // Fallback: use RBAC directly
+        const availableFeatures = await PMTwinRBAC.getCurrentUserFeatures();
+        
+        // Feature to route mapping
+        const featureRouteMap = {
+          'admin_dashboard': 'dashboard',
+          'user_vetting': 'vetting',
+          'project_moderation': 'moderation',
+          'reports': 'reports',
+          'audit_trail': 'audit'
+        };
+
+        const navLinks = document.querySelectorAll('.navbar-link[data-route]');
+        navLinks.forEach(link => {
+          const route = link.getAttribute('data-route');
+          const requiredFeature = Object.keys(featureRouteMap).find(
+            feature => featureRouteMap[feature] === route
+          );
+          
+          if (requiredFeature) {
+            const hasFeature = availableFeatures.includes(requiredFeature);
+            link.closest('li').style.display = hasFeature ? 'block' : 'none';
+          } else {
+            // Always show dashboard and logout
+            if (route === 'dashboard' || route === 'logout') {
+              link.closest('li').style.display = 'block';
+            }
+          }
+        });
+      }
+    } catch (error) {
+      console.error('Error filtering admin navigation by role:', error);
+    }
   }
 
   // ============================================

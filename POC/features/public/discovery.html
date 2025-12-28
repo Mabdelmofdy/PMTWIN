@@ -1,0 +1,44 @@
+<div class="container" style="padding: 2rem 0;">
+    <h1 style="margin-bottom: var(--spacing-6);">Discover Projects</h1>
+
+    <!-- Filter Section -->
+    <div class="card" style="margin-bottom: 2rem;">
+        <div class="card-body">
+            <h3>Filter Projects</h3>
+            <form id="discoveryFiltersForm" onsubmit="return discoveryComponent.applyFilters(event)">
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">
+                    <div class="form-group">
+                        <label for="discoveryCategoryFilter" class="form-label">Category</label>
+                        <select id="discoveryCategoryFilter" class="form-control">
+                            <option value="">All Categories</option>
+                            <option value="Infrastructure">Infrastructure</option>
+                            <option value="Residential">Residential</option>
+                            <option value="Commercial">Commercial</option>
+                            <option value="Industrial">Industrial</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="discoveryLocationFilter" class="form-label">Location</label>
+                        <input type="text" id="discoveryLocationFilter" class="form-control" placeholder="City or Region">
+                    </div>
+                    <div class="form-group">
+                        <label for="discoveryStatusFilter" class="form-label">Status</label>
+                        <select id="discoveryStatusFilter" class="form-control">
+                            <option value="">All Statuses</option>
+                            <option value="active">Active</option>
+                            <option value="draft">Draft</option>
+                        </select>
+                    </div>
+                </div>
+                <button type="submit" class="btn btn-primary" style="margin-top: 1rem;">Apply Filters</button>
+                <button type="button" onclick="discoveryComponent.clearFilters()" class="btn btn-secondary" style="margin-top: 1rem; margin-left: 0.5rem;">Clear</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Projects Grid -->
+    <div id="discoveryProjectsList">
+        <!-- Projects will be loaded here -->
+    </div>
+</div>
+

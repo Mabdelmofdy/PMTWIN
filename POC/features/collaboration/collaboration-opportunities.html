@@ -1,0 +1,45 @@
+<div class="container" style="padding: 2rem 0;">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+        <h1 style="margin: 0;">Collaboration Opportunities</h1>
+        <button onclick="collaborationComponent.showCreateForm()" class="btn btn-primary">
+            Create Opportunity
+        </button>
+    </div>
+
+    <!-- Filter Section - Trigger getCollaborationOpportunities with filters -->
+    <div class="card" style="margin-bottom: 2rem;">
+        <div class="card-body">
+            <h3>Filter Opportunities</h3>
+            <form id="opportunityFiltersForm" onsubmit="return collaborationComponent.applyFilters(event)">
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">
+                    <div class="form-group">
+                        <label for="modelTypeFilter" class="form-label">Model Type</label>
+                        <select id="modelTypeFilter" class="form-control">
+                            <option value="">All Types</option>
+                            <option value="spv">SPV</option>
+                            <option value="joint_venture">Joint Venture</option>
+                            <option value="barter">Barter</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="opportunityStatusFilter" class="form-label">Status</label>
+                        <select id="opportunityStatusFilter" class="form-control">
+                            <option value="">All Statuses</option>
+                            <option value="active">Active</option>
+                            <option value="draft">Draft</option>
+                            <option value="completed">Completed</option>
+                        </select>
+                    </div>
+                </div>
+                <button type="submit" class="btn btn-primary" style="margin-top: 1rem;">Apply Filters</button>
+                <button type="button" onclick="collaborationComponent.clearFilters()" class="btn btn-secondary" style="margin-top: 1rem; margin-left: 0.5rem;">Clear</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Opportunities List -->
+    <div id="opportunitiesList">
+        <!-- Opportunities will be loaded here -->
+    </div>
+</div>
+

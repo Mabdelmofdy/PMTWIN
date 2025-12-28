@@ -1,0 +1,202 @@
+{
+  "roles": {
+    "admin": {
+      "id": "admin",
+      "name": "Administrator",
+      "description": "Full system access with all permissions",
+      "permissions": [
+        "vet_users",
+        "approve_users",
+        "reject_users",
+        "suspend_users",
+        "moderate_projects",
+        "remove_projects",
+        "view_all_projects",
+        "view_all_proposals",
+        "view_reports",
+        "manage_audit_trail",
+        "view_analytics",
+        "manage_system_settings",
+        "manage_roles",
+        "assign_roles"
+      ],
+      "features": [
+        "admin_dashboard",
+        "user_vetting",
+        "user_management",
+        "project_moderation",
+        "audit_trail",
+        "reports",
+        "analytics",
+        "system_settings",
+        "role_management"
+      ],
+      "portals": ["admin_portal"],
+      "restrictions": []
+    },
+    "entity": {
+      "id": "entity",
+      "name": "Entity/Company",
+      "description": "Construction companies and entities that create projects",
+      "permissions": [
+        "create_projects",
+        "edit_own_projects",
+        "delete_own_projects",
+        "view_own_projects",
+        "view_public_projects",
+        "view_proposals",
+        "approve_proposals",
+        "reject_proposals",
+        "create_collaboration_opportunities",
+        "manage_own_collaboration_opportunities",
+        "view_matches",
+        "view_own_dashboard",
+        "manage_own_profile",
+        "view_own_notifications"
+      ],
+      "features": [
+        "user_dashboard",
+        "project_creation",
+        "project_management",
+        "proposal_review",
+        "collaboration_opportunities",
+        "matches_view",
+        "pipeline_management",
+        "profile_management",
+        "notifications"
+      ],
+      "portals": ["user_portal"],
+      "restrictions": [
+        "Cannot view other entities' private projects",
+        "Cannot approve/reject other entities' proposals",
+        "Cannot access admin features"
+      ]
+    },
+    "individual": {
+      "id": "individual",
+      "name": "Individual Professional",
+      "description": "Individual consultants and professionals who submit proposals",
+      "permissions": [
+        "view_public_projects",
+        "view_own_matches",
+        "create_proposals",
+        "edit_own_proposals",
+        "delete_own_proposals",
+        "view_own_proposals",
+        "apply_to_collaboration_opportunities",
+        "view_own_applications",
+        "view_own_dashboard",
+        "manage_own_profile",
+        "view_own_notifications"
+      ],
+      "features": [
+        "user_dashboard",
+        "project_browsing",
+        "matches_view",
+        "proposal_creation",
+        "proposal_management",
+        "collaboration_applications",
+        "profile_management",
+        "notifications"
+      ],
+      "portals": ["user_portal"],
+      "restrictions": [
+        "Cannot create projects",
+        "Cannot view other users' proposals",
+        "Cannot access admin features",
+        "Cannot approve/reject proposals"
+      ]
+    },
+    "consultant": {
+      "id": "consultant",
+      "name": "Consultant",
+      "description": "Professional consultants (similar to individual but with extended features)",
+      "permissions": [
+        "view_public_projects",
+        "view_own_matches",
+        "create_proposals",
+        "edit_own_proposals",
+        "delete_own_proposals",
+        "view_own_proposals",
+        "apply_to_collaboration_opportunities",
+        "view_own_applications",
+        "view_own_dashboard",
+        "manage_own_profile",
+        "view_own_notifications",
+        "create_collaboration_opportunities"
+      ],
+      "features": [
+        "user_dashboard",
+        "project_browsing",
+        "matches_view",
+        "proposal_creation",
+        "proposal_management",
+        "collaboration_applications",
+        "collaboration_opportunities",
+        "profile_management",
+        "notifications"
+      ],
+      "portals": ["user_portal"],
+      "restrictions": [
+        "Cannot create mega-projects",
+        "Cannot view other users' proposals",
+        "Cannot access admin features"
+      ]
+    },
+    "guest": {
+      "id": "guest",
+      "name": "Guest",
+      "description": "Unauthenticated visitors with limited access",
+      "permissions": [
+        "view_public_projects_limited",
+        "view_public_portal",
+        "register_account"
+      ],
+      "features": [
+        "public_portal",
+        "project_discovery_limited",
+        "pmtwin_wizard",
+        "knowledge_hub",
+        "registration"
+      ],
+      "portals": ["public_portal"],
+      "restrictions": [
+        "Cannot view full project details",
+        "Cannot submit proposals",
+        "Cannot access user features",
+        "Cannot access admin features"
+      ]
+    }
+  },
+  "featureDescriptions": {
+    "admin_dashboard": "Administrative dashboard with system overview",
+    "user_dashboard": "User dashboard with personalized content",
+    "user_vetting": "Review and approve/reject user registrations",
+    "user_management": "Manage all users in the system",
+    "project_creation": "Create new mega-projects",
+    "project_management": "Manage own projects",
+    "project_moderation": "Moderate all projects in the system",
+    "project_browsing": "Browse available projects",
+    "proposal_creation": "Create proposals for projects",
+    "proposal_management": "Manage own proposals",
+    "proposal_review": "Review proposals received for own projects",
+    "collaboration_opportunities": "Create and manage collaboration opportunities",
+    "collaboration_applications": "Apply to collaboration opportunities",
+    "matches_view": "View matching opportunities",
+    "pipeline_management": "Manage project pipeline",
+    "profile_management": "Manage own profile",
+    "notifications": "View and manage notifications",
+    "audit_trail": "View system audit logs",
+    "reports": "Generate and view reports",
+    "analytics": "View system analytics",
+    "system_settings": "Manage system configuration",
+    "role_management": "Manage roles and permissions",
+    "public_portal": "Access public portal features",
+    "project_discovery_limited": "Limited project discovery for guests",
+    "pmtwin_wizard": "PMTwin collaboration model wizard",
+    "knowledge_hub": "Access knowledge hub resources",
+    "registration": "Register new account"
+  }
+}
+
+

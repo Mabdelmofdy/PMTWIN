@@ -1,0 +1,52 @@
+<div class="container" style="padding: 2rem 0;">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+        <h1 style="margin: 0;">My Matches</h1>
+        <div style="display: flex; gap: 1rem;">
+            <!-- Filter Buttons - Trigger getMatches with filters -->
+            <button onclick="matchesComponent.filterMatches({minScore: 80})" class="btn btn-secondary">
+                High Matches (80%+)
+            </button>
+            <button onclick="matchesComponent.filterMatches({notified: false})" class="btn btn-secondary">
+                Unread Matches
+            </button>
+            <button onclick="matchesComponent.loadMatches()" class="btn btn-primary">
+                Refresh
+            </button>
+        </div>
+    </div>
+
+    <!-- Filters Section -->
+    <div class="card" style="margin-bottom: 2rem;">
+        <div class="card-body">
+            <h3>Filter Matches</h3>
+            <form id="matchFiltersForm" onsubmit="return matchesComponent.applyFilters(event)">
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">
+                    <div class="form-group">
+                        <label for="minScoreFilter" class="form-label">Minimum Score</label>
+                        <input type="number" id="minScoreFilter" class="form-control" min="0" max="100" placeholder="e.g. 80">
+                    </div>
+                    <div class="form-group">
+                        <label for="projectIdFilter" class="form-label">Project ID</label>
+                        <input type="text" id="projectIdFilter" class="form-control" placeholder="Filter by project">
+                    </div>
+                    <div class="form-group">
+                        <label for="notifiedFilter" class="form-label">Notification Status</label>
+                        <select id="notifiedFilter" class="form-control">
+                            <option value="">All</option>
+                            <option value="true">Notified</option>
+                            <option value="false">Not Notified</option>
+                        </select>
+                    </div>
+                </div>
+                <button type="submit" class="btn btn-primary" style="margin-top: 1rem;">Apply Filters</button>
+                <button type="button" onclick="matchesComponent.clearFilters()" class="btn btn-secondary" style="margin-top: 1rem; margin-left: 0.5rem;">Clear</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Matches List -->
+    <div id="matchesList">
+        <!-- Matches will be loaded here -->
+    </div>
+</div>
+
