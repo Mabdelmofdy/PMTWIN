@@ -8,8 +8,30 @@
 
   // Wait for DOM and siteData to be available
   function initLandingPage() {
+    // Check if siteData is available
     if (typeof siteData === 'undefined') {
-      console.error('siteData is not loaded. Make sure data/data-loader.js is loaded before main.js');
+      // Wait for data to be loaded via event
+      window.addEventListener('pmtwinDataLoaded', function() {
+        if (typeof siteData !== 'undefined') {
+          renderAllSections();
+        }
+      }, { once: true });
+      
+      // Also try after a short delay as fallback
+      setTimeout(() => {
+        if (typeof siteData !== 'undefined') {
+          renderAllSections();
+        }
+      }, 500);
+      return;
+    }
+
+    renderAllSections();
+  }
+
+  function renderAllSections() {
+    if (typeof siteData === 'undefined') {
+      console.warn('siteData is not available yet');
       return;
     }
 
@@ -310,12 +332,29 @@
     `;
   }
 
-  // Initialize when DOM is ready
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', initLandingPage);
-  } else {
-    initLandingPage();
+  // Initialize when DOM is ready and data is loaded
+  function initialize() {
+    // Wait for DOM
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', () => {
+        // Wait a bit for data-loader to finish
+        setTimeout(initLandingPage, 100);
+      });
+    } else {
+      // DOM already ready, wait a bit for data-loader
+      setTimeout(initLandingPage, 100);
+    }
   }
+
+  // Also listen for data loaded event
+  window.addEventListener('pmtwinDataLoaded', function() {
+    if (document.readyState !== 'loading') {
+      initLandingPage();
+    }
+  });
+
+  // Start initialization
+  initialize();
 
 })();
 
