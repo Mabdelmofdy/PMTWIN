@@ -6,6 +6,18 @@
 (function() {
   'use strict';
 
+  // ============================================
+  // Helper: Get Base Path for Data Files
+  // ============================================
+  function getDataBasePath() {
+    // Calculate relative path from current page to POC root
+    // If page is in a subdirectory (like login/, dashboard/), need ../
+    const currentPath = window.location.pathname;
+    const segments = currentPath.split('/').filter(p => p && !p.endsWith('.html'));
+    // If we have path segments, we're in a subdirectory
+    return segments.length > 0 ? '../' : '';
+  }
+
   const dataFiles = [
     { name: 'adminData', path: 'data/adminData.json' },
     { name: 'dashboardData', path: 'data/dashboardData.json' },
@@ -21,7 +33,8 @@
    */
   async function loadDataFile(file) {
     try {
-      const response = await fetch(file.path);
+      const basePath = getDataBasePath();
+      const response = await fetch(basePath + file.path);
       if (!response.ok) {
         throw new Error(`Failed to load ${file.path}: ${response.status}`);
       }

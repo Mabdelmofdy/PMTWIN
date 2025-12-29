@@ -6,9 +6,11 @@
   'use strict';
 
   function init(params) {
-    // Check if editing existing project
-    if (params && params.id) {
-      loadProjectForEdit(params.id);
+    // Check if editing existing project - try query params first, then params
+    const urlParams = new URLSearchParams(window.location.search);
+    const projectId = urlParams.get('id') || (params && params.id);
+    if (projectId) {
+      loadProjectForEdit(projectId);
     }
   }
 
@@ -68,7 +70,7 @@
       if (result.success) {
         showMessage('Project created successfully!', 'success');
         setTimeout(() => {
-          window.location.href = `project.html?id=${result.project.id}`;
+          window.location.href = `../project/?id=${result.project.id}`;
         }, 1500);
       } else {
         showMessage(result.error || 'Failed to create project', 'error');
@@ -133,7 +135,7 @@
       
       if (result.success) {
         alert('Project deleted successfully');
-        window.location.href = 'projects.html';
+        window.location.href = '../projects/';
       } else {
         alert(result.error || 'Failed to delete project');
       }

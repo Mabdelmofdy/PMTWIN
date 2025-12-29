@@ -125,7 +125,7 @@
         <div class="card">
           <div class="card-body" style="text-align: center; padding: 3rem;">
             <p>No proposals found.</p>
-            <a href="#create-proposal" class="btn btn-primary" style="margin-top: 1rem;">Create Your First Proposal</a>
+            <a href="../create-proposal/" class="btn btn-primary" style="margin-top: 1rem;">Create Your First Proposal</a>
           </div>
         </div>
       `;
@@ -184,7 +184,7 @@
 
   function viewProposal(proposalId) {
     // Navigate to proposal view page
-    window.location.hash = `#proposal/${proposalId}`;
+    window.location.href = `../proposals/?id=${proposalId}`;
   }
 
   // Export

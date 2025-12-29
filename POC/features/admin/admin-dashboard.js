@@ -103,7 +103,7 @@
       html += `
             </div>
             <div style="margin-top: 1rem;">
-              <a href="#admin-audit" class="btn btn-primary">View Full Audit Trail</a>
+              <a href="../admin-audit/" class="btn btn-primary">View Full Audit Trail</a>
             </div>
           </div>
         </div>

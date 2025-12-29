@@ -6,7 +6,11 @@
   'use strict';
 
   function init(params) {
-    loadProjects();
+    // Get projectId from params or query string
+    const urlParams = new URLSearchParams(window.location.search);
+    const projectId = urlParams.get('projectId') || (params && params.projectId);
+    
+    loadProjects(projectId);
     setupProposalTypeToggle();
     addPricingItem(); // Add initial pricing item
   }
@@ -29,7 +33,7 @@
     });
   }
 
-  async function loadProjects() {
+  async function loadProjects(preSelectProjectId) {
     const select = document.getElementById('proposalProjectId');
     if (!select) return;
 
@@ -44,11 +48,8 @@
         projects = PMTwinData.Projects.getActive();
       }
 
-      // Check for projectId in URL params
-      const urlParams = new URLSearchParams(window.location.search);
-      const projectIdParam = urlParams.get('projectId');
-      const hashMatch = window.location.hash.match(/projectId=([^&]+)/);
-      const projectId = projectIdParam || (hashMatch ? hashMatch[1] : null);
+      // Use pre-selected project ID if provided
+      const projectId = preSelectProjectId;
 
       projects.forEach(project => {
         const option = document.createElement('option');
@@ -181,7 +182,7 @@
       if (result.success) {
         showMessage('Proposal created successfully!', 'success');
         setTimeout(() => {
-          window.location.href = 'proposals.html';
+          window.location.href = '../proposals/';
         }, 1500);
       } else {
         showMessage(result.error || 'Failed to create proposal', 'error');

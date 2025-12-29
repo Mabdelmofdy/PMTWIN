@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Projects - PMTwin</title>
+    <link rel="stylesheet" href="../css/main.css">
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar" id="mainNavbar">
+        <div class="container">
+            <div class="navbar-content">
+                <a href="../home/" class="navbar-brand">PMTwin</a>
+                <button class="navbar-toggle" id="navbarToggle" aria-label="Toggle navigation">☰</button>
+                <ul class="navbar-nav" id="navbarNav">
+                    <!-- Navigation will be dynamically loaded based on user role -->
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main>
+        <div class="container" style="padding: 2rem 0;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+                <h1 style="margin: 0;">My Projects</h1>
+                <a href="../create-project/" class="btn btn-primary">Create New Project</a>
+            </div>
+            
+            <div id="projectsList">
+                <!-- Projects will be loaded here -->
+            </div>
+        </div>
+    </main>
+
+    <!-- Configuration (must load first) -->
+    <script src="../js/config.js"></script>
+    
+    <!-- API Layer (for future Java backend integration) -->
+    <script src="../js/api/api-client.js"></script>
+    <script src="../js/api/api-service.js"></script>
+    
+    <!-- Core Scripts -->
+    <script src="../js/data.js"></script>
+    <script src="../js/auth.js"></script>
+    <script src="../js/auth-check.js"></script>
+    <script src="../js/demo-credentials.js"></script>
+    <script src="../services/services-loader.js"></script>
+    
+    <!-- Component Scripts -->
+    <script src="../features/projects/projects-list.js"></script>
+    
+    <!-- Initialize Component -->
+    <script>
+        document.addEventListener('DOMContentLoaded', async function() {
+            // Check authentication
+            const isAuth = await AuthCheck.checkAuth({ requireAuth: true });
+            if (!isAuth) return;
+            
+            // Initialize projects list
+            if (window.projects && window.projects['projects-list']) {
+                window.projects['projects-list'].init();
+            }
+        });
+    </script>
+</body>
+</html>
+

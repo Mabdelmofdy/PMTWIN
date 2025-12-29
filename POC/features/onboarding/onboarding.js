@@ -148,17 +148,17 @@
     switch (stepId) {
       case 'verify_email':
         alert('Please check your email for verification code');
-        window.location.hash = '#verify-email';
+        // Email verification handled in onboarding flow
         break;
       case 'verify_mobile':
         alert('Please check your mobile for verification code');
-        window.location.hash = '#verify-mobile';
+        // Mobile verification handled in onboarding flow
         break;
       case 'identity':
       case 'documents':
       case 'profile':
         alert('Please complete this section in your profile');
-        window.location.hash = '#profile';
+        window.location.href = '../profile/';
         break;
       case 'submit':
         if (typeof PMTwinData !== 'undefined' && PMTwinData.submitProfileForReview) {

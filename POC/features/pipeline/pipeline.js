@@ -66,7 +66,7 @@
         stageProposals.forEach(proposal => {
           const project = PMTwinData?.Projects.getById(proposal.projectId);
           html += `
-            <div class="card" style="background: var(--bg-secondary); cursor: pointer;" onclick="window.location.hash='#proposal/${proposal.id}'">
+            <div class="card" style="background: var(--bg-secondary); cursor: pointer;" onclick="window.location.href='../proposals/?id=${proposal.id}'">
               <div class="card-body" style="padding: 1rem;">
                 <h4 style="margin: 0 0 0.5rem 0; font-size: 1rem;">${project?.title || 'Project ' + proposal.projectId}</h4>
                 <p style="margin: 0; font-size: 0.9rem; color: var(--text-secondary);">

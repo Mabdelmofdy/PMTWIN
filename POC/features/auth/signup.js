@@ -80,12 +80,12 @@
         // If OTP is required, redirect to verification page
         if (result.requiresOTP) {
           setTimeout(() => {
-            window.location.href = 'onboarding.html';
+            window.location.href = '../onboarding/';
           }, 2000);
         } else {
           // Auto-login and redirect
           setTimeout(() => {
-            window.location.href = 'dashboard.html';
+            window.location.href = '../dashboard/';
           }, 2000);
         }
       } else {

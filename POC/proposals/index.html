@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Proposals - PMTwin</title>
+    <link rel="stylesheet" href="../css/main.css">
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar" id="mainNavbar">
+        <div class="container">
+            <div class="navbar-content">
+                <a href="../home/" class="navbar-brand">PMTwin</a>
+                <button class="navbar-toggle" id="navbarToggle" aria-label="Toggle navigation">☰</button>
+                <ul class="navbar-nav" id="navbarNav">
+                    <!-- Navigation will be dynamically loaded based on user role -->
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main>
+        <div class="container" style="padding: 2rem 0;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+                <h1 style="margin: 0;">Proposals</h1>
+                <a href="../create-proposal/" class="btn btn-primary">Create New Proposal</a>
+            </div>
+
+            <!-- Filter Section - Trigger getProposals with filters -->
+            <div class="card" style="margin-bottom: 2rem;">
+                <div class="card-body">
+                    <h3>Filter Proposals</h3>
+                    <form id="proposalFiltersForm" onsubmit="return proposalsListComponent.applyFilters(event)">
+                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">
+                            <div class="form-group">
+                                <label for="proposalStatusFilter" class="form-label">Status</label>
+                                <select id="proposalStatusFilter" class="form-control">
+                                    <option value="">All Statuses</option>
+                                    <option value="in_review">In Review</option>
+                                    <option value="approved">Approved</option>
+                                    <option value="rejected">Rejected</option>
+                                    <option value="completed">Completed</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="proposalProjectFilter" class="form-label">Project ID</label>
+                                <input type="text" id="proposalProjectFilter" class="form-control" placeholder="Filter by project">
+                            </div>
+                        </div>
+                        <button type="submit" class="btn btn-primary" style="margin-top: 1rem;">Apply Filters</button>
+                        <button type="button" onclick="proposalsListComponent.clearFilters()" class="btn btn-secondary" style="margin-top: 1rem; margin-left: 0.5rem;">Clear</button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Proposals List -->
+            <div id="proposalsList">
+                <!-- Proposals will be loaded here -->
+            </div>
+        </div>
+    </main>
+
+    <!-- Configuration (must load first) -->
+    <script src="../js/config.js"></script>
+    
+    <!-- API Layer (for future Java backend integration) -->
+    <script src="../js/api/api-client.js"></script>
+    <script src="../js/api/api-service.js"></script>
+    
+    <!-- Core Scripts -->
+    <script src="../js/data.js"></script>
+    <script src="../js/auth.js"></script>
+    <script src="../js/auth-check.js"></script>
+    <script src="../js/demo-credentials.js"></script>
+    <script src="../services/services-loader.js"></script>
+    
+    <!-- Component Scripts -->
+    <script src="../features/proposals/proposals-list.js"></script>
+    
+    <!-- Initialize Component -->
+    <script>
+        document.addEventListener('DOMContentLoaded', async function() {
+            // Check authentication
+            const isAuth = await AuthCheck.checkAuth({ requireAuth: true });
+            if (!isAuth) return;
+            
+            // Initialize proposals list
+            if (window.proposals && window.proposals['proposals-list']) {
+                window.proposals['proposals-list'].init();
+            }
+        });
+    </script>
+</body>
+</html>
+

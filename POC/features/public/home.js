@@ -84,7 +84,7 @@
                 ${project.category || 'General'} • ${project.location?.city || 'Location TBD'}
               </p>
               <p style="margin-bottom: 1rem;">${(project.description || '').substring(0, 150)}...</p>
-              <a href="#project/${project.id}" class="btn btn-primary btn-sm">View Details</a>
+              <a href="../project/?id=${project.id}" class="btn btn-primary btn-sm">View Details</a>
             </div>
           </div>
         `;

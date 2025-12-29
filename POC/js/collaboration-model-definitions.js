@@ -132,11 +132,9 @@
         }
       ],
       matchingMetrics: [
-        { name: 'skillMatchScore', weight: 0.30 },
-        { name: 'experienceMatch', weight: 0.25 },
-        { name: 'availabilityMatch', weight: 0.20 },
-        { name: 'budgetCompatibility', weight: 0.15 },
-        { name: 'locationCompatibility', weight: 0.10 }
+        { name: 'skillScopeMatchScore', weight: 0.50 },
+        { name: 'financialCapacity', weight: 0.30 },
+        { name: 'pastPerformanceScore', weight: 0.20 }
       ],
       threshold: 80
     },
@@ -282,12 +280,9 @@
         }
       ],
       matchingMetrics: [
-        { name: 'scopeMatchScore', weight: 0.25 },
-        { name: 'financialCapacity', weight: 0.20 },
-        { name: 'experienceMatch', weight: 0.20 },
-        { name: 'geographicProximity', weight: 0.15 },
-        { name: 'prequalificationStatus', weight: 0.10 },
-        { name: 'pastCollaborationScore', weight: 0.10 }
+        { name: 'skillScopeMatchScore', weight: 0.50 },
+        { name: 'financialCapacity', weight: 0.30 },
+        { name: 'pastPerformanceScore', weight: 0.20 }
       ],
       threshold: 80
     },
@@ -440,13 +435,9 @@
         }
       ],
       matchingMetrics: [
-        { name: 'complementaryCapabilities', weight: 0.25 },
-        { name: 'financialCapacity', weight: 0.20 },
-        { name: 'strategicFit', weight: 0.15 },
-        { name: 'experienceMatch', weight: 0.15 },
-        { name: 'riskTolerance', weight: 0.10 },
-        { name: 'pastJVPerformance', weight: 0.10 },
-        { name: 'equityAlignment', weight: 0.05 }
+        { name: 'skillScopeMatchScore', weight: 0.50 },
+        { name: 'financialCapacity', weight: 0.30 },
+        { name: 'pastPerformanceScore', weight: 0.20 }
       ],
       threshold: 80
     },
@@ -613,12 +604,9 @@
         }
       ],
       matchingMetrics: [
-        { name: 'financialCapacity', weight: 0.25 },
-        { name: 'projectExperience', weight: 0.20 },
-        { name: 'sectorExpertise', weight: 0.20 },
-        { name: 'riskProfileAlignment', weight: 0.15 },
-        { name: 'geographicPresence', weight: 0.10 },
-        { name: 'lenderRelationships', weight: 0.10 }
+        { name: 'skillScopeMatchScore', weight: 0.50 },
+        { name: 'financialCapacity', weight: 0.30 },
+        { name: 'pastPerformanceScore', weight: 0.20 }
       ],
       threshold: 80
     },
@@ -788,12 +776,9 @@
         }
       ],
       matchingMetrics: [
-        { name: 'strategicAlignment', weight: 0.25 },
-        { name: 'complementaryStrengths', weight: 0.25 },
-        { name: 'financialCapacity', weight: 0.20 },
-        { name: 'marketPresence', weight: 0.15 },
-        { name: 'technologyFit', weight: 0.10 },
-        { name: 'culturalCompatibility', weight: 0.05 }
+        { name: 'strategicAlignment', weight: 0.40 },
+        { name: 'complementaryStrengths', weight: 0.35 },
+        { name: 'culturalCompatibility', weight: 0.25 }
       ],
       threshold: 80
     },
@@ -910,12 +895,9 @@
         }
       ],
       matchingMetrics: [
-        { name: 'capabilityMatch', weight: 0.25 },
-        { name: 'geographicCoverage', weight: 0.20 },
-        { name: 'capacityMatch', weight: 0.20 },
-        { name: 'qualityStandards', weight: 0.15 },
-        { name: 'financialStability', weight: 0.10 },
-        { name: 'pastAlliancePerformance', weight: 0.10 }
+        { name: 'strategicAlignment', weight: 0.40 },
+        { name: 'complementaryStrengths', weight: 0.35 },
+        { name: 'culturalCompatibility', weight: 0.25 }
       ],
       threshold: 80
     },
@@ -1032,11 +1014,9 @@
         }
       ],
       matchingMetrics: [
-        { name: 'expertiseMatch', weight: 0.30 },
-        { name: 'experienceGap', weight: 0.25 },
-        { name: 'availabilityMatch', weight: 0.20 },
-        { name: 'industryMatch', weight: 0.15 },
-        { name: 'geographicProximity', weight: 0.10 }
+        { name: 'strategicAlignment', weight: 0.40 },
+        { name: 'complementaryStrengths', weight: 0.35 },
+        { name: 'culturalCompatibility', weight: 0.25 }
       ],
       threshold: 80
     },
@@ -1167,11 +1147,9 @@
         }
       ],
       matchingMetrics: [
-        { name: 'quantityAlignment', weight: 0.25 },
-        { name: 'timelineAlignment', weight: 0.25 },
-        { name: 'geographicProximity', weight: 0.20 },
-        { name: 'paymentCapacity', weight: 0.15 },
-        { name: 'reliabilityScore', weight: 0.15 }
+        { name: 'timelineAlignment', weight: 0.40 },
+        { name: 'geographicProximity', weight: 0.35 },
+        { name: 'barterCompatibility', weight: 0.25 }
       ],
       threshold: 80
     },
@@ -1309,11 +1287,9 @@
         }
       ],
       matchingMetrics: [
-        { name: 'financialCapacity', weight: 0.30 },
-        { name: 'usageNeeds', weight: 0.25 },
-        { name: 'geographicProximity', weight: 0.20 },
-        { name: 'reliabilityScore', weight: 0.15 },
-        { name: 'maintenanceCapability', weight: 0.10 }
+        { name: 'timelineAlignment', weight: 0.40 },
+        { name: 'geographicProximity', weight: 0.35 },
+        { name: 'barterCompatibility', weight: 0.25 }
       ],
       threshold: 80
     },
@@ -1450,12 +1426,9 @@
         }
       ],
       matchingMetrics: [
-        { name: 'resourceMatch', weight: 0.30 },
-        { name: 'barterCompatibility', weight: 0.20 },
-        { name: 'geographicProximity', weight: 0.20 },
-        { name: 'timelineAlignment', weight: 0.15 },
-        { name: 'priceCompatibility', weight: 0.10 },
-        { name: 'conditionMatch', weight: 0.05 }
+        { name: 'timelineAlignment', weight: 0.40 },
+        { name: 'geographicProximity', weight: 0.35 },
+        { name: 'barterCompatibility', weight: 0.25 }
       ],
       threshold: 80
     },
@@ -1603,12 +1576,9 @@
         }
       ],
       matchingMetrics: [
-        { name: 'qualificationMatch', weight: 0.20 },
-        { name: 'experienceMatch', weight: 0.20 },
-        { name: 'skillMatchScore', weight: 0.30 },
-        { name: 'locationCompatibility', weight: 0.15 },
-        { name: 'salaryCompatibility', weight: 0.10 },
-        { name: 'availabilityMatch', weight: 0.05 }
+        { name: 'qualificationSkillMatch', weight: 0.50 },
+        { name: 'availability', weight: 0.25 },
+        { name: 'budgetSalaryCompatibility', weight: 0.25 }
       ],
       threshold: 80
     },
@@ -1734,12 +1704,9 @@
         }
       ],
       matchingMetrics: [
-        { name: 'expertiseMatch', weight: 0.30 },
-        { name: 'experienceMatch', weight: 0.20 },
-        { name: 'certificationMatch', weight: 0.15 },
-        { name: 'availabilityMatch', weight: 0.15 },
-        { name: 'budgetCompatibility', weight: 0.10 },
-        { name: 'locationCompatibility', weight: 0.10 }
+        { name: 'qualificationSkillMatch', weight: 0.50 },
+        { name: 'availability', weight: 0.25 },
+        { name: 'budgetSalaryCompatibility', weight: 0.25 }
       ],
       threshold: 80
     },
@@ -1889,11 +1856,9 @@
         }
       ],
       matchingMetrics: [
-        { name: 'eligibilityMatch', weight: 0.30 },
-        { name: 'capabilityMatch', weight: 0.25 },
-        { name: 'pastPerformance', weight: 0.20 },
-        { name: 'financialCapacity', weight: 0.15 },
-        { name: 'geographicProximity', weight: 0.10 }
+        { name: 'technical', weight: 0.40 },
+        { name: 'price', weight: 0.30 },
+        { name: 'innovation', weight: 0.30 }
       ],
       threshold: 80
     }

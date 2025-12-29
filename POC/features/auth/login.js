@@ -136,19 +136,19 @@
           const roleDef = await PMTwinRBAC.getRoleDefinition(userRole);
           
           if (roleDef && roleDef.portals.includes('admin_portal')) {
-            window.location.hash = 'admin';
+            window.location.href = '../admin/';
           } else if (roleDef && roleDef.portals.includes('user_portal')) {
-            window.location.hash = 'dashboard';
+            window.location.href = '../dashboard/';
           } else {
-            window.location.hash = 'home';
+            window.location.href = '../home/';
           }
         } else {
           // Fallback
           const user = PMTwinData.Sessions.getCurrentUser();
           if (user && user.role === 'admin') {
-            window.location.hash = 'admin';
+            window.location.href = '../admin/';
           } else {
-            window.location.hash = 'dashboard';
+            window.location.href = '../dashboard/';
           }
         }
         

@@ -7,6 +7,20 @@
 (function() {
   'use strict';
 
+  // Calculate base path from current page location
+  // All active pages load services-loader.js with ../services/services-loader.js
+  // So they're all in subdirectories and need ../ to reach the POC root
+  function getBasePath() {
+    const currentPath = window.location.pathname;
+    // Remove leading/trailing slashes and split
+    const segments = currentPath.split('/').filter(p => p && !p.endsWith('.html'));
+    // If we have path segments (like 'login', 'dashboard', etc.), we're in a subdirectory
+    // and need to go up one level to reach POC root
+    return segments.length > 0 ? '../' : '';
+  }
+
+  const basePath = getBasePath();
+
   const services = [
     // Core RBAC service (must be loaded first)
     'services/rbac/role-service.js',
@@ -25,10 +39,11 @@
   function loadService(servicePath) {
     return new Promise((resolve, reject) => {
       const script = document.createElement('script');
-      script.src = servicePath;
+      // Prepend base path to service path
+      script.src = basePath + servicePath;
       script.async = false;
       script.onload = () => resolve();
-      script.onerror = () => reject(new Error(`Failed to load ${servicePath}`));
+      script.onerror = () => reject(new Error(`Failed to load ${basePath + servicePath}`));
       document.head.appendChild(script);
     });
   }

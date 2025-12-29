@@ -471,6 +471,13 @@
     console.log('✅ Test accounts ready!');
   }
 
+  // Helper: Get base path for data files
+  function getDataBasePath() {
+    const currentPath = window.location.pathname;
+    const segments = currentPath.split('/').filter(p => p && !p.endsWith('.html'));
+    return segments.length > 0 ? '../' : '';
+  }
+
   // Load sample notifications from notification.json file
   async function loadSampleNotifications(forceReload = false) {
     const existingNotifications = Notifications.getAll();
@@ -495,7 +502,8 @@
     await new Promise(resolve => setTimeout(resolve, 100));
     
     try {
-      const response = await fetch('data/notification.json');
+      const basePath = getDataBasePath();
+      const response = await fetch(basePath + 'data/notification.json');
       if (!response.ok) {
         console.warn('⚠️ Could not load notification.json file');
         return;

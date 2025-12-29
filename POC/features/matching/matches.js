@@ -209,7 +209,7 @@
             </ul>
           </div>
           <div style="margin-top: 1rem;">
-            <button onclick="window.location.hash='#create-proposal?projectId=${match.projectId}'" class="btn btn-primary">
+            <button onclick="window.location.href='../create-proposal/?projectId=${match.projectId}'" class="btn btn-primary">
               Submit Proposal
             </button>
             <button onclick="matchesComponent.markAsViewed('${match.id}'); this.closest('.modal').remove();" class="btn btn-secondary">

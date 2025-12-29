@@ -139,7 +139,7 @@
             <p style="margin-bottom: 1rem;">${(project.description || '').substring(0, 200)}...</p>
             
             <div style="display: flex; gap: 1rem;">
-              <a href="#project/${project.id}" class="btn btn-primary btn-sm">View Details</a>
+              <a href="../project/?id=${project.id}" class="btn btn-primary btn-sm">View Details</a>
               ${project.status !== 'active' ? `
                 <button onclick="adminModerationComponent.moderateProject('${project.id}', 'approve')" class="btn btn-success btn-sm">
                   Approve

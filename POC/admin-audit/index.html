@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Audit Trail - PMTwin Admin</title>
+    <link rel="stylesheet" href="../css/main.css">
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar" id="mainNavbar">
+        <div class="container">
+            <div class="navbar-content">
+                <a href="../home/" class="navbar-brand">PMTwin</a>
+                <button class="navbar-toggle" id="navbarToggle" aria-label="Toggle navigation">☰</button>
+                <ul class="navbar-nav" id="navbarNav">
+                    <!-- Navigation will be dynamically loaded based on user role -->
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main>
+        <div class="container" style="padding: 2rem 0;">
+            <h1 style="margin-bottom: var(--spacing-6);">Audit Trail</h1>
+
+            <!-- Filter Section - Trigger getAuditTrail with filters -->
+            <div class="card" style="margin-bottom: 2rem;">
+                <div class="card-body">
+                    <h3>Filter Audit Logs</h3>
+                    <form id="auditFiltersForm" onsubmit="return adminAuditComponent.applyFilters(event)">
+                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">
+                            <div class="form-group">
+                                <label for="auditActionFilter" class="form-label">Action</label>
+                                <input type="text" id="auditActionFilter" class="form-control" placeholder="e.g. user_login">
+                            </div>
+                            <div class="form-group">
+                                <label for="auditUserIdFilter" class="form-label">User ID</label>
+                                <input type="text" id="auditUserIdFilter" class="form-control" placeholder="Filter by user">
+                            </div>
+                            <div class="form-group">
+                                <label for="auditEntityTypeFilter" class="form-label">Entity Type</label>
+                                <select id="auditEntityTypeFilter" class="form-control">
+                                    <option value="">All Types</option>
+                                    <option value="user">User</option>
+                                    <option value="project">Project</option>
+                                    <option value="proposal">Proposal</option>
+                                    <option value="match">Match</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="auditLimitFilter" class="form-label">Limit</label>
+                                <input type="number" id="auditLimitFilter" class="form-control" value="100" min="1" max="1000">
+                            </div>
+                        </div>
+                        <button type="submit" class="btn btn-primary" style="margin-top: 1rem;">Apply Filters</button>
+                        <button type="button" onclick="adminAuditComponent.clearFilters()" class="btn btn-secondary" style="margin-top: 1rem; margin-left: 0.5rem;">Clear</button>
+                        <button type="button" onclick="adminAuditComponent.exportAuditLogs()" class="btn btn-success" style="margin-top: 1rem; margin-left: 0.5rem;">Export</button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Audit Logs List -->
+            <div id="auditLogsList">
+                <!-- Audit logs will be loaded here -->
+            </div>
+        </div>
+    </main>
+
+    <!-- Configuration (must load first) -->
+    <script src="../js/config.js"></script>
+    
+    <!-- API Layer (for future Java backend integration) -->
+    <script src="../js/api/api-client.js"></script>
+    <script src="../js/api/api-service.js"></script>
+    
+    <!-- Core Scripts -->
+    <script src="../js/data.js"></script>
+    <script src="../js/auth.js"></script>
+    <script src="../js/auth-check.js"></script>
+    <script src="../js/demo-credentials.js"></script>
+    <script src="../services/services-loader.js"></script>
+    
+    <!-- Component Scripts -->
+    <script src="../features/admin/admin-audit.js"></script>
+    
+    <!-- Initialize Component -->
+    <script>
+        document.addEventListener('DOMContentLoaded', async function() {
+            // Check authentication and admin role
+            const isAuth = await AuthCheck.checkAuth({ requireAuth: true, requireRole: 'admin' });
+            if (!isAuth) return;
+            
+            // Initialize admin audit
+            if (window.admin && window.admin['admin-audit']) {
+                window.admin['admin-audit'].init();
+            }
+        });
+    </script>
+</body>
+</html>
+

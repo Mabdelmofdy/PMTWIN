@@ -115,7 +115,7 @@
       <div style="display: flex; gap: 1rem;">
         <button onclick="profileComponent.editProfile()" class="btn btn-primary">Edit Profile</button>
         ${user.onboardingStage !== 'approved' ? `
-          <a href="#onboarding" class="btn btn-success">Complete Profile</a>
+          <a href="../onboarding/" class="btn btn-success">Complete Profile</a>
         ` : ''}
       </div>
     `;

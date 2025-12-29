@@ -40,7 +40,7 @@
     isLoading = true;
 
     try {
-      const response = await fetch('data/demo-users.json');
+      const response = await fetch('../data/demo-users.json');
       if (!response.ok) {
         throw new Error(`Failed to load demo users: ${response.status}`);
       }

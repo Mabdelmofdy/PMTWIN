@@ -38,7 +38,7 @@
               <p style="color: var(--text-secondary); margin-top: 1rem;">
                 Complete your profile to get better matches!
               </p>
-              <a href="profile.html" class="btn btn-primary" style="margin-top: 1rem;">Update Profile</a>
+              <a href="../profile/" class="btn btn-primary" style="margin-top: 1rem;">Update Profile</a>
             </div>
           </div>
         `;
@@ -91,9 +91,9 @@
               </div>
               
               <div style="display: flex; gap: 1rem;">
-                <a href="#project/${project.id}" class="btn btn-primary btn-sm">View Project</a>
-                <a href="#create-proposal?projectId=${project.id}" class="btn btn-success btn-sm">Submit Proposal</a>
-                <a href="#matches" class="btn btn-secondary btn-sm">View All Matches</a>
+                <a href="../project/?id=${project.id}" class="btn btn-primary btn-sm">View Project</a>
+                <a href="../create-proposal/?projectId=${project.id}" class="btn btn-success btn-sm">Submit Proposal</a>
+                <a href="../matches/" class="btn btn-secondary btn-sm">View All Matches</a>
               </div>
             </div>
           </div>

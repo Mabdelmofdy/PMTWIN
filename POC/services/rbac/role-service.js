@@ -10,13 +10,26 @@
   let userRolesData = null;
 
   // ============================================
+  // Helper: Get Base Path for Data Files
+  // ============================================
+  function getDataBasePath() {
+    // Calculate relative path from current page to POC root
+    // If page is in a subdirectory (like login/, dashboard/), need ../
+    const currentPath = window.location.pathname;
+    const segments = currentPath.split('/').filter(p => p && !p.endsWith('.html'));
+    // If we have path segments, we're in a subdirectory
+    return segments.length > 0 ? '../' : '';
+  }
+
+  // ============================================
   // Data Loading
   // ============================================
   async function loadRolesData() {
     if (rolesData) return rolesData;
     
     try {
-      const response = await fetch('data/roles.json');
+      const basePath = getDataBasePath();
+      const response = await fetch(basePath + 'data/roles.json');
       rolesData = await response.json();
       return rolesData;
     } catch (error) {
@@ -43,7 +56,8 @@
     }
     
     try {
-      const response = await fetch('data/user-roles.json');
+      const basePath = getDataBasePath();
+      const response = await fetch(basePath + 'data/user-roles.json');
       userRolesData = await response.json();
       
       // Store in localStorage for persistence

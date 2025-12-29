@@ -96,7 +96,7 @@
       
       if (result.success) {
         alert('Project deleted successfully');
-        window.location.href = 'projects.html';
+        window.location.href = '../projects/';
       } else {
         alert(result.error || 'Failed to delete project');
       }
@@ -162,7 +162,7 @@
 
       <div style="display: flex; gap: 1rem; margin-top: 2rem;">
         ${canEdit ? `
-          <a href="create-project.html?id=${project.id}" class="btn btn-primary">Edit Project</a>
+          <a href="../create-project/?id=${project.id}" class="btn btn-primary">Edit Project</a>
         ` : ''}
         ${project.status === 'draft' && canEdit ? `
           <button onclick="projectViewComponent.updateProjectStatus('${project.id}', 'active')" class="btn btn-success">
@@ -174,8 +174,8 @@
             Delete Project
           </button>
         ` : ''}
-        <a href="create-proposal.html?projectId=${project.id}" class="btn btn-primary">Submit Proposal</a>
-        <a href="projects.html" class="btn btn-secondary">Back to Projects</a>
+        <a href="../create-proposal/?projectId=${project.id}" class="btn btn-primary">Submit Proposal</a>
+        <a href="../projects/" class="btn btn-secondary">Back to Projects</a>
       </div>
     `;
 

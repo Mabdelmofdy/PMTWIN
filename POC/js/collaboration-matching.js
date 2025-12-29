@@ -70,8 +70,205 @@
   }
 
   function getPastPerformanceScore(userId, modelType) {
-    // In POC, return neutral score. In production, would query past collaborations
-    return 75; // Neutral score
+    // Query past collaboration performance from completed collaborations
+    const applications = PMTwinData.CollaborationApplications.getAll();
+    const userApplications = applications.filter(app => 
+      app.applicantId === userId && 
+      app.status === 'completed' &&
+      (app.modelType === modelType || !modelType)
+    );
+    
+    if (userApplications.length === 0) {
+      return 75; // Neutral score if no past performance
+    }
+    
+    // Calculate average performance based on completed collaborations
+    // In production, would consider ratings, on-time delivery, etc.
+    const completedCount = userApplications.length;
+    const approvedCount = applications.filter(app => 
+      app.applicantId === userId && app.status === 'approved'
+    ).length;
+    
+    // Base score on completion rate and approval rate
+    const completionRate = (completedCount / Math.max(1, completedCount + approvedCount)) * 100;
+    return Math.round(50 + (completionRate * 0.5)); // Scale to 50-100
+  }
+
+  function calculateStrategicAlignment(opportunityGoals, userProfile) {
+    // Analyze alignment of goals and objectives
+    const opportunityObjectives = opportunityGoals || [];
+    const userServices = userProfile?.services || [];
+    const userSkills = userProfile?.skills || [];
+    const userCapabilities = [...userServices, ...userSkills];
+    
+    if (opportunityObjectives.length === 0) return 75; // Neutral if no goals specified
+    
+    // Simple keyword matching for POC - in production would use NLP
+    const matched = opportunityObjectives.filter(goal => {
+      const goalText = (goal.goal || goal).toLowerCase();
+      return userCapabilities.some(cap => 
+        cap.toLowerCase().includes(goalText) || 
+        goalText.includes(cap.toLowerCase())
+      );
+    });
+    
+    return Math.round((matched.length / opportunityObjectives.length) * 100);
+  }
+
+  function calculateCulturalCompatibility(opportunityAttrs, userProfile) {
+    // Assess organizational culture fit
+    // In POC, simplified check based on company size, years in business, values
+    const userYears = userProfile?.yearsInBusiness || 0;
+    const oppYears = opportunityAttrs?.partnerYearsInBusiness || 0;
+    
+    // Size compatibility (simplified)
+    const userSize = userProfile?.companySize || 'medium';
+    const oppSize = opportunityAttrs?.preferredCompanySize || userSize;
+    
+    let score = 50; // Base score
+    
+    // Years in business alignment (within 5 years = good match)
+    if (Math.abs(userYears - oppYears) <= 5) {
+      score += 25;
+    } else if (Math.abs(userYears - oppYears) <= 10) {
+      score += 15;
+    }
+    
+    // Size compatibility
+    if (userSize === oppSize) {
+      score += 25;
+    }
+    
+    return Math.min(100, score);
+  }
+
+  function calculateBarterCompatibility(opportunityBarterPrefs, userBarterOffers) {
+    // Evaluate barter exchange compatibility
+    if (!opportunityBarterPrefs || opportunityBarterPrefs.length === 0) {
+      return 100; // No barter requirement
+    }
+    
+    if (!userBarterOffers || userBarterOffers.length === 0) {
+      return 0; // User has no barter offers
+    }
+    
+    // Match barter preferences with user's barter offers
+    const matched = opportunityBarterPrefs.filter(pref => {
+      const prefText = (pref.preference || pref).toLowerCase();
+      return userBarterOffers.some(offer => {
+        const offerText = (offer.offer || offer).toLowerCase();
+        return offerText.includes(prefText) || prefText.includes(offerText);
+      });
+    });
+    
+    return Math.round((matched.length / opportunityBarterPrefs.length) * 100);
+  }
+
+  function calculateTimelineAlignment(opportunityTimeline, userAvailability) {
+    // Match project timelines and availability
+    if (!opportunityTimeline || !userAvailability) {
+      return 75; // Neutral if not specified
+    }
+    
+    const oppStart = new Date(opportunityTimeline.startDate || opportunityTimeline.start);
+    const oppEnd = new Date(opportunityTimeline.endDate || opportunityTimeline.end);
+    const userStart = new Date(userAvailability.startDate || userAvailability.start);
+    const userEnd = new Date(userAvailability.endDate || userAvailability.end);
+    
+    // Check if timelines overlap
+    if (userStart <= oppEnd && userEnd >= oppStart) {
+      // Calculate overlap percentage
+      const overlapStart = new Date(Math.max(oppStart, userStart));
+      const overlapEnd = new Date(Math.min(oppEnd, userEnd));
+      const overlapDuration = overlapEnd - overlapStart;
+      const oppDuration = oppEnd - oppStart;
+      
+      if (oppDuration > 0) {
+        const overlapPercentage = (overlapDuration / oppDuration) * 100;
+        return Math.round(Math.min(100, overlapPercentage));
+      }
+    }
+    
+    return 0; // No overlap
+  }
+
+  function calculateInnovationScore(userId, modelType) {
+    // Assess innovation capabilities and track record
+    const user = PMTwinData.Users.getById(userId);
+    if (!user) return 50;
+    
+    let score = 50; // Base score
+    
+    // Check for innovation-related certifications
+    const certs = user.profile?.certifications || [];
+    const innovationCerts = certs.filter(cert => {
+      const certName = (cert.name || '').toLowerCase();
+      return certName.includes('innovation') || 
+             certName.includes('research') || 
+             certName.includes('development');
+    });
+    if (innovationCerts.length > 0) score += 20;
+    
+    // Check for past competition wins
+    const applications = PMTwinData.CollaborationApplications.getAll();
+    const competitionWins = applications.filter(app => 
+      app.applicantId === userId && 
+      app.modelType === '5.1' && 
+      app.status === 'approved'
+    );
+    if (competitionWins.length > 0) score += 30;
+    
+    // Check for innovation-related skills
+    const skills = user.profile?.skills || [];
+    const innovationSkills = skills.filter(skill => {
+      const skillText = skill.toLowerCase();
+      return skillText.includes('innovation') || 
+             skillText.includes('research') || 
+             skillText.includes('development') ||
+             skillText.includes('design thinking');
+    });
+    if (innovationSkills.length > 0) score += 20;
+    
+    return Math.min(100, score);
+  }
+
+  function calculateFinancialCapacityScore(requiredAmount, userProfile) {
+    // Calculate financial capacity score (0-100)
+    if (!requiredAmount || requiredAmount === 0) return 100;
+    
+    const userRevenue = userProfile?.annualRevenueRange || '';
+    const userRevenueNum = parseRevenueRange(userRevenue);
+    
+    if (userRevenueNum === 0) return 0;
+    
+    // Check if user can handle the required amount
+    // Rule: user should have at least 10x the required amount in annual revenue
+    const capacityRatio = userRevenueNum / requiredAmount;
+    
+    if (capacityRatio >= 10) return 100;
+    if (capacityRatio >= 5) return 80;
+    if (capacityRatio >= 2) return 60;
+    if (capacityRatio >= 1) return 40;
+    return 20;
+  }
+
+  function parseRevenueRange(revenueStr) {
+    // Parse revenue range string to number (e.g., "10M-50M" -> 10000000)
+    if (!revenueStr) return 0;
+    
+    const str = revenueStr.toString().toUpperCase();
+    const match = str.match(/(\d+(?:\.\d+)?)\s*([MBK])/);
+    if (!match) return 0;
+    
+    const num = parseFloat(match[1]);
+    const unit = match[2];
+    
+    switch (unit) {
+      case 'B': return num * 1000000000;
+      case 'M': return num * 1000000;
+      case 'K': return num * 1000;
+      default: return num;
+    }
   }
 
   // ============================================
@@ -81,36 +278,43 @@
     const attrs = opportunity.attributes || {};
     const scores = {};
 
-    // Skill Match Score
-    scores.skillMatchScore = calculateSkillMatchScore(
-      attrs.requiredSkills || [],
-      user.profile?.skills || []
-    );
+    // Skill/Scope Match Score (Primary Metric)
+    const requiredSkills = attrs.requiredSkills || [];
+    const taskScope = attrs.detailedScope || '';
+    const userSkills = user.profile?.skills || [];
+    const userServices = user.profile?.services || [];
+    const userCapabilities = [...userSkills, ...userServices];
+    
+    // Calculate skill match
+    const skillMatch = calculateSkillMatchScore(requiredSkills, userSkills);
+    
+    // Calculate scope match (check if user capabilities match task scope)
+    let scopeMatch = 50; // Base score
+    if (taskScope) {
+      const scopeKeywords = taskScope.toLowerCase().split(/\s+/);
+      const matchedKeywords = scopeKeywords.filter(keyword => 
+        keyword.length > 3 && userCapabilities.some(cap => 
+          cap.toLowerCase().includes(keyword)
+        )
+      );
+      scopeMatch = Math.min(100, 50 + (matchedKeywords.length * 5));
+    }
+    
+    scores.skillScopeMatchScore = Math.round((skillMatch * 0.6 + scopeMatch * 0.4));
 
-    // Experience Match
-    scores.experienceMatch = calculateExperienceLevelMatch(
-      attrs.experienceLevel || 'Mid-Level',
-      user.profile?.experienceLevel || 'Mid-Level'
-    );
+    // Financial Capacity (Primary Metric)
+    const budgetMax = attrs.budgetRange?.max || attrs.budgetRange?.min || 0;
+    scores.financialCapacity = calculateFinancialCapacityScore(budgetMax, user.profile);
 
-    // Availability Match (simplified - check if user is available)
-    scores.availabilityMatch = 100; // Assume available for POC
+    // Past Performance Score (Primary Metric)
+    scores.pastPerformanceScore = getPastPerformanceScore(user.id, '1.1');
 
-    // Budget Compatibility
-    const userRate = user.profile?.hourlyRate || user.profile?.dailyRate || 0;
-    const budgetMin = attrs.budgetRange?.min || 0;
-    const budgetMax = attrs.budgetRange?.max || Infinity;
-    scores.budgetCompatibility = (userRate >= budgetMin && userRate <= budgetMax) ? 100 : 50;
-
-    // Location Compatibility
-    scores.locationCompatibility = calculateGeographicProximity(
-      { city: attrs.locationRequirement },
-      user.profile?.location
-    );
-
-    // Calculate final score
-    const weights = { skillMatchScore: 0.30, experienceMatch: 0.25, availabilityMatch: 0.20, 
-                      budgetCompatibility: 0.15, locationCompatibility: 0.10 };
+    // Calculate final score with specified weights
+    const weights = { 
+      skillScopeMatchScore: 0.50, 
+      financialCapacity: 0.30, 
+      pastPerformanceScore: 0.20 
+    };
     const finalScore = Object.keys(scores).reduce((sum, key) => 
       sum + (scores[key] * (weights[key] || 0)), 0);
 
@@ -124,44 +328,51 @@
     const attrs = opportunity.attributes || {};
     const scores = {};
 
-    // Scope Match Score
+    // Skill/Scope Match Score (Primary Metric)
     const memberRoles = attrs.memberRoles || [];
+    const projectScope = attrs.projectScope || attrs.projectDescription || '';
     const userServices = user.profile?.services || [];
+    const userSkills = user.profile?.skills || [];
+    const userCapabilities = [...userServices, ...userSkills];
+    
+    // Calculate role match
     const matchedRoles = memberRoles.filter(role => 
-      userServices.some(service => 
-        service.toLowerCase().includes((role.role || '').toLowerCase())
+      userCapabilities.some(cap => 
+        cap.toLowerCase().includes((role.role || role).toLowerCase())
       )
     );
-    scores.scopeMatchScore = memberRoles.length > 0 
+    const roleMatch = memberRoles.length > 0 
       ? Math.round((matchedRoles.length / memberRoles.length) * 100) 
       : 50;
+    
+    // Calculate scope match
+    let scopeMatch = 50;
+    if (projectScope) {
+      const scopeKeywords = projectScope.toLowerCase().split(/\s+/);
+      const matchedKeywords = scopeKeywords.filter(keyword => 
+        keyword.length > 3 && userCapabilities.some(cap => 
+          cap.toLowerCase().includes(keyword)
+        )
+      );
+      scopeMatch = Math.min(100, 50 + (matchedKeywords.length * 3));
+    }
+    
+    scores.skillScopeMatchScore = Math.round((roleMatch * 0.7 + scopeMatch * 0.3));
 
-    // Financial Capacity
-    scores.financialCapacity = checkFinancialCapacity(
-      attrs.minimumRequirements?.find(r => r.type === 'Financial'),
-      user
-    ) ? 100 : 0;
+    // Financial Capacity (Primary Metric)
+    const financialReq = attrs.minimumRequirements?.find(r => r.type === 'Financial');
+    const requiredAmount = financialReq?.amount || financialReq?.value || 0;
+    scores.financialCapacity = calculateFinancialCapacityScore(requiredAmount, user.profile);
 
-    // Experience Match
-    scores.experienceMatch = user.profile?.yearsInBusiness >= 5 ? 100 : 50;
+    // Past Performance Score (Primary Metric)
+    scores.pastPerformanceScore = getPastPerformanceScore(user.id, '1.2');
 
-    // Geographic Proximity
-    scores.geographicProximity = calculateGeographicProximity(
-      { city: attrs.projectLocation },
-      user.profile?.location
-    );
-
-    // Prequalification Status
-    scores.prequalificationStatus = attrs.prequalificationRequired 
-      ? (user.profile?.credentials?.some(c => c.verified) ? 100 : 0)
-      : 100;
-
-    // Past Collaboration Score
-    scores.pastCollaborationScore = getPastPerformanceScore(user.id, '1.2');
-
-    // Calculate final score
-    const weights = { scopeMatchScore: 0.25, financialCapacity: 0.20, experienceMatch: 0.20,
-                      geographicProximity: 0.15, prequalificationStatus: 0.10, pastCollaborationScore: 0.10 };
+    // Calculate final score with specified weights
+    const weights = { 
+      skillScopeMatchScore: 0.50, 
+      financialCapacity: 0.30, 
+      pastPerformanceScore: 0.20 
+    };
     const finalScore = Object.keys(scores).reduce((sum, key) => 
       sum + (scores[key] * (weights[key] || 0)), 0);
 
@@ -175,45 +386,51 @@
     const attrs = opportunity.attributes || {};
     const scores = {};
 
-    // Complementary Capabilities
+    // Skill/Scope Match Score (Primary Metric)
     const partnerRoles = attrs.partnerRoles || [];
+    const projectScope = attrs.projectScope || attrs.projectDescription || '';
     const userCapabilities = [
       ...(user.profile?.services || []),
       ...(user.profile?.skills || [])
     ];
+    
+    // Calculate role/contribution match
     const matchedCapabilities = partnerRoles.filter(role => 
       userCapabilities.some(cap => 
-        cap.toLowerCase().includes((role.contribution || '').toLowerCase())
+        cap.toLowerCase().includes((role.contribution || role.role || role).toLowerCase())
       )
     );
-    scores.complementaryCapabilities = partnerRoles.length > 0
+    const roleMatch = partnerRoles.length > 0
       ? Math.round((matchedCapabilities.length / partnerRoles.length) * 100)
       : 50;
+    
+    // Calculate scope match
+    let scopeMatch = 50;
+    if (projectScope) {
+      const scopeKeywords = projectScope.toLowerCase().split(/\s+/);
+      const matchedKeywords = scopeKeywords.filter(keyword => 
+        keyword.length > 3 && userCapabilities.some(cap => 
+          cap.toLowerCase().includes(keyword)
+        )
+      );
+      scopeMatch = Math.min(100, 50 + (matchedKeywords.length * 3));
+    }
+    
+    scores.skillScopeMatchScore = Math.round((roleMatch * 0.7 + scopeMatch * 0.3));
 
-    // Financial Capacity
-    scores.financialCapacity = checkFinancialCapacity(
-      attrs.capitalContribution,
-      user
-    ) ? 100 : 0;
+    // Financial Capacity (Primary Metric)
+    const capitalContribution = attrs.capitalContribution || attrs.equityContribution || 0;
+    scores.financialCapacity = calculateFinancialCapacityScore(capitalContribution, user.profile);
 
-    // Strategic Fit (simplified)
-    scores.strategicFit = 75; // Neutral for POC
+    // Past Performance Score (Primary Metric)
+    scores.pastPerformanceScore = getPastPerformanceScore(user.id, '1.3');
 
-    // Experience Match
-    scores.experienceMatch = user.profile?.yearsInBusiness >= 5 ? 100 : 50;
-
-    // Risk Tolerance (simplified)
-    scores.riskTolerance = 75; // Neutral for POC
-
-    // Past JV Performance
-    scores.pastJVPerformance = getPastPerformanceScore(user.id, '1.3');
-
-    // Equity Alignment (simplified - assumes compatible)
-    scores.equityAlignment = 100;
-
-    // Calculate final score
-    const weights = { complementaryCapabilities: 0.25, financialCapacity: 0.20, strategicFit: 0.15,
-                      experienceMatch: 0.15, riskTolerance: 0.10, pastJVPerformance: 0.10, equityAlignment: 0.05 };
+    // Calculate final score with specified weights
+    const weights = { 
+      skillScopeMatchScore: 0.50, 
+      financialCapacity: 0.30, 
+      pastPerformanceScore: 0.20 
+    };
     const finalScore = Object.keys(scores).reduce((sum, key) => 
       sum + (scores[key] * (weights[key] || 0)), 0);
 
@@ -227,37 +444,52 @@
     const attrs = opportunity.attributes || {};
     const scores = {};
 
-    // Financial Capacity (critical for SPV)
-    const requiredEquity = attrs.equityStructure?.reduce((sum, e) => sum + (e.percentage || 0), 0) || 0;
-    scores.financialCapacity = checkFinancialCapacity(requiredEquity, user) ? 100 : 0;
-
-    // Project Experience (mega-projects >= 50M)
-    const keyProjects = user.profile?.keyProjects || [];
-    const megaProjects = keyProjects.filter(p => (p.value || 0) >= 50000000);
-    scores.projectExperience = megaProjects.length > 0 ? 100 : 0;
-
-    // Sector Expertise
+    // Skill/Scope Match Score (Primary Metric)
     const projectType = attrs.projectType || '';
+    const projectScope = attrs.projectScope || attrs.projectDescription || '';
     const userServices = user.profile?.services || [];
-    scores.sectorExpertise = userServices.some(s => 
+    const userSkills = user.profile?.skills || [];
+    const userCapabilities = [...userServices, ...userSkills];
+    
+    // Calculate sector/project type match
+    const sectorMatch = userServices.some(s => 
       s.toLowerCase().includes(projectType.toLowerCase())
     ) ? 100 : 50;
+    
+    // Calculate scope match
+    let scopeMatch = 50;
+    if (projectScope) {
+      const scopeKeywords = projectScope.toLowerCase().split(/\s+/);
+      const matchedKeywords = scopeKeywords.filter(keyword => 
+        keyword.length > 3 && userCapabilities.some(cap => 
+          cap.toLowerCase().includes(keyword)
+        )
+      );
+      scopeMatch = Math.min(100, 50 + (matchedKeywords.length * 3));
+    }
+    
+    // Check for mega-project experience (>= 50M SAR)
+    const keyProjects = user.profile?.keyProjects || [];
+    const megaProjects = keyProjects.filter(p => (p.value || 0) >= 50000000);
+    const experienceMatch = megaProjects.length > 0 ? 100 : 50;
+    
+    scores.skillScopeMatchScore = Math.round((sectorMatch * 0.4 + scopeMatch * 0.3 + experienceMatch * 0.3));
 
-    // Risk Profile Alignment
-    scores.riskProfileAlignment = 75; // Neutral for POC
+    // Financial Capacity (Primary Metric) - Critical for SPV
+    const equityStructure = attrs.equityStructure || [];
+    const totalEquity = equityStructure.reduce((sum, e) => sum + (e.amount || e.value || 0), 0);
+    const projectValue = attrs.projectValue || attrs.totalProjectValue || totalEquity;
+    scores.financialCapacity = calculateFinancialCapacityScore(projectValue, user.profile);
 
-    // Geographic Presence
-    scores.geographicPresence = calculateGeographicProximity(
-      { city: attrs.projectLocation },
-      user.profile?.location
-    );
+    // Past Performance Score (Primary Metric)
+    scores.pastPerformanceScore = getPastPerformanceScore(user.id, '1.4');
 
-    // Lender Relationships (simplified)
-    scores.lenderRelationships = 75; // Neutral for POC
-
-    // Calculate final score
-    const weights = { financialCapacity: 0.25, projectExperience: 0.20, sectorExpertise: 0.20,
-                      riskProfileAlignment: 0.15, geographicPresence: 0.10, lenderRelationships: 0.10 };
+    // Calculate final score with specified weights
+    const weights = { 
+      skillScopeMatchScore: 0.50, 
+      financialCapacity: 0.30, 
+      pastPerformanceScore: 0.20 
+    };
     const finalScore = Object.keys(scores).reduce((sum, key) => 
       sum + (scores[key] * (weights[key] || 0)), 0);
 
@@ -271,10 +503,11 @@
     const attrs = opportunity.attributes || {};
     const scores = {};
 
-    // Strategic Alignment (simplified)
-    scores.strategicAlignment = 75; // Would require deeper analysis
+    // Strategic Alignment (Primary Metric)
+    const strategicGoals = attrs.strategicGoals || attrs.objectives || [];
+    scores.strategicAlignment = calculateStrategicAlignment(strategicGoals, user.profile);
 
-    // Complementary Strengths
+    // Complementary Strengths (Primary Metric)
     const partnerContributions = attrs.partnerContributions || [];
     const userCapabilities = [
       ...(user.profile?.services || []),
@@ -282,32 +515,22 @@
     ];
     const matched = partnerContributions.filter(contrib => 
       userCapabilities.some(cap => 
-        cap.toLowerCase().includes((contrib.contribution || '').toLowerCase())
+        cap.toLowerCase().includes((contrib.contribution || contrib).toLowerCase())
       )
     );
     scores.complementaryStrengths = partnerContributions.length > 0
       ? Math.round((matched.length / partnerContributions.length) * 100)
       : 50;
 
-    // Financial Capacity
-    scores.financialCapacity = checkFinancialCapacity(attrs.initialCapital, user) ? 100 : 0;
+    // Cultural Compatibility (Primary Metric)
+    scores.culturalCompatibility = calculateCulturalCompatibility(attrs, user.profile);
 
-    // Market Presence
-    const geographicScope = attrs.geographicScope || [];
-    const userLocation = user.profile?.location?.region || '';
-    scores.marketPresence = geographicScope.some(scope => 
-      scope.toLowerCase().includes(userLocation.toLowerCase())
-    ) ? 100 : 50;
-
-    // Technology Fit
-    scores.technologyFit = 75; // Neutral for POC
-
-    // Cultural Compatibility
-    scores.culturalCompatibility = 75; // Neutral for POC
-
-    // Calculate final score
-    const weights = { strategicAlignment: 0.25, complementaryStrengths: 0.25, financialCapacity: 0.20,
-                      marketPresence: 0.15, technologyFit: 0.10, culturalCompatibility: 0.05 };
+    // Calculate final score with specified weights
+    const weights = { 
+      strategicAlignment: 0.40, 
+      complementaryStrengths: 0.35, 
+      culturalCompatibility: 0.25 
+    };
     const finalScore = Object.keys(scores).reduce((sum, key) => 
       sum + (scores[key] * (weights[key] || 0)), 0);
 
@@ -321,7 +544,11 @@
     const attrs = opportunity.attributes || {};
     const scores = {};
 
-    // Capability Match
+    // Strategic Alignment (Primary Metric)
+    const allianceGoals = attrs.allianceGoals || attrs.strategicObjectives || [];
+    scores.strategicAlignment = calculateStrategicAlignment(allianceGoals, user.profile);
+
+    // Complementary Strengths (Primary Metric)
     const partnerReqs = attrs.partnerRequirements || [];
     const userCapabilities = [
       ...(user.profile?.services || []),
@@ -329,35 +556,22 @@
     ];
     const matched = partnerReqs.filter(req => 
       userCapabilities.some(cap => 
-        cap.toLowerCase().includes((req.requirement || '').toLowerCase())
+        cap.toLowerCase().includes((req.requirement || req).toLowerCase())
       )
     );
-    scores.capabilityMatch = partnerReqs.length > 0
+    scores.complementaryStrengths = partnerReqs.length > 0
       ? Math.round((matched.length / partnerReqs.length) * 100)
       : 50;
 
-    // Geographic Coverage
-    const geographicScope = attrs.geographicScope || [];
-    const userLocation = user.profile?.location?.region || '';
-    scores.geographicCoverage = geographicScope.some(scope => 
-      scope.toLowerCase().includes(userLocation.toLowerCase())
-    ) ? 100 : 50;
+    // Cultural Compatibility (Primary Metric)
+    scores.culturalCompatibility = calculateCulturalCompatibility(attrs, user.profile);
 
-    // Capacity Match
-    scores.capacityMatch = user.profile?.capacity?.concurrentProjects > 0 ? 100 : 50;
-
-    // Quality Standards
-    scores.qualityStandards = user.profile?.credentials?.some(c => c.verified) ? 100 : 50;
-
-    // Financial Stability
-    scores.financialStability = checkFinancialCapacity(null, user) ? 100 : 50;
-
-    // Past Alliance Performance
-    scores.pastAlliancePerformance = getPastPerformanceScore(user.id, '2.2');
-
-    // Calculate final score
-    const weights = { capabilityMatch: 0.25, geographicCoverage: 0.20, capacityMatch: 0.20,
-                      qualityStandards: 0.15, financialStability: 0.10, pastAlliancePerformance: 0.10 };
+    // Calculate final score with specified weights
+    const weights = { 
+      strategicAlignment: 0.40, 
+      complementaryStrengths: 0.35, 
+      culturalCompatibility: 0.25 
+    };
     const finalScore = Object.keys(scores).reduce((sum, key) => 
       sum + (scores[key] * (weights[key] || 0)), 0);
 
@@ -371,41 +585,34 @@
     const attrs = opportunity.attributes || {};
     const scores = {};
 
-    // Expertise Match
+    // Strategic Alignment (Primary Metric) - Alignment of mentorship goals
+    const mentorshipGoals = attrs.successMetrics || attrs.mentorshipObjectives || [];
+    scores.strategicAlignment = calculateStrategicAlignment(mentorshipGoals, user.profile);
+
+    // Complementary Strengths (Primary Metric) - Mentor's expertise vs mentee needs
     const targetSkills = attrs.targetSkills || [];
     const userSkills = user.profile?.skills || [];
-    scores.expertiseMatch = calculateSkillMatchScore(targetSkills, userSkills);
-
-    // Experience Gap (mentor should have 5+ years more experience)
-    const menteeLevel = attrs.experienceLevel || 'Junior';
-    const mentorLevel = user.profile?.experienceLevel || 'Mid-Level';
-    const levelHierarchy = { 'Entry-Level': 1, 'Junior': 2, 'Mid-Level': 3, 'Senior': 4 };
-    const gap = (levelHierarchy[mentorLevel] || 2) - (levelHierarchy[menteeLevel] || 1);
-    scores.experienceGap = gap >= 2 ? 100 : (gap >= 1 ? 75 : 0);
-
-    // Availability Match
-    scores.availabilityMatch = 100; // Assume available for POC
-
-    // Industry Match
-    const mentorshipType = attrs.mentorshipType || '';
     const userServices = user.profile?.services || [];
-    scores.industryMatch = userServices.some(s => 
-      s.toLowerCase().includes(mentorshipType.toLowerCase())
-    ) ? 100 : 50;
+    const userCapabilities = [...userSkills, ...userServices];
+    
+    const matched = targetSkills.filter(skill => 
+      userCapabilities.some(cap => 
+        cap.toLowerCase().includes(skill.toLowerCase())
+      )
+    );
+    scores.complementaryStrengths = targetSkills.length > 0
+      ? Math.round((matched.length / targetSkills.length) * 100)
+      : 50;
 
-    // Geographic Proximity (if in-person)
-    if (attrs.format === 'In-Person' || attrs.format === 'Hybrid') {
-      scores.geographicProximity = calculateGeographicProximity(
-        { city: attrs.location },
-        user.profile?.location
-      );
-    } else {
-      scores.geographicProximity = 100; // Remote doesn't need proximity
-    }
+    // Cultural Compatibility (Primary Metric)
+    scores.culturalCompatibility = calculateCulturalCompatibility(attrs, user.profile);
 
-    // Calculate final score
-    const weights = { expertiseMatch: 0.30, experienceGap: 0.25, availabilityMatch: 0.20,
-                      industryMatch: 0.15, geographicProximity: 0.10 };
+    // Calculate final score with specified weights
+    const weights = { 
+      strategicAlignment: 0.40, 
+      complementaryStrengths: 0.35, 
+      culturalCompatibility: 0.25 
+    };
     const finalScore = Object.keys(scores).reduce((sum, key) => 
       sum + (scores[key] * (weights[key] || 0)), 0);
 
@@ -419,27 +626,39 @@
     const attrs = opportunity.attributes || {};
     const scores = {};
 
-    // Quantity Alignment (simplified)
-    scores.quantityAlignment = 75; // Neutral for POC
+    // Timeline Alignment (Primary Metric)
+    const opportunityTimeline = {
+      startDate: attrs.requiredDeliveryDate || attrs.startDate,
+      endDate: attrs.requiredDeliveryDate || attrs.endDate
+    };
+    const userAvailability = {
+      startDate: user.profile?.availabilityStart || user.profile?.availableFrom,
+      endDate: user.profile?.availabilityEnd || user.profile?.availableUntil
+    };
+    scores.timelineAlignment = calculateTimelineAlignment(opportunityTimeline, userAvailability);
 
-    // Timeline Alignment
-    scores.timelineAlignment = 100; // Assume compatible for POC
-
-    // Geographic Proximity
+    // Geographic Proximity (Primary Metric)
     scores.geographicProximity = calculateGeographicProximity(
-      { city: attrs.deliveryLocation },
+      { city: attrs.deliveryLocation || attrs.location },
       user.profile?.location
     );
 
-    // Payment Capacity
-    scores.paymentCapacity = checkFinancialCapacity(attrs.targetPrice, user) ? 100 : 50;
+    // Barter Compatibility Score (Primary Metric) - if barter transaction
+    const isBarter = attrs.transactionType === 'Barter' || attrs.paymentMethod === 'Barter';
+    if (isBarter) {
+      const barterPrefs = attrs.barterPreferences || attrs.acceptedBarterTypes || [];
+      const userBarterOffers = user.profile?.barterOffers || [];
+      scores.barterCompatibility = calculateBarterCompatibility(barterPrefs, userBarterOffers);
+    } else {
+      scores.barterCompatibility = 100; // Not applicable for cash transactions
+    }
 
-    // Reliability Score
-    scores.reliabilityScore = getPastPerformanceScore(user.id, '3.1');
-
-    // Calculate final score
-    const weights = { quantityAlignment: 0.25, timelineAlignment: 0.25, geographicProximity: 0.20,
-                      paymentCapacity: 0.15, reliabilityScore: 0.15 };
+    // Calculate final score with specified weights
+    const weights = { 
+      timelineAlignment: 0.40, 
+      geographicProximity: 0.35, 
+      barterCompatibility: 0.25 
+    };
     const finalScore = Object.keys(scores).reduce((sum, key) => 
       sum + (scores[key] * (weights[key] || 0)), 0);
 
@@ -453,29 +672,39 @@
     const attrs = opportunity.attributes || {};
     const scores = {};
 
-    // Financial Capacity
-    scores.financialCapacity = checkFinancialCapacity(attrs.initialInvestment, user) ? 100 : 0;
+    // Timeline Alignment (Primary Metric)
+    const opportunityTimeline = {
+      startDate: attrs.ownershipStartDate || attrs.startDate,
+      endDate: attrs.ownershipEndDate || attrs.endDate
+    };
+    const userAvailability = {
+      startDate: user.profile?.availabilityStart || user.profile?.availableFrom,
+      endDate: user.profile?.availabilityEnd || user.profile?.availableUntil
+    };
+    scores.timelineAlignment = calculateTimelineAlignment(opportunityTimeline, userAvailability);
 
-    // Usage Needs (simplified)
-    scores.usageNeeds = 75; // Neutral for POC
-
-    // Geographic Proximity
+    // Geographic Proximity (Primary Metric)
     scores.geographicProximity = calculateGeographicProximity(
-      { city: attrs.assetLocation },
+      { city: attrs.assetLocation || attrs.location },
       user.profile?.location
     );
 
-    // Reliability Score
-    scores.reliabilityScore = getPastPerformanceScore(user.id, '3.2');
+    // Barter Compatibility Score (Primary Metric) - if barter transaction
+    const isBarter = attrs.transactionType === 'Barter' || attrs.paymentMethod === 'Barter';
+    if (isBarter) {
+      const barterPrefs = attrs.barterPreferences || attrs.acceptedBarterTypes || [];
+      const userBarterOffers = user.profile?.barterOffers || [];
+      scores.barterCompatibility = calculateBarterCompatibility(barterPrefs, userBarterOffers);
+    } else {
+      scores.barterCompatibility = 100; // Not applicable for cash transactions
+    }
 
-    // Maintenance Capability
-    scores.maintenanceCapability = user.profile?.services?.some(s => 
-      s.toLowerCase().includes('maintenance') || s.toLowerCase().includes('service')
-    ) ? 100 : 50;
-
-    // Calculate final score
-    const weights = { financialCapacity: 0.30, usageNeeds: 0.25, geographicProximity: 0.20,
-                      reliabilityScore: 0.15, maintenanceCapability: 0.10 };
+    // Calculate final score with specified weights
+    const weights = { 
+      timelineAlignment: 0.40, 
+      geographicProximity: 0.35, 
+      barterCompatibility: 0.25 
+    };
     const finalScore = Object.keys(scores).reduce((sum, key) => 
       sum + (scores[key] * (weights[key] || 0)), 0);
 
@@ -489,49 +718,39 @@
     const attrs = opportunity.attributes || {};
     const scores = {};
 
-    // Resource Match
-    const resourceType = attrs.resourceType || '';
-    const userServices = user.profile?.services || [];
-    const userSkills = user.profile?.skills || [];
-    const allUserResources = [...userServices, ...userSkills];
-    scores.resourceMatch = allUserResources.some(r => 
-      r.toLowerCase().includes(resourceType.toLowerCase())
-    ) ? 100 : 50;
+    // Timeline Alignment (Primary Metric)
+    const opportunityTimeline = {
+      startDate: attrs.exchangeStartDate || attrs.startDate,
+      endDate: attrs.exchangeEndDate || attrs.endDate
+    };
+    const userAvailability = {
+      startDate: user.profile?.availabilityStart || user.profile?.availableFrom,
+      endDate: user.profile?.availabilityEnd || user.profile?.availableUntil
+    };
+    scores.timelineAlignment = calculateTimelineAlignment(opportunityTimeline, userAvailability);
 
-    // Barter Compatibility (if barter transaction)
-    if (attrs.transactionType === 'Barter') {
-      const barterPrefs = attrs.barterPreferences || [];
-      scores.barterCompatibility = barterPrefs.length > 0 ? 75 : 50;
-    } else {
-      scores.barterCompatibility = 100;
-    }
-
-    // Geographic Proximity
+    // Geographic Proximity (Primary Metric)
     scores.geographicProximity = calculateGeographicProximity(
-      { city: attrs.location },
+      { city: attrs.location || attrs.exchangeLocation },
       user.profile?.location
     );
 
-    // Timeline Alignment
-    scores.timelineAlignment = 100; // Assume compatible for POC
-
-    // Price Compatibility
-    if (attrs.price) {
-      scores.priceCompatibility = 75; // Neutral for POC
+    // Barter Compatibility Score (Primary Metric) - Most resource exchanges are barter-based
+    const isBarter = attrs.transactionType === 'Barter' || attrs.paymentMethod === 'Barter' || !attrs.price;
+    if (isBarter) {
+      const barterPrefs = attrs.barterPreferences || attrs.acceptedBarterTypes || attrs.wantedResources || [];
+      const userBarterOffers = user.profile?.barterOffers || user.profile?.availableResources || [];
+      scores.barterCompatibility = calculateBarterCompatibility(barterPrefs, userBarterOffers);
     } else {
-      scores.priceCompatibility = 100;
+      scores.barterCompatibility = 100; // Not applicable for cash transactions
     }
 
-    // Condition Match (if applicable)
-    if (attrs.condition) {
-      scores.conditionMatch = 100; // Assume acceptable for POC
-    } else {
-      scores.conditionMatch = 100;
-    }
-
-    // Calculate final score
-    const weights = { resourceMatch: 0.30, barterCompatibility: 0.20, geographicProximity: 0.20,
-                      timelineAlignment: 0.15, priceCompatibility: 0.10, conditionMatch: 0.05 };
+    // Calculate final score with specified weights
+    const weights = { 
+      timelineAlignment: 0.40, 
+      geographicProximity: 0.35, 
+      barterCompatibility: 0.25 
+    };
     const finalScore = Object.keys(scores).reduce((sum, key) => 
       sum + (scores[key] * (weights[key] || 0)), 0);
 
@@ -545,47 +764,73 @@
     const attrs = opportunity.attributes || {};
     const scores = {};
 
-    // Qualification Match
+    // Qualification/Skill Match (Primary Metric)
     const requiredQuals = attrs.requiredQualifications || [];
+    const requiredSkills = attrs.requiredSkills || [];
     const userCerts = user.profile?.certifications || [];
+    const userSkills = user.profile?.skills || [];
+    
+    // Calculate qualification match
     const matchedQuals = requiredQuals.filter(req => 
       userCerts.some(cert => 
         cert.name?.toLowerCase().includes(req.toLowerCase())
       )
     );
-    scores.qualificationMatch = requiredQuals.length > 0
+    const qualMatch = requiredQuals.length > 0
       ? Math.round((matchedQuals.length / requiredQuals.length) * 100)
       : 100;
+    
+    // Calculate skill match
+    const skillMatch = calculateSkillMatchScore(requiredSkills, userSkills);
+    
+    // Combined qualification/skill match
+    const totalReqs = requiredQuals.length + requiredSkills.length;
+    if (totalReqs > 0) {
+      scores.qualificationSkillMatch = Math.round(
+        (qualMatch * (requiredQuals.length / totalReqs)) + 
+        (skillMatch * (requiredSkills.length / totalReqs))
+      );
+    } else {
+      scores.qualificationSkillMatch = 100;
+    }
 
-    // Experience Match
-    const requiredExp = attrs.requiredExperience || 0;
-    const userExp = user.profile?.yearsInBusiness || 0;
-    scores.experienceMatch = userExp >= requiredExp ? 100 : Math.round((userExp / requiredExp) * 100);
+    // Availability (Primary Metric)
+    const opportunityTimeline = {
+      startDate: attrs.startDate || attrs.employmentStartDate,
+      endDate: attrs.endDate || attrs.employmentEndDate
+    };
+    const userAvailability = {
+      startDate: user.profile?.availabilityStart || user.profile?.availableFrom,
+      endDate: user.profile?.availabilityEnd || user.profile?.availableUntil
+    };
+    scores.availability = calculateTimelineAlignment(opportunityTimeline, userAvailability);
 
-    // Skill Match Score
-    scores.skillMatchScore = calculateSkillMatchScore(
-      attrs.requiredSkills || [],
-      user.profile?.skills || []
-    );
-
-    // Location Compatibility
-    scores.locationCompatibility = calculateGeographicProximity(
-      { city: attrs.location },
-      user.profile?.location
-    );
-
-    // Salary Compatibility
+    // Budget/Salary Compatibility (Primary Metric)
     const salaryRange = attrs.salaryRange || {};
     const userExpected = user.profile?.expectedSalary || 0;
-    scores.salaryCompatibility = (userExpected >= salaryRange.min && userExpected <= salaryRange.max) 
-      ? 100 : 50;
+    if (salaryRange.min && salaryRange.max) {
+      // Check if user's expected salary is within range
+      if (userExpected >= salaryRange.min && userExpected <= salaryRange.max) {
+        scores.budgetSalaryCompatibility = 100;
+      } else if (userExpected < salaryRange.min) {
+        // User expects less - good for employer
+        scores.budgetSalaryCompatibility = 90;
+      } else {
+        // User expects more - calculate compatibility
+        const diff = userExpected - salaryRange.max;
+        const rangeSize = salaryRange.max - salaryRange.min;
+        scores.budgetSalaryCompatibility = Math.max(0, 100 - (diff / rangeSize) * 50);
+      }
+    } else {
+      scores.budgetSalaryCompatibility = 75; // Neutral if not specified
+    }
 
-    // Availability Match
-    scores.availabilityMatch = 100; // Assume available for POC
-
-    // Calculate final score
-    const weights = { qualificationMatch: 0.20, experienceMatch: 0.20, skillMatchScore: 0.30,
-                      locationCompatibility: 0.15, salaryCompatibility: 0.10, availabilityMatch: 0.05 };
+    // Calculate final score with specified weights
+    const weights = { 
+      qualificationSkillMatch: 0.50, 
+      availability: 0.25, 
+      budgetSalaryCompatibility: 0.25 
+    };
     const finalScore = Object.keys(scores).reduce((sum, key) => 
       sum + (scores[key] * (weights[key] || 0)), 0);
 
@@ -599,45 +844,70 @@
     const attrs = opportunity.attributes || {};
     const scores = {};
 
-    // Expertise Match
+    // Qualification/Skill Match (Primary Metric)
     const requiredExpertise = attrs.requiredExpertise || [];
-    const userSkills = user.profile?.skills || [];
-    scores.expertiseMatch = calculateSkillMatchScore(requiredExpertise, userSkills);
-
-    // Experience Match
-    const expLevel = attrs.experienceLevel || 'Mid-Level';
-    const userLevel = user.profile?.experienceLevel || 'Mid-Level';
-    scores.experienceMatch = calculateExperienceLevelMatch(expLevel, userLevel);
-
-    // Certification Match
     const requiredCerts = attrs.requiredCertifications || [];
+    const userSkills = user.profile?.skills || [];
     const userCerts = user.profile?.certifications || [];
+    
+    // Calculate expertise/skill match
+    const expertiseMatch = calculateSkillMatchScore(requiredExpertise, userSkills);
+    
+    // Calculate certification match
     const matchedCerts = requiredCerts.filter(req => 
       userCerts.some(cert => 
         cert.name?.toLowerCase().includes(req.toLowerCase())
       )
     );
-    scores.certificationMatch = requiredCerts.length > 0
+    const certMatch = requiredCerts.length > 0
       ? Math.round((matchedCerts.length / requiredCerts.length) * 100)
       : 100;
+    
+    // Combined qualification/skill match
+    const totalReqs = requiredExpertise.length + requiredCerts.length;
+    if (totalReqs > 0) {
+      scores.qualificationSkillMatch = Math.round(
+        (expertiseMatch * (requiredExpertise.length / totalReqs)) + 
+        (certMatch * (requiredCerts.length / totalReqs))
+      );
+    } else {
+      scores.qualificationSkillMatch = 100;
+    }
 
-    // Availability Match
-    scores.availabilityMatch = 100; // Assume available for POC
+    // Availability (Primary Metric)
+    const opportunityTimeline = {
+      startDate: attrs.startDate || attrs.consultationStartDate,
+      endDate: attrs.endDate || attrs.consultationEndDate || attrs.duration
+    };
+    const userAvailability = {
+      startDate: user.profile?.availabilityStart || user.profile?.availableFrom,
+      endDate: user.profile?.availabilityEnd || user.profile?.availableUntil
+    };
+    scores.availability = calculateTimelineAlignment(opportunityTimeline, userAvailability);
 
-    // Budget Compatibility
+    // Budget/Salary Compatibility (Primary Metric)
     const budget = attrs.budget || {};
     const userRate = user.profile?.hourlyRate || user.profile?.dailyRate || 0;
-    scores.budgetCompatibility = (userRate >= budget.min && userRate <= budget.max) ? 100 : 50;
+    if (budget.min && budget.max) {
+      if (userRate >= budget.min && userRate <= budget.max) {
+        scores.budgetSalaryCompatibility = 100;
+      } else if (userRate < budget.min) {
+        scores.budgetSalaryCompatibility = 90; // User charges less - good for client
+      } else {
+        const diff = userRate - budget.max;
+        const rangeSize = budget.max - budget.min;
+        scores.budgetSalaryCompatibility = Math.max(0, 100 - (diff / rangeSize) * 50);
+      }
+    } else {
+      scores.budgetSalaryCompatibility = 75; // Neutral if not specified
+    }
 
-    // Location Compatibility
-    scores.locationCompatibility = calculateGeographicProximity(
-      { city: attrs.locationRequirement },
-      user.profile?.location
-    );
-
-    // Calculate final score
-    const weights = { expertiseMatch: 0.30, experienceMatch: 0.20, certificationMatch: 0.15,
-                      availabilityMatch: 0.15, budgetCompatibility: 0.10, locationCompatibility: 0.10 };
+    // Calculate final score with specified weights
+    const weights = { 
+      qualificationSkillMatch: 0.50, 
+      availability: 0.25, 
+      budgetSalaryCompatibility: 0.25 
+    };
     const finalScore = Object.keys(scores).reduce((sum, key) => 
       sum + (scores[key] * (weights[key] || 0)), 0);
 
@@ -651,49 +921,60 @@
     const attrs = opportunity.attributes || {};
     const scores = {};
 
-    // Eligibility Match
+    // Technical (Primary Metric) - Technical capability and past performance
+    const technicalReqs = attrs.technicalRequirements || attrs.submissionRequirements || [];
     const eligibilityCriteria = attrs.eligibilityCriteria || [];
-    const userQuals = [
-      ...(user.profile?.certifications || []).map(c => c.name),
-      ...(user.profile?.skills || []),
-      ...(user.profile?.services || [])
-    ];
-    const matched = eligibilityCriteria.filter(crit => 
-      userQuals.some(qual => 
-        qual.toLowerCase().includes((crit.criterion || '').toLowerCase())
-      )
-    );
-    scores.eligibilityMatch = eligibilityCriteria.length > 0
-      ? Math.round((matched.length / eligibilityCriteria.length) * 100)
-      : 100;
-
-    // Capability Match
-    const submissionReqs = attrs.submissionRequirements || [];
+    const allTechnicalReqs = [...technicalReqs, ...eligibilityCriteria];
+    
     const userCapabilities = [
       ...(user.profile?.services || []),
-      ...(user.profile?.skills || [])
+      ...(user.profile?.skills || []),
+      ...(user.profile?.certifications || []).map(c => c.name)
     ];
-    const matchedCaps = submissionReqs.filter(req => 
-      userCapabilities.some(cap => 
-        cap.toLowerCase().includes(req.toLowerCase())
-      )
-    );
-    scores.capabilityMatch = submissionReqs.length > 0
-      ? Math.round((matchedCaps.length / submissionReqs.length) * 100)
+    
+    const matchedTechnical = allTechnicalReqs.filter(req => {
+      const reqText = (req.requirement || req.criterion || req).toLowerCase();
+      return userCapabilities.some(cap => 
+        cap.toLowerCase().includes(reqText) || reqText.includes(cap.toLowerCase())
+      );
+    });
+    
+    const technicalMatch = allTechnicalReqs.length > 0
+      ? Math.round((matchedTechnical.length / allTechnicalReqs.length) * 100)
       : 50;
+    
+    // Past performance contributes to technical score
+    const pastPerformance = getPastPerformanceScore(user.id, '5.1');
+    scores.technical = Math.round((technicalMatch * 0.7 + pastPerformance * 0.3));
 
-    // Past Performance
-    scores.pastPerformance = getPastPerformanceScore(user.id, '5.1');
+    // Price (Primary Metric) - Price competitiveness
+    const budget = attrs.budget || attrs.maxBudget || {};
+    const userRate = user.profile?.hourlyRate || user.profile?.dailyRate || user.profile?.projectRate || 0;
+    
+    if (budget.max || budget) {
+      const maxBudget = budget.max || budget;
+      if (userRate <= maxBudget) {
+        // User's rate is within or below budget - calculate competitiveness
+        const priceRatio = userRate / maxBudget;
+        scores.price = Math.round(100 - (priceRatio * 30)); // Lower price = higher score (max 100)
+      } else {
+        // User's rate exceeds budget
+        const excessRatio = (userRate - maxBudget) / maxBudget;
+        scores.price = Math.max(0, 50 - (excessRatio * 50));
+      }
+    } else {
+      scores.price = 75; // Neutral if no budget specified
+    }
 
-    // Financial Capacity
-    scores.financialCapacity = checkFinancialCapacity(null, user) ? 100 : 50;
+    // Innovation (Primary Metric) - Innovation track record and capabilities
+    scores.innovation = calculateInnovationScore(user.id, '5.1');
 
-    // Geographic Proximity
-    scores.geographicProximity = 75; // Neutral for competitions
-
-    // Calculate final score
-    const weights = { eligibilityMatch: 0.30, capabilityMatch: 0.25, pastPerformance: 0.20,
-                      financialCapacity: 0.15, geographicProximity: 0.10 };
+    // Calculate final score with specified weights
+    const weights = { 
+      technical: 0.40, 
+      price: 0.30, 
+      innovation: 0.30 
+    };
     const finalScore = Object.keys(scores).reduce((sum, key) => 
       sum + (scores[key] * (weights[key] || 0)), 0);
 

@@ -106,6 +106,74 @@
     return { success: true, data: dashboardData };
   }
 
+  // ============================================
+  // Helper: Map User Role to Relationship Types
+  // ============================================
+  function getUserRelationshipTypes(userRole, userType) {
+    // Map user role/type to relationship types they can participate in
+    // B2B = Business-to-Business
+    // B2P = Business-to-Professional
+    // P2B = Professional-to-Business
+    // P2P = Professional-to-Professional
+    
+    if (userRole === 'admin') {
+      // Admin can see all models
+      return ['B2B', 'B2P', 'P2B', 'P2P'];
+    }
+    
+    // Determine if user is a Business or Professional
+    const isBusiness = userRole === 'entity' || userType === 'company';
+    const isProfessional = userRole === 'individual' || userRole === 'consultant' || userType === 'consultant' || userType === 'individual';
+    
+    if (isBusiness) {
+      // Business can participate in B2B and B2P
+      return ['B2B', 'B2P'];
+    } else if (isProfessional) {
+      // Professional can participate in P2B and P2P
+      return ['P2B', 'P2P'];
+    }
+    
+    // Default: return empty array
+    return [];
+  }
+
+  // ============================================
+  // Helper: Get Available Collaboration Models
+  // ============================================
+  function getAvailableCollaborationModels(userId) {
+    if (typeof PMTwinData === 'undefined' || typeof CollaborationModels === 'undefined') {
+      return [];
+    }
+    
+    const user = PMTwinData.Users.getById(userId);
+    if (!user) {
+      return [];
+    }
+    
+    // Get user's relationship types
+    const userRole = user.role || 'guest';
+    const userType = user.userType || null;
+    const relationshipTypes = getUserRelationshipTypes(userRole, userType);
+    
+    if (relationshipTypes.length === 0) {
+      return [];
+    }
+    
+    // Get all models and filter by applicability
+    const allModels = CollaborationModels.getAllModels();
+    const availableModels = allModels.filter(model => {
+      if (!model.applicability || model.applicability.length === 0) {
+        return false;
+      }
+      // Check if model's applicability includes any of user's relationship types
+      return model.applicability.some(applicableType => 
+        relationshipTypes.includes(applicableType)
+      );
+    });
+    
+    return availableModels;
+  }
+
   async function getMenuItems() {
     if (typeof PMTwinData === 'undefined') {
       return { success: false, error: 'Data service not available' };
@@ -118,21 +186,77 @@
     
     // Base menu items
     const allMenuItems = [
-      { id: 'dashboard', label: 'Dashboard', route: '#/dashboard', feature: 'user_dashboard' },
-      { id: 'projects', label: 'Projects', route: '#/projects', feature: 'project_browsing' },
-      { id: 'create-project', label: 'Create Project', route: '#/projects/create', feature: 'project_creation' },
-      { id: 'proposals', label: 'Proposals', route: '#/proposals', feature: 'proposal_management' },
-      { id: 'matches', label: 'Matches', route: '#/matches', feature: 'matches_view' },
-      { id: 'collaboration', label: 'Collaboration', route: '#/collaboration', feature: 'collaboration_opportunities' },
-      { id: 'profile', label: 'Profile', route: '#/profile', feature: 'profile_management' },
-      { id: 'notifications', label: 'Notifications', route: '#/notifications', feature: 'notifications' },
-      { id: 'admin-dashboard', label: 'Admin Dashboard', route: '#/admin/dashboard', feature: 'admin_dashboard' },
-      { id: 'user-vetting', label: 'User Vetting', route: '#/admin/vetting', feature: 'user_vetting' },
-      { id: 'user-management', label: 'User Management', route: '#/admin/users', feature: 'user_management' },
-      { id: 'project-moderation', label: 'Project Moderation', route: '#/admin/projects', feature: 'project_moderation' },
-      { id: 'audit-trail', label: 'Audit Trail', route: '#/admin/audit', feature: 'audit_trail' },
-      { id: 'reports', label: 'Reports', route: '#/admin/reports', feature: 'reports' }
+      { id: 'dashboard', label: 'Dashboard', route: '#/dashboard', feature: 'user_dashboard', icon: '📊' },
+      { id: 'projects', label: 'Projects', route: '#/projects', feature: 'project_browsing', icon: '🏗️' },
+      { id: 'create-project', label: 'Create Project', route: '#/projects/create', feature: 'project_creation', icon: '➕' },
+      { id: 'proposals', label: 'Proposals', route: '#/proposals', feature: 'proposal_management', icon: '📄' },
+      { id: 'matches', label: 'Matches', route: '#/matches', feature: 'matches_view', icon: '🔗' },
+      { id: 'collaboration', label: 'Collaboration', route: '#/collaboration', feature: 'collaboration_opportunities', icon: '🤝' },
+      { id: 'profile', label: 'Profile', route: '#/profile', feature: 'profile_management', icon: '👤' },
+      { id: 'notifications', label: 'Notifications', route: '#/notifications', feature: 'notifications', icon: '🔔' },
+      { id: 'admin-dashboard', label: 'Admin Dashboard', route: '#/admin/dashboard', feature: 'admin_dashboard', icon: '⚙️' },
+      { id: 'user-vetting', label: 'User Vetting', route: '#/admin/vetting', feature: 'user_vetting', icon: '✅' },
+      { id: 'user-management', label: 'User Management', route: '#/admin/users', feature: 'user_management', icon: '👥' },
+      { id: 'project-moderation', label: 'Project Moderation', route: '#/admin/projects', feature: 'project_moderation', icon: '🛡️' },
+      { id: 'audit-trail', label: 'Audit Trail', route: '#/admin/audit', feature: 'audit_trail', icon: '📋' },
+      { id: 'reports', label: 'Reports', route: '#/admin/reports', feature: 'reports', icon: '📊' }
     ];
+    
+    // Get available collaboration models for current user
+    const availableModels = getAvailableCollaborationModels(currentUser.id);
+    
+    // Add collaboration models menu items (flat structure, grouped by category)
+    if (availableModels.length > 0 && typeof CollaborationModels !== 'undefined') {
+      const categories = CollaborationModels.getAllCategories();
+      const categoryIcons = {
+        '1': '🏗️',
+        '2': '🤝',
+        '3': '💼',
+        '4': '👥',
+        '5': '🏆'
+      };
+      
+      // Add a separator before collaboration models
+      allMenuItems.push({
+        id: 'collab-separator',
+        label: '---',
+        route: '#',
+        feature: null,
+        icon: '',
+        isSeparator: true
+      });
+      
+      // Add category headers and their models
+      categories.forEach(category => {
+        const categoryModels = availableModels.filter(model => 
+          model.category === category.name || model.id.startsWith(category.id + '.')
+        );
+        
+        if (categoryModels.length > 0) {
+          // Add category header (non-clickable, for visual grouping)
+          allMenuItems.push({
+            id: `collab-category-${category.id}`,
+            label: category.name,
+            route: `#/collaboration?category=${category.id}`,
+            feature: 'collaboration_opportunities',
+            icon: categoryIcons[category.id] || '📋',
+            isCategoryHeader: true
+          });
+          
+          // Add individual model items
+          categoryModels.forEach(model => {
+            allMenuItems.push({
+              id: `collab-model-${model.id}`,
+              label: model.name,
+              route: `#/collaboration?model=${model.id}`,
+              feature: 'collaboration_opportunities',
+              icon: categoryIcons[category.id] || '📋',
+              indent: true // For visual indentation in sidebar
+            });
+          });
+        }
+      });
+    }
     
     // Filter by role
     if (typeof PMTwinRBAC !== 'undefined') {
