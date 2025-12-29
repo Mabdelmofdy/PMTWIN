@@ -9,7 +9,7 @@
     loadModels();
   }
 
-  function loadModels() {
+  async function loadModels() {
     const container = document.getElementById('collaborationModelsGrid');
     if (!container) return;
 
@@ -27,34 +27,39 @@
         // Fallback static models
         models = [
           {
-            id: 'spv',
+            id: '1.4',
             name: 'Special Purpose Vehicle (SPV)',
             category: 'Legal Structures',
             description: 'Create a separate legal entity for a specific project',
             icon: '🏗️'
           },
           {
-            id: 'joint_venture',
+            id: '1.3',
             name: 'Joint Venture',
             category: 'Partnerships',
             description: 'Collaborate with partners on shared projects',
             icon: '🤝'
           },
           {
-            id: 'barter',
-            name: 'Barter Exchange',
+            id: '3.3',
+            name: 'Resource Marketplace',
             category: 'Resource Exchange',
             description: 'Exchange services without cash transactions',
             icon: '🔄'
           },
           {
-            id: 'consortium',
+            id: '1.2',
             name: 'Consortium',
             category: 'Partnerships',
             description: 'Join multiple partners for large-scale projects',
             icon: '👥'
           }
         ];
+      }
+
+      // Filter models by role if RBAC is available
+      if (typeof window.PMTwinRBAC !== 'undefined') {
+        models = await window.PMTwinRBAC.filterModelsByRole(models);
       }
 
       renderModels(container, models);

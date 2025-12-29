@@ -17,6 +17,7 @@
     NOTIFICATIONS: 'pmtwin_notifications',
     COLLABORATION_OPPORTUNITIES: 'pmtwin_collaboration_opportunities',
     COLLABORATION_APPLICATIONS: 'pmtwin_collaboration_applications',
+    SYSTEM_SETTINGS: 'pmtwin_system_settings',
     VERSION: 'pmtwin_data_version'
   };
 
@@ -31,10 +32,19 @@
       return explicitUserType;
     }
     
+    // Map new roles to user types
     const mapping = {
-      'admin': 'admin',
-      'entity': 'company',
-      'individual': 'consultant' // Default mapping: individual role → consultant userType
+      'platform_admin': 'admin',
+      'admin': 'admin', // Legacy
+      'project_lead': 'company',
+      'supplier': 'company',
+      'service_provider': 'company',
+      'entity': 'company', // Legacy
+      'professional': 'individual',
+      'consultant': 'consultant',
+      'mentor': 'individual',
+      'individual': 'consultant', // Legacy
+      'auditor': 'admin'
     };
     return mapping[role] || 'consultant';
   }
@@ -149,7 +159,8 @@
           updates.onboardingProgress = calculateOnboardingProgress(userType, onboardingStage, { ...user, ...updates });
         }
         if (!user.profileCompletionScore) {
-          updates.profileCompletionScore = calculateProfileCompletionScore({ ...user, ...updates });
+          const scoreData = calculateProfileCompletionScore({ ...user, ...updates });
+          updates.profileCompletionScore = typeof scoreData === 'object' ? scoreData.score : scoreData;
         }
 
         Users.update(user.id, updates);
@@ -163,6 +174,7 @@
   }
 
   // Calculate profile completion score based on section completeness
+  // Profile Score = (Completion Score × 0.6) + (Verification Score × 0.4)
   function calculateProfileCompletionScore(user) {
     if (!user) return 0;
 
@@ -172,67 +184,173 @@
     const documents = user.documents || [];
     const profile = user.profile || {};
 
-    let totalWeight = 0;
-    let completedWeight = 0;
+    // ============================================
+    // COMPLETION SCORE (60% weight)
+    // ============================================
+    let completionTotalWeight = 0;
+    let completionCompletedWeight = 0;
 
-    // Identity & Compliance Data (30% weight)
+    // Basic Information (15%)
     if (userType === 'company') {
-      const identityFields = ['legalEntityName', 'crNumber', 'taxNumber', 'authorizedRepresentativeNID'];
-      identityFields.forEach(field => {
-        totalWeight += 7.5; // 30% / 4 fields
-        if (identity[field]) completedWeight += 7.5;
-      });
-    } else if (userType === 'individual' || userType === 'consultant') {
-      const identityFields = ['fullLegalName'];
-      const idField = identity.nationalId || identity.passportNumber;
-      identityFields.forEach(field => {
-        totalWeight += 15; // 30% / 2 main fields
-        if (identity[field]) completedWeight += 15;
-      });
-      totalWeight += 15;
-      if (idField) completedWeight += 15;
-    }
-
-    // Required Documents (20% weight)
-    const requiredDocTypes = userType === 'company' 
-      ? ['cr', 'vat'] 
-      : ['license', 'cv'];
-    requiredDocTypes.forEach(docType => {
-      totalWeight += 10; // 20% / 2 required docs
-      if (documents.some(doc => doc.type === docType && doc.base64Data)) {
-        completedWeight += 10;
-      }
-    });
-
-    // Profile Sections (50% weight)
-    if (userType === 'company') {
-      const companySections = ['basicInfo', 'branches', 'teamMembers', 'certifications', 'portfolio', 'projects', 'references'];
-      const sectionWeight = 50 / companySections.length;
-      companySections.forEach(section => {
-        totalWeight += sectionWeight;
-        if (profileSections[section]?.completed) {
-          completedWeight += sectionWeight;
-        }
+      const basicFields = ['legalEntityName', 'companyName', 'phone', 'website'];
+      const basicWeight = 15 / basicFields.length;
+      basicFields.forEach(field => {
+        completionTotalWeight += basicWeight;
+        if (profile[field] || identity[field]) completionCompletedWeight += basicWeight;
       });
     } else {
-      const individualSections = ['basicInfo', 'skills', 'certifications', 'resume', 'experience', 'portfolio', 'projects', 'references'];
-      const sectionWeight = 50 / individualSections.length;
-      individualSections.forEach(section => {
-        totalWeight += sectionWeight;
-        if (profileSections[section]?.completed) {
-          completedWeight += sectionWeight;
-        }
+      const basicFields = ['fullLegalName', 'professionalTitle', 'phone', 'email'];
+      const basicWeight = 15 / basicFields.length;
+      basicFields.forEach(field => {
+        completionTotalWeight += basicWeight;
+        if (profile[field] || identity[field]) completionCompletedWeight += basicWeight;
       });
     }
 
-    return totalWeight > 0 ? Math.round((completedWeight / totalWeight) * 100) : 0;
+    // Professional Details (20%)
+    if (userType === 'company') {
+      const professionalFields = ['services', 'yearsInBusiness', 'teamSize'];
+      const professionalWeight = 20 / professionalFields.length;
+      professionalFields.forEach(field => {
+        completionTotalWeight += professionalWeight;
+        if (profile[field]) completionCompletedWeight += professionalWeight;
+      });
+    } else {
+      const professionalFields = ['skills', 'experienceLevel', 'certifications'];
+      const professionalWeight = 20 / 3;
+      professionalFields.forEach(field => {
+        completionTotalWeight += professionalWeight;
+        if (profile[field] || profileSections[field]?.completed) completionCompletedWeight += professionalWeight;
+      });
+    }
+
+    // Portfolio/Experience (25%)
+    const portfolioWeight = 25;
+    completionTotalWeight += portfolioWeight;
+    if (profileSections.portfolio?.completed || profileSections.experience?.completed || 
+        (profile.portfolio && profile.portfolio.length > 0)) {
+      completionCompletedWeight += portfolioWeight;
+    }
+
+    // Certifications (15%)
+    const certWeight = 15;
+    completionTotalWeight += certWeight;
+    if (profileSections.certifications?.completed || 
+        (profile.certifications && profile.certifications.length > 0) ||
+        (documents.some(doc => doc.type === 'certification'))) {
+      completionCompletedWeight += certWeight;
+    }
+
+    // References (10%)
+    const refWeight = 10;
+    completionTotalWeight += refWeight;
+    if (profileSections.references?.completed || 
+        (profile.references && profile.references.length > 0)) {
+      completionCompletedWeight += refWeight;
+    }
+
+    // Additional Information (15%)
+    const additionalWeight = 15;
+    completionTotalWeight += additionalWeight;
+    if (profile.bio || profile.description || profileSections.additional?.completed) {
+      completionCompletedWeight += additionalWeight;
+    }
+
+    const completionScore = completionTotalWeight > 0 
+      ? (completionCompletedWeight / completionTotalWeight) * 100 
+      : 0;
+
+    // ============================================
+    // VERIFICATION SCORE (40% weight)
+    // ============================================
+    let verificationTotalWeight = 0;
+    let verificationCompletedWeight = 0;
+
+    // Identity Verification (30%)
+    const identityWeight = 30;
+    verificationTotalWeight += identityWeight;
+    if (userType === 'company') {
+      // Entity: CR verification
+      const crDoc = documents.find(doc => doc.type === 'cr' && doc.verified);
+      if (crDoc || (identity.crNumber && identity.crVerified)) {
+        verificationCompletedWeight += identityWeight;
+      }
+    } else {
+      // Individual: National ID verification
+      const idDoc = documents.find(doc => (doc.type === 'national_id' || doc.type === 'passport') && doc.verified);
+      if (idDoc || (identity.nationalId && identity.nationalIdVerified)) {
+        verificationCompletedWeight += identityWeight;
+      }
+    }
+
+    // Professional Certifications (30%)
+    const profCertWeight = 30;
+    verificationTotalWeight += profCertWeight;
+    const verifiedCerts = documents.filter(doc => 
+      (doc.type === 'certification' || doc.type === 'license') && doc.verified
+    );
+    if (verifiedCerts.length > 0) {
+      verificationCompletedWeight += profCertWeight;
+    }
+
+    // Portfolio Documents (20%)
+    const portfolioDocWeight = 20;
+    verificationTotalWeight += portfolioDocWeight;
+    const verifiedPortfolio = documents.filter(doc => 
+      (doc.type === 'portfolio' || doc.type === 'case_study') && doc.verified
+    );
+    if (verifiedPortfolio.length > 0) {
+      verificationCompletedWeight += portfolioDocWeight;
+    }
+
+    // Safety Certifications (20%)
+    const safetyWeight = 20;
+    verificationTotalWeight += safetyWeight;
+    const verifiedSafety = documents.filter(doc => 
+      doc.type === 'safety_certification' && doc.verified
+    );
+    if (verifiedSafety.length > 0) {
+      verificationCompletedWeight += safetyWeight;
+    }
+
+    const verificationScore = verificationTotalWeight > 0 
+      ? (verificationCompletedWeight / verificationTotalWeight) * 100 
+      : 0;
+
+    // ============================================
+    // FINAL SCORE: (Completion × 0.6) + (Verification × 0.4)
+    // ============================================
+    const finalScore = Math.round((completionScore * 0.6) + (verificationScore * 0.4));
+    
+    return {
+      score: finalScore,
+      completionScore: Math.round(completionScore),
+      verificationScore: Math.round(verificationScore),
+      breakdown: {
+        completion: {
+          basicInfo: completionTotalWeight > 0 ? Math.round((completionCompletedWeight / completionTotalWeight) * 100) : 0,
+          total: Math.round(completionScore)
+        },
+        verification: {
+          identity: identityWeight > 0 ? Math.round((verificationCompletedWeight / verificationTotalWeight) * 100) : 0,
+          total: Math.round(verificationScore)
+        }
+      }
+    };
+  }
+
+  // Legacy function for backward compatibility - returns just the score number
+  function getProfileScore(user) {
+    const scoreData = calculateProfileCompletionScore(user);
+    return typeof scoreData === 'object' ? scoreData.score : scoreData;
   }
 
   // Calculate onboarding progress percentage
   function calculateOnboardingProgress(userType, stage, user = null) {
     // If user object provided, calculate based on profile completion
     if (user) {
-      const profileScore = calculateProfileCompletionScore(user);
+      const scoreData = calculateProfileCompletionScore(user);
+      const profileScore = typeof scoreData === 'object' ? scoreData.score : scoreData;
       const stageWeights = {
         'registered': 0,
         'profile_in_progress': Math.min(profileScore, 80),
@@ -245,6 +363,7 @@
       return {
         percentage: basePercentage,
         profileCompletionScore: profileScore,
+        profileScoreData: typeof scoreData === 'object' ? scoreData : null,
         currentStage: stage,
         nextSteps: getNextStepsForStage(userType, stage)
       };
@@ -660,7 +779,8 @@
       };
 
       // Calculate profile completion score
-      user.profileCompletionScore = calculateProfileCompletionScore(user);
+      const scoreData = calculateProfileCompletionScore(user);
+      user.profileCompletionScore = typeof scoreData === 'object' ? scoreData.score : scoreData;
       
       users.push(user);
       if (set(STORAGE_KEYS.USERS, users)) {
@@ -694,7 +814,8 @@
       );
 
       if (shouldRecalculate) {
-        users[index].profileCompletionScore = calculateProfileCompletionScore(users[index]);
+        const scoreData = calculateProfileCompletionScore(users[index]);
+        users[index].profileCompletionScore = typeof scoreData === 'object' ? scoreData.score : scoreData;
         // Also update onboarding progress if user object is available
         if (users[index].onboardingStage) {
           users[index].onboardingProgress = calculateOnboardingProgress(
@@ -755,6 +876,261 @@
         metadata: details.metadata || {}
       });
       set(STORAGE_KEYS.AUDIT, auditLogs);
+    },
+
+    // ============================================
+    // Verification Workflow Functions
+    // ============================================
+    
+    /**
+     * Verify entity (Commercial Registration and SCA classifications)
+     * @param {string} userId - User ID
+     * @param {string} reviewerId - Admin reviewer ID
+     * @param {object} verificationData - Verification data
+     * @returns {object|null} Updated user or null
+     */
+    verifyEntity(userId, reviewerId, verificationData) {
+      const user = this.getById(userId);
+      if (!user || user.userType !== 'company') {
+        return null;
+      }
+
+      const updates = {
+        identity: {
+          ...user.identity,
+          crNumber: verificationData.crNumber || user.identity.crNumber,
+          crVerified: verificationData.crVerified || false,
+          crVerifiedAt: verificationData.crVerified ? new Date().toISOString() : null,
+          crVerifiedBy: verificationData.crVerified ? reviewerId : null,
+          scaClassifications: verificationData.scaClassifications || user.identity.scaClassifications || [],
+          scaVerified: verificationData.scaVerified || false,
+          scaVerifiedAt: verificationData.scaVerified ? new Date().toISOString() : null,
+          scaVerifiedBy: verificationData.scaVerified ? reviewerId : null
+        }
+      };
+
+      // Update document verification status
+      if (verificationData.crVerified && user.documents) {
+        const crDoc = user.documents.find(doc => doc.type === 'cr');
+        if (crDoc) {
+          crDoc.verified = true;
+          crDoc.verifiedAt = new Date().toISOString();
+          crDoc.verifiedBy = reviewerId;
+        }
+      }
+
+      const updated = this.update(userId, updates);
+      
+      // Recalculate profile score after verification
+      if (updated) {
+        const scoreData = calculateProfileCompletionScore(updated);
+        updated.profileCompletionScore = typeof scoreData === 'object' ? scoreData.score : scoreData;
+        this.update(userId, { profileCompletionScore: updated.profileCompletionScore });
+      }
+
+      this.createAuditLog('entity_verification', userId, {
+        description: `Entity verification ${verificationData.crVerified ? 'approved' : 'updated'}: ${user.email}`,
+        reviewerId: reviewerId,
+        verificationData: verificationData
+      });
+
+      return updated;
+    },
+
+    /**
+     * Verify individual (National ID and professional certifications)
+     * @param {string} userId - User ID
+     * @param {string} reviewerId - Admin reviewer ID
+     * @param {object} verificationData - Verification data
+     * @returns {object|null} Updated user or null
+     */
+    verifyIndividual(userId, reviewerId, verificationData) {
+      const user = this.getById(userId);
+      if (!user || (user.userType !== 'individual' && user.userType !== 'consultant')) {
+        return null;
+      }
+
+      const updates = {
+        identity: {
+          ...user.identity,
+          nationalId: verificationData.nationalId || user.identity.nationalId,
+          nationalIdVerified: verificationData.nationalIdVerified || false,
+          nationalIdVerifiedAt: verificationData.nationalIdVerified ? new Date().toISOString() : null,
+          nationalIdVerifiedBy: verificationData.nationalIdVerified ? reviewerId : null,
+          passportNumber: verificationData.passportNumber || user.identity.passportNumber,
+          passportVerified: verificationData.passportVerified || false,
+          professionalCertifications: verificationData.professionalCertifications || user.identity.professionalCertifications || []
+        }
+      };
+
+      // Update document verification status
+      if (verificationData.nationalIdVerified && user.documents) {
+        const idDoc = user.documents.find(doc => doc.type === 'national_id' || doc.type === 'passport');
+        if (idDoc) {
+          idDoc.verified = true;
+          idDoc.verifiedAt = new Date().toISOString();
+          idDoc.verifiedBy = reviewerId;
+        }
+      }
+
+      // Update certification documents
+      if (verificationData.certifications && user.documents) {
+        verificationData.certifications.forEach(cert => {
+          const certDoc = user.documents.find(doc => doc.type === 'certification' && doc.fileName === cert.fileName);
+          if (certDoc) {
+            certDoc.verified = cert.verified || false;
+            certDoc.verifiedAt = cert.verified ? new Date().toISOString() : null;
+            certDoc.verifiedBy = cert.verified ? reviewerId : null;
+          }
+        });
+      }
+
+      const updated = this.update(userId, updates);
+      
+      // Recalculate profile score after verification
+      if (updated) {
+        const scoreData = calculateProfileCompletionScore(updated);
+        updated.profileCompletionScore = typeof scoreData === 'object' ? scoreData.score : scoreData;
+        this.update(userId, { profileCompletionScore: updated.profileCompletionScore });
+      }
+
+      this.createAuditLog('individual_verification', userId, {
+        description: `Individual verification ${verificationData.nationalIdVerified ? 'approved' : 'updated'}: ${user.email}`,
+        reviewerId: reviewerId,
+        verificationData: verificationData
+      });
+
+      return updated;
+    },
+
+    /**
+     * Approve user profile
+     * @param {string} userId - User ID
+     * @param {string} reviewerId - Admin reviewer ID
+     * @param {string} notes - Optional review notes
+     * @returns {object|null} Updated user or null
+     */
+    approveUser(userId, reviewerId, notes = null) {
+      const user = this.getById(userId);
+      if (!user) return null;
+
+      const updates = {
+        onboardingStage: 'approved',
+        review: {
+          ...user.review,
+          status: 'approved',
+          reviewedAt: new Date().toISOString(),
+          reviewedBy: reviewerId,
+          reviewNotes: notes || user.review.reviewNotes || null
+        }
+      };
+
+      const updated = this.update(userId, updates);
+
+      this.createAuditLog('user_approved', userId, {
+        description: `User profile approved: ${user.email}`,
+        reviewerId: reviewerId,
+        notes: notes
+      });
+
+      // Create notification
+      Notifications.create({
+        userId: userId,
+        type: 'profile_approved',
+        title: 'Profile Approved',
+        message: 'Your profile has been approved and is now active.',
+        read: false
+      });
+
+      return updated;
+    },
+
+    /**
+     * Reject user profile
+     * @param {string} userId - User ID
+     * @param {string} reviewerId - Admin reviewer ID
+     * @param {string} reason - Rejection reason
+     * @param {string} notes - Optional review notes
+     * @returns {object|null} Updated user or null
+     */
+    rejectUser(userId, reviewerId, reason, notes = null) {
+      const user = this.getById(userId);
+      if (!user) return null;
+
+      const updates = {
+        onboardingStage: 'rejected',
+        review: {
+          ...user.review,
+          status: 'rejected',
+          reviewedAt: new Date().toISOString(),
+          reviewedBy: reviewerId,
+          rejectionReason: reason,
+          reviewNotes: notes || user.review.reviewNotes || null
+        }
+      };
+
+      const updated = this.update(userId, updates);
+
+      this.createAuditLog('user_rejected', userId, {
+        description: `User profile rejected: ${user.email}`,
+        reviewerId: reviewerId,
+        reason: reason,
+        notes: notes
+      });
+
+      // Create notification
+      Notifications.create({
+        userId: userId,
+        type: 'profile_rejected',
+        title: 'Profile Rejected',
+        message: `Your profile was rejected: ${reason}`,
+        read: false
+      });
+
+      return updated;
+    },
+
+    /**
+     * Request clarification from user
+     * @param {string} userId - User ID
+     * @param {string} reviewerId - Admin reviewer ID
+     * @param {array} questions - Array of clarification questions
+     * @returns {object|null} Updated user or null
+     */
+    requestClarification(userId, reviewerId, questions) {
+      const user = this.getById(userId);
+      if (!user) return null;
+
+      const updates = {
+        onboardingStage: 'clarification_requested',
+        review: {
+          ...user.review,
+          status: 'clarification_requested',
+          reviewedAt: new Date().toISOString(),
+          reviewedBy: reviewerId,
+          clarificationQuestions: questions,
+          reviewNotes: `Clarification requested: ${questions.join(', ')}`
+        }
+      };
+
+      const updated = this.update(userId, updates);
+
+      this.createAuditLog('clarification_requested', userId, {
+        description: `Clarification requested for user: ${user.email}`,
+        reviewerId: reviewerId,
+        questions: questions
+      });
+
+      // Create notification
+      Notifications.create({
+        userId: userId,
+        type: 'clarification_requested',
+        title: 'Clarification Requested',
+        message: `Please provide additional information: ${questions.join(', ')}`,
+        read: false
+      });
+
+      return updated;
     }
   };
 
@@ -1388,6 +1764,87 @@
       return opportunities.filter(o => o.relationshipType === relationshipType);
     },
 
+    getByModel(modelId) {
+      const opportunities = this.getAll();
+      return opportunities.filter(o => o.modelId === modelId || o.modelType === modelId);
+    },
+
+    getByCategory(category) {
+      const opportunities = this.getAll();
+      return opportunities.filter(o => o.category === category);
+    },
+
+    getWithFilters(filters = {}) {
+      let opportunities = this.getAll();
+      
+      if (filters.modelId) {
+        opportunities = opportunities.filter(o => o.modelId === filters.modelId || o.modelType === filters.modelId);
+      }
+      if (filters.category) {
+        opportunities = opportunities.filter(o => o.category === filters.category);
+      }
+      if (filters.status) {
+        opportunities = opportunities.filter(o => o.status === filters.status);
+      }
+      if (filters.creatorId) {
+        opportunities = opportunities.filter(o => o.creatorId === filters.creatorId);
+      }
+      if (filters.dateFrom) {
+        opportunities = opportunities.filter(o => new Date(o.createdAt) >= new Date(filters.dateFrom));
+      }
+      if (filters.dateTo) {
+        opportunities = opportunities.filter(o => new Date(o.createdAt) <= new Date(filters.dateTo));
+      }
+      
+      return opportunities;
+    },
+
+    getStatistics(modelId = null) {
+      const opportunities = modelId ? this.getByModel(modelId) : this.getAll();
+      const applications = CollaborationApplications.getAll();
+      
+      const stats = {
+        total: opportunities.length,
+        byStatus: {
+          draft: 0,
+          pending: 0,
+          active: 0,
+          closed: 0,
+          rejected: 0,
+          cancelled: 0
+        },
+        byModel: {},
+        totalApplications: 0,
+        approvedApplications: 0,
+        totalValue: 0,
+        averageValue: 0
+      };
+      
+      opportunities.forEach(opp => {
+        // Count by status
+        stats.byStatus[opp.status] = (stats.byStatus[opp.status] || 0) + 1;
+        
+        // Count by model
+        const model = opp.modelId || opp.modelType || 'unknown';
+        stats.byModel[model] = (stats.byModel[model] || 0) + 1;
+        
+        // Calculate value if available
+        if (opp.attributes && opp.attributes.budgetRange) {
+          const value = opp.attributes.budgetRange.max || opp.attributes.budgetRange.min || 0;
+          stats.totalValue += value;
+        }
+        
+        // Count applications
+        const oppApplications = applications.filter(a => a.opportunityId === opp.id);
+        stats.totalApplications += oppApplications.length;
+        stats.approvedApplications += oppApplications.filter(a => a.status === 'approved').length;
+      });
+      
+      stats.averageValue = stats.total > 0 ? stats.totalValue / stats.total : 0;
+      
+      return stats;
+    },
+
     create(opportunityData) {
       const opportunities = this.getAll();
       const opportunity = {
@@ -1666,7 +2123,8 @@
     // Individual users don't require documents (optional)
 
     // Check profile completion score (minimum 70%)
-    const completionScore = calculateProfileCompletionScore(user);
+    const scoreData = calculateProfileCompletionScore(user);
+    const completionScore = typeof scoreData === 'object' ? scoreData.score : scoreData;
     if (completionScore < 70) {
       errors.push(`Profile completion must be at least 70% (currently ${completionScore}%)`);
     }
@@ -1844,6 +2302,128 @@
   }
 
   // ============================================
+  // System Settings CRUD
+  // ============================================
+  const SystemSettings = {
+    get() {
+      const settings = get(STORAGE_KEYS.SYSTEM_SETTINGS);
+      if (!settings || settings.length === 0) {
+        // Return default settings
+        return this.getDefaults();
+      }
+      return settings[0]; // Single settings object
+    },
+
+    getDefaults() {
+      return {
+        id: 'settings_001',
+        platform: {
+          name: 'PMTwin',
+          logo: null,
+          contactEmail: 'contact@pmtwin.com',
+          contactPhone: '+966501234567',
+          maintenanceMode: false,
+          maintenanceMessage: null
+        },
+        matching: {
+          threshold: 80,
+          skillWeight: 0.4,
+          locationWeight: 0.2,
+          experienceWeight: 0.3,
+          financialWeight: 0.1,
+          enableAutoMatching: true,
+          matchingFrequency: 'realtime'
+        },
+        notifications: {
+          emailEnabled: true,
+          smsEnabled: false,
+          pushEnabled: true,
+          emailTemplates: {},
+          notificationFrequency: 'immediate'
+        },
+        features: {
+          barterEnabled: true,
+          bulkPurchasingEnabled: true,
+          mentorshipEnabled: true,
+          spvEnabled: true,
+          competitionEnabled: true,
+          mobileAppEnabled: true
+        },
+        roles: {},
+        updatedAt: new Date().toISOString(),
+        updatedBy: null
+      };
+    },
+
+    update(category, settings) {
+      const current = this.get();
+      const updated = {
+        ...current,
+        [category]: {
+          ...current[category],
+          ...settings
+        },
+        updatedAt: new Date().toISOString(),
+        updatedBy: Sessions.getCurrentUser()?.id || 'system'
+      };
+      
+      if (set(STORAGE_KEYS.SYSTEM_SETTINGS, [updated])) {
+        Audit.create({
+          userId: Sessions.getCurrentUser()?.id || 'system',
+          userRole: Sessions.getCurrentUser()?.role || 'admin',
+          userEmail: Sessions.getCurrentUser()?.email || 'system',
+          userName: Sessions.getCurrentUser()?.profile?.name || 'System',
+          action: 'settings_update',
+          actionCategory: 'admin',
+          entityType: 'system_settings',
+          entityId: 'settings_001',
+          description: `System settings updated: ${category}`,
+          context: {
+            portal: 'admin_portal',
+            category: category,
+            changes: settings
+          }
+        });
+        return updated;
+      }
+      return null;
+    },
+
+    updateAll(settings) {
+      const updated = {
+        ...settings,
+        id: 'settings_001',
+        updatedAt: new Date().toISOString(),
+        updatedBy: Sessions.getCurrentUser()?.id || 'system'
+      };
+      
+      if (set(STORAGE_KEYS.SYSTEM_SETTINGS, [updated])) {
+        Audit.create({
+          userId: Sessions.getCurrentUser()?.id || 'system',
+          userRole: Sessions.getCurrentUser()?.role || 'admin',
+          userEmail: Sessions.getCurrentUser()?.email || 'system',
+          userName: Sessions.getCurrentUser()?.profile?.name || 'System',
+          action: 'settings_update_all',
+          actionCategory: 'admin',
+          entityType: 'system_settings',
+          entityId: 'settings_001',
+          description: 'All system settings updated',
+          context: {
+            portal: 'admin_portal'
+          }
+        });
+        return updated;
+      }
+      return null;
+    },
+
+    reset() {
+      const defaults = this.getDefaults();
+      return this.updateAll(defaults);
+    }
+  };
+
+  // ============================================
   // Public API
   // ============================================
   window.PMTwinData = {
@@ -1857,6 +2437,7 @@
     Notifications,
     CollaborationOpportunities,
     CollaborationApplications,
+    SystemSettings,
     generateId,
     generateDeviceFingerprint,
     verifyAndCreateAccounts,
@@ -1864,6 +2445,7 @@
     checkAccounts,
     calculateOnboardingProgress,
     calculateProfileCompletionScore,
+    getProfileScore,
     getNextStepsForStage,
     validateProfileSubmission,
     submitProfileForReview,

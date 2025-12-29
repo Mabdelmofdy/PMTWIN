@@ -77,6 +77,26 @@ PMTwin revolutionizes how construction entities, professionals, and service prov
 - **Quality Score:** User satisfaction, project completion rates, dispute resolution
 - **Market Penetration:** Market share in target MENA construction markets
 
+## User Types and Role-Based Access Control
+
+PMTwin operates on a multi-role registration system where accounts have different permissions based on classification:
+
+### Entities
+- **Project Lead (Contractor):** Posts tenders, forms consortia, hires resources, initiates SPVs - Full Entity Admin access
+- **Supplier:** Participates in bulk purchasing, lists surplus materials, joins strategic alliances - Inventory & Sales access
+- **Service Provider:** Offers specialized B2B services (Legal, Logistics, Design) for Task-Based or SPV models - Service Admin access
+
+### Individuals
+- **Professional / Expert:** Accepts task-based engagements, joins consortia, seeks full-time hiring - Personal Profile access
+- **Consultant:** Provides advisory services, feasibility studies, expert reviews - Consultant Profile access
+- **Mentor:** Guides junior professionals through Mentorship Program - Mentor Dashboard access
+
+### Governance
+- **Platform Admin:** Manages verification, dispute resolution, analytics - System Wide access
+- **Auditor:** Read-only access to verify compliance and contract integrity
+
+For detailed RBAC specifications, see [02_RBAC_System.md](02_RBAC_System.md).
+
 ## Innovation Highlights
 
 1. **Intelligent Matching:** >80% skill-match threshold ensures high-quality connections
@@ -84,6 +104,159 @@ PMTwin revolutionizes how construction entities, professionals, and service prov
 3. **Multi-Tenant Architecture:** Separate portals optimized for different user types
 4. **Field Integration:** Mobile app enables real-time site verification and progress tracking
 5. **Audit Trail:** Complete "Click-to-Accept" contract tracking for legal compliance
+6. **Profile Score System:** Dynamic 0-100% progress indicator tracking profile completion and verification status
+
+## Collaboration Models Overview
+
+PMTwin supports five main collaboration models, each designed to address specific construction industry needs:
+
+### Model 1: Project-Based Collaboration
+**Purpose:** Deliver defined projects with clear start and end points
+
+**Sub-Models:**
+- **1.1 Task-Based Engagement:** Short-term collaboration for specific tasks, deliverables, or expert consultation
+- **1.2 Consortium:** Temporary alliance formed to bid on and execute specific projects
+- **1.3 Project-Specific Joint Venture (JV):** Shared management partnership for a single project
+- **1.4 Special Purpose Vehicle (SPV):** Risk-isolated entity for mega-projects (50M+ SAR)
+
+**Key Use Cases:**
+- Task-based: Design review, engineering consultation, quality control
+- Consortium: Large infrastructure projects requiring multiple specialties
+- JV: Complex projects needing shared expertise and resources
+- SPV: Mega-projects requiring legal and financial isolation
+
+### Model 2: Strategic Partnerships
+**Purpose:** Form long-term alliances for ongoing collaboration and mutual growth (10+ years)
+
+**Sub-Models:**
+- **2.1 Strategic Joint Venture:** New permanent business entity for long-term market presence
+- **2.2 Strategic Alliance:** Ongoing contractual relationship without new entity formation
+- **2.3 Mentorship:** Knowledge transfer relationship between experienced and emerging entities/professionals
+
+**Key Use Cases:**
+- Strategic JV: Entering new markets, technology transfer, capacity building
+- Strategic Alliance: Ongoing supply chain partnerships, technology sharing
+- Mentorship: Knowledge transfer, skill development, market entry support
+
+### Model 3: Resource Pooling & Sharing
+**Purpose:** Optimize costs through sharing, co-ownership, or barter of resources
+
+**Sub-Models:**
+- **3.1 Bulk Purchasing:** Group buying for volume discounts on materials and equipment
+- **3.2 Co-Ownership:** Joint ownership of high-value assets (machinery, equipment, facilities)
+- **3.3 Resource Exchange/Barter:** Marketplace for trading services, materials, or equipment
+
+**Key Use Cases:**
+- Bulk Purchasing: Materials procurement, equipment rental, service contracts
+- Co-Ownership: Heavy machinery, specialized equipment, shared facilities
+- Resource Exchange: Surplus materials, excess capacity, service-for-service trades
+
+### Model 4: Hiring a Resource
+**Purpose:** Recruit professionals or consultants for employment or service engagements
+
+**Sub-Models:**
+- **4.1 Professional Hiring:** Full-time or part-time employment contracts
+- **4.2 Consultant Hiring:** Expert advisory services and consulting engagements
+
+**Key Use Cases:**
+- Professional Hiring: Project managers, engineers, site supervisors
+- Consultant Hiring: Feasibility studies, expert reviews, advisory services
+
+### Model 5: Call for Competition
+**Purpose:** Competitive sourcing of solutions, designs, or talent through open or invited competitions
+
+**Sub-Models:**
+- **5.1 Competition/RFP:** Open or invited competitions for designs, solutions, or proposals
+
+**Key Use Cases:**
+- Design competitions: Architectural design, urban planning, engineering solutions
+- Innovation challenges: New technologies, sustainable solutions, efficiency improvements
+- RFQ for Materials: Competitive sourcing of materials and supplies
+
+## Feature Matrix by Portal
+
+### Public Portal Features
+- Home/Landing Page
+- Project Discovery (Limited visibility)
+- PMTwin Wizard (Interactive model selection guide)
+- Knowledge Hub (Educational resources)
+- Login/Signup
+
+### User Portal Features (Entity)
+- Entity Dashboard with financial overview
+- Project Creation and Management (All 5 models)
+- Proposal Review and Approval
+- Collaboration Opportunities (Create and manage)
+- Pipeline Management (Kanban board)
+- Profile Management
+- Notifications
+- Smart Contracts (Generate and sign)
+
+### User Portal Features (Individual)
+- Individual Dashboard with task opportunities
+- Project Browsing
+- Proposal Creation (Cash and Barter)
+- Collaboration Applications
+- Profile Management with Portfolio
+- Notifications
+- Smart Contracts (Sign only)
+
+### Admin Portal Features
+- Admin Dashboard with platform statistics
+- User Vetting and Verification
+- Project/Proposal Moderation
+- Collaboration Models Management (All 5 models)
+- Analytics and Reporting
+- Audit Trail Management
+- System Settings
+- User Management
+
+### Mobile App Features
+- Mobile Dashboard
+- Site Activity Logging
+- Biometric Milestone Approval
+- Media Upload (Photos/Videos)
+- Push Notifications
+- Offline Mode with Sync
+- Location Capture
+- Progress Tracking
+
+## Complete Feature List
+
+The platform includes 30+ features across all portals:
+
+1. Home/Landing Page
+2. Project Discovery
+3. PMTwin Wizard
+4. Knowledge Hub
+5. Login/Authentication
+6. Signup/Registration
+7. Dashboard (Role-adaptive)
+8. Project Creation
+9. Project List/View
+10. Project Edit/Delete
+11. Proposal Creation
+12. Proposal List/View
+13. Proposal Review/Approve
+14. Opportunities View
+15. Matches View
+16. Collaboration Models (All 5 models)
+17. Collaboration Opportunities
+18. Pipeline Management
+19. Profile Management
+20. Onboarding
+21. Notifications
+22. User Vetting
+23. Project Moderation
+24. Audit Trail
+25. Reports & Analytics
+26. Site Logging
+27. Biometric Approval
+28. Media Upload
+29. Offline Mode
+30. Smart Contracts
+
+For detailed feature specifications by portal and role, see [13_FeaturesByUserAndPortal.md](../docs/infographics/13_FeaturesByUserAndPortal.md).
 
 ---
 

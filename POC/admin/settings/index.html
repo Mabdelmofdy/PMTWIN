@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>System Settings - PMTwin Admin</title>
+    <link rel="stylesheet" href="../../css/main.css">
+    <style>
+        .settings-tabs {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 2rem;
+            border-bottom: 2px solid var(--border-color);
+        }
+        .settings-tab {
+            padding: 1rem 1.5rem;
+            background: none;
+            border: none;
+            border-bottom: 2px solid transparent;
+            cursor: pointer;
+            font-size: 1rem;
+            color: var(--text-secondary);
+            transition: all 0.3s;
+        }
+        .settings-tab:hover {
+            color: var(--color-primary);
+        }
+        .settings-tab.active {
+            color: var(--color-primary);
+            border-bottom-color: var(--color-primary);
+            font-weight: bold;
+        }
+        .tab-content {
+            display: none;
+        }
+        .tab-content.active {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar" id="mainNavbar">
+        <div class="container">
+            <div class="navbar-content">
+                <a href="../../home/" class="navbar-brand">PMTwin</a>
+                <button class="navbar-toggle" id="navbarToggle" aria-label="Toggle navigation">☰</button>
+                <ul class="navbar-nav" id="navbarNav">
+                    <!-- Navigation will be dynamically loaded based on user role -->
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main>
+        <div class="container" style="padding: 2rem 0;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+                <h1>System Settings</h1>
+                <button class="btn btn-error" id="resetSettings">Reset to Defaults</button>
+            </div>
+
+            <!-- Settings Tabs -->
+            <div class="settings-tabs">
+                <button class="settings-tab active" data-tab="platform">Platform</button>
+                <button class="settings-tab" data-tab="matching">Matching Algorithm</button>
+                <button class="settings-tab" data-tab="notifications">Notifications</button>
+                <button class="settings-tab" data-tab="features">Feature Flags</button>
+            </div>
+
+            <!-- Platform Settings -->
+            <div class="tab-content active" data-tab-content="platform">
+                <div class="card">
+                    <div class="card-body">
+                        <h2>Platform Configuration</h2>
+                        <div id="platformSettings">
+                            <!-- Platform settings will be loaded here -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Matching Settings -->
+            <div class="tab-content" data-tab-content="matching">
+                <div class="card">
+                    <div class="card-body">
+                        <h2>Matching Algorithm Parameters</h2>
+                        <div id="matchingSettings">
+                            <!-- Matching settings will be loaded here -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Notification Settings -->
+            <div class="tab-content" data-tab-content="notifications">
+                <div class="card">
+                    <div class="card-body">
+                        <h2>Notification Settings</h2>
+                        <div id="notificationSettings">
+                            <!-- Notification settings will be loaded here -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Feature Flags -->
+            <div class="tab-content" data-tab-content="features">
+                <div class="card">
+                    <div class="card-body">
+                        <h2>Feature Flags</h2>
+                        <div id="featureFlags">
+                            <!-- Feature flags will be loaded here -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Configuration (must load first) -->
+    <script src="../../js/config.js"></script>
+    
+    <!-- API Layer (for future Java backend integration) -->
+    <script src="../../js/api/api-client.js"></script>
+    <script src="../../js/api/api-service.js"></script>
+    
+    <!-- Core Scripts -->
+    <script src="../../js/data.js"></script>
+    <script src="../../js/auth.js"></script>
+    <script src="../../js/auth-check.js"></script>
+    <script src="../../js/demo-credentials.js"></script>
+    <script src="../../services/services-loader.js"></script>
+    <script src="../../data/data-loader.js"></script>
+    
+    <!-- Admin Services -->
+    <script src="../../services/admin/admin-service.js"></script>
+    <script src="../../services/admin/settings-service.js"></script>
+    
+    <!-- Component Scripts -->
+    <script src="../../features/admin/admin-settings.js"></script>
+    
+    <!-- Initialize Component -->
+    <script>
+        document.addEventListener('DOMContentLoaded', async function() {
+            // Check authentication and admin role
+            const isAuth = await AuthCheck.checkAuth({ requireAuth: true, requireRole: 'admin' });
+            if (!isAuth) return;
+            
+            // Initialize settings
+            if (window.admin && window.admin['admin-settings']) {
+                window.admin['admin-settings'].init();
+            }
+        });
+    </script>
+</body>
+</html>
+

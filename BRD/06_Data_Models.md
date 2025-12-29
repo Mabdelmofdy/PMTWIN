@@ -856,7 +856,356 @@
 "milestone_reminder"                    // Milestone deadline approaching
 ```
 
+## 7. Collaboration Models Data Models
+
+### 7.1 Collaboration Opportunity Model (All Models)
+
+**Base Structure:**
+```javascript
+{
+  id: "opp_123",
+  modelId: "1.1" | "1.2" | "1.3" | "1.4" | "2.1" | "2.2" | "2.3" | "3.1" | "3.2" | "3.3" | "4.1" | "4.2" | "5.1",
+  modelName: "Task-Based Engagement",
+  category: "Project-Based Collaboration" | "Strategic Partnerships" | "Resource Pooling & Sharing" | "Hiring a Resource" | "Call for Competition",
+  creatorId: "user_123",
+  creatorType: "entity" | "individual",
+  title: "Opportunity Title",
+  description: "Full description of the opportunity...",
+  status: "draft" | "pending" | "active" | "closed" | "rejected" | "cancelled",
+  
+  // Model-specific attributes (varies by model)
+  attributes: {
+    // Model 1.1: Task-Based
+    taskTitle: "Review shop drawings",
+    taskType: "Design" | "Engineering" | "Consultation" | "Review" | "Analysis",
+    detailedScope: "...",
+    duration: 30, // days
+    budgetRange: { min: 50000, max: 100000, currency: "SAR" },
+    
+    // Model 1.2: Consortium
+    projectValue: 50000000,
+    consortiumSize: 3,
+    requiredSpecialties: ["Engineering", "Construction"],
+    
+    // Model 1.3: JV
+    jvStructure: "50-50" | "60-40" | "70-30",
+    managementStructure: "shared" | "lead",
+    
+    // Model 1.4: SPV
+    spvValue: 100000000, // Must be 50M+ SAR
+    riskIsolation: true,
+    
+    // Model 2.1, 2.2: Strategic
+    strategicObjectives: [...],
+    targetSectors: [...],
+    duration: 120, // months (10+ years)
+    
+    // Model 2.3: Mentorship
+    mentorshipType: "entity-to-entity" | "entity-to-individual" | "individual-to-individual",
+    knowledgeAreas: [...],
+    
+    // Model 3.1: Bulk Purchasing
+    materialType: "...",
+    quantity: 1000,
+    targetPrice: 50000,
+    
+    // Model 3.2: Co-Ownership
+    assetDescription: "...",
+    assetValue: 2000000,
+    ownershipSplit: "50-50",
+    
+    // Model 3.3: Resource Exchange
+    barterOffer: "...",
+    barterValue: 100000,
+    barterPreferences: [...],
+    
+    // Model 4.1, 4.2: Hiring
+    jobTitle: "...",
+    requiredSkills: [...],
+    experienceLevel: "junior" | "intermediate" | "senior" | "expert",
+    salaryRange: { min: 10000, max: 20000 },
+    
+    // Model 5.1: Competition
+    competitionType: "design" | "innovation" | "rfp" | "rfq",
+    prizeAmount: 500000,
+    submissionDeadline: "2024-02-01T00:00:00Z"
+  },
+  
+  // Applications
+  applications: ["app_1", "app_2"],
+  applicationsReceived: 5,
+  applicationsApproved: 2,
+  
+  // Timestamps
+  createdAt: "2024-01-01T00:00:00Z",
+  updatedAt: "2024-01-01T00:00:00Z",
+  publishedAt: null,
+  closedAt: null,
+  
+  // Admin fields
+  approvedAt: null,
+  approvedBy: null,
+  rejectedAt: null,
+  rejectedBy: null,
+  rejectionReason: null
+}
+```
+
+### 7.2 Collaboration Application Model
+
+```javascript
+{
+  id: "app_123",
+  opportunityId: "opp_123",
+  applicantId: "user_456",
+  applicantType: "entity" | "individual",
+  status: "pending" | "under_review" | "approved" | "rejected" | "withdrawn",
+  
+  // Application data
+  applicationData: {
+    proposal: "Full proposal text...",
+    qualifications: ["Qualification 1", "Qualification 2"],
+    timeline: "30 days",
+    budget: { amount: 100000, currency: "SAR" },
+    deliverables: [...],
+    // Model-specific application fields
+  },
+  
+  // Review
+  reviewedAt: null,
+  reviewedBy: null,
+  reviewNotes: null,
+  rejectionReason: null,
+  
+  // Timestamps
+  submittedAt: "2024-01-01T00:00:00Z",
+  updatedAt: "2024-01-01T00:00:00Z",
+  approvedAt: null,
+  rejectedAt: null
+}
+```
+
+## 8. Admin Data Models
+
+### 8.1 Admin User Model (Enhanced)
+
+```javascript
+{
+  id: "admin_001",
+  email: "admin@pmtwin.com",
+  password: "encoded_password",
+  role: "admin",
+  adminType: "super_admin" | "admin" | "moderator" | "auditor",
+  
+  profile: {
+    name: "Admin User",
+    phone: "+966501234567",
+    department: "Operations" | "Vetting" | "Moderation" | "Analytics",
+    permissions: [
+      "user_vetting",
+      "project_moderation",
+      "collaboration_management",
+      "analytics_view",
+      "settings_manage",
+      "audit_view",
+      "reports_generate"
+    ]
+  },
+  
+  // Activity tracking
+  lastLoginAt: "2024-01-15T10:30:00Z",
+  totalActions: 1500,
+  actionsToday: 25,
+  
+  // Status
+  status: "active" | "suspended",
+  createdAt: "2024-01-01T00:00:00Z"
+}
+```
+
+### 8.2 System Settings Model
+
+```javascript
+{
+  id: "settings_001",
+  
+  // Platform Configuration
+  platform: {
+    name: "PMTwin",
+    logo: "url_to_logo",
+    contactEmail: "contact@pmtwin.com",
+    contactPhone: "+966501234567",
+    maintenanceMode: false,
+    maintenanceMessage: null
+  },
+  
+  // Matching Algorithm
+  matching: {
+    threshold: 80,              // Minimum match score percentage
+    skillWeight: 0.4,           // Weight for skill matching
+    locationWeight: 0.2,        // Weight for location proximity
+    experienceWeight: 0.3,      // Weight for experience level
+    financialWeight: 0.1,       // Weight for financial capacity
+    enableAutoMatching: true,
+    matchingFrequency: "realtime" | "hourly" | "daily"
+  },
+  
+  // Notifications
+  notifications: {
+    emailEnabled: true,
+    smsEnabled: false,
+    pushEnabled: true,
+    emailTemplates: {
+      welcome: "...",
+      approval: "...",
+      rejection: "...",
+      matchFound: "..."
+    },
+    notificationFrequency: "immediate" | "daily_digest" | "weekly_digest"
+  },
+  
+  // Feature Flags
+  features: {
+    barterEnabled: true,
+    bulkPurchasingEnabled: true,
+    mentorshipEnabled: true,
+    spvEnabled: true,
+    competitionEnabled: true,
+    mobileAppEnabled: true
+  },
+  
+  // Roles & Permissions
+  roles: {
+    // Role definitions with permissions
+    admin: { permissions: [...] },
+    moderator: { permissions: [...] },
+    auditor: { permissions: [...] }
+  },
+  
+  // Timestamps
+  updatedAt: "2024-01-15T10:30:00Z",
+  updatedBy: "admin_001"
+}
+```
+
+### 8.3 Analytics Data Model
+
+```javascript
+{
+  id: "analytics_001",
+  period: "2024-01",            // Year-Month or custom range
+  generatedAt: "2024-01-15T10:30:00Z",
+  
+  // User Analytics
+  users: {
+    total: 1000,
+    byType: {
+      individual: 600,
+      entity: 400
+    },
+    byStatus: {
+      approved: 950,
+      pending: 50,
+      rejected: 0
+    },
+    registrationTrend: [
+      { date: "2024-01-01", count: 10 },
+      { date: "2024-01-02", count: 15 },
+      // ...
+    ],
+    geographicDistribution: {
+      "Riyadh": 400,
+      "Jeddah": 300,
+      "Dammam": 200,
+      // ...
+    },
+    profileCompletionRate: 0.85
+  },
+  
+  // Project Analytics
+  projects: {
+    total: 500,
+    active: 200,
+    completed: 250,
+    cancelled: 50,
+    byCategory: {
+      "Infrastructure": 200,
+      "Residential": 150,
+      "Commercial": 100,
+      "Industrial": 50
+    },
+    averageValue: 5000000,
+    totalValue: 2500000000,
+    completionRate: 0.75,
+    averageDuration: 180 // days
+  },
+  
+  // Proposal Analytics
+  proposals: {
+    total: 2000,
+    cash: 1200,
+    barter: 800,
+    approved: 1500,
+    rejected: 300,
+    pending: 200,
+    approvalRate: 0.75,
+    averageValue: 500000,
+    totalValue: 1000000000
+  },
+  
+  // Collaboration Models Analytics
+  collaborations: {
+    byModel: {
+      "1.1": { count: 100, active: 50, completed: 40, value: 5000000 },
+      "1.2": { count: 30, active: 15, completed: 10, value: 15000000 },
+      "1.3": { count: 20, active: 10, completed: 8, value: 10000000 },
+      "1.4": { count: 5, active: 3, completed: 1, value: 50000000 },
+      "2.1": { count: 10, active: 8, completed: 2, value: 20000000 },
+      "2.2": { count: 15, active: 12, completed: 3, value: 15000000 },
+      "2.3": { count: 25, active: 20, completed: 5, value: 0 },
+      "3.1": { count: 50, active: 30, completed: 15, savings: 5000000 },
+      "3.2": { count: 20, active: 15, completed: 5, value: 40000000 },
+      "3.3": { count: 100, active: 60, completed: 30, value: 10000000 },
+      "4.1": { count: 80, active: 50, completed: 20, hires: 20 },
+      "4.2": { count: 40, active: 30, completed: 10, engagements: 10 },
+      "5.1": { count: 30, active: 20, completed: 8, submissions: 150 }
+    },
+    totalValue: 200000000,
+    totalSavings: 10000000,
+    successRate: 0.80,
+    averageDuration: 90 // days
+  },
+  
+  // Matching Analytics
+  matching: {
+    totalMatches: 5000,
+    averageScore: 85,
+    conversionRate: 0.60,      // Matches that led to proposals
+    performance: {
+      accuracy: 0.90,
+      responseTime: 2.5,        // seconds
+      userSatisfaction: 0.85
+    },
+    byCategory: {
+      "Infrastructure": 2000,
+      "Residential": 1500,
+      // ...
+    }
+  },
+  
+  // Financial Analytics
+  financial: {
+    platformVolume: 500000000,
+    totalSavings: 50000000,
+    averageTransactionValue: 1000000,
+    barterValue: 100000000,
+    cashTransactions: 400000000,
+    growthRate: 0.15            // 15% month-over-month
+  }
+}
+```
+
 ---
 
-*These data models define the structure and relationships of all entities in the PMTwin platform.*
+*These data models define the structure and relationships of all entities in the PMTwin platform, including comprehensive admin and collaboration models data structures.*
 

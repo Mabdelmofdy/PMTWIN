@@ -3,7 +3,7 @@
     {
       "userId": "user_admin_001",
       "email": "admin@pmtwin.com",
-      "roleId": "admin",
+      "roleId": "platform_admin",
       "assignedAt": "2024-01-01T00:00:00Z",
       "assignedBy": "system",
       "isActive": true
@@ -11,7 +11,7 @@
     {
       "userId": "user_individual_001",
       "email": "individual@pmtwin.com",
-      "roleId": "individual",
+      "roleId": "professional",
       "assignedAt": "2024-01-01T00:00:00Z",
       "assignedBy": "system",
       "isActive": true
@@ -19,7 +19,7 @@
     {
       "userId": "user_entity_001",
       "email": "entity@pmtwin.com",
-      "roleId": "entity",
+      "roleId": "project_lead",
       "assignedAt": "2024-01-01T00:00:00Z",
       "assignedBy": "system",
       "isActive": true
@@ -28,15 +28,18 @@
   "defaultRole": "guest",
   "roleAssignmentRules": {
     "onRegistration": {
-      "individual": "individual",
-      "entity": "entity"
+      "entity": "project_lead",
+      "individual": "professional",
+      "company": "project_lead",
+      "consultant": "consultant"
     },
     "onApproval": {
-      "company": "entity",
+      "company": "project_lead",
+      "supplier": "supplier",
+      "service_provider": "service_provider",
       "consultant": "consultant",
-      "individual": "individual"
+      "individual": "professional",
+      "mentor": "mentor"
     }
   }
 }
-
-

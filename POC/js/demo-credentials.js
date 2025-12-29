@@ -111,13 +111,18 @@
   // Show Demo Credentials Modal
   // ============================================
   async function showDemoCredentialsModal(portalType, emailInputId, passwordInputId) {
+    console.log('📋 showDemoCredentialsModal called with:', { portalType, emailInputId, passwordInputId });
+    
     // Load demo users first
     await loadDemoUsers();
+    console.log('📦 Demo users loaded:', demoUsers.length);
 
     // Get filtered users for this portal
     const filteredUsers = getFilteredUsers(portalType);
+    console.log('🔍 Filtered users for portal type "' + portalType + '":', filteredUsers.length);
 
     if (filteredUsers.length === 0) {
+      console.warn('⚠️ No demo users available for portal type:', portalType);
       alert('No demo users available for this portal type.');
       return;
     }
@@ -147,6 +152,9 @@
       modalBackdrop.classList.add('show');
       modal.classList.add('show');
       document.body.style.overflow = 'hidden'; // Prevent background scrolling
+      console.log('✅ Modal displayed successfully');
+    } else {
+      console.error('❌ Modal elements not found after creation');
     }
   }
 

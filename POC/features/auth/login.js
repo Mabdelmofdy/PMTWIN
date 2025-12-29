@@ -24,6 +24,8 @@
         return;
       }
 
+      console.log('✅ Demo credentials button found, setting up handler');
+
       // Remove any existing handlers
       demoButton.onclick = null;
       
@@ -32,19 +34,29 @@
         e.preventDefault();
         e.stopPropagation();
         
+        console.log('🔘 Demo credentials button clicked');
+        console.log('DemoCredentials available:', typeof window.DemoCredentials !== 'undefined');
+        console.log('showModal available:', typeof window.DemoCredentials !== 'undefined' && window.DemoCredentials.showModal);
+        
         // Check if DemoCredentials is available
         if (typeof window.DemoCredentials !== 'undefined' && window.DemoCredentials.showModal) {
           try {
-            window.DemoCredentials.showModal('user', 'loginEmail', 'loginPassword');
+            console.log('📋 Opening demo credentials modal...');
+            // Use 'public' to show all demo users on login page
+            window.DemoCredentials.showModal('public', 'loginEmail', 'loginPassword');
+            console.log('✅ Modal opened successfully');
           } catch (error) {
-            console.error('Error showing demo credentials modal:', error);
+            console.error('❌ Error showing demo credentials modal:', error);
             showFallbackCredentials();
           }
         } else {
           // Fallback: show credentials in alert
+          console.warn('⚠️ DemoCredentials not available, using fallback');
           showFallbackCredentials();
         }
       });
+      
+      console.log('✅ Demo credentials button handler set up');
     }, 100);
   }
 
@@ -130,33 +142,68 @@
       }
 
       if (result.success) {
-        // Redirect based on user role
-        if (typeof PMTwinRBAC !== 'undefined') {
-          const userRole = await PMTwinRBAC.getCurrentUserRole();
-          const roleDef = await PMTwinRBAC.getRoleDefinition(userRole);
-          
-          if (roleDef && roleDef.portals.includes('admin_portal')) {
-            window.location.href = '../admin/';
-          } else if (roleDef && roleDef.portals.includes('user_portal')) {
-            window.location.href = '../dashboard/';
-          } else {
-            window.location.href = '../home/';
-          }
-        } else {
-          // Fallback
-          const user = PMTwinData.Sessions.getCurrentUser();
-          if (user && user.role === 'admin') {
-            window.location.href = '../admin/';
-          } else {
-            window.location.href = '../dashboard/';
-          }
+        console.log('✅ Login result:', result);
+        
+        // Wait a moment to ensure session is stored in localStorage
+        await new Promise(resolve => setTimeout(resolve, 300));
+        
+        // Verify session was created - check multiple times if needed
+        let session = PMTwinData.Sessions.getCurrentSession();
+        let currentUser = PMTwinData.Sessions.getCurrentUser();
+        
+        // If session not found, try again after a short delay
+        if (!session || !currentUser) {
+          console.warn('Session not found immediately, retrying...');
+          await new Promise(resolve => setTimeout(resolve, 200));
+          session = PMTwinData.Sessions.getCurrentSession();
+          currentUser = PMTwinData.Sessions.getCurrentUser();
         }
         
-        // Update navigation
-        if (window.AppRouter) {
-          window.AppRouter.updateNavigation();
+        console.log('Session check:', { 
+          session: session ? 'found' : 'not found',
+          currentUser: currentUser ? currentUser.email : 'not found',
+          allSessions: PMTwinData.Sessions.getAll().length
+        });
+        
+        if (!session || !currentUser) {
+          console.error('❌ Session not created properly after login');
+          console.log('Available sessions:', PMTwinData.Sessions.getAll());
+          console.log('PMTwinAuth.isAuthenticated():', PMTwinAuth.isAuthenticated());
+          showError('Session creation failed. Please try again.');
+          return;
         }
+        
+        console.log('✅ Login successful. User:', currentUser.email, 'Role:', currentUser.role);
+        
+        // Determine redirect path based on user role
+        let redirectPath = '../dashboard/'; // Default to dashboard
+        
+        // Use the user from result if available, otherwise get from session
+        const user = result.user || currentUser;
+        const userRole = user.role;
+        
+        console.log('User role for redirect:', userRole);
+        
+        // Simple role-based redirect (more reliable than RBAC for now)
+        if (userRole === 'admin') {
+          redirectPath = '../admin/';
+          console.log('🔐 Admin user detected, redirecting to admin portal');
+        } else if (userRole === 'entity' || userRole === 'individual') {
+          redirectPath = '../dashboard/';
+          console.log('👤 User detected, redirecting to user portal (dashboard)');
+        } else {
+          redirectPath = '../home/';
+          console.log('🏠 Unknown role, redirecting to home');
+        }
+        
+        // Perform redirect
+        console.log('🚀 Redirecting to:', redirectPath);
+        console.log('Current location:', window.location.href);
+        
+        // Use replace to avoid back button issues
+        window.location.replace(redirectPath);
       } else {
+        console.error('❌ Login failed:', result.error);
         showError(result.error || 'Login failed');
       }
     } catch (error) {

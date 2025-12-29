@@ -200,11 +200,105 @@
     return { success: true, logs: logs };
   }
 
+  async function getAllUsers(filters = {}) {
+    if (typeof PMTwinData === 'undefined') {
+      return { success: false, error: 'Data service not available' };
+    }
+    
+    const currentUser = PMTwinData.Sessions.getCurrentUser();
+    if (!currentUser || currentUser.role !== 'admin') {
+      return { success: false, error: 'You do not have permission to view all users' };
+    }
+    
+    let users = PMTwinData.Users.getAll();
+    
+    // Apply filters
+    if (filters.role) {
+      users = users.filter(u => u.role === filters.role);
+    }
+    if (filters.status) {
+      users = users.filter(u => u.profile?.status === filters.status || u.onboardingStage === filters.status);
+    }
+    if (filters.userType) {
+      users = users.filter(u => u.userType === filters.userType);
+    }
+    if (filters.dateFrom) {
+      users = users.filter(u => new Date(u.profile?.createdAt || u.createdAt) >= new Date(filters.dateFrom));
+    }
+    if (filters.dateTo) {
+      users = users.filter(u => new Date(u.profile?.createdAt || u.createdAt) <= new Date(filters.dateTo));
+    }
+    
+    return { success: true, users: users };
+  }
+
+  async function updateUserStatus(userId, status, reason = null) {
+    if (typeof PMTwinData === 'undefined') {
+      return { success: false, error: 'Data service not available' };
+    }
+    
+    const currentUser = PMTwinData.Sessions.getCurrentUser();
+    if (!currentUser || currentUser.role !== 'admin') {
+      return { success: false, error: 'You do not have permission to update user status' };
+    }
+    
+    const user = PMTwinData.Users.getById(userId);
+    if (!user) {
+      return { success: false, error: 'User not found' };
+    }
+    
+    const updates = {
+      onboardingStage: status,
+      profile: {
+        ...user.profile,
+        status: status
+      }
+    };
+    
+    if (status === 'rejected' && reason) {
+      updates.verificationRejectionReason = reason;
+      updates.profile.rejectionReason = reason;
+      updates.profile.rejectedAt = new Date().toISOString();
+    } else if (status === 'approved') {
+      updates.profile.approvedAt = new Date().toISOString();
+      updates.profile.approvedBy = currentUser.id;
+    }
+    
+    const updated = PMTwinData.Users.update(userId, updates);
+    if (updated) {
+      return { success: true, user: updated };
+    }
+    
+    return { success: false, error: 'Failed to update user status' };
+  }
+
+  async function bulkApproveUsers(userIds, notes = null) {
+    if (typeof PMTwinData === 'undefined') {
+      return { success: false, error: 'Data service not available' };
+    }
+    
+    const currentUser = PMTwinData.Sessions.getCurrentUser();
+    if (!currentUser || currentUser.role !== 'admin') {
+      return { success: false, error: 'You do not have permission to bulk approve users' };
+    }
+    
+    const results = [];
+    for (const userId of userIds) {
+      const result = await approveUser(userId, notes);
+      results.push({ userId, ...result });
+    }
+    
+    return { success: true, results: results };
+  }
+
   window.AdminService = {
     getUsersForVetting,
     approveUser,
     rejectUser,
-    getAuditTrail
+    getAuditTrail,
+    getAllUsers,
+    updateUserStatus,
+    bulkApproveUsers
   };
 
 })();

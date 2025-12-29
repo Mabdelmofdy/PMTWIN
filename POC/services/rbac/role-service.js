@@ -75,26 +75,61 @@
   function getDefaultRoles() {
     return {
       roles: {
-        admin: {
-          id: "admin",
-          name: "Administrator",
-          permissions: ["*"],
-          features: ["*"],
-          portals: ["admin_portal"]
-        },
-        entity: {
-          id: "entity",
-          name: "Entity/Company",
+        project_lead: {
+          id: "project_lead",
+          name: "Project Lead (Contractor)",
           permissions: ["create_projects", "view_own_projects"],
           features: ["user_dashboard", "project_creation"],
           portals: ["user_portal"]
         },
-        individual: {
-          id: "individual",
-          name: "Individual Professional",
+        supplier: {
+          id: "supplier",
+          name: "Supplier",
+          permissions: ["view_public_projects"],
+          features: ["user_dashboard", "bulk_purchasing"],
+          portals: ["user_portal"]
+        },
+        service_provider: {
+          id: "service_provider",
+          name: "Service Provider",
+          permissions: ["view_public_projects"],
+          features: ["user_dashboard", "task_based_engagement"],
+          portals: ["user_portal"]
+        },
+        professional: {
+          id: "professional",
+          name: "Professional / Expert",
           permissions: ["view_projects", "create_proposals"],
           features: ["user_dashboard", "project_browsing"],
           portals: ["user_portal"]
+        },
+        consultant: {
+          id: "consultant",
+          name: "Consultant",
+          permissions: ["view_projects", "create_proposals"],
+          features: ["user_dashboard", "project_browsing"],
+          portals: ["user_portal"]
+        },
+        mentor: {
+          id: "mentor",
+          name: "Mentor",
+          permissions: ["create_mentorship_programs"],
+          features: ["user_dashboard", "mentorship_management"],
+          portals: ["user_portal"]
+        },
+        platform_admin: {
+          id: "platform_admin",
+          name: "Platform Admin",
+          permissions: ["*"],
+          features: ["*"],
+          portals: ["admin_portal", "user_portal"]
+        },
+        auditor: {
+          id: "auditor",
+          name: "Auditor",
+          permissions: ["view_all_projects"],
+          features: ["admin_dashboard", "audit_trail"],
+          portals: ["admin_portal"]
         },
         guest: {
           id: "guest",
@@ -129,9 +164,10 @@
       if (user) {
         // Map legacy role to new role system
         const roleMapping = {
-          'admin': 'admin',
-          'entity': 'entity',
-          'individual': 'individual'
+          'admin': 'platform_admin',
+          'entity': 'project_lead',
+          'individual': 'professional',
+          'consultant': 'consultant'
         };
         
         const roleId = roleMapping[user.role] || userRoles.defaultRole;
@@ -374,6 +410,77 @@
   }
 
   // ============================================
+  // Role-to-Model Mapping
+  // ============================================
+  /**
+   * Get available collaboration models for a role
+   * @param {string} roleId - The role ID
+   * @returns {string[]} Array of model IDs (e.g., ['1.1', '1.2', '2.1'])
+   */
+  function getAvailableModelsForRole(roleId) {
+    const roleModelMap = {
+      'project_lead': ['1.1', '1.2', '1.3', '1.4', '2.1', '2.2', '3.1', '3.2', '3.3', '4.1', '4.2', '5.1'],
+      'supplier': ['2.2', '3.1', '3.2', '3.3'],
+      'service_provider': ['1.1', '2.2'],
+      'professional': ['1.1', '1.2', '2.3', '4.1'],
+      'consultant': ['1.1', '2.2', '4.2'],
+      'mentor': ['2.3'],
+      'platform_admin': ['1.1', '1.2', '1.3', '1.4', '2.1', '2.2', '2.3', '3.1', '3.2', '3.3', '4.1', '4.2', '5.1'],
+      'auditor': ['1.1', '1.2', '1.3', '1.4', '2.1', '2.2', '2.3', '3.1', '3.2', '3.3', '4.1', '4.2', '5.1'],
+      'guest': []
+    };
+    
+    return roleModelMap[roleId] || [];
+  }
+
+  /**
+   * Check if a role can access a specific collaboration model
+   * @param {string} roleId - The role ID
+   * @param {string} modelId - The model ID (e.g., '1.1', '2.3')
+   * @returns {boolean} True if role can access the model
+   */
+  function canRoleAccessModel(roleId, modelId) {
+    const availableModels = getAvailableModelsForRole(roleId);
+    return availableModels.includes(modelId);
+  }
+
+  /**
+   * Get available models for current user
+   * @returns {Promise<string[]>} Array of model IDs
+   */
+  async function getAvailableModelsForCurrentUser() {
+    const roleId = await getCurrentUserRole();
+    return getAvailableModelsForRole(roleId);
+  }
+
+  /**
+   * Check if current user can access a specific model
+   * @param {string} modelId - The model ID
+   * @returns {Promise<boolean>} True if user can access the model
+   */
+  async function canCurrentUserAccessModel(modelId) {
+    const roleId = await getCurrentUserRole();
+    return canRoleAccessModel(roleId, modelId);
+  }
+
+  /**
+   * Filter collaboration models by role
+   * @param {Array} models - Array of model objects with 'id' property
+   * @param {string} roleId - The role ID (optional, uses current user if not provided)
+   * @returns {Promise<Array>} Filtered array of models
+   */
+  async function filterModelsByRole(models, roleId = null) {
+    const targetRoleId = roleId || await getCurrentUserRole();
+    const availableModelIds = getAvailableModelsForRole(targetRoleId);
+    
+    return models.filter(model => {
+      // Extract model ID (could be '1.1' or 'model-1.1' format)
+      const modelId = model.id ? model.id.replace('model-', '').replace('model_', '') : null;
+      return modelId && availableModelIds.includes(modelId);
+    });
+  }
+
+  // ============================================
   // Public API
   // ============================================
   window.PMTwinRBAC = {
@@ -403,6 +510,13 @@
     // Filtering
     filterFeaturesByRole,
     filterMenuItemsByRole,
+    
+    // Model Access
+    getAvailableModelsForRole,
+    canRoleAccessModel,
+    getAvailableModelsForCurrentUser,
+    canCurrentUserAccessModel,
+    filterModelsByRole,
     
     // Data Loading
     loadRolesData,

@@ -34,20 +34,40 @@
     }
 
     // Check authentication
-    if (!PMTwinAuth.isAuthenticated()) {
+    const isAuthenticated = PMTwinAuth.isAuthenticated();
+    console.log('Auth check - isAuthenticated:', isAuthenticated, 'requireAuth:', requireAuth);
+    
+    if (!isAuthenticated) {
+      console.log('User not authenticated, redirecting to login');
       // Store intended destination
-      if (redirectTo && redirectTo !== 'login.html') {
+      if (redirectTo && !redirectTo.includes('login')) {
         sessionStorage.setItem('loginRedirect', redirectTo);
+        console.log('Stored redirect path:', redirectTo);
       }
-      window.location.href = 'login.html';
+      // Determine correct login path based on current location
+      const currentPath = window.location.pathname;
+      let loginPath = '../login/';
+      if (currentPath.includes('/admin/')) {
+        loginPath = '../login/';
+      } else if (currentPath.includes('/dashboard/') || currentPath.includes('/projects/') || currentPath.includes('/proposals/')) {
+        loginPath = '../login/';
+      } else if (currentPath.includes('/login/')) {
+        return false; // Already on login page
+      }
+      console.log('Redirecting to login:', loginPath);
+      window.location.href = loginPath;
       return false;
     }
+    
+    console.log('✅ User is authenticated');
 
     // Check role if required
     if (requireRole) {
       const currentUser = PMTwinData.Sessions.getCurrentUser();
+      console.log('Auth check - requireRole:', requireRole, 'currentUser:', currentUser);
       if (!currentUser) {
-        window.location.href = 'login.html';
+        console.warn('No current user found, redirecting to login');
+        window.location.href = '../login/';
         return false;
       }
 
@@ -58,18 +78,18 @@
           // Redirect based on user role
           const roleDef = await PMTwinRBAC.getRoleDefinition(userRole);
           if (roleDef && roleDef.portals.includes('user_portal')) {
-            window.location.href = 'dashboard.html';
+            window.location.href = '../dashboard/';
           } else {
-            window.location.href = 'home.html';
+            window.location.href = '../home/';
           }
           return false;
         }
       } else if (currentUser.role !== requireRole) {
         // Fallback to direct role check
         if (currentUser.role === 'entity' || currentUser.role === 'individual') {
-          window.location.href = 'dashboard.html';
+          window.location.href = '../dashboard/';
         } else {
-          window.location.href = 'home.html';
+          window.location.href = '../home/';
         }
         return false;
       }
@@ -95,12 +115,12 @@
         const userRole = await PMTwinRBAC.getCurrentUserRole();
         const roleDef = await PMTwinRBAC.getRoleDefinition(userRole);
         if (roleDef && roleDef.portals.includes('user_portal')) {
-          window.location.href = 'dashboard.html';
+          window.location.href = '../dashboard/';
         } else {
-          window.location.href = 'home.html';
+          window.location.href = '../home/';
         }
       } else {
-        window.location.href = 'login.html';
+        window.location.href = '../login/';
       }
       return false;
     }

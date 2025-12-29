@@ -432,6 +432,271 @@ POC/
 - Authentication flows
 - Role-based access
 
+## 8. Admin Portal Technical Specifications
+
+### 8.1 Admin Portal Architecture
+
+**Component Structure:**
+```
+POC/features/admin/
+├── admin-dashboard.js          # Main dashboard with statistics
+├── admin-vetting.js            # User credential vetting
+├── admin-moderation.js         # Project/proposal moderation
+├── admin-audit.js             # Audit trail management
+├── admin-reports.js            # Report generation
+├── admin-models-management.js  # Collaboration models oversight
+├── admin-analytics.js         # Analytics dashboard
+├── admin-settings.js          # System configuration
+└── admin-users-management.js   # User administration
+```
+
+**Service Layer:**
+```
+POC/services/admin/
+├── admin-service.js              # Core admin operations
+├── models-management-service.js  # Collaboration models CRUD
+├── analytics-service.js          # Analytics data aggregation
+└── settings-service.js           # System settings management
+```
+
+### 8.2 Admin Portal Data Models
+
+#### Collaboration Opportunities (`pmtwin_collaboration_opportunities`)
+```javascript
+[
+  {
+    id: "opp_123",
+    modelId: "1.1" | "1.2" | "1.3" | "1.4" | "2.1" | "2.2" | "2.3" | "3.1" | "3.2" | "3.3" | "4.1" | "4.2" | "5.1",
+    modelName: "Task-Based Engagement",
+    category: "Project-Based Collaboration",
+    creatorId: "user_123",
+    title: "Opportunity Title",
+    description: "Full description...",
+    status: "pending" | "active" | "closed" | "rejected",
+    attributes: {
+      // Model-specific attributes
+      taskTitle: "...",           // For 1.1
+      budgetRange: {...},         // For various models
+      duration: 30,               // Days
+      // ... other model-specific fields
+    },
+    applications: ["app_1", "app_2"],
+    createdAt: "2024-01-01T00:00:00Z",
+    updatedAt: "2024-01-01T00:00:00Z",
+    approvedAt: null,
+    approvedBy: null
+  }
+]
+```
+
+#### Collaboration Applications (`pmtwin_collaboration_applications`)
+```javascript
+[
+  {
+    id: "app_123",
+    opportunityId: "opp_123",
+    applicantId: "user_456",
+    status: "pending" | "approved" | "rejected" | "withdrawn",
+    applicationData: {
+      // Application-specific data
+      proposal: "...",
+      qualifications: [...],
+      timeline: "...",
+      budget: {...}
+    },
+    submittedAt: "2024-01-01T00:00:00Z",
+    reviewedAt: null,
+    reviewedBy: null
+  }
+]
+```
+
+#### System Settings (`pmtwin_system_settings`)
+```javascript
+{
+  platform: {
+    name: "PMTwin",
+    logo: "url",
+    contactEmail: "contact@pmtwin.com",
+    maintenanceMode: false
+  },
+  matching: {
+    threshold: 80,              // Minimum match score
+    skillWeight: 0.4,
+    locationWeight: 0.2,
+    experienceWeight: 0.3,
+    financialWeight: 0.1
+  },
+  notifications: {
+    emailEnabled: true,
+    smsEnabled: false,
+    pushEnabled: true,
+    emailTemplates: {...}
+  },
+  roles: {
+    // Role definitions and permissions
+  },
+  features: {
+    barterEnabled: true,
+    bulkPurchasingEnabled: true,
+    mentorshipEnabled: true,
+    // Feature flags
+  }
+}
+```
+
+#### Analytics Data (`pmtwin_analytics`)
+```javascript
+{
+  users: {
+    total: 1000,
+    byType: { individual: 600, entity: 400 },
+    byStatus: { approved: 950, pending: 50 },
+    registrationTrend: [...],
+    geographicDistribution: {...}
+  },
+  projects: {
+    total: 500,
+    active: 200,
+    completed: 250,
+    byCategory: {...},
+    averageValue: 5000000,
+    completionRate: 0.75
+  },
+  proposals: {
+    total: 2000,
+    cash: 1200,
+    barter: 800,
+    approved: 1500,
+    approvalRate: 0.75
+  },
+  collaborations: {
+    byModel: {
+      "1.1": { count: 100, active: 50 },
+      "1.2": { count: 30, active: 15 },
+      // ... all models
+    },
+    totalValue: 100000000,
+    successRate: 0.80
+  },
+  matching: {
+    totalMatches: 5000,
+    averageScore: 85,
+    conversionRate: 0.60,
+    performance: {...}
+  },
+  financial: {
+    platformVolume: 500000000,
+    totalSavings: 50000000,
+    averageTransactionValue: 1000000
+  }
+}
+```
+
+### 8.3 Admin Portal API Methods
+
+**Admin Service Methods:**
+```javascript
+// User Management
+AdminService.getUsersForVetting(filters)
+AdminService.approveUser(userId, adminId)
+AdminService.rejectUser(userId, reason, adminId)
+AdminService.getUserById(userId)
+AdminService.updateUserStatus(userId, status)
+AdminService.bulkApproveUsers(userIds, adminId)
+
+// Collaboration Models Management
+ModelsManagementService.getAllOpportunities(filters)
+ModelsManagementService.getOpportunitiesByModel(modelId, filters)
+ModelsManagementService.getOpportunityById(opportunityId)
+ModelsManagementService.approveOpportunity(opportunityId, adminId)
+ModelsManagementService.rejectOpportunity(opportunityId, reason, adminId)
+ModelsManagementService.getModelStatistics(modelId)
+ModelsManagementService.exportOpportunities(filters, format)
+
+// Analytics
+AnalyticsService.getUserAnalytics(dateRange, filters)
+AnalyticsService.getProjectAnalytics(dateRange, filters)
+AnalyticsService.getProposalAnalytics(dateRange, filters)
+AnalyticsService.getCollaborationAnalytics(dateRange, filters)
+AnalyticsService.getMatchingAnalytics(dateRange, filters)
+AnalyticsService.getFinancialAnalytics(dateRange, filters)
+AnalyticsService.exportAnalytics(data, format)
+
+// Settings
+SettingsService.getSettings()
+SettingsService.updateSettings(category, settings)
+SettingsService.getMatchingParameters()
+SettingsService.updateMatchingParameters(params)
+SettingsService.getNotificationSettings()
+SettingsService.updateNotificationSettings(settings)
+```
+
+### 8.4 Admin Portal UI Components
+
+**Dashboard Components:**
+- Statistics cards (users, projects, proposals, collaborations)
+- Activity feed
+- Quick actions panel
+- Pending approvals queue
+- System health indicators
+
+**Models Management Components:**
+- Model selector (tabs or dropdown)
+- Opportunities table with filters
+- Opportunity detail modal
+- Application review interface
+- Statistics cards per model
+- Export functionality
+
+**Analytics Components:**
+- Chart library integration (Chart.js)
+- Date range picker
+- Metric cards
+- Trend graphs
+- Filter controls
+- Export buttons
+
+**Settings Components:**
+- Tabbed settings interface
+- Form validation
+- Settings categories sidebar
+- Preview/test functionality
+- Settings history
+
+### 8.5 Admin Portal Performance Requirements
+
+**Load Times:**
+- Dashboard: < 2 seconds
+- Analytics: < 3 seconds (with charts)
+- User list: < 1 second (paginated)
+- Settings: < 1 second
+
+**Data Handling:**
+- Pagination for large lists (50 items per page)
+- Lazy loading for charts
+- Cached analytics data (refresh every 5 minutes)
+- Optimized localStorage queries
+
+**Responsiveness:**
+- Desktop: Full feature set
+- Tablet: Optimized layout
+- Mobile: Essential features only
+
+### 8.6 Admin Portal Security
+
+**Access Control:**
+- Role-based access (admin, moderator, auditor)
+- Session validation on every action
+- Audit trail for all admin actions
+- IP address logging (if available)
+
+**Data Protection:**
+- Sensitive data masking in logs
+- Secure credential viewing
+- Export data sanitization
+- Settings change validation
+
 ### 9.2 Test Scenarios
 - Registration flow (Individual and Entity)
 - Login/Logout
@@ -439,6 +704,10 @@ POC/
 - Matching algorithm
 - Proposal submission (Cash and Barter)
 - Admin vetting
+- Admin collaboration models management
+- Admin analytics dashboard
+- Admin system settings
+- Admin user management
 - Service pipeline updates
 - Mobile app features
 - Offline mode (simulated)

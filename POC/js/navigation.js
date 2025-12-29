@@ -60,9 +60,13 @@
       { id: 'notifications', label: 'Notifications', route: `${basePath}notifications/`, icon: '🔔', roles: ['admin', 'entity', 'individual'] },
       { id: 'admin', label: 'Admin Dashboard', route: `${basePath}admin/`, icon: '⚙️', roles: ['admin'] },
       { id: 'admin-vetting', label: 'User Vetting', route: `${basePath}admin-vetting/`, icon: '✅', roles: ['admin'] },
+      { id: 'admin-users-management', label: 'User Management', route: `${basePath}users-management/`, icon: '👥', roles: ['admin'] },
+      { id: 'admin-models-management', label: 'Models Management', route: `${basePath}models-management/`, icon: '🤝', roles: ['admin'] },
       { id: 'admin-moderation', label: 'Moderation', route: `${basePath}admin-moderation/`, icon: '🛡️', roles: ['admin'] },
+      { id: 'admin-analytics', label: 'Analytics', route: `${basePath}analytics/`, icon: '📈', roles: ['admin'] },
       { id: 'admin-audit', label: 'Audit Trail', route: `${basePath}admin-audit/`, icon: '📋', roles: ['admin'] },
-      { id: 'admin-reports', label: 'Reports', route: `${basePath}admin-reports/`, icon: '📊', roles: ['admin'] }
+      { id: 'admin-reports', label: 'Reports', route: `${basePath}admin-reports/`, icon: '📊', roles: ['admin'] },
+      { id: 'admin-settings', label: 'Settings', route: `${basePath}settings/`, icon: '⚙️', roles: ['admin'] }
     ];
 
     return allItems.filter(item => item.roles.includes(role));

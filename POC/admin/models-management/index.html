@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Collaboration Models Management - PMTwin Admin</title>
+    <link rel="stylesheet" href="../../css/main.css">
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar" id="mainNavbar">
+        <div class="container">
+            <div class="navbar-content">
+                <a href="../../home/" class="navbar-brand">PMTwin</a>
+                <button class="navbar-toggle" id="navbarToggle" aria-label="Toggle navigation">☰</button>
+                <ul class="navbar-nav" id="navbarNav">
+                    <!-- Navigation will be dynamically loaded based on user role -->
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main>
+        <div class="container" style="padding: 2rem 0;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+                <h1>Collaboration Models Management</h1>
+                <button class="btn btn-primary" onclick="exportOpportunities()">Export Data</button>
+            </div>
+
+            <!-- Models Overview -->
+            <div class="card" style="margin-bottom: 2rem;">
+                <div class="card-body">
+                    <h2 style="margin-bottom: 1rem;">Models Overview</h2>
+                    <div id="modelsOverview">
+                        <!-- Models overview will be loaded here -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Filters -->
+            <div class="card" style="margin-bottom: 2rem;">
+                <div class="card-body">
+                    <h2 style="margin-bottom: 1rem;">Filters</h2>
+                    <form id="modelsFilterForm">
+                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">
+                            <div class="form-group">
+                                <label for="modelSelector">Model</label>
+                                <select id="modelSelector" class="form-control">
+                                    <option value="all">All Models</option>
+                                    <option value="1.1">1.1 - Task-Based</option>
+                                    <option value="1.2">1.2 - Consortium</option>
+                                    <option value="1.3">1.3 - Joint Venture</option>
+                                    <option value="1.4">1.4 - SPV</option>
+                                    <option value="2.1">2.1 - Strategic JV</option>
+                                    <option value="2.2">2.2 - Strategic Alliance</option>
+                                    <option value="2.3">2.3 - Mentorship</option>
+                                    <option value="3.1">3.1 - Bulk Purchasing</option>
+                                    <option value="3.2">3.2 - Co-Ownership</option>
+                                    <option value="3.3">3.3 - Resource Exchange</option>
+                                    <option value="4.1">4.1 - Professional Hiring</option>
+                                    <option value="4.2">4.2 - Consultant Hiring</option>
+                                    <option value="5.1">5.1 - Competition/RFP</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="statusFilter">Status</label>
+                                <select id="statusFilter" class="form-control">
+                                    <option value="">All Statuses</option>
+                                    <option value="draft">Draft</option>
+                                    <option value="pending">Pending</option>
+                                    <option value="active">Active</option>
+                                    <option value="closed">Closed</option>
+                                    <option value="rejected">Rejected</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="dateFromFilter">From Date</label>
+                                <input type="date" id="dateFromFilter" class="form-control">
+                            </div>
+                            <div class="form-group">
+                                <label for="dateToFilter">To Date</label>
+                                <input type="date" id="dateToFilter" class="form-control">
+                            </div>
+                        </div>
+                        <div style="margin-top: 1rem;">
+                            <button type="submit" class="btn btn-primary">Apply Filters</button>
+                            <button type="button" class="btn btn-outline" id="clearFilters">Clear Filters</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Opportunities List -->
+            <div class="card">
+                <div class="card-body">
+                    <h2 style="margin-bottom: 1rem;">Collaboration Opportunities</h2>
+                    <div id="opportunitiesList">
+                        <!-- Opportunities will be loaded here -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Configuration (must load first) -->
+    <script src="../../js/config.js"></script>
+    
+    <!-- API Layer (for future Java backend integration) -->
+    <script src="../../js/api/api-client.js"></script>
+    <script src="../../js/api/api-service.js"></script>
+    
+    <!-- Core Scripts -->
+    <script src="../../js/data.js"></script>
+    <script src="../../js/auth.js"></script>
+    <script src="../../js/auth-check.js"></script>
+    <script src="../../js/demo-credentials.js"></script>
+    <script src="../../services/services-loader.js"></script>
+    <script src="../../data/data-loader.js"></script>
+    
+    <!-- Admin Services -->
+    <script src="../../services/admin/admin-service.js"></script>
+    <script src="../../services/admin/models-management-service.js"></script>
+    
+    <!-- Component Scripts -->
+    <script src="../../features/admin/admin-models-management.js"></script>
+    
+    <!-- Initialize Component -->
+    <script>
+        document.addEventListener('DOMContentLoaded', async function() {
+            // Check authentication and admin role
+            const isAuth = await AuthCheck.checkAuth({ requireAuth: true, requireRole: 'admin' });
+            if (!isAuth) return;
+            
+            // Initialize models management
+            if (window.admin && window.admin['admin-models-management']) {
+                window.admin['admin-models-management'].init();
+            }
+        });
+
+        // Export function
+        async function exportOpportunities() {
+            if (window.admin && window.admin['admin-models-management']) {
+                // Access the export function from the component
+                const component = window.admin['admin-models-management'];
+                if (component.exportOpportunities) {
+                    await component.exportOpportunities();
+                }
+            }
+        }
+    </script>
+</body>
+</html>
+

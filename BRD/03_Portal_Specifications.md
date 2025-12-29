@@ -584,6 +584,258 @@
 - Filter selection
 - Format (JSON, CSV)
 
+### 3.5 Collaboration Models Management
+
+**Purpose:** Comprehensive oversight and management of all 5 collaboration models
+
+**Model 1: Project-Based Collaboration Management**
+- **Task-Based Engagements:**
+  - View all task-based opportunities
+  - Monitor task completion rates
+  - Review task quality and outcomes
+  - Statistics: Active tasks, completed tasks, average duration
+
+- **Consortium Management:**
+  - View all consortium formations
+  - Monitor consortium bidding activities
+  - Track consortium success rates
+  - Statistics: Active consortia, bids submitted, wins
+
+- **Joint Venture (JV) Oversight:**
+  - Monitor JV formations
+  - Track JV project progress
+  - Review JV performance metrics
+  - Statistics: Active JVs, projects under JV
+
+- **SPV Management:**
+  - View SPV creations (50M+ SAR threshold)
+  - Monitor SPV project status
+  - Track SPV financial metrics
+  - Statistics: Active SPVs, total SPV value
+
+**Model 2: Strategic Partnerships Management**
+- **Strategic JV Monitoring:**
+  - View all strategic JV formations
+  - Track long-term partnership progress
+  - Monitor strategic objectives achievement
+  - Statistics: Active strategic JVs, partnership duration
+
+- **Strategic Alliance Oversight:**
+  - Monitor alliance formations
+  - Track alliance activities
+  - Review alliance performance
+  - Statistics: Active alliances, alliance value
+
+- **Mentorship Program Management:**
+  - View mentorship pairings
+  - Monitor mentorship progress
+  - Track knowledge transfer metrics
+  - Statistics: Active mentorships, completion rates
+
+**Model 3: Resource Pooling & Sharing Management**
+- **Bulk Purchasing Oversight:**
+  - View all bulk purchasing groups
+  - Monitor purchasing activities
+  - Track savings achieved
+  - Statistics: Active groups, total savings, participants
+
+- **Co-Ownership Management:**
+  - Monitor co-ownership opportunities
+  - Track asset ownership structures
+  - Review co-ownership agreements
+  - Statistics: Active co-ownerships, asset value
+
+- **Resource Exchange/Barter Monitoring:**
+  - View all barter transactions
+  - Monitor exchange activities
+  - Track barter value exchanged
+  - Statistics: Active exchanges, total barter value
+
+**Model 4: Hiring Management**
+- **Professional Hiring Oversight:**
+  - View all job postings
+  - Monitor application rates
+  - Track hiring success
+  - Statistics: Active postings, applications, hires
+
+- **Consultant Hiring Management:**
+  - Monitor consultant engagements
+  - Track engagement outcomes
+  - Review consultant performance
+  - Statistics: Active engagements, completion rates
+
+**Model 5: Competition Management**
+- **Competition/RFP Oversight:**
+  - View all competitions
+  - Monitor submission rates
+  - Track evaluation progress
+  - Review winner selections
+  - Statistics: Active competitions, submissions, winners
+
+**Collaboration Models Management Features:**
+- Unified dashboard showing all models
+- Model selector (tabs or dropdown)
+- Opportunities table with filters (model, status, date range)
+- Opportunity detail modal with full information
+- Application review interface
+- Approve/reject collaboration opportunities
+- Statistics cards per model
+- Export functionality (CSV, PDF)
+- Real-time activity monitoring
+
+### 3.6 Analytics Dashboard
+
+**Purpose:** Comprehensive platform analytics and insights
+
+**User Analytics:**
+- Registration trends (line chart)
+- User growth by type (bar chart)
+- Geographic distribution (map/table)
+- User activity metrics
+- Profile completion rates
+- Verification status breakdown
+
+**Project Analytics:**
+- Project creation trends
+- Project completion rates
+- Projects by category
+- Projects by status
+- Average project value
+- Project duration analysis
+
+**Proposal Analytics:**
+- Proposal submission trends
+- Cash vs Barter breakdown (pie chart)
+- Proposal approval rates
+- Average proposal value
+- Proposal response times
+
+**Collaboration Models Analytics:**
+- Model usage distribution (pie chart)
+- Model success rates
+- Model activity trends
+- Model-specific metrics
+- Cross-model comparisons
+
+**Matching Analytics:**
+- Matching algorithm performance
+- Match success rates
+- Average match scores
+- Match-to-proposal conversion
+- Matching trends over time
+
+**Financial Analytics:**
+- Total platform volume
+- Cost savings (bulk purchasing, barter)
+- Average transaction values
+- Revenue trends
+- Financial projections
+
+**Analytics Features:**
+- Interactive charts (Chart.js or similar)
+- Date range picker
+- Metric cards with key indicators
+- Trend graphs
+- Export buttons (CSV, PDF, Excel)
+- Filter controls (date, category, model, etc.)
+- Real-time data updates
+- Custom report generation
+
+### 3.7 System Settings
+
+**Purpose:** Platform configuration and system management
+
+**Platform Configuration:**
+- General settings (platform name, logo, contact info)
+- Maintenance mode toggle
+- Feature flags (enable/disable features)
+- Platform status indicators
+
+**Matching Algorithm Settings:**
+- Match threshold configuration (>80% default)
+- Weight adjustments for matching criteria:
+  - Skill match weight
+  - Location proximity weight
+  - Experience level weight
+  - Financial capacity weight
+- Algorithm tuning parameters
+- Matching sensitivity controls
+
+**Notification Settings:**
+- Email notification templates
+- SMS notification configuration
+- Push notification settings
+- Notification frequency controls
+- Notification channel preferences
+
+**Role & Permission Management:**
+- Role definitions and permissions
+- Custom role creation
+- Permission matrix management
+- Role assignment rules
+- Permission inheritance settings
+
+**Integration Settings:**
+- API configuration
+- Third-party service integrations
+- Webhook settings
+- External system connections
+
+**Settings Features:**
+- Tabbed settings interface
+- Form validation
+- Save/cancel actions
+- Settings categories sidebar
+- Preview/test functionality
+- Settings history/audit
+- Import/export settings
+
+### 3.8 Enhanced User Management
+
+**Purpose:** Comprehensive user administration
+
+**User List:**
+- Complete user list with pagination
+- Advanced filters:
+  - User type (Individual, Entity, Admin)
+  - Status (Pending, Approved, Rejected, Suspended)
+  - Role
+  - Registration date range
+  - Verification status
+  - Activity status
+- Sort options (name, email, registration date, last login)
+- Search functionality
+
+**User Profile Management:**
+- View complete user profile
+- Edit user information
+- Update user credentials
+- Manage user roles
+- Account status management
+- Profile verification status
+
+**Bulk Operations:**
+- Bulk approve users
+- Bulk reject users
+- Bulk suspend users
+- Bulk role assignment
+- Bulk export user data
+
+**User Activity History:**
+- Login history
+- Action history
+- Project activity
+- Proposal activity
+- Collaboration activity
+- Audit trail for user
+
+**Credential Verification:**
+- Verification status dashboard
+- Pending verifications queue
+- Verified credentials list
+- Expired credentials alerts
+- Credential renewal tracking
+
 ## 4. Mobile App Specifications
 
 ### 4.1 Biometric Approval

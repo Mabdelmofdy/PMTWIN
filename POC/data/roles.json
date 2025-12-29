@@ -1,54 +1,29 @@
 {
   "roles": {
-    "admin": {
-      "id": "admin",
-      "name": "Administrator",
-      "description": "Full system access with all permissions",
-      "permissions": [
-        "vet_users",
-        "approve_users",
-        "reject_users",
-        "suspend_users",
-        "moderate_projects",
-        "remove_projects",
-        "view_all_projects",
-        "view_all_proposals",
-        "view_reports",
-        "manage_audit_trail",
-        "view_analytics",
-        "manage_system_settings",
-        "manage_roles",
-        "assign_roles"
-      ],
-      "features": [
-        "admin_dashboard",
-        "user_vetting",
-        "user_management",
-        "project_moderation",
-        "audit_trail",
-        "reports",
-        "analytics",
-        "system_settings",
-        "role_management"
-      ],
-      "portals": ["admin_portal"],
-      "restrictions": []
-    },
-    "entity": {
-      "id": "entity",
-      "name": "Entity/Company",
-      "description": "Construction companies and entities that create projects",
+    "project_lead": {
+      "id": "project_lead",
+      "name": "Project Lead (Contractor)",
+      "description": "Posts tenders, forms consortia, hires resources, and initiates SPVs",
       "permissions": [
         "create_projects",
         "edit_own_projects",
         "delete_own_projects",
         "view_own_projects",
         "view_public_projects",
+        "post_tenders",
+        "form_consortia",
+        "create_spvs",
         "view_proposals",
         "approve_proposals",
         "reject_proposals",
         "create_collaboration_opportunities",
         "manage_own_collaboration_opportunities",
+        "create_bulk_purchasing",
+        "create_co_ownership",
+        "create_resource_marketplace",
+        "create_professional_hiring",
+        "create_consultant_hiring",
+        "create_competitions",
         "view_matches",
         "view_own_dashboard",
         "manage_own_profile",
@@ -58,8 +33,17 @@
         "user_dashboard",
         "project_creation",
         "project_management",
+        "tender_management",
+        "consortium_management",
+        "spv_management",
         "proposal_review",
         "collaboration_opportunities",
+        "bulk_purchasing",
+        "co_ownership",
+        "resource_marketplace",
+        "professional_hiring",
+        "consultant_hiring",
+        "competitions",
         "matches_view",
         "pipeline_management",
         "profile_management",
@@ -72,18 +56,85 @@
         "Cannot access admin features"
       ]
     },
-    "individual": {
-      "id": "individual",
-      "name": "Individual Professional",
-      "description": "Individual consultants and professionals who submit proposals",
+    "supplier": {
+      "id": "supplier",
+      "name": "Supplier",
+      "description": "Participates in bulk purchasing, lists surplus materials, and joins strategic alliances",
       "permissions": [
         "view_public_projects",
+        "participate_bulk_purchasing",
+        "create_bulk_purchasing",
+        "list_surplus_materials",
+        "manage_inventory",
+        "join_strategic_alliances",
+        "create_strategic_alliances",
+        "view_resource_marketplace",
+        "view_own_dashboard",
+        "manage_own_profile",
+        "view_own_notifications"
+      ],
+      "features": [
+        "user_dashboard",
+        "bulk_purchasing",
+        "inventory_management",
+        "resource_marketplace",
+        "strategic_alliances",
+        "profile_management",
+        "notifications"
+      ],
+      "portals": ["user_portal"],
+      "restrictions": [
+        "Cannot create mega-projects",
+        "Cannot post tenders",
+        "Cannot form consortia",
+        "Cannot access admin features"
+      ]
+    },
+    "service_provider": {
+      "id": "service_provider",
+      "name": "Service Provider",
+      "description": "Offers specialized B2B services (Legal, Logistics, Design) for Task-Based or SPV models",
+      "permissions": [
+        "view_public_projects",
+        "create_task_based_engagements",
+        "apply_to_task_based_engagements",
+        "create_strategic_alliances",
+        "join_strategic_alliances",
+        "manage_service_portfolio",
+        "view_own_dashboard",
+        "manage_own_profile",
+        "view_own_notifications"
+      ],
+      "features": [
+        "user_dashboard",
+        "task_based_engagement",
+        "strategic_alliances",
+        "service_portfolio",
+        "profile_management",
+        "notifications"
+      ],
+      "portals": ["user_portal"],
+      "restrictions": [
+        "Cannot create mega-projects",
+        "Cannot post tenders",
+        "Cannot access admin features"
+      ]
+    },
+    "professional": {
+      "id": "professional",
+      "name": "Professional / Expert",
+      "description": "Accepts task-based engagements, joins consortia as a member, or seeks full-time hiring",
+      "permissions": [
+        "view_public_projects",
+        "apply_to_task_based_engagements",
+        "join_consortia",
+        "apply_to_professional_hiring",
+        "participate_mentorship",
         "view_own_matches",
         "create_proposals",
         "edit_own_proposals",
         "delete_own_proposals",
         "view_own_proposals",
-        "apply_to_collaboration_opportunities",
         "view_own_applications",
         "view_own_dashboard",
         "manage_own_profile",
@@ -92,6 +143,10 @@
       "features": [
         "user_dashboard",
         "project_browsing",
+        "task_based_engagement",
+        "consortium_applications",
+        "professional_hiring",
+        "mentorship_participation",
         "matches_view",
         "proposal_creation",
         "proposal_management",
@@ -110,24 +165,30 @@
     "consultant": {
       "id": "consultant",
       "name": "Consultant",
-      "description": "Professional consultants (similar to individual but with extended features)",
+      "description": "Provides advisory services, feasibility studies, and expert reviews",
       "permissions": [
         "view_public_projects",
+        "create_task_based_engagements",
+        "apply_to_task_based_engagements",
+        "apply_to_consultant_hiring",
+        "create_strategic_alliances",
+        "join_strategic_alliances",
         "view_own_matches",
         "create_proposals",
         "edit_own_proposals",
         "delete_own_proposals",
         "view_own_proposals",
-        "apply_to_collaboration_opportunities",
         "view_own_applications",
         "view_own_dashboard",
         "manage_own_profile",
-        "view_own_notifications",
-        "create_collaboration_opportunities"
+        "view_own_notifications"
       ],
       "features": [
         "user_dashboard",
         "project_browsing",
+        "task_based_engagement",
+        "consultant_hiring",
+        "strategic_alliances",
         "matches_view",
         "proposal_creation",
         "proposal_management",
@@ -141,6 +202,78 @@
         "Cannot create mega-projects",
         "Cannot view other users' proposals",
         "Cannot access admin features"
+      ]
+    },
+    "mentor": {
+      "id": "mentor",
+      "name": "Mentor",
+      "description": "Guides junior professionals through the Mentorship Program",
+      "permissions": [
+        "create_mentorship_programs",
+        "manage_mentorship_programs",
+        "view_mentee_progress",
+        "track_mentorship_analytics",
+        "view_own_dashboard",
+        "manage_own_profile",
+        "view_own_notifications"
+      ],
+      "features": [
+        "user_dashboard",
+        "mentorship_management",
+        "mentorship_analytics",
+        "profile_management",
+        "notifications"
+      ],
+      "portals": ["user_portal"],
+      "restrictions": [
+        "Cannot create projects",
+        "Cannot access admin features",
+        "Limited to mentorship-related activities"
+      ]
+    },
+    "platform_admin": {
+      "id": "platform_admin",
+      "name": "Platform Admin",
+      "description": "Manages verification, dispute resolution, and analytics",
+      "permissions": [
+        "*"
+      ],
+      "features": [
+        "*"
+      ],
+      "portals": ["admin_portal", "user_portal"],
+      "restrictions": []
+    },
+    "auditor": {
+      "id": "auditor",
+      "name": "Auditor",
+      "description": "Read-only access to verify compliance and contract integrity",
+      "permissions": [
+        "view_all_projects",
+        "view_all_proposals",
+        "view_all_users",
+        "view_audit_trail",
+        "view_compliance_reports",
+        "view_analytics",
+        "export_data"
+      ],
+      "features": [
+        "admin_dashboard",
+        "project_viewing",
+        "proposal_viewing",
+        "user_viewing",
+        "audit_trail",
+        "compliance_reports",
+        "analytics",
+        "data_export"
+      ],
+      "portals": ["admin_portal"],
+      "restrictions": [
+        "Cannot modify any data",
+        "Cannot approve/reject users",
+        "Cannot approve/reject proposals",
+        "Cannot create projects",
+        "Read-only access only"
       ]
     },
     "guest": {
@@ -177,20 +310,42 @@
     "project_management": "Manage own projects",
     "project_moderation": "Moderate all projects in the system",
     "project_browsing": "Browse available projects",
+    "project_viewing": "View all projects (read-only)",
+    "tender_management": "Post and manage tenders",
+    "consortium_management": "Form and manage consortia",
+    "spv_management": "Create and manage Special Purpose Vehicles",
     "proposal_creation": "Create proposals for projects",
     "proposal_management": "Manage own proposals",
     "proposal_review": "Review proposals received for own projects",
+    "proposal_viewing": "View all proposals (read-only)",
     "collaboration_opportunities": "Create and manage collaboration opportunities",
     "collaboration_applications": "Apply to collaboration opportunities",
+    "task_based_engagement": "Task-based engagement opportunities",
+    "consortium_applications": "Apply to join consortia",
+    "bulk_purchasing": "Bulk purchasing opportunities",
+    "inventory_management": "Manage inventory and surplus materials",
+    "co_ownership": "Co-ownership pooling opportunities",
+    "resource_marketplace": "Resource marketplace for buying/selling/bartering",
+    "professional_hiring": "Professional hiring opportunities",
+    "consultant_hiring": "Consultant hiring opportunities",
+    "competitions": "RFP/Design competition opportunities",
+    "strategic_alliances": "Strategic alliance opportunities",
+    "mentorship_management": "Create and manage mentorship programs",
+    "mentorship_participation": "Participate in mentorship programs",
+    "mentorship_analytics": "View mentorship program analytics",
+    "service_portfolio": "Manage service provider portfolio",
     "matches_view": "View matching opportunities",
     "pipeline_management": "Manage project pipeline",
     "profile_management": "Manage own profile",
     "notifications": "View and manage notifications",
     "audit_trail": "View system audit logs",
+    "compliance_reports": "View compliance and verification reports",
     "reports": "Generate and view reports",
     "analytics": "View system analytics",
+    "data_export": "Export data for analysis",
     "system_settings": "Manage system configuration",
     "role_management": "Manage roles and permissions",
+    "user_viewing": "View all users (read-only)",
     "public_portal": "Access public portal features",
     "project_discovery_limited": "Limited project discovery for guests",
     "pmtwin_wizard": "PMTwin collaboration model wizard",
@@ -198,5 +353,3 @@
     "registration": "Register new account"
   }
 }
-
-

@@ -38,31 +38,61 @@
     };
     
     // Role-specific dashboard data
-    if (roleId === 'admin') {
-      dashboardData.stats = {
-        totalUsers: PMTwinData.Users.getAll().length,
-        pendingUsers: PMTwinData.Users.getByStatus('pending').length,
-        totalProjects: PMTwinData.Projects.getAll().length,
-        activeProjects: PMTwinData.Projects.getActive().length,
-        totalProposals: PMTwinData.Proposals.getAll().length
-      };
-      
-      dashboardData.recentActivity = PMTwinData.Audit.getRecent(10);
-    } else if (roleId === 'entity') {
-      const userProjects = PMTwinData.Projects.getByCreator(currentUser.id);
-      const userProposals = PMTwinData.Proposals.getAll().filter(p => {
-        const project = PMTwinData.Projects.getById(p.projectId);
-        return project && project.creatorId === currentUser.id;
-      });
-      
-      dashboardData.stats = {
+    if (roleId === 'project_lead') {
+      dashboardData = getProjectLeadDashboard(currentUser);
+    } else if (roleId === 'supplier') {
+      dashboardData = getSupplierDashboard(currentUser);
+    } else if (roleId === 'service_provider') {
+      dashboardData = getServiceProviderDashboard(currentUser);
+    } else if (roleId === 'professional') {
+      dashboardData = getProfessionalDashboard(currentUser);
+    } else if (roleId === 'consultant') {
+      dashboardData = getConsultantDashboard(currentUser);
+    } else if (roleId === 'mentor') {
+      dashboardData = getMentorDashboard(currentUser);
+    } else if (roleId === 'platform_admin') {
+      dashboardData = getPlatformAdminDashboard(currentUser);
+    } else if (roleId === 'auditor') {
+      dashboardData = getAuditorDashboard(currentUser);
+    } else {
+      // Fallback for legacy roles
+      if (roleId === 'admin' || roleId === 'entity' || roleId === 'individual') {
+        dashboardData = getLegacyRoleDashboard(currentUser, roleId);
+      }
+    }
+    
+    // Get notifications
+    dashboardData.notifications = PMTwinData.Notifications.getUnread(currentUser.id);
+    
+    return { success: true, data: dashboardData };
+  }
+
+  // ============================================
+  // Role-Specific Dashboard Functions
+  // ============================================
+  
+  function getProjectLeadDashboard(user) {
+    const userProjects = PMTwinData.Projects.getByCreator(user.id);
+    const userProposals = PMTwinData.Proposals.getAll().filter(p => {
+      const project = PMTwinData.Projects.getById(p.projectId);
+      return project && project.creatorId === user.id;
+    });
+    const collaborationOpps = PMTwinData.CollaborationOpportunities.getByCreator(user.id);
+    
+    return {
+      user: user,
+      role: 'project_lead',
+      features: [],
+      stats: {
         totalProjects: userProjects.length,
         activeProjects: userProjects.filter(p => p.status === 'active').length,
+        totalTenders: userProjects.filter(p => p.modelType === 'tender').length,
+        totalConsortia: collaborationOpps.filter(o => o.modelId === '1.2').length,
+        totalSPVs: collaborationOpps.filter(o => o.modelId === '1.4').length,
         totalProposals: userProposals.length,
         pendingProposals: userProposals.filter(p => p.status === 'in_review').length
-      };
-      
-      dashboardData.recentActivity = [
+      },
+      recentActivity: [
         ...userProjects.slice(0, 5).map(p => ({
           type: 'project',
           title: p.title,
@@ -73,19 +103,95 @@
           title: `Proposal for ${PMTwinData.Projects.getById(p.projectId)?.title || 'Project'}`,
           date: p.submittedAt
         }))
-      ].sort((a, b) => new Date(b.date) - new Date(a.date)).slice(0, 10);
-    } else if (roleId === 'individual' || roleId === 'consultant') {
-      const userProposals = PMTwinData.Proposals.getByProvider(currentUser.id);
-      const userMatches = PMTwinData.Matches.getByProvider(currentUser.id);
-      
-      dashboardData.stats = {
+      ].sort((a, b) => new Date(b.date) - new Date(a.date)).slice(0, 10),
+      notifications: PMTwinData.Notifications.getUnread(user.id)
+    };
+  }
+  
+  function getSupplierDashboard(user) {
+    const bulkPurchasing = PMTwinData.CollaborationOpportunities.getAll().filter(o => 
+      o.modelId === '3.1' && (o.creatorId === user.id || o.participants?.includes(user.id))
+    );
+    const inventoryListings = PMTwinData.CollaborationOpportunities.getAll().filter(o => 
+      o.modelId === '3.3' && o.creatorId === user.id
+    );
+    
+    return {
+      user: user,
+      role: 'supplier',
+      features: [],
+      stats: {
+        activeBulkPurchasing: bulkPurchasing.filter(o => o.status === 'active').length,
+        totalInventoryListings: inventoryListings.length,
+        activeListings: inventoryListings.filter(o => o.status === 'active').length,
+        strategicAlliances: PMTwinData.CollaborationOpportunities.getAll().filter(o => 
+          o.modelId === '2.2' && (o.creatorId === user.id || o.participants?.includes(user.id))
+        ).length
+      },
+      recentActivity: [
+        ...bulkPurchasing.slice(0, 5).map(o => ({
+          type: 'bulk_purchasing',
+          title: o.title,
+          date: o.createdAt
+        })),
+        ...inventoryListings.slice(0, 5).map(o => ({
+          type: 'inventory',
+          title: o.title,
+          date: o.createdAt
+        }))
+      ].sort((a, b) => new Date(b.date) - new Date(a.date)).slice(0, 10),
+      notifications: PMTwinData.Notifications.getUnread(user.id)
+    };
+  }
+  
+  function getServiceProviderDashboard(user) {
+    const taskEngagements = PMTwinData.CollaborationOpportunities.getAll().filter(o => 
+      o.modelId === '1.1' && (o.creatorId === user.id || o.applicants?.includes(user.id))
+    );
+    
+    return {
+      user: user,
+      role: 'service_provider',
+      features: [],
+      stats: {
+        activeServices: taskEngagements.filter(o => o.status === 'active').length,
+        totalEngagements: taskEngagements.length,
+        strategicAlliances: PMTwinData.CollaborationOpportunities.getAll().filter(o => 
+          o.modelId === '2.2' && (o.creatorId === user.id || o.participants?.includes(user.id))
+        ).length
+      },
+      recentActivity: taskEngagements.slice(0, 10).map(o => ({
+        type: 'task_engagement',
+        title: o.title,
+        date: o.createdAt
+      })),
+      notifications: PMTwinData.Notifications.getUnread(user.id)
+    };
+  }
+  
+  function getProfessionalDashboard(user) {
+    const userProposals = PMTwinData.Proposals.getByProvider(user.id);
+    const userMatches = PMTwinData.Matches.getByProvider(user.id);
+    const taskEngagements = PMTwinData.CollaborationOpportunities.getAll().filter(o => 
+      o.modelId === '1.1' && o.applicants?.includes(user.id)
+    );
+    const consortia = PMTwinData.CollaborationOpportunities.getAll().filter(o => 
+      o.modelId === '1.2' && o.applicants?.includes(user.id)
+    );
+    
+    return {
+      user: user,
+      role: 'professional',
+      features: [],
+      stats: {
         totalProposals: userProposals.length,
         activeProposals: userProposals.filter(p => p.status === 'in_review' || p.status === 'approved').length,
         totalMatches: userMatches.length,
-        highMatches: userMatches.filter(m => m.score >= 80).length
-      };
-      
-      dashboardData.recentActivity = [
+        highMatches: userMatches.filter(m => m.score >= 80).length,
+        taskEngagements: taskEngagements.length,
+        consortiaApplications: consortia.length
+      },
+      recentActivity: [
         ...userProposals.slice(0, 5).map(p => ({
           type: 'proposal',
           title: `Proposal for ${PMTwinData.Projects.getById(p.projectId)?.title || 'Project'}`,
@@ -97,13 +203,135 @@
           date: m.createdAt,
           score: m.score
         }))
-      ].sort((a, b) => new Date(b.date) - new Date(a.date)).slice(0, 10);
+      ].sort((a, b) => new Date(b.date) - new Date(a.date)).slice(0, 10),
+      notifications: PMTwinData.Notifications.getUnread(user.id)
+    };
+  }
+  
+  function getConsultantDashboard(user) {
+    const userProposals = PMTwinData.Proposals.getByProvider(user.id);
+    const taskEngagements = PMTwinData.CollaborationOpportunities.getAll().filter(o => 
+      o.modelId === '1.1' && (o.creatorId === user.id || o.applicants?.includes(user.id))
+    );
+    const consultantHiring = PMTwinData.CollaborationOpportunities.getAll().filter(o => 
+      o.modelId === '4.2' && o.applicants?.includes(user.id)
+    );
+    
+    return {
+      user: user,
+      role: 'consultant',
+      features: [],
+      stats: {
+        totalProposals: userProposals.length,
+        activeProposals: userProposals.filter(p => p.status === 'in_review' || p.status === 'approved').length,
+        taskEngagements: taskEngagements.length,
+        consultantHiringApplications: consultantHiring.length,
+        strategicAlliances: PMTwinData.CollaborationOpportunities.getAll().filter(o => 
+          o.modelId === '2.2' && (o.creatorId === user.id || o.participants?.includes(user.id))
+        ).length
+      },
+      recentActivity: [
+        ...userProposals.slice(0, 5).map(p => ({
+          type: 'proposal',
+          title: `Proposal for ${PMTwinData.Projects.getById(p.projectId)?.title || 'Project'}`,
+          date: p.submittedAt
+        })),
+        ...taskEngagements.slice(0, 5).map(o => ({
+          type: 'task_engagement',
+          title: o.title,
+          date: o.createdAt
+        }))
+      ].sort((a, b) => new Date(b.date) - new Date(a.date)).slice(0, 10),
+      notifications: PMTwinData.Notifications.getUnread(user.id)
+    };
+  }
+  
+  function getMentorDashboard(user) {
+    const mentorshipPrograms = PMTwinData.CollaborationOpportunities.getAll().filter(o => 
+      o.modelId === '2.3' && o.creatorId === user.id
+    );
+    const mentees = mentorshipPrograms.reduce((acc, program) => {
+      return acc + (program.applicants?.length || 0);
+    }, 0);
+    
+    return {
+      user: user,
+      role: 'mentor',
+      features: [],
+      stats: {
+        activePrograms: mentorshipPrograms.filter(o => o.status === 'active').length,
+        totalPrograms: mentorshipPrograms.length,
+        totalMentees: mentees,
+        activeMentees: mentorshipPrograms.filter(o => o.status === 'active').reduce((acc, program) => {
+          return acc + (program.applicants?.length || 0);
+        }, 0)
+      },
+      recentActivity: mentorshipPrograms.slice(0, 10).map(o => ({
+        type: 'mentorship',
+        title: o.title,
+        date: o.createdAt,
+        mentees: o.applicants?.length || 0
+      })),
+      notifications: PMTwinData.Notifications.getUnread(user.id)
+    };
+  }
+  
+  function getPlatformAdminDashboard(user) {
+    const allUsers = PMTwinData.Users.getAll();
+    const pendingUsers = allUsers.filter(u => u.onboardingStage === 'under_review');
+    
+    return {
+      user: user,
+      role: 'platform_admin',
+      features: [],
+      stats: {
+        totalUsers: allUsers.length,
+        pendingUsers: pendingUsers.length,
+        totalProjects: PMTwinData.Projects.getAll().length,
+        activeProjects: PMTwinData.Projects.getActive().length,
+        totalProposals: PMTwinData.Proposals.getAll().length,
+        pendingVerifications: pendingUsers.length,
+        totalCollaborations: PMTwinData.CollaborationOpportunities.getAll().length
+      },
+      recentActivity: PMTwinData.Audit.getRecent(10),
+      notifications: PMTwinData.Notifications.getUnread(user.id)
+    };
+  }
+  
+  function getAuditorDashboard(user) {
+    return {
+      user: user,
+      role: 'auditor',
+      features: [],
+      stats: {
+        totalUsers: PMTwinData.Users.getAll().length,
+        totalProjects: PMTwinData.Projects.getAll().length,
+        totalProposals: PMTwinData.Proposals.getAll().length,
+        totalAuditLogs: PMTwinData.Audit.getAll().length,
+        recentAuditLogs: PMTwinData.Audit.getRecent(100).length
+      },
+      recentActivity: PMTwinData.Audit.getRecent(10),
+      notifications: PMTwinData.Notifications.getUnread(user.id)
+    };
+  }
+  
+  function getLegacyRoleDashboard(user, roleId) {
+    // Legacy role handling for backward compatibility
+    if (roleId === 'admin') {
+      return getPlatformAdminDashboard(user);
+    } else if (roleId === 'entity') {
+      return getProjectLeadDashboard(user);
+    } else if (roleId === 'individual') {
+      return getProfessionalDashboard(user);
     }
-    
-    // Get notifications
-    dashboardData.notifications = PMTwinData.Notifications.getUnread(currentUser.id);
-    
-    return { success: true, data: dashboardData };
+    return {
+      user: user,
+      role: roleId,
+      features: [],
+      stats: {},
+      recentActivity: [],
+      notifications: PMTwinData.Notifications.getUnread(user.id)
+    };
   }
 
   // ============================================

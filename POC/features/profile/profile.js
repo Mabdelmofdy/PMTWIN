@@ -47,7 +47,8 @@
             <div>
               <p><strong>Status:</strong> <span class="badge badge-${profile.status === 'approved' ? 'success' : 'warning'}">${profile.status || 'pending'}</span></p>
               <p><strong>Onboarding Stage:</strong> ${user.onboardingStage || 'N/A'}</p>
-              <p><strong>Profile Completion:</strong> ${user.profileCompletionScore || 0}%</p>
+              <p><strong>Profile Score:</strong> ${user.profileCompletionScore || 0}%</p>
+              ${renderProfileScoreBreakdown(user)}
               <p><strong>Email Verified:</strong> ${user.emailVerified ? 'Yes' : 'No'}</p>
               <p><strong>Mobile Verified:</strong> ${user.mobileVerified ? 'Yes' : 'No'}</p>
             </div>
@@ -126,6 +127,52 @@
   function editProfile() {
     // Navigate to profile edit page or show edit form
     alert('Profile editing feature coming soon!');
+  }
+
+  function renderProfileScoreBreakdown(user) {
+    if (!user || !PMTwinData) return '';
+    
+    try {
+      const scoreData = PMTwinData.calculateProfileCompletionScore(user);
+      if (typeof scoreData !== 'object' || !scoreData) return '';
+      
+      const completionScore = scoreData.completionScore || 0;
+      const verificationScore = scoreData.verificationScore || 0;
+      const totalScore = scoreData.score || 0;
+      
+      return `
+        <div style="margin-top: 1rem; padding: 1rem; background: var(--bg-secondary); border-radius: 4px;">
+          <h3 style="margin: 0 0 1rem 0; font-size: 1rem;">Profile Score Breakdown</h3>
+          <div style="margin-bottom: 0.75rem;">
+            <div style="display: flex; justify-content: space-between; margin-bottom: 0.25rem;">
+              <span>Completion Score (60%):</span>
+              <strong>${completionScore}%</strong>
+            </div>
+            <div style="width: 100%; height: 8px; background: var(--bg-tertiary); border-radius: 4px; overflow: hidden;">
+              <div style="width: ${completionScore}%; height: 100%; background: var(--primary); transition: width 0.3s;"></div>
+            </div>
+          </div>
+          <div style="margin-bottom: 0.75rem;">
+            <div style="display: flex; justify-content: space-between; margin-bottom: 0.25rem;">
+              <span>Verification Score (40%):</span>
+              <strong>${verificationScore}%</strong>
+            </div>
+            <div style="width: 100%; height: 8px; background: var(--bg-tertiary); border-radius: 4px; overflow: hidden;">
+              <div style="width: ${verificationScore}%; height: 100%; background: var(--success); transition: width 0.3s;"></div>
+            </div>
+          </div>
+          <div style="margin-top: 1rem; padding-top: 1rem; border-top: 1px solid var(--border);">
+            <div style="display: flex; justify-content: space-between;">
+              <span><strong>Total Profile Score:</strong></span>
+              <strong style="font-size: 1.2rem; color: ${totalScore >= 80 ? 'var(--success)' : totalScore >= 60 ? 'var(--warning)' : 'var(--error)'};">${totalScore}%</strong>
+            </div>
+          </div>
+        </div>
+      `;
+    } catch (error) {
+      console.error('Error rendering profile score breakdown:', error);
+      return '';
+    }
   }
 
   // Export

@@ -452,14 +452,246 @@ Match: Created → Notified → Viewed → Proposal Submitted
 ### 4.3 Admin User Access
 - **Allowed:** Admin Portal, Public Portal, User Portal (view-only)
 - **Restricted:** Cannot create projects or submit proposals
-- **Features:** Vetting, moderation, reporting, audit trail
+- **Features:** Vetting, moderation, reporting, audit trail, collaboration models management, analytics, system settings
 
 ### 4.4 Guest Access
 - **Allowed:** Public Portal only
 - **Restricted:** All authenticated features
 - **Features:** Discovery Engine (limited), Knowledge Hub, Signup
 
+## 5. Admin Portal Workflows
+
+### 5.1 User Vetting Workflow
+
+**Flow:**
+1. Admin logs into Admin Portal
+2. Navigates to "User Vetting" module
+3. Views pending verifications queue
+4. Filters by user type, date, or priority
+5. Selects user to review
+6. Reviews user information and credentials
+7. Checks verification criteria checklist
+8. Decision point:
+   - **Approve:** User gains portal access, notification sent
+   - **Reject:** Reason required, notification sent with rejection details
+   - **Request Clarification:** Questions sent to user, status updated
+9. Audit log entry created
+10. User status updated in system
+
+**Verification Criteria:**
+- CR Valid (for entities)
+- VAT Valid (for entities)
+- Professional License Valid (for individuals)
+- Documents Complete
+- Information Matches Documents
+- No Red Flags
+
+### 5.2 Project Moderation Workflow
+
+**Flow:**
+1. Admin navigates to "Project Moderation"
+2. Views flagged projects or all projects
+3. Filters by status, category, or date
+4. Selects project to review
+5. Reviews project details and quality metrics
+6. Decision point:
+   - **Approve:** Project remains active, flag removed
+   - **Remove:** Reason required, project creator notified
+   - **Request Revision:** Creator notified to improve project
+7. Comments added (internal notes)
+8. Audit log entry created
+9. Project status updated
+
+### 5.3 Collaboration Models Management Workflow
+
+#### Model 1: Project-Based Collaboration Management
+
+**Task-Based Engagement Oversight:**
+1. Admin navigates to "Models Management" → "Model 1: Project-Based"
+2. Selects "Task-Based" sub-model
+3. Views all task-based opportunities
+4. Filters by status, date range, or creator
+5. Reviews opportunity details and applications
+6. Monitors task completion rates
+7. Approves/rejects opportunities if needed
+8. Exports statistics and data
+
+**Consortium Management:**
+1. Admin views consortium formations
+2. Monitors consortium bidding activities
+3. Tracks consortium success rates
+4. Reviews consortium member compositions
+5. Exports consortium data
+
+**JV and SPV Oversight:**
+1. Admin monitors JV formations and progress
+2. Reviews SPV creations (50M+ SAR threshold)
+3. Tracks financial metrics
+4. Monitors project status under JV/SPV
+
+#### Model 2: Strategic Partnerships Management
+
+**Strategic JV Monitoring:**
+1. Admin views strategic JV formations
+2. Tracks long-term partnership progress
+3. Monitors strategic objectives achievement
+4. Reviews partnership performance metrics
+
+**Strategic Alliance Oversight:**
+1. Admin monitors alliance formations
+2. Tracks alliance activities
+3. Reviews alliance performance
+4. Exports alliance data
+
+**Mentorship Program Management:**
+1. Admin views mentorship pairings
+2. Monitors mentorship progress
+3. Tracks knowledge transfer metrics
+4. Reviews mentorship outcomes
+
+#### Model 3: Resource Pooling Management
+
+**Bulk Purchasing Oversight:**
+1. Admin views bulk purchasing groups
+2. Monitors purchasing activities
+3. Tracks savings achieved
+4. Reviews participant engagement
+
+**Co-Ownership Management:**
+1. Admin monitors co-ownership opportunities
+2. Tracks asset ownership structures
+3. Reviews co-ownership agreements
+4. Exports co-ownership data
+
+**Resource Exchange/Barter Monitoring:**
+1. Admin views all barter transactions
+2. Monitors exchange activities
+3. Tracks barter value exchanged
+4. Reviews exchange outcomes
+
+#### Model 4: Hiring Management
+
+**Professional Hiring Oversight:**
+1. Admin views all job postings
+2. Monitors application rates
+3. Tracks hiring success
+4. Reviews job posting quality
+
+**Consultant Hiring Management:**
+1. Admin monitors consultant engagements
+2. Tracks engagement outcomes
+3. Reviews consultant performance
+4. Exports hiring data
+
+#### Model 5: Competition Management
+
+**Competition/RFP Oversight:**
+1. Admin views all competitions
+2. Monitors submission rates
+3. Tracks evaluation progress
+4. Reviews winner selections
+5. Exports competition data
+
+### 5.4 Analytics Dashboard Workflow
+
+**Flow:**
+1. Admin navigates to "Analytics" module
+2. Views dashboard with key metrics
+3. Selects date range for analysis
+4. Chooses metrics to display:
+   - User analytics
+   - Project analytics
+   - Proposal analytics
+   - Collaboration models analytics
+   - Matching analytics
+   - Financial analytics
+5. Interacts with charts and graphs
+6. Applies filters (date, category, model, etc.)
+7. Generates custom reports
+8. Exports data (CSV, PDF, Excel)
+
+**Key Metrics:**
+- User registration trends
+- Project creation and completion rates
+- Proposal statistics (cash vs barter)
+- Collaboration model usage
+- Matching algorithm performance
+- Financial metrics (platform volume, savings)
+- Geographic distribution
+
+### 5.5 System Settings Workflow
+
+**Flow:**
+1. Admin navigates to "System Settings"
+2. Selects settings category:
+   - Platform Configuration
+   - Matching Algorithm Parameters
+   - Notification Settings
+   - Role & Permission Management
+   - Integration Settings
+3. Views current settings
+4. Makes changes to settings
+5. Previews/test changes if applicable
+6. Saves settings
+7. System applies changes
+8. Audit log entry created
+
+**Settings Categories:**
+- **Platform Configuration:** General settings, feature flags, maintenance mode
+- **Matching Algorithm:** Threshold configuration, weight adjustments
+- **Notifications:** Email templates, SMS settings, push notifications
+- **Roles & Permissions:** Role definitions, permission matrix
+- **Integrations:** API configuration, webhooks, third-party services
+
+### 5.6 User Management Workflow
+
+**Flow:**
+1. Admin navigates to "User Management"
+2. Views user list with filters
+3. Applies filters (type, status, role, date range)
+4. Searches for specific users
+5. Selects user to manage
+6. Views complete user profile
+7. Performs actions:
+   - Edit user information
+   - Assign/change role
+   - Update account status
+   - View activity history
+   - Manage credentials
+8. Bulk operations (if multiple users selected)
+9. Exports user data
+10. Audit log entries created
+
+### 5.7 Audit Trail Review Workflow
+
+**Flow:**
+1. Admin navigates to "Audit Trail"
+2. Views comprehensive activity logs
+3. Applies filters (date range, user, action type, portal)
+4. Searches for specific actions
+5. Views detailed log entry
+6. Reviews action context and details
+7. Exports audit logs
+8. Generates compliance reports
+
+### 5.8 Reports Generation Workflow
+
+**Flow:**
+1. Admin navigates to "Reports" module
+2. Selects report type:
+   - User Registration Report
+   - Project Activity Report
+   - Proposal Statistics Report
+   - Financial Summary Report
+   - Collaboration Models Usage Report
+   - Matching Performance Report
+3. Configures report parameters (date range, filters)
+4. Generates report
+5. Reviews report data
+6. Exports report (CSV, PDF, Excel)
+7. Schedules report delivery (future feature)
+
 ---
 
-*These user flows define the complete journey from registration to project execution on the PMTwin platform.*
+*These user flows define the complete journey from registration to project execution on the PMTwin platform, including comprehensive admin workflows for all collaboration models and platform management.*
 
