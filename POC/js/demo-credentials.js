@@ -11,10 +11,10 @@
 
   // Portal type to role mapping
   const PORTAL_ROLE_MAP = {
-    'admin': ['admin'],
-    'user': ['individual', 'entity'],
-    'mobile': ['individual', 'entity'],
-    'public': ['admin', 'individual', 'entity'] // Show all in public portal
+    'admin': ['platform_admin', 'auditor'],
+    'user': ['project_lead', 'professional', 'supplier', 'service_provider', 'consultant', 'mentor'],
+    'mobile': ['project_lead', 'professional', 'supplier', 'service_provider', 'consultant', 'mentor'],
+    'public': ['platform_admin', 'project_lead', 'professional', 'supplier', 'service_provider', 'consultant', 'mentor', 'auditor'] // Show all in public portal
   };
 
   // ============================================
@@ -70,9 +70,17 @@
   // ============================================
   function getRoleBadge(role) {
     const roleLabels = {
-      'admin': { text: 'Admin', class: 'badge-error' },
-      'individual': { text: 'Individual', class: 'badge-info' },
-      'entity': { text: 'Entity', class: 'badge-success' }
+      'platform_admin': { text: 'Platform Admin', class: 'badge-error' },
+      'admin': { text: 'Admin', class: 'badge-error' }, // Legacy support
+      'project_lead': { text: 'Project Lead', class: 'badge-success' },
+      'entity': { text: 'Entity', class: 'badge-success' }, // Legacy support
+      'professional': { text: 'Professional', class: 'badge-info' },
+      'individual': { text: 'Individual', class: 'badge-info' }, // Legacy support
+      'supplier': { text: 'Supplier', class: 'badge-warning' },
+      'service_provider': { text: 'Service Provider', class: 'badge-primary' },
+      'consultant': { text: 'Consultant', class: 'badge-secondary' },
+      'mentor': { text: 'Mentor', class: 'badge-purple' },
+      'auditor': { text: 'Auditor', class: 'badge-dark' }
     };
 
     const badge = roleLabels[role] || { text: role, class: 'badge' };
@@ -80,31 +88,148 @@
   }
 
   // ============================================
-  // Select Demo User (Auto-fill)
+  // Login with Demo User (One-Click Login)
   // ============================================
-  function selectDemoUser(user, emailInputId, passwordInputId) {
-    const emailInput = document.getElementById(emailInputId);
-    const passwordInput = document.getElementById(passwordInputId);
-
-    if (!emailInput || !passwordInput) {
-      console.error('Form inputs not found:', { emailInputId, passwordInputId });
-      alert('Error: Could not find form fields. Please check the console.');
-      return false;
+  async function loginWithDemoUser(user) {
+    console.log(`🔐 Logging in with demo user: ${user.name} (${user.email})`);
+    
+    // Show loading state
+    const card = document.querySelector(`[data-user-id="${user.userId}"]`);
+    if (card) {
+      card.classList.add('logging-in');
+      const button = card.querySelector('.demo-user-select-btn');
+      if (button) {
+        button.disabled = true;
+        button.innerHTML = '<i class="ph ph-circle-notch ph-spin" style="animation: spin 1s linear infinite;"></i> Logging in...';
+      }
+      
+      // Disable all cards to prevent multiple clicks
+      document.querySelectorAll('.demo-user-card').forEach(c => {
+        c.style.pointerEvents = 'none';
+      });
     }
 
-    // Fill the form fields
-    emailInput.value = user.email;
-    passwordInput.value = user.password;
+    try {
+      // Try AuthService first, then fallback to PMTwinAuth
+      let result;
+      if (typeof AuthService !== 'undefined') {
+        result = await AuthService.login(user.email, user.password);
+      } else if (typeof PMTwinAuth !== 'undefined') {
+        result = await PMTwinAuth.login(user.email, user.password);
+      } else {
+        // Fallback: try to find and submit form
+        return fallbackToFormFill(user);
+      }
 
-    // Focus on password field
-    passwordInput.focus();
+      if (result.success) {
+        console.log('✅ Login successful:', result);
 
     // Close modal
     closeDemoCredentialsModal();
 
-    console.log(`✅ Auto-filled credentials for: ${user.name} (${user.email})`);
+        // Wait a moment for session to be stored
+        await new Promise(resolve => setTimeout(resolve, 300));
+        
+        // Redirect to dashboard
+        const basePath = getBasePath();
+        const currentPath = window.location.pathname;
+        
+        // Determine redirect based on user role
+        let redirectPath = `${basePath}dashboard/`;
+        if (user.role === 'platform_admin' || user.role === 'admin' || user.role === 'auditor') {
+          redirectPath = `${basePath}admin/`;
+        }
+        
+        console.log(`🔄 Redirecting to: ${redirectPath}`);
+        window.location.href = redirectPath;
 
     return true;
+      } else {
+        // Login failed
+        console.error('❌ Login failed:', result.error);
+        showLoginError(card, result.error || 'Login failed. Please try again.');
+        return false;
+      }
+    } catch (error) {
+      console.error('❌ Error during login:', error);
+      showLoginError(card, 'An error occurred during login. Please try again.');
+      return false;
+    }
+  }
+
+  // ============================================
+  // Fallback: Fill Form Fields
+  // ============================================
+  function fallbackToFormFill(user) {
+    // Try to find form inputs
+    const emailInput = document.getElementById('loginEmail') || document.querySelector('input[type="email"]');
+    const passwordInput = document.getElementById('loginPassword') || document.querySelector('input[type="password"]');
+
+    if (emailInput && passwordInput) {
+      emailInput.value = user.email;
+      passwordInput.value = user.password;
+      
+      // Try to submit the form
+      const form = emailInput.closest('form');
+      if (form) {
+        closeDemoCredentialsModal();
+        // Trigger form submit after a short delay
+        setTimeout(() => {
+          form.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
+        }, 100);
+        return true;
+      }
+    }
+    
+    // If no form found, show error
+    alert('Could not find login form. Please use the login form on this page.');
+    return false;
+  }
+
+  // ============================================
+  // Show Login Error
+  // ============================================
+  function showLoginError(card, errorMessage) {
+    if (!card) return;
+    
+    // Remove loading state
+    card.classList.remove('logging-in');
+    const button = card.querySelector('.demo-user-select-btn');
+    if (button) {
+      button.disabled = false;
+      button.innerHTML = '<span class="login-icon"><i class="ph ph-lock"></i></span> Login Now';
+    }
+    
+    // Re-enable all cards
+    document.querySelectorAll('.demo-user-card').forEach(c => {
+      c.style.pointerEvents = '';
+    });
+    
+    // Show error message
+    let errorDiv = card.querySelector('.demo-login-error');
+    if (!errorDiv) {
+      errorDiv = document.createElement('div');
+      errorDiv.className = 'demo-login-error';
+      card.appendChild(errorDiv);
+    }
+    errorDiv.textContent = errorMessage;
+    errorDiv.style.display = 'block';
+    
+    // Hide error after 5 seconds
+    setTimeout(() => {
+      if (errorDiv) {
+        errorDiv.style.display = 'none';
+      }
+    }, 5000);
+  }
+
+  // ============================================
+  // Get Base Path Helper
+  // ============================================
+  function getBasePath() {
+    const currentPath = window.location.pathname;
+    const segments = currentPath.split('/').filter(p => p && !p.endsWith('.html'));
+    return segments.length > 0 ? '../' : '';
   }
 
   // ============================================
@@ -168,7 +293,7 @@
       // Store user data in data attributes for safe access
       const userData = JSON.stringify(user).replace(/"/g, '&quot;');
       html += `
-        <div class="demo-user-card" data-user-id="${user.userId}" data-user-data="${userData}">
+        <div class="demo-user-card clickable" data-user-id="${user.userId}" data-user-data="${userData}">
           <div class="demo-user-header">
             <h3 class="demo-user-name">${user.name}</h3>
             ${getRoleBadge(user.role)}
@@ -190,7 +315,7 @@
             data-password-input="${passwordInputId}"
             style="margin-top: var(--spacing-4);"
           >
-            Use This Account
+            <span class="login-icon"><i class="ph ph-lock"></i></span> Login Now
           </button>
         </div>
       `;
@@ -200,17 +325,36 @@
     
     // Add event listeners after content is inserted
     setTimeout(() => {
+      // Make entire card clickable
+      document.querySelectorAll('.demo-user-card').forEach(card => {
+        card.addEventListener('click', function(e) {
+          // Don't trigger if clicking on the button (button has its own handler)
+          if (e.target.closest('.demo-user-select-btn')) {
+            return;
+          }
+          
+          const userDataStr = this.getAttribute('data-user-data');
+          if (userDataStr) {
+            try {
+              const user = JSON.parse(userDataStr.replace(/&quot;/g, '"'));
+              loginWithDemoUser(user);
+            } catch (e) {
+              console.error('Error parsing user data:', e);
+            }
+          }
+        });
+      });
+      
+      // Button click handler (also triggers login)
       document.querySelectorAll('.demo-user-select-btn').forEach(btn => {
-        btn.addEventListener('click', function() {
+        btn.addEventListener('click', function(e) {
+          e.stopPropagation(); // Prevent card click
           const card = this.closest('.demo-user-card');
           const userDataStr = card.getAttribute('data-user-data');
           if (userDataStr) {
             try {
-              // Decode HTML entities and parse JSON
               const user = JSON.parse(userDataStr.replace(/&quot;/g, '"'));
-              const emailInputId = this.getAttribute('data-email-input');
-              const passwordInputId = this.getAttribute('data-password-input');
-              selectDemoUser(user, emailInputId, passwordInputId);
+              loginWithDemoUser(user);
             } catch (e) {
               console.error('Error parsing user data:', e);
             }
@@ -235,10 +379,13 @@
       <div id="demoCredentialsModalBackdrop" class="modal-backdrop" onclick="DemoCredentials.closeModal()"></div>
       <div id="demoCredentialsModal" class="modal">
         <div class="modal-header">
-          <h2 class="modal-title">Demo User Credentials</h2>
+          <h2 class="modal-title">Quick Login - Demo Accounts</h2>
           <button class="modal-close" onclick="DemoCredentials.closeModal()" aria-label="Close">&times;</button>
         </div>
         <div class="modal-body" id="demoCredentialsModalBody">
+          <p style="margin-bottom: var(--spacing-4); color: var(--text-secondary); font-size: var(--font-size-sm); text-align: center;">
+            👆 Click on any account card to login instantly
+          </p>
           <!-- Content loaded here -->
         </div>
         <div class="modal-footer">
@@ -271,7 +418,7 @@
   window.DemoCredentials = {
     showModal: showDemoCredentialsModal,
     closeModal: closeDemoCredentialsModal,
-    selectDemoUser: selectDemoUser,
+    loginWithDemoUser: loginWithDemoUser,
     loadDemoUsers: loadDemoUsers,
     getFilteredUsers: getFilteredUsers
   };

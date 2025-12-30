@@ -22,7 +22,12 @@
   // ============================================
   // Load Menu Items
   // ============================================
-  async function loadMenuItems() {
+  async function loadMenuItems(forceRefresh = false) {
+    // Force refresh if requested (e.g., after role change)
+    if (forceRefresh) {
+      menuItems = [];
+    }
+    
     if (menuItems.length > 0) return menuItems;
 
     try {
@@ -30,6 +35,7 @@
         const result = await DashboardService.getMenuItems();
         if (result.success) {
           menuItems = result.items || [];
+          console.log(`[Navigation] Loaded ${menuItems.length} menu items for current user`);
           return menuItems;
         }
       }
@@ -40,6 +46,19 @@
     // Fallback menu items
     return getFallbackMenuItems();
   }
+  
+  // ============================================
+  // Refresh Menu Items
+  // ============================================
+  async function refreshMenuItems() {
+    menuItems = [];
+    await loadMenuItems(true);
+    // Re-render sidebar if it exists
+    const sidebar = document.getElementById('sidebar');
+    if (sidebar) {
+      await renderSidebar();
+    }
+  }
 
   function getFallbackMenuItems() {
     if (!currentUser) return [];
@@ -48,25 +67,25 @@
     const role = currentUser.role;
 
     const allItems = [
-      { id: 'dashboard', label: 'Dashboard', route: `${basePath}dashboard/`, icon: '📊', roles: ['admin', 'entity', 'individual'] },
-      { id: 'projects', label: 'My Projects', route: `${basePath}projects/`, icon: '🏗️', roles: ['admin', 'entity', 'individual'] },
-      { id: 'create-project', label: 'Create Project', route: `${basePath}create-project/`, icon: '➕', roles: ['admin', 'entity'] },
-      { id: 'proposals', label: 'Proposals', route: `${basePath}proposals/`, icon: '📄', roles: ['admin', 'entity', 'individual'] },
-      { id: 'matches', label: 'Matches', route: `${basePath}matches/`, icon: '🔗', roles: ['admin', 'entity', 'individual'] },
-      { id: 'opportunities', label: 'Opportunities', route: `${basePath}opportunities/`, icon: '✨', roles: ['admin', 'entity', 'individual'] },
-      { id: 'pipeline', label: 'Pipeline', route: `${basePath}pipeline/`, icon: '📈', roles: ['admin', 'entity', 'individual'] },
-      { id: 'collaboration', label: 'Collaboration', route: `${basePath}collaboration/`, icon: '🤝', roles: ['admin', 'entity', 'individual'] },
-      { id: 'profile', label: 'Profile', route: `${basePath}profile/`, icon: '👤', roles: ['admin', 'entity', 'individual'] },
-      { id: 'notifications', label: 'Notifications', route: `${basePath}notifications/`, icon: '🔔', roles: ['admin', 'entity', 'individual'] },
-      { id: 'admin', label: 'Admin Dashboard', route: `${basePath}admin/`, icon: '⚙️', roles: ['admin'] },
-      { id: 'admin-vetting', label: 'User Vetting', route: `${basePath}admin-vetting/`, icon: '✅', roles: ['admin'] },
-      { id: 'admin-users-management', label: 'User Management', route: `${basePath}users-management/`, icon: '👥', roles: ['admin'] },
-      { id: 'admin-models-management', label: 'Models Management', route: `${basePath}models-management/`, icon: '🤝', roles: ['admin'] },
-      { id: 'admin-moderation', label: 'Moderation', route: `${basePath}admin-moderation/`, icon: '🛡️', roles: ['admin'] },
-      { id: 'admin-analytics', label: 'Analytics', route: `${basePath}analytics/`, icon: '📈', roles: ['admin'] },
-      { id: 'admin-audit', label: 'Audit Trail', route: `${basePath}admin-audit/`, icon: '📋', roles: ['admin'] },
-      { id: 'admin-reports', label: 'Reports', route: `${basePath}admin-reports/`, icon: '📊', roles: ['admin'] },
-      { id: 'admin-settings', label: 'Settings', route: `${basePath}settings/`, icon: '⚙️', roles: ['admin'] }
+      { id: 'dashboard', label: 'Dashboard', route: `${basePath}dashboard/`, icon: '<i class="ph ph-gauge"></i>', roles: ['admin', 'entity', 'individual'] },
+      { id: 'projects', label: 'My Projects', route: `${basePath}projects/`, icon: '<i class="ph ph-buildings"></i>', roles: ['admin', 'entity', 'individual'] },
+      { id: 'create-project', label: 'Create Project', route: `${basePath}create-project/`, icon: '<i class="ph ph-plus-circle"></i>', roles: ['admin', 'entity'] },
+      { id: 'proposals', label: 'Proposals', route: `${basePath}proposals/`, icon: '<i class="ph ph-file-text"></i>', roles: ['admin', 'entity', 'individual'] },
+      { id: 'matches', label: 'Matches', route: `${basePath}matches/`, icon: '<i class="ph ph-link"></i>', roles: ['admin', 'entity', 'individual'] },
+      { id: 'opportunities', label: 'Opportunities', route: `${basePath}opportunities/`, icon: '<i class="ph ph-sparkle"></i>', roles: ['admin', 'entity', 'individual'] },
+      { id: 'pipeline', label: 'Pipeline', route: `${basePath}pipeline/`, icon: '<i class="ph ph-trend-up"></i>', roles: ['admin', 'entity', 'individual'] },
+      { id: 'collaboration', label: 'Collaboration', route: `${basePath}collaboration/`, icon: '<i class="ph ph-handshake"></i>', roles: ['admin', 'entity', 'individual'] },
+      { id: 'profile', label: 'Profile', route: `${basePath}profile/`, icon: '<i class="ph ph-user"></i>', roles: ['admin', 'entity', 'individual'] },
+      { id: 'notifications', label: 'Notifications', route: `${basePath}notifications/`, icon: '<i class="ph ph-bell"></i>', roles: ['admin', 'entity', 'individual'] },
+      { id: 'admin', label: 'Admin Dashboard', route: `${basePath}admin/`, icon: '<i class="ph ph-gear"></i>', roles: ['admin'] },
+      { id: 'admin-vetting', label: 'User Vetting', route: `${basePath}admin-vetting/`, icon: '<i class="ph ph-check-circle"></i>', roles: ['admin'] },
+      { id: 'admin-users-management', label: 'User Management', route: `${basePath}users-management/`, icon: '<i class="ph ph-users"></i>', roles: ['admin'] },
+      { id: 'admin-models-management', label: 'Models Management', route: `${basePath}models-management/`, icon: '<i class="ph ph-handshake"></i>', roles: ['admin'] },
+      { id: 'admin-moderation', label: 'Moderation', route: `${basePath}admin-moderation/`, icon: '<i class="ph ph-shield-check"></i>', roles: ['admin'] },
+      { id: 'admin-analytics', label: 'Analytics', route: `${basePath}analytics/`, icon: '<i class="ph ph-chart-line"></i>', roles: ['admin'] },
+      { id: 'admin-audit', label: 'Audit Trail', route: `${basePath}admin-audit/`, icon: '<i class="ph ph-clipboard"></i>', roles: ['admin'] },
+      { id: 'admin-reports', label: 'Reports', route: `${basePath}admin-reports/`, icon: '<i class="ph ph-chart-bar"></i>', roles: ['admin'] },
+      { id: 'admin-settings', label: 'Settings', route: `${basePath}settings/`, icon: '<i class="ph ph-gear"></i>', roles: ['admin'] }
     ];
 
     return allItems.filter(item => item.roles.includes(role));
@@ -125,19 +144,19 @@
             <li style="margin-left: auto;">
               <div style="display: flex; align-items: center; gap: 1rem;">
                 <a href="${basePath}notifications/" class="navbar-link" style="position: relative;">
-                  🔔
+                  <i class="ph ph-bell"></i>
                   ${getNotificationBadge()}
                 </a>
                 <div style="position: relative;">
                   <button id="userMenuBtn" class="navbar-link" style="background: none; border: none; cursor: pointer; display: flex; align-items: center; gap: 0.5rem;">
                     <span>${currentUser.name || currentUser.email}</span>
-                    <span>▼</span>
+                    <i class="ph ph-caret-down"></i>
                   </button>
                   <div id="userMenuDropdown" style="display: none; position: absolute; top: 100%; right: 0; margin-top: 0.5rem; background: var(--bg-primary); border: 1px solid var(--border-color); border-radius: var(--radius); box-shadow: 0 4px 6px rgba(0,0,0,0.1); min-width: 200px; z-index: 1000;">
-                    <a href="${basePath}profile/" class="navbar-link" style="display: block; padding: 0.75rem 1rem; border-bottom: 1px solid var(--border-color);">👤 Profile</a>
-                    <a href="${basePath}notifications/" class="navbar-link" style="display: block; padding: 0.75rem 1rem; border-bottom: 1px solid var(--border-color);">🔔 Notifications</a>
-                    ${currentUser.role === 'admin' ? `<a href="${basePath}admin/" class="navbar-link" style="display: block; padding: 0.75rem 1rem; border-bottom: 1px solid var(--border-color);">⚙️ Admin</a>` : ''}
-                    <button onclick="Navigation.logout()" class="navbar-link logout-link" style="display: block; width: 100%; text-align: left; padding: 0.75rem 1rem; background: none; border: none; cursor: pointer;">🚪 Logout</button>
+                    <a href="${basePath}profile/" class="navbar-link" style="display: block; padding: 0.75rem 1rem; border-bottom: 1px solid var(--border-color);"><i class="ph ph-user"></i> Profile</a>
+                    <a href="${basePath}notifications/" class="navbar-link" style="display: block; padding: 0.75rem 1rem; border-bottom: 1px solid var(--border-color);"><i class="ph ph-bell"></i> Notifications</a>
+                    ${currentUser.role === 'admin' ? `<a href="${basePath}admin/" class="navbar-link" style="display: block; padding: 0.75rem 1rem; border-bottom: 1px solid var(--border-color);"><i class="ph ph-gear"></i> Admin</a>` : ''}
+                    <button onclick="Navigation.logout()" class="navbar-link logout-link" style="display: block; width: 100%; text-align: left; padding: 0.75rem 1rem; background: none; border: none; cursor: pointer;"><i class="ph ph-sign-out"></i> Logout</button>
                   </div>
                 </div>
               </div>
@@ -221,8 +240,20 @@
   // Render Sidebar
   // ============================================
   async function renderSidebar(containerId = 'sidebar') {
-    const container = document.getElementById(containerId);
-    if (!container) return;
+    let container = document.getElementById(containerId);
+    
+    // If sidebar doesn't exist, create it
+    if (!container) {
+      console.warn('[Navigation] Sidebar container not found, creating it...');
+      createSidebarStructure();
+      // Wait for DOM update
+      await new Promise(resolve => setTimeout(resolve, 50));
+      container = document.getElementById(containerId);
+      if (!container) {
+        console.error('[Navigation] Failed to create sidebar container');
+        return;
+      }
+    }
 
     // Get current user
     if (typeof PMTwinData !== 'undefined') {
@@ -230,12 +261,17 @@
     }
 
     if (!currentUser) {
-      container.innerHTML = '';
+      console.warn('[Navigation] No current user, clearing sidebar');
+      container.innerHTML = '<div class="sidebar-header"><h2>Menu</h2></div><div class="sidebar-nav"><p style="padding: var(--spacing-4); color: var(--text-secondary);">Please log in to see menu items</p></div>';
       return;
     }
 
     // Load menu items
     await loadMenuItems();
+    
+    console.log('[Navigation] Rendering sidebar with', menuItems.length, 'menu items');
+    console.log('[Navigation] Current user:', currentUser?.email, 'Role:', currentUser?.role);
+    console.log('[Navigation] Menu items:', menuItems);
 
     const basePath = getBasePath();
     const currentPath = window.location.pathname;
@@ -243,11 +279,32 @@
     let html = `
       <div class="sidebar-header">
         <h2>Menu</h2>
-        <button id="sidebarClose" class="sidebar-close" aria-label="Close sidebar">×</button>
+        <button id="sidebarClose" class="sidebar-close" aria-label="Close sidebar"><i class="ph ph-x"></i></button>
       </div>
       <nav class="sidebar-nav">
         <ul class="sidebar-menu">
     `;
+
+    // If no menu items, show a message with debugging info
+    if (menuItems.length === 0) {
+      console.error('[Navigation] CRITICAL: No menu items to display!');
+      console.error('[Navigation] User:', currentUser);
+      console.error('[Navigation] User role:', currentUser?.role);
+      
+      html += `
+        <li class="sidebar-menu-item">
+          <div style="padding: var(--spacing-4); color: var(--text-secondary); text-align: center;">
+            <p style="color: var(--color-error); font-weight: bold;">⚠️ No menu items</p>
+            <p style="font-size: var(--font-size-sm); margin-top: var(--spacing-2);">
+              Check browser console (F12) for details
+            </p>
+            <button onclick="Navigation.refreshMenuItems()" class="btn btn-primary" style="margin-top: var(--spacing-3); width: 100%;">
+              <i class="ph ph-arrow-clockwise"></i> Refresh Menu
+            </button>
+          </div>
+        </li>
+      `;
+    }
 
     menuItems.forEach(item => {
       // Skip separators
@@ -274,7 +331,7 @@
       html += `
         <li class="sidebar-menu-item ${isActive ? 'active' : ''} ${itemClass}">
           <a href="${item.route}" class="sidebar-link" style="${indentStyle}">
-            <span class="sidebar-icon">${item.icon || '📄'}</span>
+            <span class="sidebar-icon">${item.icon || '<i class="ph ph-file-text"></i>'}</span>
             <span class="sidebar-label">${item.label}</span>
           </a>
         </li>
@@ -293,7 +350,7 @@
           </div>
         </div>
         <button onclick="Navigation.logout()" class="sidebar-logout">
-          🚪 Logout
+          <i class="ph ph-sign-out"></i> Logout
         </button>
       </div>
     `;
@@ -318,13 +375,18 @@
     if (sidebar) {
       if (sidebarOpen) {
         sidebar.classList.add('open');
+        sidebar.style.transform = 'translateX(0)';
       } else {
-        sidebar.classList.remove('open');
+        // Only hide on mobile, keep visible on desktop
+        if (window.innerWidth <= 768) {
+          sidebar.classList.remove('open');
+          sidebar.style.transform = 'translateX(-100%)';
+        }
       }
     }
     
     if (overlay) {
-      if (sidebarOpen) {
+      if (sidebarOpen && window.innerWidth <= 768) {
         overlay.classList.add('show');
       } else {
         overlay.classList.remove('show');
@@ -367,8 +429,11 @@
     const {
       showSidebar = true,
       appbarId = 'mainNavbar',
-      sidebarId = 'sidebar'
+      sidebarId = 'sidebar',
+      sidebarAlwaysOpen = true
     } = options;
+
+    console.log('[Navigation] Initializing navigation with options:', options);
 
     // Render appbar
     await renderAppbar(appbarId);
@@ -376,22 +441,49 @@
     // Create and render sidebar if requested
     if (showSidebar) {
       createSidebarStructure();
+      
+      // Wait a moment for sidebar to be created
+      await new Promise(resolve => setTimeout(resolve, 100));
+      
       await renderSidebar(sidebarId);
       
       // Add sidebar toggle button to appbar
       const navbar = document.getElementById(appbarId);
       if (navbar) {
+        // Remove existing toggle if any
+        const existingToggle = navbar.querySelector('.sidebar-toggle');
+        if (existingToggle) {
+          existingToggle.remove();
+        }
+        
         const toggleBtn = document.createElement('button');
         toggleBtn.className = 'sidebar-toggle';
-        toggleBtn.innerHTML = '☰';
+        toggleBtn.innerHTML = '<i class="ph ph-list"></i>';
         toggleBtn.onclick = () => toggleSidebar();
-        toggleBtn.style.cssText = 'background: none; border: none; font-size: 1.5rem; cursor: pointer; padding: 0.5rem; margin-right: 1rem;';
+        toggleBtn.style.cssText = 'background: none; border: none; font-size: 1.5rem; cursor: pointer; padding: 0.5rem; margin-right: 1rem; color: var(--text-primary);';
+        toggleBtn.setAttribute('aria-label', 'Toggle sidebar');
         
         const navbarContent = navbar.querySelector('.navbar-content');
         if (navbarContent) {
           navbarContent.insertBefore(toggleBtn, navbarContent.firstChild.nextSibling);
         }
       }
+      
+      // Auto-open sidebar on desktop if requested
+      if (sidebarAlwaysOpen && window.innerWidth > 768) {
+        // Force sidebar to be visible on desktop
+        const sidebar = document.getElementById(sidebarId);
+        if (sidebar) {
+          sidebar.classList.add('open');
+          sidebar.style.transform = 'translateX(0)';
+          console.log('[Navigation] Sidebar opened on desktop');
+        }
+      }
+    }
+    
+    // Adjust main content margin if layout exists
+    if (typeof AppLayout !== 'undefined') {
+      AppLayout.adjustMainContentMargin();
     }
   }
 
@@ -404,7 +496,8 @@
     renderSidebar,
     toggleSidebar,
     logout,
-    loadMenuItems
+    loadMenuItems,
+    refreshMenuItems
   };
 
 })();

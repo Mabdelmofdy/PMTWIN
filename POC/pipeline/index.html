@@ -7,20 +7,7 @@
     <link rel="stylesheet" href="../css/main.css">
 </head>
 <body>
-    <!-- Navigation -->
-    <nav class="navbar" id="mainNavbar">
-        <div class="container">
-            <div class="navbar-content">
-                <a href="../home/" class="navbar-brand">PMTwin</a>
-                <button class="navbar-toggle" id="navbarToggle" aria-label="Toggle navigation">☰</button>
-                <ul class="navbar-nav" id="navbarNav">
-                    <!-- Navigation will be dynamically loaded based on user role -->
-                </ul>
-            </div>
-        </div>
-    </nav>
-
-    <!-- Main Content -->
+    <!-- Main Content - Sidebar and Navbar are automatically added by layout system -->
     <main>
         <div class="container" style="padding: 2rem 0;">
             <h1 style="margin-bottom: var(--spacing-6);">Service Pipeline</h1>
@@ -48,6 +35,12 @@
     <script src="../js/auth-check.js"></script>
     <script src="../js/demo-credentials.js"></script>
     <script src="../services/services-loader.js"></script>
+    <script src="../data/data-loader.js"></script>
+    
+    <!-- Layout System (automatically includes sidebar and navbar) -->
+    <script src="../js/layout.js"></script>
+    <script src="../js/navigation.js"></script>
+    <script src="../js/app-init.js"></script>
     
     <!-- Component Scripts -->
     <script src="../features/pipeline/pipeline.js"></script>
@@ -60,6 +53,7 @@
             if (!isAuth) return;
             
             // Initialize pipeline
+            // Note: Sidebar and navbar are automatically initialized by app-init.js
             if (window.pipeline && window.pipeline.pipeline) {
                 window.pipeline.pipeline.init();
             }

@@ -31,28 +31,28 @@
             name: 'Special Purpose Vehicle (SPV)',
             category: 'Legal Structures',
             description: 'Create a separate legal entity for a specific project',
-            icon: '🏗️'
+            icon: '<i class="ph ph-buildings"></i>'
           },
           {
             id: '1.3',
             name: 'Joint Venture',
             category: 'Partnerships',
             description: 'Collaborate with partners on shared projects',
-            icon: '🤝'
+            icon: '<i class="ph ph-handshake"></i>'
           },
           {
             id: '3.3',
             name: 'Resource Marketplace',
             category: 'Resource Exchange',
             description: 'Exchange services without cash transactions',
-            icon: '🔄'
+            icon: '<i class="ph ph-arrow-clockwise"></i>'
           },
           {
             id: '1.2',
             name: 'Consortium',
             category: 'Partnerships',
             description: 'Join multiple partners for large-scale projects',
-            icon: '👥'
+            icon: '<i class="ph ph-users"></i>'
           }
         ];
       }
@@ -87,7 +87,7 @@
       html += `
         <div class="card" style="cursor: pointer;" onclick="collaborationModelsComponent.viewModel('${model.id}')">
           <div class="card-body" style="text-align: center;">
-            <div style="font-size: 3rem; margin-bottom: 1rem;">${model.icon || '📋'}</div>
+            <div style="font-size: 3rem; margin-bottom: 1rem;">${model.icon || '<i class="ph ph-clipboard" style="font-size: 3rem;"></i>'}</div>
             <h3 style="margin: 0 0 0.5rem 0;">${model.name || 'Untitled Model'}</h3>
             <p style="margin: 0 0 1rem 0; color: var(--text-secondary);">${model.category || 'General'}</p>
             <p style="margin: 0 0 1rem 0;">${model.description || 'No description available.'}</p>

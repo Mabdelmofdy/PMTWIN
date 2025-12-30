@@ -1,28 +1,68 @@
 {
   "users": [
     {
-      "userId": "demo_admin_001",
+      "userId": "demo_platform_admin_001",
       "email": "admin@pmtwin.com",
       "password": "Admin123",
-      "role": "admin",
-      "name": "Admin User",
-      "description": "Full system access - Vetting, Moderation, Reports, Audit Trail"
+      "role": "platform_admin",
+      "name": "Platform Administrator",
+      "description": "Full system access - Vetting, Moderation, Reports, Audit Trail, User Management"
     },
     {
-      "userId": "demo_individual_001",
-      "email": "individual@pmtwin.com",
-      "password": "User123",
-      "role": "individual",
-      "name": "John Doe",
-      "description": "Senior Civil Engineer - Task-based opportunities, proposals, profile management"
-    },
-    {
-      "userId": "demo_entity_001",
+      "userId": "demo_project_lead_001",
       "email": "entity@pmtwin.com",
       "password": "Entity123",
-      "role": "entity",
+      "role": "project_lead",
       "name": "ABC Construction Co.",
-      "description": "General Contracting Company - Project creation, proposal management, financial overview"
+      "description": "General Contracting Company - Project creation, tenders, consortia, SPVs, proposal management"
+    },
+    {
+      "userId": "demo_professional_001",
+      "email": "individual@pmtwin.com",
+      "password": "User123",
+      "role": "professional",
+      "name": "John Doe",
+      "description": "Senior Civil Engineer - Task-based opportunities, proposals, profile management, matches"
+    },
+    {
+      "userId": "demo_supplier_001",
+      "email": "supplier@pmtwin.com",
+      "password": "Supplier123",
+      "role": "supplier",
+      "name": "Global Materials Supply",
+      "description": "Materials Supplier - Bulk purchasing, inventory management, strategic alliances, resource marketplace"
+    },
+    {
+      "userId": "demo_service_provider_001",
+      "email": "service@pmtwin.com",
+      "password": "Service123",
+      "role": "service_provider",
+      "name": "Legal & Logistics Services",
+      "description": "B2B Service Provider - Task-based engagements, strategic alliances, service portfolio management"
+    },
+    {
+      "userId": "demo_consultant_001",
+      "email": "consultant@pmtwin.com",
+      "password": "Consultant123",
+      "role": "consultant",
+      "name": "Dr. Sarah Ahmed",
+      "description": "Construction Consultant - Advisory services, feasibility studies, expert reviews, strategic alliances"
+    },
+    {
+      "userId": "demo_mentor_001",
+      "email": "mentor@pmtwin.com",
+      "password": "Mentor123",
+      "role": "mentor",
+      "name": "Mohammed Al-Rashid",
+      "description": "Senior Project Manager - Mentorship programs, guides junior professionals, tracks mentee progress"
+    },
+    {
+      "userId": "demo_auditor_001",
+      "email": "auditor@pmtwin.com",
+      "password": "Auditor123",
+      "role": "auditor",
+      "name": "Compliance Auditor",
+      "description": "Read-only access - Verify compliance, contract integrity, view audit trails, export data"
     }
   ]
 }

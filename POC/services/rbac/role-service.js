@@ -148,18 +148,25 @@
   async function getUserRole(userId, email = null) {
     const userRoles = await loadUserRolesData();
     
+    console.log('[RBAC] getUserRole called with:', { userId, email });
+    console.log('[RBAC] User roles data:', userRoles);
+    
     // Try to find by userId first
     let userRole = userRoles.userRoles.find(ur => ur.userId === userId);
+    console.log('[RBAC] Found by userId:', userRole);
     
     // If not found and email provided, try to find by email
     if (!userRole && email) {
       userRole = userRoles.userRoles.find(ur => ur.email === email);
+      console.log('[RBAC] Found by email:', userRole);
     }
     
     // If still not found, check if user exists in PMTwinData
     if (!userRole && typeof PMTwinData !== 'undefined') {
       const user = PMTwinData.Users.getById(userId) || 
                    (email ? PMTwinData.Users.getByEmail(email) : null);
+      
+      console.log('[RBAC] User from PMTwinData:', user);
       
       if (user) {
         // Map legacy role to new role system
@@ -171,11 +178,22 @@
         };
         
         const roleId = roleMapping[user.role] || userRoles.defaultRole;
+        console.log('[RBAC] Mapped legacy role:', user.role, '->', roleId);
+        
+        // Auto-assign role if not in user-roles.json
+        if (!userRole) {
+          console.log('[RBAC] Auto-assigning role to user');
+          await assignRoleToUser(userId, roleId, 'system', email);
+          return roleId;
+        }
+        
         return roleId;
       }
     }
     
-    return userRole?.roleId || userRoles.defaultRole;
+    const finalRole = userRole?.roleId || userRoles.defaultRole;
+    console.log('[RBAC] Final role:', finalRole);
+    return finalRole;
   }
 
   async function getRoleDefinition(roleId) {
@@ -231,6 +249,8 @@
       'projects': ['project_creation', 'project_management', 'project_browsing'],
       'proposals': ['proposal_creation', 'proposal_management', 'proposal_review'],
       'matching': ['matches_view'],
+      'matches': ['matches_view'],
+      'opportunities': ['matches_view'],
       'profile': ['profile_management'],
       'notifications': ['notifications'],
       'collaboration': ['collaboration_opportunities', 'collaboration_applications'],
@@ -340,13 +360,20 @@
   // ============================================
   async function getCurrentUserRole() {
     if (typeof PMTwinAuth === 'undefined' || !PMTwinAuth.isAuthenticated()) {
+      console.log('[RBAC] User not authenticated, returning guest');
       return 'guest';
     }
     
     const currentUser = PMTwinData.Sessions.getCurrentUser();
-    if (!currentUser) return 'guest';
+    if (!currentUser) {
+      console.log('[RBAC] No current user found, returning guest');
+      return 'guest';
+    }
     
-    return await getUserRole(currentUser.id, currentUser.email);
+    console.log('[RBAC] Getting role for user:', currentUser.email, 'ID:', currentUser.id);
+    const role = await getUserRole(currentUser.id, currentUser.email);
+    console.log('[RBAC] Resolved role:', role);
+    return role;
   }
 
   async function canCurrentUserAccess(permission) {
@@ -376,15 +403,20 @@
 
   async function getCurrentUserFeatures() {
     if (typeof PMTwinAuth === 'undefined' || !PMTwinAuth.isAuthenticated()) {
+      console.log('[RBAC] User not authenticated, returning guest features');
       return await getAvailableFeatures(null);
     }
     
     const currentUser = PMTwinData.Sessions.getCurrentUser();
     if (!currentUser) {
+      console.log('[RBAC] No current user, returning guest features');
       return await getAvailableFeatures(null);
     }
     
-    return await getAvailableFeatures(currentUser.id, currentUser.email);
+    console.log('[RBAC] Getting features for user:', currentUser.email);
+    const features = await getAvailableFeatures(currentUser.id, currentUser.email);
+    console.log('[RBAC] Available features:', features);
+    return features;
   }
 
   // ============================================
@@ -403,9 +435,31 @@
       ? await getAvailableFeatures(userId, email)
       : await getAvailableFeatures(null);
     
+    // Get user role for additional checks
+    const roleId = userId ? await getUserRole(userId, email) : await getCurrentUserRole();
+    
     return menuItems.filter(item => {
-      if (!item.feature) return true; // No feature requirement
-      return availableFeatures.includes(item.feature);
+      // Always show separators
+      if (item.isSeparator) return true;
+      
+      // If no feature requirement, be cautious - only show if explicitly safe
+      if (!item.feature) {
+        // Don't show items without feature requirements unless they're explicitly safe
+        // (like separators which are handled above)
+        return false;
+      }
+      
+      // Check if feature is in available features
+      const hasFeatureAccess = availableFeatures.includes(item.feature);
+      
+      // Special handling for admin features
+      if (item.feature.startsWith('admin_')) {
+        // Only platform_admin should see admin features
+        return roleId === 'platform_admin' && hasFeatureAccess;
+      }
+      
+      // For other features, check if user has access
+      return hasFeatureAccess;
     });
   }
 
@@ -414,33 +468,30 @@
   // ============================================
   /**
    * Get available collaboration models for a role
+   * Reads from roles.json instead of hardcoded map
    * @param {string} roleId - The role ID
-   * @returns {string[]} Array of model IDs (e.g., ['1.1', '1.2', '2.1'])
+   * @returns {Promise<string[]>} Array of model IDs (e.g., ['1.1', '1.2', '2.1'])
    */
-  function getAvailableModelsForRole(roleId) {
-    const roleModelMap = {
-      'project_lead': ['1.1', '1.2', '1.3', '1.4', '2.1', '2.2', '3.1', '3.2', '3.3', '4.1', '4.2', '5.1'],
-      'supplier': ['2.2', '3.1', '3.2', '3.3'],
-      'service_provider': ['1.1', '2.2'],
-      'professional': ['1.1', '1.2', '2.3', '4.1'],
-      'consultant': ['1.1', '2.2', '4.2'],
-      'mentor': ['2.3'],
-      'platform_admin': ['1.1', '1.2', '1.3', '1.4', '2.1', '2.2', '2.3', '3.1', '3.2', '3.3', '4.1', '4.2', '5.1'],
-      'auditor': ['1.1', '1.2', '1.3', '1.4', '2.1', '2.2', '2.3', '3.1', '3.2', '3.3', '4.1', '4.2', '5.1'],
-      'guest': []
-    };
+  async function getAvailableModelsForRole(roleId) {
+    const roleDef = await getRoleDefinition(roleId);
     
-    return roleModelMap[roleId] || [];
+    if (!roleDef) {
+      console.warn(`[RBAC] Role definition not found for: ${roleId}`);
+      return [];
+    }
+    
+    // Return availableModels from role definition, or empty array if not defined
+    return roleDef.availableModels || [];
   }
 
   /**
    * Check if a role can access a specific collaboration model
    * @param {string} roleId - The role ID
    * @param {string} modelId - The model ID (e.g., '1.1', '2.3')
-   * @returns {boolean} True if role can access the model
+   * @returns {Promise<boolean>} True if role can access the model
    */
-  function canRoleAccessModel(roleId, modelId) {
-    const availableModels = getAvailableModelsForRole(roleId);
+  async function canRoleAccessModel(roleId, modelId) {
+    const availableModels = await getAvailableModelsForRole(roleId);
     return availableModels.includes(modelId);
   }
 
@@ -471,7 +522,7 @@
    */
   async function filterModelsByRole(models, roleId = null) {
     const targetRoleId = roleId || await getCurrentUserRole();
-    const availableModelIds = getAvailableModelsForRole(targetRoleId);
+    const availableModelIds = await getAvailableModelsForRole(targetRoleId);
     
     return models.filter(model => {
       // Extract model ID (could be '1.1' or 'model-1.1' format)

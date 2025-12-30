@@ -50,6 +50,7 @@
         "notifications"
       ],
       "portals": ["user_portal"],
+      "availableModels": ["1.1", "1.2", "1.3", "1.4", "2.1", "2.2", "3.1", "3.2", "3.3", "4.1", "4.2", "5.1"],
       "restrictions": [
         "Cannot view other entities' private projects",
         "Cannot approve/reject other entities' proposals",
@@ -75,14 +76,20 @@
       ],
       "features": [
         "user_dashboard",
+        "project_browsing",
+        "matches_view",
         "bulk_purchasing",
         "inventory_management",
         "resource_marketplace",
         "strategic_alliances",
+        "collaboration_opportunities",
+        "collaboration_applications",
+        "pipeline_management",
         "profile_management",
         "notifications"
       ],
       "portals": ["user_portal"],
+      "availableModels": ["2.2", "3.1", "3.2", "3.3"],
       "restrictions": [
         "Cannot create mega-projects",
         "Cannot post tenders",
@@ -107,13 +114,21 @@
       ],
       "features": [
         "user_dashboard",
+        "project_browsing",
+        "matches_view",
         "task_based_engagement",
         "strategic_alliances",
         "service_portfolio",
+        "collaboration_opportunities",
+        "collaboration_applications",
+        "proposal_creation",
+        "proposal_management",
+        "pipeline_management",
         "profile_management",
         "notifications"
       ],
       "portals": ["user_portal"],
+      "availableModels": ["1.1", "2.2"],
       "restrictions": [
         "Cannot create mega-projects",
         "Cannot post tenders",
@@ -143,6 +158,7 @@
       "features": [
         "user_dashboard",
         "project_browsing",
+        "project_management",
         "task_based_engagement",
         "consortium_applications",
         "professional_hiring",
@@ -150,11 +166,14 @@
         "matches_view",
         "proposal_creation",
         "proposal_management",
+        "collaboration_opportunities",
         "collaboration_applications",
+        "pipeline_management",
         "profile_management",
         "notifications"
       ],
       "portals": ["user_portal"],
+      "availableModels": ["1.1", "1.2", "2.3", "4.1"],
       "restrictions": [
         "Cannot create projects",
         "Cannot view other users' proposals",
@@ -186,6 +205,7 @@
       "features": [
         "user_dashboard",
         "project_browsing",
+        "project_management",
         "task_based_engagement",
         "consultant_hiring",
         "strategic_alliances",
@@ -194,10 +214,12 @@
         "proposal_management",
         "collaboration_applications",
         "collaboration_opportunities",
+        "pipeline_management",
         "profile_management",
         "notifications"
       ],
       "portals": ["user_portal"],
+      "availableModels": ["1.1", "2.2", "4.2"],
       "restrictions": [
         "Cannot create mega-projects",
         "Cannot view other users' proposals",
@@ -219,12 +241,17 @@
       ],
       "features": [
         "user_dashboard",
+        "project_browsing",
+        "matches_view",
         "mentorship_management",
         "mentorship_analytics",
+        "collaboration_opportunities",
+        "pipeline_management",
         "profile_management",
         "notifications"
       ],
       "portals": ["user_portal"],
+      "availableModels": ["2.3"],
       "restrictions": [
         "Cannot create projects",
         "Cannot access admin features",
@@ -242,6 +269,7 @@
         "*"
       ],
       "portals": ["admin_portal", "user_portal"],
+      "availableModels": ["1.1", "1.2", "1.3", "1.4", "2.1", "2.2", "2.3", "3.1", "3.2", "3.3", "4.1", "4.2", "5.1"],
       "restrictions": []
     },
     "auditor": {
@@ -259,15 +287,20 @@
       ],
       "features": [
         "admin_dashboard",
+        "user_dashboard",
         "project_viewing",
+        "project_browsing",
         "proposal_viewing",
         "user_viewing",
         "audit_trail",
         "compliance_reports",
+        "reports",
         "analytics",
-        "data_export"
+        "data_export",
+        "notifications"
       ],
       "portals": ["admin_portal"],
+      "availableModels": ["1.1", "1.2", "1.3", "1.4", "2.1", "2.2", "2.3", "3.1", "3.2", "3.3", "4.1", "4.2", "5.1"],
       "restrictions": [
         "Cannot modify any data",
         "Cannot approve/reject users",
@@ -293,6 +326,7 @@
         "registration"
       ],
       "portals": ["public_portal"],
+      "availableModels": [],
       "restrictions": [
         "Cannot view full project details",
         "Cannot submit proposals",

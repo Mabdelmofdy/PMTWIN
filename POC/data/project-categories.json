@@ -1,0 +1,570 @@
+{
+  "categories": {
+    "Infrastructure": {
+      "id": "Infrastructure",
+      "name": "Infrastructure",
+      "icon": "ph-buildings",
+      "description": "Roads, bridges, utilities, public works",
+      "detailSections": [
+        {
+          "id": "site_preparation",
+          "label": "Site Preparation",
+          "fields": [
+            {
+              "id": "land_clearing",
+              "label": "Land Clearing",
+              "type": "text",
+              "placeholder": "e.g. Remove existing structures, vegetation clearing"
+            },
+            {
+              "id": "excavation",
+              "label": "Excavation",
+              "type": "text",
+              "placeholder": "e.g. Earthwork, cut and fill operations"
+            },
+            {
+              "id": "site_survey",
+              "label": "Site Survey & Layout",
+              "type": "text",
+              "placeholder": "e.g. Topographic survey, boundary marking"
+            }
+          ]
+        },
+        {
+          "id": "foundation",
+          "label": "Foundation & Structure",
+          "fields": [
+            {
+              "id": "foundation_type",
+              "label": "Foundation Type",
+              "type": "select",
+              "options": ["Shallow Foundation", "Deep Foundation", "Pile Foundation", "Raft Foundation", "Other"]
+            },
+            {
+              "id": "foundation_details",
+              "label": "Foundation Details",
+              "type": "textarea",
+              "placeholder": "Specify foundation specifications, depth, materials"
+            },
+            {
+              "id": "structural_system",
+              "label": "Structural System",
+              "type": "text",
+              "placeholder": "e.g. Reinforced concrete, steel frame, precast"
+            }
+          ]
+        },
+        {
+          "id": "utilities",
+          "label": "Utilities & Services",
+          "fields": [
+            {
+              "id": "water_supply",
+              "label": "Water Supply",
+              "type": "text",
+              "placeholder": "e.g. Connection to main line, capacity requirements"
+            },
+            {
+              "id": "sewerage",
+              "label": "Sewerage System",
+              "type": "text",
+              "placeholder": "e.g. Sanitary sewer, storm drainage"
+            },
+            {
+              "id": "electrical",
+              "label": "Electrical",
+              "type": "text",
+              "placeholder": "e.g. Power supply, distribution, lighting"
+            },
+            {
+              "id": "telecommunications",
+              "label": "Telecommunications",
+              "type": "text",
+              "placeholder": "e.g. Fiber optic, data cabling"
+            }
+          ]
+        },
+        {
+          "id": "road_works",
+          "label": "Road Works",
+          "fields": [
+            {
+              "id": "road_length",
+              "label": "Road Length (km)",
+              "type": "number",
+              "placeholder": "Total length in kilometers"
+            },
+            {
+              "id": "road_width",
+              "label": "Road Width (m)",
+              "type": "number",
+              "placeholder": "Width in meters"
+            },
+            {
+              "id": "lanes",
+              "label": "Number of Lanes",
+              "type": "number",
+              "placeholder": "e.g. 4, 6, 8"
+            },
+            {
+              "id": "pavement_type",
+              "label": "Pavement Type",
+              "type": "select",
+              "options": ["Asphalt", "Concrete", "Composite", "Other"]
+            }
+          ]
+        },
+        {
+          "id": "bridge_works",
+          "label": "Bridge Works",
+          "fields": [
+            {
+              "id": "bridge_type",
+              "label": "Bridge Type",
+              "type": "select",
+              "options": ["Beam Bridge", "Arch Bridge", "Suspension Bridge", "Cable-Stayed", "Other"]
+            },
+            {
+              "id": "span_length",
+              "label": "Span Length (m)",
+              "type": "number",
+              "placeholder": "Main span length"
+            },
+            {
+              "id": "bridge_width",
+              "label": "Bridge Width (m)",
+              "type": "number",
+              "placeholder": "Bridge deck width"
+            },
+            {
+              "id": "load_capacity",
+              "label": "Load Capacity",
+              "type": "text",
+              "placeholder": "e.g. HS20-44, AASHTO standards"
+            }
+          ]
+        },
+        {
+          "id": "environmental",
+          "label": "Environmental & Compliance",
+          "fields": [
+            {
+              "id": "environmental_impact",
+              "label": "Environmental Impact Assessment",
+              "type": "textarea",
+              "placeholder": "EIA requirements and mitigation measures"
+            },
+            {
+              "id": "permits",
+              "label": "Required Permits",
+              "type": "text",
+              "placeholder": "e.g. Building permit, environmental clearance"
+            },
+            {
+              "id": "safety_requirements",
+              "label": "Safety Requirements",
+              "type": "textarea",
+              "placeholder": "OSHA compliance, site safety measures"
+            }
+          ]
+        },
+        {
+          "id": "quality_control",
+          "label": "Quality Control & Testing",
+          "fields": [
+            {
+              "id": "material_testing",
+              "label": "Material Testing Requirements",
+              "type": "textarea",
+              "placeholder": "e.g. Concrete strength tests, soil compaction tests"
+            },
+            {
+              "id": "inspection_requirements",
+              "label": "Inspection Requirements",
+              "type": "textarea",
+              "placeholder": "e.g. Third-party inspection, quality audits"
+            },
+            {
+              "id": "standards",
+              "label": "Applicable Standards",
+              "type": "text",
+              "placeholder": "e.g. Saudi Building Code, ASTM, ACI"
+            }
+          ]
+        }
+      ]
+    },
+    "Residential": {
+      "id": "Residential",
+      "name": "Residential",
+      "icon": "ph-house",
+      "description": "Housing, apartments, villas, residential complexes",
+      "detailSections": [
+        {
+          "id": "building_specs",
+          "label": "Building Specifications",
+          "fields": [
+            {
+              "id": "building_type",
+              "label": "Building Type",
+              "type": "select",
+              "options": ["Villa", "Apartment Building", "Townhouse", "Compound", "Mixed Use"]
+            },
+            {
+              "id": "number_of_units",
+              "label": "Number of Units",
+              "type": "number",
+              "placeholder": "Total residential units"
+            },
+            {
+              "id": "unit_sizes",
+              "label": "Unit Sizes",
+              "type": "text",
+              "placeholder": "e.g. 2BR: 120sqm, 3BR: 180sqm"
+            },
+            {
+              "id": "floors",
+              "label": "Number of Floors",
+              "type": "number",
+              "placeholder": "Total floors including basement"
+            }
+          ]
+        },
+        {
+          "id": "amenities",
+          "label": "Amenities & Facilities",
+          "fields": [
+            {
+              "id": "parking",
+              "label": "Parking",
+              "type": "text",
+              "placeholder": "e.g. Underground parking, surface parking, capacity"
+            },
+            {
+              "id": "recreational",
+              "label": "Recreational Facilities",
+              "type": "textarea",
+              "placeholder": "e.g. Swimming pool, gym, playground, gardens"
+            },
+            {
+              "id": "security",
+              "label": "Security Features",
+              "type": "text",
+              "placeholder": "e.g. Gated community, CCTV, security personnel"
+            }
+          ]
+        },
+        {
+          "id": "finishes",
+          "label": "Finishes & Materials",
+          "fields": [
+            {
+              "id": "interior_finishes",
+              "label": "Interior Finishes",
+              "type": "textarea",
+              "placeholder": "e.g. Flooring type, wall finishes, ceiling"
+            },
+            {
+              "id": "exterior_finishes",
+              "label": "Exterior Finishes",
+              "type": "text",
+              "placeholder": "e.g. Cladding, paint, facade treatment"
+            },
+            {
+              "id": "fixtures",
+              "label": "Fixtures & Fittings",
+              "type": "textarea",
+              "placeholder": "e.g. Kitchen cabinets, bathroom fixtures, lighting"
+            }
+          ]
+        }
+      ]
+    },
+    "Commercial": {
+      "id": "Commercial",
+      "name": "Commercial",
+      "icon": "ph-storefront",
+      "description": "Office buildings, retail, malls, hotels",
+      "detailSections": [
+        {
+          "id": "building_type",
+          "label": "Building Type & Use",
+          "fields": [
+            {
+              "id": "commercial_type",
+              "label": "Commercial Type",
+              "type": "select",
+              "options": ["Office Building", "Retail/Mall", "Hotel", "Mixed Use", "Warehouse", "Other"]
+            },
+            {
+              "id": "total_area",
+              "label": "Total Built Area (sqm)",
+              "type": "number",
+              "placeholder": "Total floor area"
+            },
+            {
+              "id": "leasable_area",
+              "label": "Leasable Area (sqm)",
+              "type": "number",
+              "placeholder": "Area available for lease"
+            },
+            {
+              "id": "floors",
+              "label": "Number of Floors",
+              "type": "number"
+            }
+          ]
+        },
+        {
+          "id": "commercial_features",
+          "label": "Commercial Features",
+          "fields": [
+            {
+              "id": "parking",
+              "label": "Parking Capacity",
+              "type": "number",
+              "placeholder": "Number of parking spaces"
+            },
+            {
+              "id": "elevators",
+              "label": "Elevators",
+              "type": "number",
+              "placeholder": "Number of elevators"
+            },
+            {
+              "id": "hvac",
+              "label": "HVAC System",
+              "type": "text",
+              "placeholder": "e.g. Centralized, split units, specifications"
+            },
+            {
+              "id": "fire_safety",
+              "label": "Fire Safety Systems",
+              "type": "textarea",
+              "placeholder": "e.g. Sprinklers, fire alarms, emergency exits"
+            }
+          ]
+        }
+      ]
+    },
+    "Industrial": {
+      "id": "Industrial",
+      "name": "Industrial",
+      "icon": "ph-factory",
+      "description": "Factories, warehouses, industrial facilities",
+      "detailSections": [
+        {
+          "id": "facility_type",
+          "label": "Facility Type",
+          "fields": [
+            {
+              "id": "industrial_type",
+              "label": "Industrial Type",
+              "type": "select",
+              "options": ["Manufacturing", "Warehouse", "Processing Plant", "Power Plant", "Other"]
+            },
+            {
+              "id": "production_capacity",
+              "label": "Production Capacity",
+              "type": "text",
+              "placeholder": "e.g. Units per day, tons per hour"
+            },
+            {
+              "id": "floor_area",
+              "label": "Total Floor Area (sqm)",
+              "type": "number"
+            },
+            {
+              "id": "ceiling_height",
+              "label": "Ceiling Height (m)",
+              "type": "number",
+              "placeholder": "Clear height for operations"
+            }
+          ]
+        },
+        {
+          "id": "industrial_systems",
+          "label": "Industrial Systems",
+          "fields": [
+            {
+              "id": "power_requirements",
+              "label": "Power Requirements",
+              "type": "text",
+              "placeholder": "e.g. Voltage, capacity in kW"
+            },
+            {
+              "id": "water_supply",
+              "label": "Water Supply",
+              "type": "text",
+              "placeholder": "e.g. Capacity, quality requirements"
+            },
+            {
+              "id": "waste_management",
+              "label": "Waste Management",
+              "type": "textarea",
+              "placeholder": "e.g. Waste treatment, disposal requirements"
+            },
+            {
+              "id": "ventilation",
+              "label": "Ventilation System",
+              "type": "text",
+              "placeholder": "e.g. Exhaust fans, air exchange rate"
+            }
+          ]
+        },
+        {
+          "id": "safety_compliance",
+          "label": "Safety & Compliance",
+          "fields": [
+            {
+              "id": "hazmat",
+              "label": "Hazardous Materials",
+              "type": "textarea",
+              "placeholder": "Types and handling requirements"
+            },
+            {
+              "id": "safety_systems",
+              "label": "Safety Systems",
+              "type": "textarea",
+              "placeholder": "e.g. Fire suppression, emergency shutdown"
+            },
+            {
+              "id": "environmental_compliance",
+              "label": "Environmental Compliance",
+              "type": "textarea",
+              "placeholder": "Emission controls, environmental permits"
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "commonFields": {
+    "timeline": {
+      "id": "timeline",
+      "label": "Project Timeline",
+      "fields": [
+        {
+          "id": "start_date",
+          "label": "Expected Start Date",
+          "type": "date"
+        },
+        {
+          "id": "duration",
+          "label": "Duration (months)",
+          "type": "number",
+          "placeholder": "Project duration in months"
+        },
+        {
+          "id": "milestones",
+          "label": "Key Milestones",
+          "type": "dynamic_list",
+          "itemLabel": "Milestone",
+          "fields": [
+            {
+              "id": "name",
+              "label": "Milestone Name",
+              "type": "text"
+            },
+            {
+              "id": "date",
+              "label": "Target Date",
+              "type": "date"
+            }
+          ]
+        }
+      ]
+    },
+    "facilities": {
+      "id": "facilities",
+      "label": "Required Facilities",
+      "fields": [
+        {
+          "id": "site_office",
+          "label": "Site Office",
+          "type": "checkbox",
+          "subFields": [
+            {
+              "id": "office_size",
+              "label": "Office Size (sqm)",
+              "type": "number"
+            },
+            {
+              "id": "office_requirements",
+              "label": "Requirements",
+              "type": "textarea",
+              "placeholder": "e.g. Meeting rooms, storage"
+            }
+          ]
+        },
+        {
+          "id": "vehicles",
+          "label": "Vehicles",
+          "type": "dynamic_list",
+          "itemLabel": "Vehicle",
+          "fields": [
+            {
+              "id": "type",
+              "label": "Vehicle Type",
+              "type": "text",
+              "placeholder": "e.g. SUV, Truck, Excavator"
+            },
+            {
+              "id": "quantity",
+              "label": "Quantity",
+              "type": "number"
+            }
+          ]
+        },
+        {
+          "id": "equipment",
+          "label": "Equipment",
+          "type": "dynamic_list",
+          "itemLabel": "Equipment",
+          "fields": [
+            {
+              "id": "name",
+              "label": "Equipment Name",
+              "type": "text",
+              "placeholder": "e.g. Crane, Excavator, Concrete Mixer"
+            },
+            {
+              "id": "specifications",
+              "label": "Specifications",
+              "type": "text",
+              "placeholder": "e.g. Capacity, model"
+            }
+          ]
+        }
+      ]
+    },
+    "attachments": {
+      "id": "attachments",
+      "label": "Project Documents",
+      "fields": [
+        {
+          "id": "drawings",
+          "label": "Technical Drawings",
+          "type": "file",
+          "accept": ".pdf,.dwg,.dxf",
+          "multiple": true
+        },
+        {
+          "id": "specifications",
+          "label": "Specifications",
+          "type": "file",
+          "accept": ".pdf,.doc,.docx",
+          "multiple": true
+        },
+        {
+          "id": "other_documents",
+          "label": "Other Documents",
+          "type": "file",
+          "accept": ".pdf,.doc,.docx,.xls,.xlsx",
+          "multiple": true
+        }
+      ]
+    }
+  }
+}
+

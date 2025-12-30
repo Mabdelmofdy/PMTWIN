@@ -156,7 +156,7 @@
       recentActivity.slice(0, 8).forEach(activity => {
         const date = activity.date || activity.timestamp;
         const formattedDate = date ? new Date(date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : '';
-        const icon = activity.icon || '📄';
+        const icon = activity.icon || '<i class="ph ph-file-text"></i>';
         
         html += `
           <li style="padding: 0.75rem 0; border-bottom: 1px solid var(--border-color); display: flex; align-items: start; gap: 0.75rem;">

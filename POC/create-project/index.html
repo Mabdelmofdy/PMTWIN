@@ -7,99 +7,215 @@
     <link rel="stylesheet" href="../css/main.css">
 </head>
 <body>
-    <!-- Navigation -->
-    <nav class="navbar" id="mainNavbar">
-        <div class="container">
-            <div class="navbar-content">
-                <a href="../home/" class="navbar-brand">PMTwin</a>
-                <button class="navbar-toggle" id="navbarToggle" aria-label="Toggle navigation">☰</button>
-                <ul class="navbar-nav" id="navbarNav">
-                    <!-- Navigation will be dynamically loaded based on user role -->
-                </ul>
-            </div>
-        </div>
-    </nav>
-
-    <!-- Main Content -->
+    <!-- Main Content - Sidebar and Navbar are automatically added by layout system -->
     <main>
-        <div class="container" style="max-width: 900px; padding: 2rem 0;">
-            <h1 style="margin-bottom: var(--spacing-6);">Create Mega-Project</h1>
+        <div class="container" style="max-width: 1200px; padding: 2rem 0;">
+            <h1 style="margin-bottom: var(--spacing-6);">Create Project</h1>
+            
+            <!-- Project Mode Selection -->
+            <div class="card" style="margin-bottom: 2rem;">
+                <div class="card-body">
+                    <h2 style="margin-bottom: 1rem;">Project Type</h2>
+                    <div class="form-group">
+                        <label for="projectMode" class="form-label">Select Project Type *</label>
+                        <select id="projectMode" class="form-control" required>
+                            <option value="single">Single Project</option>
+                            <option value="mega">Mega-Project with Multiple Phases/Sub-Projects</option>
+                        </select>
+                        <small class="form-text">
+                            <strong>Single Project:</strong> Create one standalone project.<br>
+                            <strong>Mega-Project:</strong> Create a project with multiple phases or sub-projects that can be managed together.
+                        </small>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Sub-Projects List (for mega-project mode) -->
+            <div id="subProjectsContainer" class="card" style="display: none; margin-bottom: 2rem;">
+                <div class="card-body">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                        <h2 style="margin: 0;">Sub-Projects / Phases</h2>
+                        <button type="button" id="addSubProjectBtn" class="btn btn-primary">
+                            <i class="ph ph-plus"></i> Add Sub-Project
+                        </button>
+                    </div>
+                    <div id="subProjectsList">
+                        <!-- Sub-projects will be listed here -->
+                    </div>
+                </div>
+            </div>
             
             <!-- Form to trigger ProjectService.createProject() -->
             <form id="projectCreateForm" onsubmit="return projectCreateComponent.handleSubmit(event)">
                 <div class="card">
                     <div class="card-body">
-                        <!-- Basic Information -->
-                        <h2 style="margin-bottom: 1rem;">Basic Information</h2>
-                        <div class="form-group">
-                            <label for="projectTitle" class="form-label">Project Title *</label>
-                            <input type="text" id="projectTitle" class="form-control" required>
-                        </div>
-                        <div class="form-group">
-                            <label for="projectDescription" class="form-label">Description *</label>
-                            <textarea id="projectDescription" class="form-control" rows="4" required></textarea>
-                        </div>
-                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">
-                            <div class="form-group">
-                                <label for="projectCategory" class="form-label">Category *</label>
-                                <select id="projectCategory" class="form-control" required>
-                                    <option value="">Select Category</option>
-                                    <option value="Infrastructure">Infrastructure</option>
-                                    <option value="Residential">Residential</option>
-                                    <option value="Commercial">Commercial</option>
-                                    <option value="Industrial">Industrial</option>
-                                </select>
+                        <!-- Form Title (updates for sub-projects) -->
+                        <h2 id="projectFormTitle" style="margin-bottom: 1rem; display: none;">Project Details</h2>
+                        
+                        <!-- Tab Navigation -->
+                        <div class="tab-container">
+                            <nav class="tab-nav" role="tablist">
+                                <button type="button" class="tab-nav-item active" data-tab="basic" role="tab" aria-selected="true">
+                                    <i class="ph ph-file-text"></i>
+                                    <span>Basic Info</span>
+                                </button>
+                                <button type="button" class="tab-nav-item" data-tab="scope" role="tab" aria-selected="false">
+                                    <i class="ph ph-list-bullets"></i>
+                                    <span>Scope & Budget</span>
+                                </button>
+                                <button type="button" class="tab-nav-item" data-tab="details" role="tab" aria-selected="false">
+                                    <i class="ph ph-clipboard-text"></i>
+                                    <span>Project Details</span>
+                                    <span class="tab-badge" id="detailsBadge" style="display: none;">!</span>
+                                </button>
+                                <button type="button" class="tab-nav-item" data-tab="timeline" role="tab" aria-selected="false">
+                                    <i class="ph ph-calendar"></i>
+                                    <span>Timeline & Facilities</span>
+                                </button>
+                                <button type="button" class="tab-nav-item" data-tab="review" role="tab" aria-selected="false">
+                                    <i class="ph ph-check-circle"></i>
+                                    <span>Review & Submit</span>
+                                </button>
+                            </nav>
+
+                            <!-- Tab Progress -->
+                            <div class="tab-progress">
+                                <div style="display: flex; justify-content: space-between; align-items: center;">
+                                    <span style="font-weight: var(--font-weight-semibold);">Form Progress</span>
+                                    <span class="tab-progress-text" id="progressText">Step 1 of 5</span>
+                                </div>
+                                <div class="tab-progress-bar">
+                                    <div class="tab-progress-fill" id="progressFill" style="width: 20%;"></div>
+                                </div>
                             </div>
-                            <div class="form-group">
-                                <label for="projectCity" class="form-label">City *</label>
-                                <input type="text" id="projectCity" class="form-control" required>
+
+                            <!-- Tab 1: Basic Information -->
+                            <div class="tab-content active" id="tab-basic" role="tabpanel">
+                                <h2 style="margin-bottom: 1.5rem;">Basic Information</h2>
+                                <div class="form-group">
+                                    <label for="projectTitle" class="form-label">Project Title *</label>
+                                    <input type="text" id="projectTitle" class="form-control" required>
+                                </div>
+                                <div class="form-group">
+                                    <label for="projectDescription" class="form-label">Description *</label>
+                                    <textarea id="projectDescription" class="form-control" rows="4" required></textarea>
+                                </div>
+                                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">
+                                    <div class="form-group">
+                                        <label for="projectCategory" class="form-label">Category *</label>
+                                        <select id="projectCategory" class="form-control" required>
+                                            <option value="">Select Category</option>
+                                            <option value="Infrastructure">Infrastructure</option>
+                                            <option value="Residential">Residential</option>
+                                            <option value="Commercial">Commercial</option>
+                                            <option value="Industrial">Industrial</option>
+                                        </select>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="projectCity" class="form-label">City *</label>
+                                        <input type="text" id="projectCity" class="form-control" required>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="projectRegion" class="form-label">Region *</label>
+                                        <input type="text" id="projectRegion" class="form-control" required>
+                                    </div>
+                                </div>
                             </div>
-                            <div class="form-group">
-                                <label for="projectRegion" class="form-label">Region *</label>
-                                <input type="text" id="projectRegion" class="form-control" required>
+
+                            <!-- Tab 2: Scope & Budget -->
+                            <div class="tab-content" id="tab-scope" role="tabpanel">
+                                <h2 style="margin-bottom: 1.5rem;">Scope & Requirements</h2>
+                                <div class="form-group">
+                                    <label for="requiredServices" class="form-label">Required Services (comma-separated)</label>
+                                    <input type="text" id="requiredServices" class="form-control" placeholder="e.g. Engineering Services, Construction Services">
+                                </div>
+                                <div class="form-group">
+                                    <label for="requiredSkills" class="form-label">Required Skills (comma-separated)</label>
+                                    <input type="text" id="requiredSkills" class="form-control" placeholder="e.g. Project Management, Civil Engineering">
+                                </div>
+
+                                <h2 style="margin-top: 2rem; margin-bottom: 1.5rem;">Financial Details</h2>
+                                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">
+                                    <div class="form-group">
+                                        <label for="minBudget" class="form-label">Min Budget (SAR)</label>
+                                        <input type="number" id="minBudget" class="form-control" min="0">
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="maxBudget" class="form-label">Max Budget (SAR)</label>
+                                        <input type="number" id="maxBudget" class="form-control" min="0">
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Tab 3: Project Details (Category-Specific) -->
+                            <div class="tab-content" id="tab-details" role="tabpanel">
+                                <div id="categoryDetailsContainer" style="display: none;">
+                                    <h2 style="margin-bottom: 1.5rem;">Project Details</h2>
+                                    <p style="color: var(--text-secondary); margin-bottom: 1.5rem;">
+                                        Please select a category in the Basic Info tab to see relevant project details.
+                                    </p>
+                                    <div id="categoryDetails">
+                                        <!-- Dynamic content will be loaded here based on category -->
+                                    </div>
+                                </div>
+                                <div id="noCategoryMessage" style="text-align: center; padding: 3rem; color: var(--text-secondary);">
+                                    <i class="ph ph-info" style="font-size: 3rem; margin-bottom: 1rem; display: block;"></i>
+                                    <p>Please select a project category in the Basic Info tab to see project details.</p>
+                                </div>
+                            </div>
+
+                            <!-- Tab 4: Timeline & Facilities -->
+                            <div class="tab-content" id="tab-timeline" role="tabpanel">
+                                <div id="commonFieldsContainer">
+                                    <div id="commonFields">
+                                        <!-- Dynamic content will be loaded here -->
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Tab 5: Review & Submit -->
+                            <div class="tab-content" id="tab-review" role="tabpanel">
+                                <h2 style="margin-bottom: 1.5rem;">Review & Submit</h2>
+                                
+                                <div class="card" style="margin-bottom: 1.5rem; background: var(--bg-secondary);">
+                                    <div class="card-body">
+                                        <h3 style="margin-bottom: 1rem;">Project Summary</h3>
+                                        <div id="projectSummary">
+                                            <p style="color: var(--text-secondary);">Review your project information before submitting.</p>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="projectStatus" class="form-label">Initial Status</label>
+                                    <select id="projectStatus" class="form-control">
+                                        <option value="draft">Draft</option>
+                                        <option value="active">Active (Publish Immediately)</option>
+                                    </select>
+                                    <small class="form-text">Choose "Draft" to save and edit later, or "Active" to publish immediately.</small>
+                                </div>
+
+                                <!-- Error/Success Messages -->
+                                <div id="projectCreateMessage" style="display: none; margin-top: 1rem;"></div>
                             </div>
                         </div>
 
-                        <!-- Scope & Requirements -->
-                        <h2 style="margin-top: 2rem; margin-bottom: 1rem;">Scope & Requirements</h2>
-                        <div class="form-group">
-                            <label for="requiredServices" class="form-label">Required Services (comma-separated)</label>
-                            <input type="text" id="requiredServices" class="form-control" placeholder="e.g. Engineering Services, Construction Services">
-                        </div>
-                        <div class="form-group">
-                            <label for="requiredSkills" class="form-label">Required Skills (comma-separated)</label>
-                            <input type="text" id="requiredSkills" class="form-control" placeholder="e.g. Project Management, Civil Engineering">
-                        </div>
-
-                        <!-- Financial Details -->
-                        <h2 style="margin-top: 2rem; margin-bottom: 1rem;">Financial Details</h2>
-                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">
-                            <div class="form-group">
-                                <label for="minBudget" class="form-label">Min Budget (SAR)</label>
-                                <input type="number" id="minBudget" class="form-control" min="0">
+                        <!-- Tab Navigation Buttons -->
+                        <div class="tab-actions">
+                            <div class="tab-actions-left">
+                                <button type="button" class="btn btn-secondary" id="prevTabBtn" style="display: none;">
+                                    <i class="ph ph-arrow-left"></i> Previous
+                                </button>
                             </div>
-                            <div class="form-group">
-                                <label for="maxBudget" class="form-label">Max Budget (SAR)</label>
-                                <input type="number" id="maxBudget" class="form-control" min="0">
+                            <div class="tab-actions-right">
+                                <a href="../projects/" class="btn btn-secondary">Cancel</a>
+                                <button type="button" class="btn btn-primary" id="nextTabBtn">
+                                    Next <i class="ph ph-arrow-right"></i>
+                                </button>
+                                <button type="submit" class="btn btn-primary" id="submitBtn" style="display: none;">
+                                    <i class="ph ph-check"></i> Create Project
+                                </button>
                             </div>
-                        </div>
-
-                        <!-- Status -->
-                        <div class="form-group" style="margin-top: 2rem;">
-                            <label for="projectStatus" class="form-label">Initial Status</label>
-                            <select id="projectStatus" class="form-control">
-                                <option value="draft">Draft</option>
-                                <option value="active">Active (Publish Immediately)</option>
-                            </select>
-                        </div>
-
-                        <!-- Error/Success Messages -->
-                        <div id="projectCreateMessage" style="display: none; margin-top: 1rem;"></div>
-
-                        <!-- Action Buttons -->
-                        <div style="display: flex; gap: 1rem; margin-top: 2rem;">
-                            <button type="submit" class="btn btn-primary">Create Project</button>
-                            <a href="../projects/" class="btn btn-secondary">Cancel</a>
                         </div>
                     </div>
                 </div>
@@ -120,8 +236,17 @@
     <script src="../js/auth-check.js"></script>
     <script src="../js/demo-credentials.js"></script>
     <script src="../services/services-loader.js"></script>
+    <script src="../data/data-loader.js"></script>
+    
+    <!-- Layout System (automatically includes sidebar and navbar) -->
+    <script src="../js/layout.js"></script>
+    <script src="../js/navigation.js"></script>
+    <script src="../js/app-init.js"></script>
     
     <!-- Component Scripts -->
+    <script src="../js/tab-manager.js"></script>
+    <script src="../js/sub-project-manager.js"></script>
+    <script src="../js/project-form-builder.js"></script>
     <script src="../features/projects/project-create.js"></script>
     
     <!-- Initialize Component -->
@@ -131,7 +256,57 @@
             const isAuth = await AuthCheck.checkAuth({ requireAuth: true });
             if (!isAuth) return;
             
+            // Initialize sub-project manager
+            if (typeof SubProjectManager !== 'undefined') {
+                SubProjectManager.init();
+            }
+            
+            // Handle project mode change
+            const modeSelect = document.getElementById('projectMode');
+            if (modeSelect) {
+                modeSelect.addEventListener('change', function() {
+                    const mode = this.value;
+                    const subProjectsContainer = document.getElementById('subProjectsContainer');
+                    const formTitle = document.getElementById('projectFormTitle');
+                    
+                    if (mode === 'mega') {
+                        if (subProjectsContainer) subProjectsContainer.style.display = 'block';
+                        if (formTitle) formTitle.style.display = 'block';
+                        
+                        // Initialize with first sub-project if none exist
+                        if (typeof SubProjectManager !== 'undefined') {
+                            const existingSubProjects = SubProjectManager.getAllSubProjects();
+                            if (existingSubProjects.length === 0) {
+                                SubProjectManager.addSubProject();
+                            } else {
+                                // Update form title
+                                SubProjectManager.updateSubProjectFormTitle();
+                            }
+                        }
+                    } else {
+                        if (subProjectsContainer) subProjectsContainer.style.display = 'none';
+                        if (formTitle) formTitle.style.display = 'none';
+                        
+                        // Clear sub-projects
+                        if (typeof SubProjectManager !== 'undefined') {
+                            SubProjectManager.clearAll();
+                        }
+                        
+                        // Reset form title
+                        if (formTitle) {
+                            formTitle.textContent = 'Project Details';
+                        }
+                    }
+                });
+            }
+            
+            // Initialize tab manager
+            if (typeof TabManager !== 'undefined') {
+                TabManager.init();
+            }
+            
             // Initialize project create
+            // Note: Sidebar and navbar are automatically initialized by app-init.js
             if (window.projects && window.projects['project-create']) {
                 window.projects['project-create'].init();
             }

@@ -412,22 +412,52 @@
       return { success: false, error: 'User not authenticated' };
     }
     
-    // Base menu items
+    // Get base path for routes
+    function getBasePath() {
+      const currentPath = window.location.pathname;
+      const segments = currentPath.split('/').filter(p => p && !p.endsWith('.html'));
+      return segments.length > 0 ? '../' : '';
+    }
+    
+    const basePath = getBasePath();
+    
+    // Base menu items with proper feature mappings and directory-based routes
     const allMenuItems = [
-      { id: 'dashboard', label: 'Dashboard', route: '#/dashboard', feature: 'user_dashboard', icon: '📊' },
-      { id: 'projects', label: 'Projects', route: '#/projects', feature: 'project_browsing', icon: '🏗️' },
-      { id: 'create-project', label: 'Create Project', route: '#/projects/create', feature: 'project_creation', icon: '➕' },
-      { id: 'proposals', label: 'Proposals', route: '#/proposals', feature: 'proposal_management', icon: '📄' },
-      { id: 'matches', label: 'Matches', route: '#/matches', feature: 'matches_view', icon: '🔗' },
-      { id: 'collaboration', label: 'Collaboration', route: '#/collaboration', feature: 'collaboration_opportunities', icon: '🤝' },
-      { id: 'profile', label: 'Profile', route: '#/profile', feature: 'profile_management', icon: '👤' },
-      { id: 'notifications', label: 'Notifications', route: '#/notifications', feature: 'notifications', icon: '🔔' },
-      { id: 'admin-dashboard', label: 'Admin Dashboard', route: '#/admin/dashboard', feature: 'admin_dashboard', icon: '⚙️' },
-      { id: 'user-vetting', label: 'User Vetting', route: '#/admin/vetting', feature: 'user_vetting', icon: '✅' },
-      { id: 'user-management', label: 'User Management', route: '#/admin/users', feature: 'user_management', icon: '👥' },
-      { id: 'project-moderation', label: 'Project Moderation', route: '#/admin/projects', feature: 'project_moderation', icon: '🛡️' },
-      { id: 'audit-trail', label: 'Audit Trail', route: '#/admin/audit', feature: 'audit_trail', icon: '📋' },
-      { id: 'reports', label: 'Reports', route: '#/admin/reports', feature: 'reports', icon: '📊' }
+      // User Dashboard
+      { id: 'dashboard', label: 'Dashboard', route: `${basePath}dashboard/`, feature: 'user_dashboard', icon: '<i class="ph ph-gauge"></i>' },
+      
+      // Projects Section
+      // Note: 'My Projects' can be accessed with either project_management OR project_browsing
+      { id: 'projects', label: 'My Projects', route: `${basePath}projects/`, feature: 'project_management', icon: '<i class="ph ph-buildings"></i>', alternativeFeatures: ['project_browsing'] },
+      { id: 'create-project', label: 'Create Project', route: `${basePath}create-project/`, feature: 'project_creation', icon: '<i class="ph ph-plus-circle"></i>' },
+      
+      // Opportunities & Matching
+      { id: 'opportunities', label: 'Opportunities', route: `${basePath}opportunities/`, feature: 'matches_view', icon: '<i class="ph ph-sparkle"></i>' },
+      { id: 'matches', label: 'Matches', route: `${basePath}matches/`, feature: 'matches_view', icon: '<i class="ph ph-link"></i>' },
+      
+      // Proposals & Pipeline
+      // Note: Proposals can be accessed with proposal_management OR proposal_creation OR proposal_review
+      { id: 'proposals', label: 'Proposals', route: `${basePath}proposals/`, feature: 'proposal_management', icon: '<i class="ph ph-file-text"></i>', alternativeFeatures: ['proposal_creation', 'proposal_review'] },
+      { id: 'pipeline', label: 'Pipeline', route: `${basePath}pipeline/`, feature: 'pipeline_management', icon: '<i class="ph ph-trend-up"></i>' },
+      
+      // Collaboration
+      // Note: Collaboration can be accessed with collaboration_opportunities OR collaboration_applications
+      { id: 'collaboration', label: 'Collaboration', route: `${basePath}collaboration/`, feature: 'collaboration_opportunities', icon: '<i class="ph ph-handshake"></i>', alternativeFeatures: ['collaboration_applications'] },
+      
+      // Profile & Settings
+      { id: 'profile', label: 'Profile', route: `${basePath}profile/`, feature: 'profile_management', icon: '<i class="ph ph-user"></i>' },
+      { id: 'onboarding', label: 'Onboarding', route: `${basePath}onboarding/`, feature: 'profile_management', icon: '<i class="ph ph-clipboard-text"></i>' },
+      { id: 'notifications', label: 'Notifications', route: `${basePath}notifications/`, feature: 'notifications', icon: '<i class="ph ph-bell"></i>' },
+      
+      // Admin Section (will be filtered by RBAC)
+      { id: 'admin-separator', label: '---', route: '#', feature: null, icon: '', isSeparator: true },
+      { id: 'admin-dashboard', label: 'Admin Dashboard', route: `${basePath}admin/`, feature: 'admin_dashboard', icon: '<i class="ph ph-gear"></i>' },
+      { id: 'discovery', label: 'Discovery', route: `${basePath}discovery/`, feature: 'admin_dashboard', icon: '<i class="ph ph-magnifying-glass"></i>' },
+      { id: 'user-vetting', label: 'User Vetting', route: `${basePath}admin-vetting/`, feature: 'user_vetting', icon: '<i class="ph ph-check-circle"></i>' },
+      { id: 'user-management', label: 'User Management', route: `${basePath}admin/users-management/`, feature: 'user_management', icon: '<i class="ph ph-users"></i>' },
+      { id: 'project-moderation', label: 'Project Moderation', route: `${basePath}admin-moderation/`, feature: 'project_moderation', icon: '<i class="ph ph-shield-check"></i>' },
+      { id: 'audit-trail', label: 'Audit Trail', route: `${basePath}admin-audit/`, feature: 'audit_trail', icon: '<i class="ph ph-clipboard"></i>' },
+      { id: 'reports', label: 'Reports', route: `${basePath}admin-reports/`, feature: 'reports', icon: '<i class="ph ph-chart-bar"></i>' }
     ];
     
     // Get available collaboration models for current user
@@ -437,11 +467,11 @@
     if (availableModels.length > 0 && typeof CollaborationModels !== 'undefined') {
       const categories = CollaborationModels.getAllCategories();
       const categoryIcons = {
-        '1': '🏗️',
-        '2': '🤝',
-        '3': '💼',
-        '4': '👥',
-        '5': '🏆'
+        '1': '<i class="ph ph-buildings"></i>',
+        '2': '<i class="ph ph-handshake"></i>',
+        '3': '<i class="ph ph-briefcase"></i>',
+        '4': '<i class="ph ph-users"></i>',
+        '5': '<i class="ph ph-trophy"></i>'
       };
       
       // Add a separator before collaboration models
@@ -467,7 +497,7 @@
             label: category.name,
             route: `#/collaboration?category=${category.id}`,
             feature: 'collaboration_opportunities',
-            icon: categoryIcons[category.id] || '📋',
+            icon: categoryIcons[category.id] || '<i class="ph ph-clipboard"></i>',
             isCategoryHeader: true
           });
           
@@ -478,7 +508,7 @@
               label: model.name,
               route: `#/collaboration?model=${model.id}`,
               feature: 'collaboration_opportunities',
-              icon: categoryIcons[category.id] || '📋',
+              icon: categoryIcons[category.id] || '<i class="ph ph-clipboard"></i>',
               indent: true // For visual indentation in sidebar
             });
           });
@@ -486,28 +516,172 @@
       });
     }
     
-    // Filter by role
+    // Filter by role using RBAC
     if (typeof PMTwinRBAC !== 'undefined') {
-      const filtered = await PMTwinRBAC.filterMenuItemsByRole(allMenuItems, currentUser.id, currentUser.email);
+      try {
+        // Ensure RBAC data is loaded
+        await PMTwinRBAC.loadRolesData();
+        await PMTwinRBAC.loadUserRolesData();
+        
+        // Get user's role
+        const userRoleId = await PMTwinRBAC.getCurrentUserRole();
+        const availableFeatures = await PMTwinRBAC.getCurrentUserFeatures();
+        
+        console.log('[DashboardService] User role:', userRoleId);
+        console.log('[DashboardService] Available features:', availableFeatures);
+        console.log('[DashboardService] Total menu items before filter:', allMenuItems.length);
+        
+        // If no features available, log warning but continue
+        if (!availableFeatures || availableFeatures.length === 0) {
+          console.warn('[DashboardService] No features available for user. Role:', userRoleId);
+          console.warn('[DashboardService] User object:', currentUser);
+        }
+        
+        // Filter menu items based on available features
+        const filtered = allMenuItems.filter(item => {
+          // Always show separators
+          if (item.isSeparator) return true;
+          
+          // If no feature requirement, hide it (security: explicit permission required)
+          if (!item.feature) {
+            console.log('[DashboardService] Hiding item without feature:', item.id);
+            return false;
+          }
+          
+          // Check if user has access to the primary feature
+          let hasAccess = availableFeatures.includes(item.feature);
+          
+          // Check alternative features if primary feature not available
+          if (!hasAccess && item.alternativeFeatures && Array.isArray(item.alternativeFeatures)) {
+            hasAccess = item.alternativeFeatures.some(altFeature => availableFeatures.includes(altFeature));
+            if (hasAccess) {
+              console.log(`[DashboardService] Item ${item.id} accessible via alternative feature`);
+            }
+          }
+          
+          // Special handling for admin features - only show if user is admin
+          if (item.feature.startsWith('admin_') && userRoleId !== 'platform_admin') {
+            return false;
+          }
+          
+          if (!hasAccess) {
+            console.log(`[DashboardService] Hiding ${item.id} - missing feature: ${item.feature}`);
+          }
+          
+          return hasAccess;
+        });
+        
+        console.log('[DashboardService] Filtered menu items:', filtered.length);
+        console.log('[DashboardService] Menu items:', filtered.map(i => ({ id: i.id, label: i.label, feature: i.feature })));
+        
+        // If filtered list is empty, log detailed info for debugging
+        if (filtered.length === 0) {
+          console.error('[DashboardService] WARNING: No menu items after filtering!');
+          console.error('[DashboardService] User role:', userRoleId);
+          console.error('[DashboardService] Available features:', availableFeatures);
+          console.error('[DashboardService] All menu items:', allMenuItems.map(i => ({ id: i.id, feature: i.feature })));
+          
+          // Safety fallback: show at least dashboard and profile for authenticated users
+          console.warn('[DashboardService] Using safety fallback - showing basic menu items');
+          const fallbackItems = allMenuItems.filter(item => 
+            item.feature === 'user_dashboard' || 
+            item.feature === 'profile_management' || 
+            item.feature === 'notifications' ||
+            item.isSeparator
+          );
+          return { success: true, items: fallbackItems };
+        }
+        
       return { success: true, items: filtered };
+      } catch (error) {
+        console.error('[DashboardService] Error filtering menu items:', error);
+        console.error('[DashboardService] Error stack:', error.stack);
+        // Fall through to legacy filtering
+      }
     }
     
-    // Fallback: filter by legacy role
+    // Fallback: filter by legacy role (for backward compatibility)
     const role = currentUser.role;
+    console.log('[DashboardService] Using fallback filtering for legacy role:', role);
+    
     const filtered = allMenuItems.filter(item => {
-      if (role === 'admin') return true;
-      if (role === 'entity') {
-        return !item.feature || ['user_dashboard', 'project_creation', 'project_management', 
-                                'proposal_review', 'matches_view', 'profile_management', 
-                                'notifications'].includes(item.feature);
+      // Always show separators
+      if (item.isSeparator) return true;
+      
+      // Admin sees everything
+      if (role === 'admin' || role === 'platform_admin') {
+        return true;
       }
-      if (role === 'individual') {
-        return !item.feature || ['user_dashboard', 'project_browsing', 'matches_view', 
-                                'proposal_creation', 'proposal_management', 'profile_management', 
-                                'notifications'].includes(item.feature);
+      
+      // Entity/Project Lead permissions
+      if (role === 'entity' || role === 'project_lead') {
+        const allowedFeatures = [
+          'user_dashboard', 
+          'project_creation', 
+          'project_management',
+          'project_browsing', // Allow browsing too
+          'proposal_review',
+          'proposal_management', // Allow management too
+          'matches_view',
+          'pipeline_management',
+          'collaboration_opportunities',
+          'collaboration_applications', // Allow applications too
+          'profile_management', 
+          'notifications'
+        ];
+        
+        // Check primary feature or alternative features
+        if (!item.feature) return false;
+        if (allowedFeatures.includes(item.feature)) return true;
+        if (item.alternativeFeatures && item.alternativeFeatures.some(alt => allowedFeatures.includes(alt))) return true;
+        return false;
       }
+      
+      // Individual/Professional permissions
+      if (role === 'individual' || role === 'professional') {
+        const allowedFeatures = [
+          'user_dashboard', 
+          'project_browsing',
+          'project_management', // Allow management too
+          'matches_view', 
+          'proposal_creation', 
+          'proposal_management',
+          'pipeline_management',
+          'collaboration_opportunities',
+          'collaboration_applications',
+          'profile_management', 
+          'notifications'
+        ];
+        
+        // Check primary feature or alternative features
+        if (!item.feature) return false;
+        if (allowedFeatures.includes(item.feature)) return true;
+        if (item.alternativeFeatures && item.alternativeFeatures.some(alt => allowedFeatures.includes(alt))) return true;
+        return false;
+      }
+      
+      // Default: show basic items for any authenticated user
+      if (!item.feature) return false;
+      const basicFeatures = ['user_dashboard', 'profile_management', 'notifications'];
+      if (basicFeatures.includes(item.feature)) return true;
+      if (item.alternativeFeatures && item.alternativeFeatures.some(alt => basicFeatures.includes(alt))) return true;
+      
       return false;
     });
+    
+    console.log('[DashboardService] Fallback filtered menu items:', filtered.length);
+    
+    // Final safety check - if still empty, return at least dashboard
+    if (filtered.length === 0) {
+      console.error('[DashboardService] CRITICAL: No menu items even after fallback!');
+      const basicItems = allMenuItems.filter(item => 
+        item.id === 'dashboard' || 
+        item.id === 'profile' || 
+        item.id === 'notifications' ||
+        item.isSeparator
+      );
+      return { success: true, items: basicItems };
+    }
     
     return { success: true, items: filtered };
   }

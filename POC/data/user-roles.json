@@ -1,7 +1,7 @@
 {
   "userRoles": [
     {
-      "userId": "user_admin_001",
+      "userId": "demo_platform_admin_001",
       "email": "admin@pmtwin.com",
       "roleId": "platform_admin",
       "assignedAt": "2024-01-01T00:00:00Z",
@@ -9,7 +9,15 @@
       "isActive": true
     },
     {
-      "userId": "user_individual_001",
+      "userId": "demo_project_lead_001",
+      "email": "entity@pmtwin.com",
+      "roleId": "project_lead",
+      "assignedAt": "2024-01-01T00:00:00Z",
+      "assignedBy": "system",
+      "isActive": true
+    },
+    {
+      "userId": "demo_professional_001",
       "email": "individual@pmtwin.com",
       "roleId": "professional",
       "assignedAt": "2024-01-01T00:00:00Z",
@@ -17,9 +25,41 @@
       "isActive": true
     },
     {
-      "userId": "user_entity_001",
-      "email": "entity@pmtwin.com",
-      "roleId": "project_lead",
+      "userId": "demo_supplier_001",
+      "email": "supplier@pmtwin.com",
+      "roleId": "supplier",
+      "assignedAt": "2024-01-01T00:00:00Z",
+      "assignedBy": "system",
+      "isActive": true
+    },
+    {
+      "userId": "demo_service_provider_001",
+      "email": "service@pmtwin.com",
+      "roleId": "service_provider",
+      "assignedAt": "2024-01-01T00:00:00Z",
+      "assignedBy": "system",
+      "isActive": true
+    },
+    {
+      "userId": "demo_consultant_001",
+      "email": "consultant@pmtwin.com",
+      "roleId": "consultant",
+      "assignedAt": "2024-01-01T00:00:00Z",
+      "assignedBy": "system",
+      "isActive": true
+    },
+    {
+      "userId": "demo_mentor_001",
+      "email": "mentor@pmtwin.com",
+      "roleId": "mentor",
+      "assignedAt": "2024-01-01T00:00:00Z",
+      "assignedBy": "system",
+      "isActive": true
+    },
+    {
+      "userId": "demo_auditor_001",
+      "email": "auditor@pmtwin.com",
+      "roleId": "auditor",
       "assignedAt": "2024-01-01T00:00:00Z",
       "assignedBy": "system",
       "isActive": true

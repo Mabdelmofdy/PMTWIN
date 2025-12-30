@@ -85,6 +85,9 @@
     
     // Load sample notifications if none exist
     loadSampleNotifications();
+    
+    // Load sample projects if none exist
+    loadSampleProjects();
   }
 
   // ============================================
@@ -447,7 +450,25 @@
   }
 
   // Auto-create test accounts on first load
+  // Now uses UserManager for centralized user management
   function autoCreateTestAccounts() {
+    // Use UserManager if available (loads all users from demo-users.json)
+    if (typeof UserManager !== 'undefined' && UserManager.initializeAllUsers) {
+      console.log('[Data] Using UserManager for centralized user initialization');
+      UserManager.initializeAllUsers().catch(err => {
+        console.error('[Data] Error initializing users via UserManager:', err);
+        // Fallback to legacy method
+        createLegacyTestAccounts();
+      });
+    } else {
+      // Fallback to legacy method if UserManager not loaded yet
+      console.log('[Data] UserManager not available, using legacy method');
+      createLegacyTestAccounts();
+    }
+  }
+
+  // Legacy method (kept for backward compatibility)
+  function createLegacyTestAccounts() {
     const users = Users.getAll();
     
     // Check which accounts exist
@@ -576,10 +597,17 @@
   }
   
   // Force create/update test accounts (ensures correct passwords and status)
-  function forceCreateTestAccounts() {
-    const users = Users.getAll();
+  async function forceCreateTestAccounts() {
+    // Use UserManager if available (centralized user management)
+    if (typeof UserManager !== 'undefined' && UserManager.forceReinitializeUsers) {
+      console.log('🔧 Force reinitializing all users via UserManager...');
+      await UserManager.forceReinitializeUsers();
+      console.log('✅ All users reinitialized!');
+      return;
+    }
     
-    // Remove existing test accounts if they exist (to recreate with correct data)
+    // Fallback: Remove existing test accounts and recreate
+    const users = Users.getAll();
     const testEmails = ['admin@pmtwin.com', 'individual@pmtwin.com', 'entity@pmtwin.com'];
     const filteredUsers = users.filter(u => !testEmails.includes(u.email));
     set(STORAGE_KEYS.USERS, filteredUsers);
@@ -1202,6 +1230,53 @@
   };
 
   // ============================================
+  // Load Sample Projects
+  // ============================================
+  async function loadSampleProjects(forceReload = false) {
+    const existingProjects = Projects.getAll();
+    
+    // Only load if no projects exist, unless forceReload is true
+    if (existingProjects.length > 0 && !forceReload) {
+      return;
+    }
+
+    try {
+      const basePath = getDataBasePath();
+      const response = await fetch(basePath + 'data/sample-projects.json');
+      if (!response.ok) {
+        console.warn('Could not load sample projects:', response.status);
+        return;
+      }
+      
+      const data = await response.json();
+      const sampleProjects = data.projects || [];
+      
+      if (forceReload) {
+        // Clear existing projects
+        set(STORAGE_KEYS.PROJECTS, []);
+      }
+      
+      let loaded = 0;
+      sampleProjects.forEach(projectData => {
+        // Check if project already exists
+        const existing = Projects.getById(projectData.id);
+        if (!existing) {
+          const project = Projects.create(projectData);
+          if (project) {
+            loaded++;
+          }
+        }
+      });
+      
+      if (loaded > 0) {
+        console.log(`✅ Loaded ${loaded} sample projects`);
+      }
+    } catch (error) {
+      console.error('Error loading sample projects:', error);
+    }
+  }
+
+  // ============================================
   // Projects CRUD
   // ============================================
   const Projects = {
@@ -1318,6 +1393,53 @@
       set(STORAGE_KEYS.AUDIT, auditLogs);
     }
   };
+
+  // ============================================
+  // Load Sample Projects
+  // ============================================
+  async function loadSampleProjects(forceReload = false) {
+    const existingProjects = Projects.getAll();
+    
+    // Only load if no projects exist, unless forceReload is true
+    if (existingProjects.length > 0 && !forceReload) {
+      return;
+    }
+
+    try {
+      const basePath = getDataBasePath();
+      const response = await fetch(basePath + 'data/sample-projects.json');
+      if (!response.ok) {
+        console.warn('Could not load sample projects:', response.status);
+        return;
+      }
+      
+      const data = await response.json();
+      const sampleProjects = data.projects || [];
+      
+      if (forceReload) {
+        // Clear existing projects
+        set(STORAGE_KEYS.PROJECTS, []);
+      }
+      
+      let loaded = 0;
+      sampleProjects.forEach(projectData => {
+        // Check if project already exists
+        const existing = Projects.getById(projectData.id);
+        if (!existing) {
+          const project = Projects.create(projectData);
+          if (project) {
+            loaded++;
+          }
+        }
+      });
+      
+      if (loaded > 0) {
+        console.log(`✅ Loaded ${loaded} sample projects`);
+      }
+    } catch (error) {
+      console.error('Error loading sample projects:', error);
+    }
+  }
 
   // ============================================
   // Proposals CRUD

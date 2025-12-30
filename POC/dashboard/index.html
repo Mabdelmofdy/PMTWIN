@@ -7,21 +7,8 @@
     <link rel="stylesheet" href="../css/main.css">
 </head>
 <body>
-    <!-- Navigation -->
-    <nav class="navbar" id="mainNavbar">
-        <div class="container">
-            <div class="navbar-content">
-                <a href="../home/" class="navbar-brand">PMTwin</a>
-                <button class="navbar-toggle" id="navbarToggle" aria-label="Toggle navigation">☰</button>
-                <ul class="navbar-nav" id="navbarNav">
-                    <!-- Navigation will be dynamically loaded based on user role -->
-                </ul>
-            </div>
-        </div>
-    </nav>
-
-    <!-- Main Content -->
-    <main style="margin-left: 0; transition: margin-left var(--transition-base);">
+    <!-- Main Content - Sidebar and Navbar are automatically added by layout system -->
+    <main>
         <div class="container" style="padding: 2rem 0;">
             <div id="dashboardContent">
                 <!-- Dashboard content will be loaded here -->
@@ -38,14 +25,17 @@
     
     <!-- Core Scripts -->
     <script src="../js/data.js"></script>
+    <script src="../js/user-manager.js"></script>
     <script src="../js/auth.js"></script>
     <script src="../js/auth-check.js"></script>
     <script src="../js/demo-credentials.js"></script>
     <script src="../services/services-loader.js"></script>
     <script src="../data/data-loader.js"></script>
     
-    <!-- Navigation Component -->
+    <!-- Layout System (automatically includes sidebar and navbar) -->
+    <script src="../js/layout.js"></script>
     <script src="../js/navigation.js"></script>
+    <script src="../js/app-init.js"></script>
     
     <!-- Load renderer -->
     <script src="../js/renderer.js"></script>
@@ -60,12 +50,8 @@
             const isAuth = await AuthCheck.checkAuth({ requireAuth: true });
             if (!isAuth) return;
             
-            // Initialize navigation (appbar and sidebar)
-            if (typeof Navigation !== 'undefined') {
-                await Navigation.init({ showSidebar: true });
-            }
-            
             // Initialize dashboard
+            // Note: Sidebar and navbar are automatically initialized by app-init.js
             if (window.dashboard && window.dashboard.dashboard) {
                 window.dashboard.dashboard.init();
             }

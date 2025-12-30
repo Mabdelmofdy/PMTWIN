@@ -59,7 +59,7 @@
         <div class="card" style="${isCompleted ? 'border-left: 4px solid var(--success);' : ''}">
           <div class="card-body">
             <div style="display: flex; align-items: start; gap: 1rem;">
-              <div style="font-size: 2rem;">${isCompleted ? '✅' : '⏳'}</div>
+              <div style="font-size: 2rem;">${isCompleted ? '<i class="ph ph-check-circle" style="color: var(--success, #10b981);"></i>' : '<i class="ph ph-hourglass" style="color: var(--text-secondary, #6b7280);"></i>'}</div>
               <div style="flex: 1;">
                 <h3 style="margin: 0 0 0.5rem 0;">Step ${index + 1}: ${step.title}</h3>
                 <p style="margin: 0 0 1rem 0; color: var(--text-secondary);">${step.description}</p>
@@ -67,7 +67,7 @@
                   <button onclick="onboardingComponent.completeStep('${step.id}')" class="btn btn-primary btn-sm">
                     ${step.actionLabel || 'Complete'}
                   </button>
-                ` : '<span class="badge badge-success">Completed</span>'}
+                ` : '<span class="badge badge-success"><i class="ph ph-check-circle"></i> Completed</span>'}
               </div>
             </div>
           </div>
