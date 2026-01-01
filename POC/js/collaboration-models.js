@@ -46,18 +46,18 @@
       
       // Category icons mapping
       const categoryIcons = {
-        '1': '🏗️',
-        '2': '🤝',
-        '3': '💼',
-        '4': '👥',
-        '5': '🏆'
+        '1': '<i class="ph ph-buildings"></i>',
+        '2': '<i class="ph ph-handshake"></i>',
+        '3': '<i class="ph ph-briefcase"></i>',
+        '4': '<i class="ph ph-users"></i>',
+        '5': '<i class="ph ph-trophy"></i>'
       };
       
       let html = '<div class="collaboration-models-grid">';
 
       categories.forEach((category, categoryIndex) => {
         const subModels = CollaborationModels.getModelsByCategory(category.id);
-        const icon = categoryIcons[category.id] || '📋';
+        const icon = categoryIcons[category.id] || '<i class="ph ph-clipboard-text"></i>';
         const subModelCount = subModels.length;
         
         html += `
@@ -68,7 +68,7 @@
                tabindex="0"
                onkeypress="if(event.key === 'Enter' && window.CollaborationModelsUI && CollaborationModelsUI.viewCategory) { CollaborationModelsUI.viewCategory('${category.id}'); }">
             <h3>
-              <span style="font-size: 1.5em; margin-right: var(--spacing-2);">${icon}</span>
+              <span style="font-size: 1.5em; margin-right: var(--spacing-2); display: inline-block;">${icon}</span>
               ${category.name}
             </h3>
             <p class="category-description">${category.description}</p>
@@ -78,7 +78,7 @@
               </div>
               <button class="btn btn-primary" onclick="event.stopPropagation(); if(window.CollaborationModelsUI && CollaborationModelsUI.viewCategory) { CollaborationModelsUI.viewCategory('${category.id}'); }">
                 <span>View Models</span>
-                <span style="margin-left: var(--spacing-2);">→</span>
+                <i class="ph ph-arrow-right" style="margin-left: var(--spacing-2);"></i>
               </button>
             </div>
           </div>
@@ -131,19 +131,19 @@
       
       // Category icons mapping
       const categoryIcons = {
-        '1': '🏗️',
-        '2': '🤝',
-        '3': '💼',
-        '4': '👥',
-        '5': '🏆'
+        '1': '<i class="ph ph-buildings"></i>',
+        '2': '<i class="ph ph-handshake"></i>',
+        '3': '<i class="ph ph-briefcase"></i>',
+        '4': '<i class="ph ph-users"></i>',
+        '5': '<i class="ph ph-trophy"></i>'
       };
       
-      const icon = categoryIcons[categoryId] || '📋';
+      const icon = categoryIcons[categoryId] || '<i class="ph ph-clipboard-text"></i>';
 
       let html = `
         <div class="category-detail-header">
           <button class="btn btn-outline btn-back" onclick="if(window.CollaborationModelsUI && CollaborationModelsUI.backToCategories) { CollaborationModelsUI.backToCategories(); }">
-            <span>←</span> Back to Categories
+            <i class="ph ph-arrow-left"></i> Back to Categories
           </button>
           <div class="category-header-content">
             <h2>

@@ -27,61 +27,285 @@
 
     <!-- Main Content -->
     <main>
-        <div class="container" style="max-width: 500px; padding: 2rem 0;">
-            <h1 style="margin-bottom: var(--spacing-6); text-align: center;">Sign Up</h1>
+        <div class="container" style="max-width: 700px; padding: 2rem 0;">
+            <h1 style="margin-bottom: var(--spacing-4); text-align: center;">Sign Up - PMTwin</h1>
             
-            <!-- Form to trigger AuthService.register() -->
+            <!-- Progress Indicator -->
+            <div class="onboarding-progress" id="onboardingProgress" style="margin-bottom: 2rem;">
+                <div class="progress-steps">
+                    <div class="progress-step active" data-step="1">
+                        <div class="step-number">1</div>
+                        <div class="step-label">User Type</div>
+                    </div>
+                    <div class="progress-line"></div>
+                    <div class="progress-step" data-step="2">
+                        <div class="step-number">2</div>
+                        <div class="step-label">Basic Info</div>
+                    </div>
+                    <div class="progress-line"></div>
+                    <div class="progress-step" data-step="3">
+                        <div class="step-number">3</div>
+                        <div class="step-label">Documents</div>
+                    </div>
+                    <div class="progress-line"></div>
+                    <div class="progress-step" data-step="4">
+                        <div class="step-number">4</div>
+                        <div class="step-label">Verify</div>
+                    </div>
+                    <div class="progress-line"></div>
+                    <div class="progress-step" data-step="5">
+                        <div class="step-number">5</div>
+                        <div class="step-label">Terms</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Multi-Step Form -->
             <div class="card">
                 <div class="card-body">
-                    <form id="signupForm" onsubmit="return signupComponent.handleSubmit(event)">
-                        <!-- User Type Selection -->
-                        <div class="form-group">
-                            <label class="form-label">I want to join as:</label>
-                            <div style="display: flex; gap: 1rem; margin-top: 0.5rem;">
-                                <label style="flex: 1; cursor: pointer;">
-                                    <input type="radio" name="userType" value="individual" checked style="margin-right: 0.5rem;">
-                                    Individual Professional
+                    <form id="signupForm">
+                        <!-- Step 1: User Type Selection -->
+                        <div class="onboarding-step" id="step1" data-step="1">
+                            <h2 style="margin-bottom: var(--spacing-4); text-align: center;">I want to join as:</h2>
+                            <div class="user-type-selection" style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 2rem;">
+                                <label class="user-type-card" style="cursor: pointer; border: 2px solid var(--color-gray-300); border-radius: var(--radius-md); padding: 2rem; text-align: center; transition: all 0.3s;">
+                                    <input type="radio" name="userType" value="individual" checked style="display: none;">
+                                    <div class="user-type-icon" style="font-size: 3rem; margin-bottom: 1rem;"><i class="ph ph-user"></i></div>
+                                    <div class="user-type-title" style="font-weight: 600; font-size: 1.1rem; margin-bottom: 0.5rem;">Individual Professional</div>
+                                    <div class="user-type-desc" style="color: var(--color-gray-600); font-size: 0.9rem;">For professionals, consultants, and experts</div>
                                 </label>
-                                <label style="flex: 1; cursor: pointer;">
-                                    <input type="radio" name="userType" value="entity" style="margin-right: 0.5rem;">
-                                    Company/Entity
+                                <label class="user-type-card" style="cursor: pointer; border: 2px solid var(--color-gray-300); border-radius: var(--radius-md); padding: 2rem; text-align: center; transition: all 0.3s;">
+                                    <input type="radio" name="userType" value="entity" style="display: none;">
+                                    <div class="user-type-icon" style="font-size: 3rem; margin-bottom: 1rem;"><i class="ph ph-buildings"></i></div>
+                                    <div class="user-type-title" style="font-weight: 600; font-size: 1.1rem; margin-bottom: 0.5rem;">Company/Entity</div>
+                                    <div class="user-type-desc" style="color: var(--color-gray-600); font-size: 0.9rem;">For companies, contractors, and organizations</div>
                                 </label>
+                            </div>
+                            <div class="step-actions" style="display: flex; justify-content: flex-end; gap: 1rem;">
+                                <button type="button" class="btn btn-primary" onclick="signupComponent.nextStep()">Continue</button>
                             </div>
                         </div>
 
-                        <!-- Basic Information -->
-                        <div class="form-group">
-                            <label for="signupEmail" class="form-label">Email *</label>
-                            <input type="email" id="signupEmail" class="form-control" required>
-                        </div>
-                        <div class="form-group">
-                            <label for="signupMobile" class="form-label">Mobile Number</label>
-                            <input type="tel" id="signupMobile" class="form-control" placeholder="+966501234567">
-                        </div>
-                        <div class="form-group">
-                            <label for="signupPassword" class="form-label">Password *</label>
-                            <input type="password" id="signupPassword" class="form-control" required>
-                            <small class="form-help">Must be at least 8 characters with uppercase, lowercase, and number</small>
-                        </div>
-                        <div class="form-group">
-                            <label for="signupPasswordConfirm" class="form-label">Confirm Password *</label>
-                            <input type="password" id="signupPasswordConfirm" class="form-control" required>
+                        <!-- Step 2: Basic Information -->
+                        <div class="onboarding-step" id="step2" data-step="2" style="display: none;">
+                            <h2 style="margin-bottom: var(--spacing-4); text-align: center;">Basic Information</h2>
+                            
+                            <!-- Individual Fields -->
+                            <div id="individualFields">
+                                <div class="form-group">
+                                    <label for="signupName" class="form-label">Full Name *</label>
+                                    <input type="text" id="signupName" class="form-control" required placeholder="Enter your full name">
+                                </div>
+                                <div class="form-group">
+                                    <label for="signupProfessionalTitle" class="form-label">Professional Title</label>
+                                    <input type="text" id="signupProfessionalTitle" class="form-control" placeholder="e.g., Project Manager, Engineer">
+                                </div>
+                            </div>
+
+                            <!-- Entity Fields -->
+                            <div id="entityFields" style="display: none;">
+                                <div class="form-group">
+                                    <label for="signupCompanyName" class="form-label">Company Name *</label>
+                                    <input type="text" id="signupCompanyName" class="form-control" required placeholder="Enter company name">
+                                </div>
+                                <div class="form-group">
+                                    <label for="signupWebsite" class="form-label">Website</label>
+                                    <input type="url" id="signupWebsite" class="form-control" placeholder="https://example.com">
+                                </div>
+                            </div>
+
+                            <!-- Common Fields -->
+                            <div class="form-group">
+                                <label for="signupEmail" class="form-label">Email *</label>
+                                <input type="email" id="signupEmail" class="form-control" required placeholder="your.email@example.com">
+                            </div>
+                            <div class="form-group">
+                                <label for="signupMobile" class="form-label">Mobile Number <span id="mobileRequired" style="color: var(--color-error);">*</span></label>
+                                <input type="tel" id="signupMobile" class="form-control" placeholder="+966501234567">
+                                <small class="form-help">Required for entities, optional for individuals</small>
+                            </div>
+                            <div class="form-group">
+                                <label for="signupPassword" class="form-label">Password *</label>
+                                <input type="password" id="signupPassword" class="form-control" required placeholder="Create a strong password">
+                                <small class="form-help">Must be at least 8 characters with uppercase, lowercase, and number</small>
+                                <div id="passwordStrength" style="margin-top: 0.5rem; height: 4px; background: var(--color-gray-200); border-radius: 2px; overflow: hidden;">
+                                    <div id="passwordStrengthBar" style="height: 100%; width: 0%; transition: all 0.3s;"></div>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label for="signupPasswordConfirm" class="form-label">Confirm Password *</label>
+                                <input type="password" id="signupPasswordConfirm" class="form-control" required placeholder="Confirm your password">
+                            </div>
+
+                            <div class="step-actions" style="display: flex; justify-content: space-between; gap: 1rem; margin-top: 2rem;">
+                                <button type="button" class="btn btn-secondary" onclick="signupComponent.prevStep()">Back</button>
+                                <button type="button" class="btn btn-primary" onclick="signupComponent.nextStep()">Continue</button>
+                            </div>
                         </div>
 
-                        <!-- Error/Success Messages -->
-                        <div id="signupMessage" style="display: none; margin-top: 1rem;"></div>
+                        <!-- Step 3: Document Upload -->
+                        <div class="onboarding-step" id="step3" data-step="3" style="display: none;">
+                            <h2 style="margin-bottom: var(--spacing-4); text-align: center;">Upload Documents</h2>
+                            
+                            <!-- Individual Documents -->
+                            <div id="individualDocuments">
+                                <div class="form-group">
+                                    <label class="form-label">Professional License/Certification *</label>
+                                    <div class="file-upload-area" data-doc-type="professionalLicense" style="border: 2px dashed var(--color-gray-300); border-radius: var(--radius-md); padding: 2rem; text-align: center; cursor: pointer; transition: all 0.3s;">
+                                        <input type="file" id="professionalLicense" accept=".pdf,.jpg,.jpeg,.png" style="display: none;">
+                                        <div class="file-upload-icon" style="font-size: 2rem; margin-bottom: 0.5rem;"><i class="ph ph-file-text"></i></div>
+                                        <div class="file-upload-text">Click to upload or drag and drop</div>
+                                        <div class="file-upload-hint" style="color: var(--color-gray-600); font-size: 0.9rem; margin-top: 0.5rem;">PDF, JPG, PNG (Max 5MB)</div>
+                                    </div>
+                                    <div class="file-preview" id="professionalLicensePreview" style="margin-top: 1rem; display: none;"></div>
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">CV/Resume *</label>
+                                    <div class="file-upload-area" data-doc-type="resume" style="border: 2px dashed var(--color-gray-300); border-radius: var(--radius-md); padding: 2rem; text-align: center; cursor: pointer; transition: all 0.3s;">
+                                        <input type="file" id="resume" accept=".pdf,.doc,.docx" style="display: none;">
+                                        <div class="file-upload-icon" style="font-size: 2rem; margin-bottom: 0.5rem;"><i class="ph ph-file-text"></i></div>
+                                        <div class="file-upload-text">Click to upload or drag and drop</div>
+                                        <div class="file-upload-hint" style="color: var(--color-gray-600); font-size: 0.9rem; margin-top: 0.5rem;">PDF, DOC, DOCX (Max 5MB)</div>
+                                    </div>
+                                    <div class="file-preview" id="resumePreview" style="margin-top: 1rem; display: none;"></div>
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">Portfolio Link (Optional)</label>
+                                    <input type="url" id="portfolioLink" class="form-control" placeholder="https://your-portfolio.com">
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">Additional Certifications (Optional)</label>
+                                    <div class="file-upload-area" data-doc-type="additionalCerts" style="border: 2px dashed var(--color-gray-300); border-radius: var(--radius-md); padding: 2rem; text-align: center; cursor: pointer; transition: all 0.3s;">
+                                        <input type="file" id="additionalCerts" accept=".pdf,.jpg,.jpeg,.png" multiple style="display: none;">
+                                        <div class="file-upload-icon" style="font-size: 2rem; margin-bottom: 0.5rem;"><i class="ph ph-books"></i></div>
+                                        <div class="file-upload-text">Click to upload multiple files</div>
+                                        <div class="file-upload-hint" style="color: var(--color-gray-600); font-size: 0.9rem; margin-top: 0.5rem;">PDF, JPG, PNG (Max 5MB each)</div>
+                                    </div>
+                                    <div class="file-preview" id="additionalCertsPreview" style="margin-top: 1rem; display: none;"></div>
+                                </div>
+                            </div>
 
-                        <!-- Action Buttons -->
-                        <button type="submit" class="btn btn-primary btn-block" style="margin-top: 1rem;">Sign Up</button>
-                        <p style="text-align: center; margin-top: var(--spacing-4);">
-                            Already have an account? <a href="../login/">Login here</a>
-                        </p>
-                        <p style="text-align: center; margin-top: var(--spacing-2);">
-                            <a href="../home/">Back to Home</a>
-                        </p>
+                            <!-- Entity Documents -->
+                            <div id="entityDocuments" style="display: none;">
+                                <div class="form-group">
+                                    <label class="form-label">Commercial Registration (CR) *</label>
+                                    <div class="file-upload-area" data-doc-type="cr" style="border: 2px dashed var(--color-gray-300); border-radius: var(--radius-md); padding: 2rem; text-align: center; cursor: pointer; transition: all 0.3s;">
+                                        <input type="file" id="cr" accept=".pdf,.jpg,.jpeg,.png" style="display: none;">
+                                        <div class="file-upload-icon" style="font-size: 2rem; margin-bottom: 0.5rem;"><i class="ph ph-file-text"></i></div>
+                                        <div class="file-upload-text">Click to upload or drag and drop</div>
+                                        <div class="file-upload-hint" style="color: var(--color-gray-600); font-size: 0.9rem; margin-top: 0.5rem;">PDF, JPG, PNG (Max 5MB)</div>
+                                    </div>
+                                    <div class="file-preview" id="crPreview" style="margin-top: 1rem; display: none;"></div>
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">VAT Certificate *</label>
+                                    <div class="file-upload-area" data-doc-type="vat" style="border: 2px dashed var(--color-gray-300); border-radius: var(--radius-md); padding: 2rem; text-align: center; cursor: pointer; transition: all 0.3s;">
+                                        <input type="file" id="vat" accept=".pdf,.jpg,.jpeg,.png" style="display: none;">
+                                        <div class="file-upload-icon" style="font-size: 2rem; margin-bottom: 0.5rem;"><i class="ph ph-file-text"></i></div>
+                                        <div class="file-upload-text">Click to upload or drag and drop</div>
+                                        <div class="file-upload-hint" style="color: var(--color-gray-600); font-size: 0.9rem; margin-top: 0.5rem;">PDF, JPG, PNG (Max 5MB)</div>
+                                    </div>
+                                    <div class="file-preview" id="vatPreview" style="margin-top: 1rem; display: none;"></div>
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">Company Profile Document *</label>
+                                    <div class="file-upload-area" data-doc-type="companyProfile" style="border: 2px dashed var(--color-gray-300); border-radius: var(--radius-md); padding: 2rem; text-align: center; cursor: pointer; transition: all 0.3s;">
+                                        <input type="file" id="companyProfile" accept=".pdf,.doc,.docx" style="display: none;">
+                                        <div class="file-upload-icon" style="font-size: 2rem; margin-bottom: 0.5rem;"><i class="ph ph-file-text"></i></div>
+                                        <div class="file-upload-text">Click to upload or drag and drop</div>
+                                        <div class="file-upload-hint" style="color: var(--color-gray-600); font-size: 0.9rem; margin-top: 0.5rem;">PDF, DOC, DOCX (Max 5MB)</div>
+                                    </div>
+                                    <div class="file-preview" id="companyProfilePreview" style="margin-top: 1rem; display: none;"></div>
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">Additional Licenses (Optional)</label>
+                                    <div class="file-upload-area" data-doc-type="additionalLicenses" style="border: 2px dashed var(--color-gray-300); border-radius: var(--radius-md); padding: 2rem; text-align: center; cursor: pointer; transition: all 0.3s;">
+                                        <input type="file" id="additionalLicenses" accept=".pdf,.jpg,.jpeg,.png" multiple style="display: none;">
+                                        <div class="file-upload-icon" style="font-size: 2rem; margin-bottom: 0.5rem;"><i class="ph ph-books"></i></div>
+                                        <div class="file-upload-text">Click to upload multiple files</div>
+                                        <div class="file-upload-hint" style="color: var(--color-gray-600); font-size: 0.9rem; margin-top: 0.5rem;">PDF, JPG, PNG (Max 5MB each)</div>
+                                    </div>
+                                    <div class="file-preview" id="additionalLicensesPreview" style="margin-top: 1rem; display: none;"></div>
+                                </div>
+                            </div>
+
+                            <div class="step-actions" style="display: flex; justify-content: space-between; gap: 1rem; margin-top: 2rem;">
+                                <button type="button" class="btn btn-secondary" onclick="signupComponent.prevStep()">Back</button>
+                                <button type="button" class="btn btn-primary" onclick="signupComponent.nextStep()">Continue</button>
+                            </div>
+                        </div>
+
+                        <!-- Step 4: OTP Verification -->
+                        <div class="onboarding-step" id="step4" data-step="4" style="display: none;">
+                            <h2 style="margin-bottom: var(--spacing-4); text-align: center;">Verify Your Account</h2>
+                            <p style="text-align: center; color: var(--color-gray-600); margin-bottom: 2rem;">
+                                We've sent verification codes to your email and mobile number. Please enter them below.
+                            </p>
+                            
+                            <div class="form-group">
+                                <label for="emailOTP" class="form-label">Email Verification Code *</label>
+                                <input type="text" id="emailOTP" class="form-control" required placeholder="Enter 6-digit code" maxlength="6" pattern="[0-9]{6}">
+                                <small class="form-help">Check your email for the verification code</small>
+                            </div>
+                            
+                            <div class="form-group" id="mobileOTPGroup">
+                                <label for="mobileOTP" class="form-label">Mobile Verification Code</label>
+                                <input type="text" id="mobileOTP" class="form-control" placeholder="Enter 6-digit code" maxlength="6" pattern="[0-9]{6}">
+                                <small class="form-help">Check your mobile for the verification code (if provided)</small>
+                            </div>
+
+                            <div id="otpMessage" style="display: none; margin-top: 1rem;"></div>
+
+                            <div class="step-actions" style="display: flex; justify-content: space-between; gap: 1rem; margin-top: 2rem;">
+                                <button type="button" class="btn btn-secondary" onclick="signupComponent.prevStep()">Back</button>
+                                <button type="button" class="btn btn-primary" onclick="signupComponent.verifyOTP()">Verify & Continue</button>
+                            </div>
+                        </div>
+
+                        <!-- Step 5: Terms & Conditions -->
+                        <div class="onboarding-step" id="step5" data-step="5" style="display: none;">
+                            <h2 style="margin-bottom: var(--spacing-4); text-align: center;">Terms & Conditions</h2>
+                            
+                            <div class="terms-container" style="max-height: 400px; overflow-y: auto; border: 1px solid var(--color-gray-300); border-radius: var(--radius-md); padding: 1.5rem; margin-bottom: 2rem; background: var(--bg-secondary);">
+                                <h3 style="margin-bottom: 1rem;">PMTwin Terms of Service</h3>
+                                <p style="margin-bottom: 1rem; line-height: 1.6;">
+                                    By signing up for PMTwin, you agree to the following terms and conditions:
+                                </p>
+                                <ul style="line-height: 2; padding-left: 1.5rem;">
+                                    <li>You are responsible for maintaining the confidentiality of your account</li>
+                                    <li>You agree to provide accurate and complete information</li>
+                                    <li>You understand that your profile will be reviewed by platform administrators</li>
+                                    <li>You agree to comply with all applicable laws and regulations</li>
+                                    <li>You understand that PMTwin reserves the right to verify your credentials</li>
+                                    <li>You agree to use the platform in accordance with our community guidelines</li>
+                                </ul>
+                                <p style="margin-top: 1rem; line-height: 1.6;">
+                                    For the complete terms of service, please visit our <a href="#" target="_blank">Terms & Conditions</a> page.
+                                </p>
+                            </div>
+
+                            <div class="form-group">
+                                <label style="display: flex; align-items: flex-start; cursor: pointer; gap: 0.5rem;">
+                                    <input type="checkbox" id="acceptTerms" required style="margin-top: 0.25rem;">
+                                    <span>I have read and agree to the Terms & Conditions and Privacy Policy *</span>
+                                </label>
+                            </div>
+
+                            <!-- Error/Success Messages -->
+                            <div id="signupMessage" style="display: none; margin-top: 1rem;"></div>
+
+                            <div class="step-actions" style="display: flex; justify-content: space-between; gap: 1rem; margin-top: 2rem;">
+                                <button type="button" class="btn btn-secondary" onclick="signupComponent.prevStep()">Back</button>
+                                <button type="submit" class="btn btn-primary btn-lg">Submit Registration</button>
+                            </div>
+                        </div>
                     </form>
                 </div>
             </div>
+
+            <p style="text-align: center; margin-top: var(--spacing-4);">
+                Already have an account? <a href="../login/">Login here</a>
+            </p>
         </div>
     </main>
 

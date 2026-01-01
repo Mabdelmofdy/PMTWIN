@@ -1,0 +1,287 @@
+{
+  "serviceProviders": [
+    {
+      "id": "sp_001",
+      "userId": "demo_service_provider_001",
+      "companyName": "Legal & Logistics Services",
+      "description": "Comprehensive B2B services specializing in legal consultation and logistics management for construction projects in the MENA region.",
+      "categories": ["legal", "logistics"],
+      "serviceAreas": ["Riyadh", "Jeddah", "Dammam", "Dubai"],
+      "availability": "available",
+      "responseTime": "24 hours",
+      "profileScore": 85,
+      "certifications": ["ISO 9001", "Legal Practice License"],
+      "establishedYear": 2015,
+      "location": {
+        "city": "Riyadh",
+        "region": "Riyadh Province",
+        "country": "Saudi Arabia"
+      },
+      "contact": {
+        "email": "service@pmtwin.com",
+        "phone": "+966 11 123 4567",
+        "website": "https://legallogistics.com"
+      },
+      "createdAt": "2024-01-15T10:00:00Z",
+      "updatedAt": "2024-01-20T14:30:00Z"
+    },
+    {
+      "id": "sp_002",
+      "userId": "sp_user_002",
+      "companyName": "Design Excellence Group",
+      "description": "Leading architectural and engineering design firm with expertise in mega-projects and sustainable design solutions.",
+      "categories": ["design", "engineering"],
+      "serviceAreas": ["Riyadh", "NEOM", "Qiddiya", "Dubai"],
+      "availability": "available",
+      "responseTime": "48 hours",
+      "profileScore": 92,
+      "certifications": ["LEED AP", "Saudi Council of Engineers", "ISO 14001"],
+      "establishedYear": 2010,
+      "location": {
+        "city": "Riyadh",
+        "region": "Riyadh Province",
+        "country": "Saudi Arabia"
+      },
+      "contact": {
+        "email": "info@designexcellence.com",
+        "phone": "+966 11 234 5678",
+        "website": "https://designexcellence.com"
+      },
+      "createdAt": "2024-02-01T09:00:00Z",
+      "updatedAt": "2024-02-10T16:00:00Z"
+    },
+    {
+      "id": "sp_003",
+      "userId": "sp_user_003",
+      "companyName": "Financial Advisory Partners",
+      "description": "Specialized financial consulting services for construction projects including project financing, tax planning, and financial modeling.",
+      "categories": ["financial"],
+      "serviceAreas": ["Riyadh", "Jeddah", "Dammam", "Abu Dhabi"],
+      "availability": "busy",
+      "responseTime": "72 hours",
+      "profileScore": 78,
+      "certifications": ["CPA", "CFA", "SAMA License"],
+      "establishedYear": 2018,
+      "location": {
+        "city": "Jeddah",
+        "region": "Makkah Province",
+        "country": "Saudi Arabia"
+      },
+      "contact": {
+        "email": "contact@financialpartners.com",
+        "phone": "+966 12 345 6789",
+        "website": "https://financialpartners.com"
+      },
+      "createdAt": "2024-01-20T11:00:00Z",
+      "updatedAt": "2024-02-05T10:00:00Z"
+    },
+    {
+      "id": "sp_004",
+      "userId": "sp_user_004",
+      "companyName": "Safety First Consultants",
+      "description": "Comprehensive safety and compliance services including audits, training, and risk assessment for construction sites.",
+      "categories": ["safety", "environmental"],
+      "serviceAreas": ["Riyadh", "Jeddah", "Dammam", "Khobar"],
+      "availability": "available",
+      "responseTime": "24 hours",
+      "profileScore": 88,
+      "certifications": ["OSHA Certified", "NEBOSH", "ISO 45001"],
+      "establishedYear": 2012,
+      "location": {
+        "city": "Dammam",
+        "region": "Eastern Province",
+        "country": "Saudi Arabia"
+      },
+      "contact": {
+        "email": "safety@safetyfirst.com",
+        "phone": "+966 13 456 7890",
+        "website": "https://safetyfirst.com"
+      },
+      "createdAt": "2024-01-10T08:00:00Z",
+      "updatedAt": "2024-01-25T15:00:00Z"
+    }
+  ],
+  "serviceOfferings": [
+    {
+      "id": "so_001",
+      "provider_user_id": "demo_service_provider_001",
+      "providerId": "sp_001",
+      "title": "Contract Review & Legal Consultation",
+      "category": "legal",
+      "skills": ["Contract Review", "Legal Consultation", "JV Agreements", "SPV Documentation", "Procurement Contracts"],
+      "description": "Comprehensive contract review services for construction projects including JV agreements, SPV documentation, and procurement contracts.",
+      "delivery_mode": "Hybrid",
+      "location": {
+        "city": "Riyadh",
+        "country": "Saudi Arabia",
+        "radius": 100
+      },
+      "pricing_type": "Hourly",
+      "price_min": 500,
+      "price_max": 1500,
+      "currency": "SAR",
+      "exchange_type": "Cash",
+      "availability": {
+        "start_date": "2024-01-15",
+        "capacity": 5,
+        "lead_time": "24-48 hours"
+      },
+      "portfolio_links": ["https://portfolio.example.com/contract_review_001", "https://portfolio.example.com/legal_consultation_002"],
+      "attachments": [],
+      "status": "Active",
+      "created_at": "2024-01-15T10:00:00Z",
+      "updated_at": "2024-01-20T14:30:00Z"
+    },
+    {
+      "id": "so_002",
+      "provider_user_id": "demo_service_provider_001",
+      "providerId": "sp_001",
+      "title": "Supply Chain Management",
+      "category": "logistics",
+      "skills": ["Supply Chain Management", "Procurement", "Warehousing", "Distribution", "Logistics Planning"],
+      "description": "End-to-end supply chain management services including procurement, warehousing, and distribution for construction materials.",
+      "delivery_mode": "Onsite",
+      "location": {
+        "city": "Riyadh",
+        "country": "Saudi Arabia",
+        "radius": 200
+      },
+      "pricing_type": "Fixed",
+      "price_min": 50000,
+      "price_max": 500000,
+      "currency": "SAR",
+      "exchange_type": "Mixed",
+      "availability": {
+        "start_date": "2024-01-15",
+        "capacity": 3,
+        "lead_time": "1-2 weeks"
+      },
+      "portfolio_links": ["https://portfolio.example.com/supply_chain_001"],
+      "attachments": [],
+      "status": "Active",
+      "created_at": "2024-01-15T10:00:00Z",
+      "updated_at": "2024-01-20T14:30:00Z"
+    },
+    {
+      "id": "so_003",
+      "provider_user_id": "sp_user_002",
+      "providerId": "sp_002",
+      "title": "Architectural Design Services",
+      "category": "design",
+      "skills": ["Architectural Design", "3D Modeling", "Construction Documents", "Design Review", "Sustainable Design"],
+      "description": "Full architectural design services from concept to construction documents for residential, commercial, and mega-projects.",
+      "delivery_mode": "Hybrid",
+      "location": {
+        "city": "Riyadh",
+        "country": "Saudi Arabia",
+        "radius": 300
+      },
+      "pricing_type": "Fixed",
+      "price_min": 100000,
+      "price_max": 2000000,
+      "currency": "SAR",
+      "exchange_type": "Cash",
+      "availability": {
+        "start_date": "2024-02-01",
+        "capacity": 2,
+        "lead_time": "2-4 weeks"
+      },
+      "portfolio_links": ["https://portfolio.example.com/arch_design_001", "https://portfolio.example.com/arch_design_002", "https://portfolio.example.com/arch_design_003"],
+      "attachments": [],
+      "status": "Active",
+      "created_at": "2024-02-01T09:00:00Z",
+      "updated_at": "2024-02-10T16:00:00Z"
+    },
+    {
+      "id": "so_004",
+      "provider_user_id": "sp_user_002",
+      "providerId": "sp_002",
+      "title": "Structural Engineering Consultation",
+      "category": "engineering",
+      "skills": ["Structural Engineering", "Design Review", "Calculations", "Site Inspections", "Structural Analysis"],
+      "description": "Expert structural engineering services including design review, calculations, and site inspections.",
+      "delivery_mode": "Hybrid",
+      "location": {
+        "city": "Riyadh",
+        "country": "Saudi Arabia",
+        "radius": 150
+      },
+      "pricing_type": "Hourly",
+      "price_min": 800,
+      "price_max": 2000,
+      "currency": "SAR",
+      "exchange_type": "Cash",
+      "availability": {
+        "start_date": "2024-02-01",
+        "capacity": 4,
+        "lead_time": "1 week"
+      },
+      "portfolio_links": ["https://portfolio.example.com/structural_eng_001", "https://portfolio.example.com/structural_eng_002"],
+      "attachments": [],
+      "status": "Active",
+      "created_at": "2024-02-01T09:00:00Z",
+      "updated_at": "2024-02-10T16:00:00Z"
+    },
+    {
+      "id": "so_005",
+      "provider_user_id": "sp_user_003",
+      "providerId": "sp_003",
+      "title": "Project Financing Consultation",
+      "category": "financial",
+      "skills": ["Financial Consulting", "Feasibility Studies", "Financial Modeling", "Funding Strategies", "Project Financing"],
+      "description": "Strategic financial consulting for construction projects including feasibility studies, financial modeling, and funding strategies.",
+      "delivery_mode": "Remote",
+      "location": {
+        "city": "Jeddah",
+        "country": "Saudi Arabia",
+        "radius": 0
+      },
+      "pricing_type": "Milestone",
+      "price_min": 50000,
+      "price_max": 200000,
+      "currency": "SAR",
+      "exchange_type": "Cash",
+      "availability": {
+        "start_date": "2024-01-20",
+        "capacity": 2,
+        "lead_time": "1-2 weeks"
+      },
+      "portfolio_links": ["https://portfolio.example.com/financing_001", "https://portfolio.example.com/financing_002"],
+      "attachments": [],
+      "status": "Paused",
+      "created_at": "2024-01-20T11:00:00Z",
+      "updated_at": "2024-02-05T10:00:00Z"
+    },
+    {
+      "id": "so_006",
+      "provider_user_id": "sp_user_004",
+      "providerId": "sp_004",
+      "title": "Safety Audit & Compliance",
+      "category": "safety",
+      "skills": ["Safety Audits", "Compliance Assessment", "Risk Assessment", "Safety Training", "OSHA Compliance"],
+      "description": "Comprehensive safety audits and compliance assessments for construction sites with detailed reporting and recommendations.",
+      "delivery_mode": "Onsite",
+      "location": {
+        "city": "Dammam",
+        "country": "Saudi Arabia",
+        "radius": 250
+      },
+      "pricing_type": "Fixed",
+      "price_min": 15000,
+      "price_max": 100000,
+      "currency": "SAR",
+      "exchange_type": "Cash",
+      "availability": {
+        "start_date": "2024-01-10",
+        "capacity": 6,
+        "lead_time": "3-5 days"
+      },
+      "portfolio_links": ["https://portfolio.example.com/safety_audit_001", "https://portfolio.example.com/safety_audit_002"],
+      "attachments": [],
+      "status": "Active",
+      "created_at": "2024-01-10T08:00:00Z",
+      "updated_at": "2024-01-25T15:00:00Z"
+    }
+  ]
+}
+

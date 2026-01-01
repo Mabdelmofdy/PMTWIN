@@ -146,7 +146,7 @@
         <div class="card-body">
           <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
             <h2 style="margin: 0;">Recent Activity</h2>
-            <a href="../pipeline/" style="font-size: var(--font-size-sm); color: var(--color-primary); text-decoration: none;">View All →</a>
+            <a href="../pipeline/" style="font-size: var(--font-size-sm); color: var(--color-primary); text-decoration: none;">View All <i class="ph ph-arrow-right"></i></a>
           </div>
     `;
     
@@ -183,7 +183,7 @@
         <div class="card-body">
           <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
             <h2 style="margin: 0;">Notifications</h2>
-            <a href="../notifications/" style="font-size: var(--font-size-sm); color: var(--color-primary); text-decoration: none;">View All →</a>
+            <a href="../notifications/" style="font-size: var(--font-size-sm); color: var(--color-primary); text-decoration: none;">View All <i class="ph ph-arrow-right"></i></a>
           </div>
     `;
     

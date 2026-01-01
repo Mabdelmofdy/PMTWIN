@@ -41,8 +41,16 @@
   // ============================================
   function getBasePath() {
     const currentPath = window.location.pathname;
-    const segments = currentPath.split('/').filter(p => p && !p.endsWith('.html'));
-    return segments.length > 0 ? '../' : '';
+    // Remove leading/trailing slashes and split
+    const segments = currentPath.split('/').filter(p => p && !p.endsWith('.html') && p !== 'POC' && p !== '');
+    
+    // Count how many directory levels deep we are (excluding POC root and filename)
+    // For example: /POC/admin/users-management/ = 2 levels deep, need ../../ to reach POC root
+    // For example: /POC/dashboard/ = 1 level deep, need ../ to reach POC root
+    const depth = segments.length;
+    
+    // Generate the appropriate number of ../ to reach POC root
+    return depth > 0 ? '../'.repeat(depth) : '';
   }
 
   // ============================================

@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Services Marketplace - PMTwin</title>
+    <link rel="stylesheet" href="../css/main.css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap">
+    <link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.0.3/src/regular/style.css">
+</head>
+<body>
+    <div id="app">
+        <!-- Navigation will be injected by dashboard -->
+        <main id="main-content">
+            <div class="container" style="padding: 2rem 0;">
+                <h1 style="margin-bottom: 2rem;">Services Marketplace</h1>
+                
+                <!-- Filters -->
+                <div class="card" style="margin-bottom: 2rem;">
+                    <div class="card-body">
+                        <h3 style="margin-bottom: 1rem;">Filter Service Offerings</h3>
+                        <form id="marketplaceFiltersForm" onsubmit="return marketplaceComponent.applyFilters(event)">
+                            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 1rem;">
+                                <div class="form-group">
+                                    <label for="marketplaceSearch" class="form-label">Search</label>
+                                    <input type="text" id="marketplaceSearch" class="form-control" placeholder="Search offerings...">
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label for="marketplaceCategory" class="form-label">Category</label>
+                                    <select id="marketplaceCategory" class="form-control">
+                                        <option value="">All Categories</option>
+                                    </select>
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label for="marketplaceLocation" class="form-label">Location</label>
+                                    <input type="text" id="marketplaceLocation" class="form-control" placeholder="City or Country">
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label for="marketplaceDeliveryMode" class="form-label">Delivery Mode</label>
+                                    <select id="marketplaceDeliveryMode" class="form-control">
+                                        <option value="">All Modes</option>
+                                        <option value="Onsite">Onsite</option>
+                                        <option value="Remote">Remote</option>
+                                        <option value="Hybrid">Hybrid</option>
+                                    </select>
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label for="marketplaceExchangeType" class="form-label">Exchange Type</label>
+                                    <select id="marketplaceExchangeType" class="form-control">
+                                        <option value="">All Types</option>
+                                        <option value="Cash">Cash</option>
+                                        <option value="Barter">Barter</option>
+                                        <option value="Mixed">Mixed</option>
+                                    </select>
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label for="marketplacePriceMin" class="form-label">Min Price (SAR)</label>
+                                    <input type="number" id="marketplacePriceMin" class="form-control" min="0" step="0.01">
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label for="marketplacePriceMax" class="form-label">Max Price (SAR)</label>
+                                    <input type="number" id="marketplacePriceMax" class="form-control" min="0" step="0.01">
+                                </div>
+                            </div>
+                            
+                            <div style="display: flex; gap: 0.5rem;">
+                                <button type="submit" class="btn btn-primary">Apply Filters</button>
+                                <button type="button" onclick="marketplaceComponent.clearFilters()" class="btn btn-secondary">Clear</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+                
+                <!-- Offerings Grid -->
+                <div id="marketplaceOfferingsList">
+                    <p>Loading service offerings...</p>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Configuration (must load first) -->
+    <script src="../js/config.js"></script>
+    
+    <!-- API Layer (for future Java backend integration) -->
+    <script src="../js/api/api-client.js"></script>
+    <script src="../js/api/api-service.js"></script>
+    
+    <!-- Core Scripts -->
+    <script src="../js/data.js"></script>
+    <script src="../js/auth.js"></script>
+    <script src="../js/auth-check.js"></script>
+    <script src="../js/demo-credentials.js"></script>
+    <script src="../services/services-loader.js"></script>
+    <script src="../data/data-loader.js"></script>
+    
+    <!-- Layout System (automatically includes sidebar and navbar) -->
+    <script src="../js/layout.js"></script>
+    <script src="../js/navigation.js"></script>
+    <script src="../js/app-init.js"></script>
+    
+    <!-- Component Scripts -->
+    <script src="../features/service-offerings/marketplace.js"></script>
+    
+    <!-- Initialize Component -->
+    <script>
+        document.addEventListener('DOMContentLoaded', async function() {
+            // Check authentication
+            const isAuth = await AuthCheck.checkAuth({ requireAuth: true });
+            if (!isAuth) return;
+            
+            // Initialize marketplace component
+            // Note: Sidebar and navbar are automatically initialized by app-init.js
+            if (typeof marketplaceComponent !== 'undefined') {
+                marketplaceComponent.init();
+            }
+        });
+    </script>
+</body>
+</html>
+

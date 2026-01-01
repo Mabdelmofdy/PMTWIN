@@ -13,10 +13,14 @@
   function getBasePath() {
     const currentPath = window.location.pathname;
     // Remove leading/trailing slashes and split
-    const segments = currentPath.split('/').filter(p => p && !p.endsWith('.html'));
-    // If we have path segments (like 'login', 'dashboard', etc.), we're in a subdirectory
-    // and need to go up one level to reach POC root
-    return segments.length > 0 ? '../' : '';
+    const segments = currentPath.split('/').filter(p => p && !p.endsWith('.html') && p !== 'POC' && p !== '');
+    
+    // Count how many levels deep we are (excluding POC root)
+    // For example: /POC/admin/users-management/ = 2 levels deep, need ../../ to reach POC root
+    const depth = segments.length;
+    
+    // Generate the appropriate number of ../ to reach POC root
+    return depth > 0 ? '../'.repeat(depth) : '';
   }
 
   const basePath = getBasePath();
@@ -32,6 +36,8 @@
     'services/proposals/proposal-service.js',
     'services/matching/matching-service.js',
     'services/collaboration/collaboration-service.js',
+    'services/service-providers/service-provider-service.js',
+    'services/service-offerings/service-offering-service.js',
     'services/notifications/notification-service.js',
     'services/admin/admin-service.js'
   ];
@@ -50,17 +56,30 @@
 
   async function loadAllServices() {
     try {
+      console.log('[ServicesLoader] Starting to load services...');
       for (const service of services) {
         await loadService(service);
       }
-      console.log('✅ All services loaded successfully');
+      console.log('[ServicesLoader] ✅ All services loaded successfully');
+      console.log('[ServicesLoader] DashboardService available:', typeof DashboardService !== 'undefined');
+      console.log('[ServicesLoader] PMTwinRBAC available:', typeof PMTwinRBAC !== 'undefined');
       
       // Initialize role assignments for existing users
       if (typeof PMTwinData !== 'undefined' && typeof PMTwinRBAC !== 'undefined') {
         initializeRoleAssignments();
       }
+      
+      // Dispatch event that services are loaded
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new CustomEvent('servicesLoaded', { 
+          detail: { 
+            dashboardService: typeof DashboardService !== 'undefined',
+            rbac: typeof PMTwinRBAC !== 'undefined'
+          } 
+        }));
+      }
     } catch (error) {
-      console.error('❌ Error loading services:', error);
+      console.error('[ServicesLoader] ❌ Error loading services:', error);
     }
   }
 

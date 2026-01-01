@@ -14,11 +14,17 @@
   // ============================================
   function getDataBasePath() {
     // Calculate relative path from current page to POC root
-    // If page is in a subdirectory (like login/, dashboard/), need ../
     const currentPath = window.location.pathname;
-    const segments = currentPath.split('/').filter(p => p && !p.endsWith('.html'));
-    // If we have path segments, we're in a subdirectory
-    return segments.length > 0 ? '../' : '';
+    // Remove leading/trailing slashes and split
+    const segments = currentPath.split('/').filter(p => p && !p.endsWith('.html') && p !== 'POC' && p !== '');
+    
+    // Count how many directory levels deep we are (excluding POC root and filename)
+    // For example: /POC/admin/users-management/ = 2 levels deep, need ../../ to reach POC root
+    // For example: /POC/dashboard/ = 1 level deep, need ../ to reach POC root
+    const depth = segments.length;
+    
+    // Generate the appropriate number of ../ to reach POC root
+    return depth > 0 ? '../'.repeat(depth) : '';
   }
 
   // ============================================
@@ -255,6 +261,8 @@
       'notifications': ['notifications'],
       'collaboration': ['collaboration_opportunities', 'collaboration_applications'],
       'pipeline': ['pipeline_management'],
+      'service-providers': ['service_providers'],
+      'service_providers': ['service_providers'],
       'onboarding': ['profile_management'], // Onboarding is part of profile management
       'admin': ['admin_dashboard', 'user_vetting', 'user_management', 'project_moderation', 'audit_trail', 'reports'],
       'public': ['public_portal', 'project_discovery_limited', 'pmtwin_wizard', 'knowledge_hub', 'registration'],
@@ -282,24 +290,43 @@
   }
 
   async function getAvailableFeatures(userId, email = null) {
-    const roleId = await getUserRole(userId, email);
-    const roleDef = await getRoleDefinition(roleId);
-    
-    if (!roleDef) return [];
-    
-    // Admin has all features
-    if (roleDef.features.includes('*')) {
-      const roles = await loadRolesData();
-      const allFeatures = new Set();
-      Object.values(roles.roles).forEach(role => {
-        role.features.forEach(f => {
-          if (f !== '*') allFeatures.add(f);
+    try {
+      const roleId = await getUserRole(userId, email);
+      console.log('[RBAC] getAvailableFeatures - roleId:', roleId);
+      
+      const roleDef = await getRoleDefinition(roleId);
+      console.log('[RBAC] getAvailableFeatures - roleDef:', roleDef ? 'found' : 'not found');
+      
+      if (!roleDef) {
+        console.warn('[RBAC] Role definition not found for:', roleId);
+        return [];
+      }
+      
+      // Admin has all features
+      if (roleDef.features && roleDef.features.includes('*')) {
+        console.log('[RBAC] Role has wildcard features - collecting all features');
+        const roles = await loadRolesData();
+        const allFeatures = new Set();
+        Object.values(roles.roles).forEach(role => {
+          if (role.features && Array.isArray(role.features)) {
+            role.features.forEach(f => {
+              if (f !== '*') allFeatures.add(f);
+            });
+          }
         });
-      });
-      return Array.from(allFeatures);
+        const featuresArray = Array.from(allFeatures);
+        console.log('[RBAC] Collected', featuresArray.length, 'features for wildcard role');
+        return featuresArray;
+      }
+      
+      const features = roleDef.features || [];
+      console.log('[RBAC] Returning', features.length, 'features for role:', roleId);
+      return features;
+    } catch (error) {
+      console.error('[RBAC] Error in getAvailableFeatures:', error);
+      console.error('[RBAC] Error stack:', error.stack);
+      return [];
     }
-    
-    return roleDef.features || [];
   }
 
   async function getAvailablePortals(userId, email = null) {

@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Services - PMTwin</title>
+    <link rel="stylesheet" href="../css/main.css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap">
+    <link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.0.3/src/regular/style.css">
+</head>
+<body>
+    <div id="app">
+        <!-- Navigation will be injected by dashboard -->
+        <main id="main-content">
+            <div class="container" style="padding: 2rem 0;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+                    <h1 style="margin: 0;">My Services</h1>
+                    <button id="createOfferingBtn" class="btn btn-primary">
+                        <i class="ph ph-plus"></i> Create New Service Offering
+                    </button>
+                </div>
+                
+                <!-- Statistics Overview -->
+                <div id="statisticsSection" class="card" style="margin-bottom: 2rem; display: none;">
+                    <div class="card-body">
+                        <h3 style="margin-bottom: 1rem;">Your Service Offerings Statistics</h3>
+                        <div id="statisticsContent" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 1.5rem;">
+                            <!-- Statistics will be loaded here -->
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Filters -->
+                <div class="card" style="margin-bottom: 2rem;">
+                    <div class="card-body">
+                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">
+                            <div>
+                                <label class="form-label">Filter by Status</label>
+                                <select id="statusFilter" class="form-control">
+                                    <option value="">All Statuses</option>
+                                    <option value="Active">Active</option>
+                                    <option value="Paused">Paused</option>
+                                    <option value="Draft">Draft</option>
+                                    <option value="Archived">Archived</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="form-label">Filter by Category</label>
+                                <select id="categoryFilter" class="form-control">
+                                    <option value="">All Categories</option>
+                                </select>
+                            </div>
+                            <div style="display: flex; align-items: flex-end;">
+                                <button id="clearFiltersBtn" class="btn btn-secondary" style="width: 100%;">
+                                    <i class="ph ph-x"></i> Clear Filters
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div id="offeringsList">
+                    <p>Loading your service offerings...</p>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Configuration (must load first) -->
+    <script src="../js/config.js"></script>
+    
+    <!-- API Layer (for future Java backend integration) -->
+    <script src="../js/api/api-client.js"></script>
+    <script src="../js/api/api-service.js"></script>
+    
+    <!-- Core Scripts -->
+    <script src="../js/data.js"></script>
+    <script src="../js/auth.js"></script>
+    <script src="../js/auth-check.js"></script>
+    <script src="../js/demo-credentials.js"></script>
+    <script src="../services/services-loader.js"></script>
+    <script src="../data/data-loader.js"></script>
+    
+    <!-- Layout System (automatically includes sidebar and navbar) -->
+    <script src="../js/layout.js"></script>
+    <script src="../js/navigation.js"></script>
+    <script src="../js/app-init.js"></script>
+    
+    <!-- Component Scripts -->
+    <script src="../features/service-offerings/my-services.js"></script>
+    
+    <!-- Initialize Component -->
+    <script>
+        document.addEventListener('DOMContentLoaded', async function() {
+            // Check authentication
+            const isAuth = await AuthCheck.checkAuth({ requireAuth: true });
+            if (!isAuth) return;
+            
+            // Initialize my services component
+            // Note: Sidebar and navbar are automatically initialized by app-init.js
+            if (typeof myServicesComponent !== 'undefined') {
+                myServicesComponent.init();
+            }
+        });
+    </script>
+</body>
+</html>
+

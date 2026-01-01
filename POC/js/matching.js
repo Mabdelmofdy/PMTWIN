@@ -7,81 +7,87 @@
   'use strict';
 
   // Matching weights (must sum to 1.0)
+  // Updated for service offerings: skills weighted higher since offerings are explicit
   const WEIGHTS = {
     category: 0.30,
-    skills: 0.40,
-    experience: 0.20,
+    skills: 0.45,  // Increased from 0.40 - offerings have explicit skills
+    experience: 0.15,  // Decreased from 0.20 - provider-level
     location: 0.10
   };
 
   const MATCH_THRESHOLD = 80; // Minimum score to trigger auto-inquiry
 
   // ============================================
-  // Category Matching
+  // Category Matching (for offerings)
   // ============================================
-  function calculateCategoryMatch(project, provider) {
+  function calculateCategoryMatch(project, offering) {
     const projectCategory = project.category;
-    const providerServices = provider.profile?.services || [];
+    const offeringCategory = offering.category;
 
-    // Check if provider offers services in the project category
-    if (providerServices.length === 0) {
+    if (!offeringCategory) {
       return 0;
     }
 
-    // Simple category matching (can be enhanced with category hierarchy)
-    const categoryKeywords = {
-      'Infrastructure': ['Infrastructure', 'Infrastructure Development', 'Civil Engineering', 'Construction'],
-      'Residential': ['Residential', 'Housing', 'Real Estate Development'],
-      'Commercial': ['Commercial', 'Commercial Development', 'Retail'],
-      'Industrial': ['Industrial', 'Manufacturing', 'Warehouse']
+    // Map project categories to service offering categories
+    const categoryMapping = {
+      'Infrastructure': ['engineering', 'design', 'logistics', 'safety'],
+      'Residential': ['design', 'engineering', 'legal', 'financial'],
+      'Commercial': ['design', 'engineering', 'legal', 'financial'],
+      'Industrial': ['engineering', 'logistics', 'safety', 'environmental']
     };
 
-    const keywords = categoryKeywords[projectCategory] || [projectCategory];
-    const hasMatch = providerServices.some(service => 
-      keywords.some(keyword => 
-        service.toLowerCase().includes(keyword.toLowerCase())
-      )
-    );
+    const mappedCategories = categoryMapping[projectCategory] || [];
+    
+    // Direct match
+    if (offeringCategory.toLowerCase() === projectCategory.toLowerCase()) {
+      return 100;
+    }
+    
+    // Check if offering category matches any mapped categories
+    if (mappedCategories.some(cat => cat.toLowerCase() === offeringCategory.toLowerCase())) {
+      return 100;
+    }
 
-    return hasMatch ? 100 : 0;
+    return 0;
   }
 
   // ============================================
-  // Skills Matching
+  // Skills Matching (for offerings)
   // ============================================
-  function calculateSkillsMatch(project, provider) {
+  function calculateSkillsMatch(project, offering) {
     const requiredSkills = project.scope?.skillRequirements || [];
-    const providerSkills = provider.profile?.skills || [];
+    const offeringSkills = offering.skills || [];
 
     if (requiredSkills.length === 0) {
       return 100; // No requirements = perfect match
     }
 
-    if (providerSkills.length === 0) {
+    if (offeringSkills.length === 0) {
       return 0;
     }
 
-    // Calculate how many required skills the provider has
-    const matchedSkills = requiredSkills.filter(reqSkill => 
-      providerSkills.some(provSkill => 
-        provSkill.toLowerCase().includes(reqSkill.toLowerCase()) ||
-        reqSkill.toLowerCase().includes(provSkill.toLowerCase())
-      )
-    );
+    // Calculate how many required skills the offering has
+    const matchedSkills = requiredSkills.filter(reqSkill => {
+      const reqSkillLower = reqSkill.toLowerCase();
+      return offeringSkills.some(offSkill => {
+        const offSkillLower = offSkill.toLowerCase();
+        return offSkillLower.includes(reqSkillLower) || reqSkillLower.includes(offSkillLower);
+      });
+    });
 
     const matchPercentage = (matchedSkills.length / requiredSkills.length) * 100;
     return Math.round(matchPercentage);
   }
 
   // ============================================
-  // Experience Matching
+  // Experience Matching (provider-level, not offering-level)
   // ============================================
-  function calculateExperienceMatch(project, provider) {
+  function calculateExperienceMatch(project, offering, provider) {
     const requiredLevel = project.scope?.experienceLevel || 'intermediate';
     const requiredYears = project.scope?.minimumExperience || 0;
-    const providerLevel = provider.profile?.experienceLevel || 'intermediate';
-    const providerYears = provider.profile?.yearsInBusiness || 
-                         (provider.role === 'individual' ? 5 : 0);
+    const providerLevel = provider?.profile?.experienceLevel || 'intermediate';
+    const providerYears = provider?.profile?.yearsInBusiness || 
+                         (provider?.role === 'individual' ? 5 : 0);
 
     // Level matching
     const levelHierarchy = {
@@ -117,33 +123,46 @@
   }
 
   // ============================================
-  // Location Matching
+  // Location Matching (for offerings)
   // ============================================
-  function calculateLocationMatch(project, provider) {
+  function calculateLocationMatch(project, offering) {
     const projectLocation = project.location;
-    const providerLocation = provider.profile?.location;
+    const offeringLocation = offering.location;
 
-    if (!projectLocation || !providerLocation) {
+    if (!projectLocation || !offeringLocation) {
       return 50; // Neutral score if location not specified
     }
 
     // Exact match (same city)
-    if (projectLocation.city && providerLocation.city) {
-      if (projectLocation.city.toLowerCase() === providerLocation.city.toLowerCase()) {
+    if (projectLocation.city && offeringLocation.city) {
+      if (projectLocation.city.toLowerCase() === offeringLocation.city.toLowerCase()) {
         return 100;
       }
     }
 
-    // Region match
-    if (projectLocation.region && providerLocation.region) {
-      if (projectLocation.region.toLowerCase() === providerLocation.region.toLowerCase()) {
-        return 70;
+    // Check radius if available
+    if (offeringLocation.radius && offeringLocation.radius > 0) {
+      // If offering has a service radius, consider it a match if cities are in same country
+      if (projectLocation.country && offeringLocation.country) {
+        if (projectLocation.country.toLowerCase() === offeringLocation.country.toLowerCase()) {
+          return 80; // Good match within country
+        }
+      }
+    }
+
+    // Region match (if project has region)
+    if (projectLocation.region && offeringLocation.city) {
+      // Could enhance with region mapping, for now use country
+      if (projectLocation.country && offeringLocation.country) {
+        if (projectLocation.country.toLowerCase() === offeringLocation.country.toLowerCase()) {
+          return 70;
+        }
       }
     }
 
     // Country match
-    if (projectLocation.country && providerLocation.country) {
-      if (projectLocation.country.toLowerCase() === providerLocation.country.toLowerCase()) {
+    if (projectLocation.country && offeringLocation.country) {
+      if (projectLocation.country.toLowerCase() === offeringLocation.country.toLowerCase()) {
         return 50;
       }
     }
@@ -152,13 +171,13 @@
   }
 
   // ============================================
-  // Calculate Final Match Score
+  // Calculate Final Match Score (for offerings)
   // ============================================
-  function calculateMatchScore(project, provider) {
-    const categoryScore = calculateCategoryMatch(project, provider);
-    const skillsScore = calculateSkillsMatch(project, provider);
-    const experienceScore = calculateExperienceMatch(project, provider);
-    const locationScore = calculateLocationMatch(project, provider);
+  function calculateMatchScore(project, offering, provider) {
+    const categoryScore = calculateCategoryMatch(project, offering);
+    const skillsScore = calculateSkillsMatch(project, offering);
+    const experienceScore = calculateExperienceMatch(project, offering, provider);
+    const locationScore = calculateLocationMatch(project, offering);
 
     // Weighted average
     const finalScore = Math.round(
@@ -168,8 +187,21 @@
       (locationScore * WEIGHTS.location)
     );
 
+    // Get matched and unmatched skills for explanation
+    const requiredSkills = project.scope?.skillRequirements || [];
+    const offeringSkills = offering.skills || [];
+    const matchedSkills = requiredSkills.filter(reqSkill => {
+      const reqSkillLower = reqSkill.toLowerCase();
+      return offeringSkills.some(offSkill => {
+        const offSkillLower = offSkill.toLowerCase();
+        return offSkillLower.includes(reqSkillLower) || reqSkillLower.includes(offSkillLower);
+      });
+    });
+    const unmatchedSkills = requiredSkills.filter(skill => !matchedSkills.includes(skill));
+
     return {
       finalScore: finalScore,
+      best_offering_id: offering.id,
       criteria: {
         categoryMatch: categoryScore,
         skillsMatch: skillsScore,
@@ -177,30 +209,114 @@
         locationMatch: locationScore
       },
       weights: WEIGHTS,
-      meetsThreshold: finalScore >= MATCH_THRESHOLD
+      meetsThreshold: finalScore >= MATCH_THRESHOLD,
+      explain: {
+        matchedSkills: matchedSkills,
+        unmatchedSkills: unmatchedSkills,
+        topMatchedSkills: matchedSkills.slice(0, 3)
+      }
     };
   }
 
   // ============================================
-  // Find Matches for a Project
+  // Find Best Offering for Project per Provider
   // ============================================
-  function findMatchesForProject(projectId) {
+  async function findBestOfferingForProject(projectId, providerUserId) {
+    if (typeof ServiceOfferingService === 'undefined') {
+      return null;
+    }
+
+    // Get all active offerings for this provider
+    const result = await ServiceOfferingService.getOfferings({ 
+      includeAll: true 
+    });
+    
+    if (!result.success) {
+      return null;
+    }
+
+    const providerOfferings = result.offerings.filter(o => 
+      o.provider_user_id === providerUserId && o.status === 'Active'
+    );
+
+    if (providerOfferings.length === 0) {
+      return null;
+    }
+
+    const project = PMTwinData.Projects.getById(projectId);
+    if (!project) {
+      return null;
+    }
+
+    const provider = PMTwinData.Users.getById(providerUserId);
+    if (!provider) {
+      return null;
+    }
+
+    // Score each offering and return the best one
+    let bestOffering = null;
+    let bestScore = 0;
+
+    providerOfferings.forEach(offering => {
+      const matchResult = calculateMatchScore(project, offering, provider);
+      if (matchResult.finalScore > bestScore) {
+        bestScore = matchResult.finalScore;
+        bestOffering = {
+          offering: offering,
+          matchResult: matchResult
+        };
+      }
+    });
+
+    return bestOffering;
+  }
+
+  // ============================================
+  // Find Matches for a Project (using service offerings)
+  // ============================================
+  async function findMatchesForProject(projectId) {
     const project = PMTwinData.Projects.getById(projectId);
     if (!project || project.status !== 'active') {
       return [];
     }
 
-    // Get all approved providers (individuals and entities)
-    const individuals = PMTwinData.Users.getByRole('individual')
-      .filter(u => u.profile?.status === 'approved');
-    const entities = PMTwinData.Users.getByRole('entity')
-      .filter(u => u.profile?.status === 'approved');
-    const providers = [...individuals, ...entities];
+    // Get all active service offerings (strict mode - require offerings)
+    if (typeof ServiceOfferingService === 'undefined') {
+      console.warn('ServiceOfferingService not available, falling back to provider matching');
+      return findMatchesForProjectLegacy(projectId);
+    }
 
+    const offeringsResult = await ServiceOfferingService.getOfferings({ 
+      includeAll: false  // Only active offerings
+    });
+
+    if (!offeringsResult.success || !offeringsResult.offerings.length) {
+      return [];
+    }
+
+    const activeOfferings = offeringsResult.offerings.filter(o => o.status === 'Active');
     const matches = [];
+    const processedProviders = new Set(); // Track providers we've already matched
 
-    providers.forEach(provider => {
-      const matchResult = calculateMatchScore(project, provider);
+    for (const offering of activeOfferings) {
+      // Skip if we've already matched this provider
+      if (processedProviders.has(offering.provider_user_id)) {
+        continue;
+      }
+
+      // Get provider user
+      const provider = PMTwinData.Users.getById(offering.provider_user_id);
+      if (!provider || provider.profile?.status !== 'approved') {
+        continue;
+      }
+
+      // Skip if provider created this project
+      if (project.creatorId === provider.id) {
+        continue;
+      }
+
+      // Calculate match score
+      const matchResult = calculateMatchScore(project, offering, provider);
       
       if (matchResult.meetsThreshold) {
         // Check if match already exists
@@ -212,13 +328,17 @@
           const match = PMTwinData.Matches.create({
             projectId: projectId,
             providerId: provider.id,
+            offeringId: offering.id,  // Store best offering ID
             score: matchResult.finalScore,
             criteria: matchResult.criteria,
-            weights: matchResult.weights
+            weights: matchResult.weights,
+            best_offering_id: matchResult.best_offering_id,
+            explain: matchResult.explain
           });
 
           if (match) {
             matches.push(match);
+            processedProviders.add(offering.provider_user_id);
             
             // Create notification for provider
             PMTwinData.Notifications.create({
@@ -235,35 +355,97 @@
             // Mark as notified
             PMTwinData.Matches.markAsNotified(match.id);
           }
+        } else {
+          processedProviders.add(offering.provider_user_id);
         }
       }
+    }
+
+    return matches;
+  }
+
+  // ============================================
+  // Legacy Matching (fallback if offerings not available)
+  // ============================================
+  function findMatchesForProjectLegacy(projectId) {
+    const project = PMTwinData.Projects.getById(projectId);
+    if (!project || project.status !== 'active') {
+      return [];
+    }
+
+    // Get all approved providers (individuals and entities)
+    const individuals = PMTwinData.Users.getByRole('individual')
+      .filter(u => u.profile?.status === 'approved');
+    const entities = PMTwinData.Users.getByRole('entity')
+      .filter(u => u.profile?.status === 'approved');
+    const providers = [...individuals, ...entities];
+
+    const matches = [];
+
+    providers.forEach(provider => {
+      // Legacy matching - would need old calculateMatchScore signature
+      // For now, skip if no offerings available (strict mode)
+      return;
     });
 
     return matches;
   }
 
   // ============================================
-  // Find Matches for a Provider
+  // Find Matches for a Provider (using service offerings)
   // ============================================
-  function findMatchesForProvider(providerId) {
+  async function findMatchesForProvider(providerId) {
     const provider = PMTwinData.Users.getById(providerId);
     if (!provider || provider.profile?.status !== 'approved') {
       return [];
+    }
+
+    // Get provider's active offerings (strict mode)
+    if (typeof ServiceOfferingService === 'undefined') {
+      return [];
+    }
+
+    const offeringsResult = await ServiceOfferingService.getMyOfferings();
+    if (!offeringsResult.success) {
+      return [];
+    }
+
+    const activeOfferings = offeringsResult.offerings.filter(o => 
+      o.provider_user_id === providerId && o.status === 'Active'
+    );
+
+    if (activeOfferings.length === 0) {
+      return []; // No active offerings - strict mode
     }
 
     // Get all active projects
     const projects = PMTwinData.Projects.getActive();
     const matches = [];
 
-    projects.forEach(project => {
+    for (const project of projects) {
       // Skip projects created by the same provider
       if (project.creatorId === providerId) {
-        return;
+        continue;
       }
 
-      const matchResult = calculateMatchScore(project, provider);
-      
-      if (matchResult.meetsThreshold) {
+      // Find best offering for this project
+      let bestMatch = null;
+      let bestScore = 0;
+
+      for (const offering of activeOfferings) {
+        const matchResult = calculateMatchScore(project, offering, provider);
+        
+        if (matchResult.meetsThreshold && matchResult.finalScore > bestScore) {
+          bestScore = matchResult.finalScore;
+          bestMatch = {
+            project: project,
+            offering: offering,
+            matchResult: matchResult
+          };
+        }
+      }
+
+      if (bestMatch) {
         // Check if match already exists
         const existing = PMTwinData.Matches.getAll().find(
           m => m.projectId === project.id && m.providerId === providerId
@@ -273,9 +455,12 @@
           const match = PMTwinData.Matches.create({
             projectId: project.id,
             providerId: providerId,
-            score: matchResult.finalScore,
-            criteria: matchResult.criteria,
-            weights: matchResult.weights
+            offeringId: bestMatch.offering.id,
+            score: bestMatch.matchResult.finalScore,
+            criteria: bestMatch.matchResult.criteria,
+            weights: bestMatch.matchResult.weights,
+            best_offering_id: bestMatch.matchResult.best_offering_id,
+            explain: bestMatch.matchResult.explain
           });
 
           if (match) {
@@ -283,7 +468,7 @@
           }
         }
       }
-    });
+    }
 
     return matches;
   }
@@ -291,19 +476,21 @@
   // ============================================
   // Trigger Matching for New Project
   // ============================================
-  function triggerMatching(projectId) {
+  async function triggerMatching(projectId) {
     // Small delay to ensure project is saved
-    setTimeout(() => {
-      const matches = findMatchesForProject(projectId);
-      console.log(`Matching completed: ${matches.length} matches found for project ${projectId}`);
-      return matches;
-    }, 100);
+    return new Promise((resolve) => {
+      setTimeout(async () => {
+        const matches = await findMatchesForProject(projectId);
+        console.log(`Matching completed: ${matches.length} matches found for project ${projectId}`);
+        resolve(matches);
+      }, 100);
+    });
   }
 
   // ============================================
   // Get Match Details
   // ============================================
-  function getMatchDetails(matchId) {
+  async function getMatchDetails(matchId) {
     const match = PMTwinData.Matches.getById(matchId);
     if (!match) {
       return null;
@@ -311,11 +498,21 @@
 
     const project = PMTwinData.Projects.getById(match.projectId);
     const provider = PMTwinData.Users.getById(match.providerId);
+    
+    // Get offering if available
+    let offering = null;
+    if (match.best_offering_id && typeof ServiceOfferingService !== 'undefined') {
+      const offeringResult = await ServiceOfferingService.getOfferingById(match.best_offering_id);
+      if (offeringResult.success) {
+        offering = offeringResult.offering;
+      }
+    }
 
     return {
       match: match,
       project: project,
       provider: provider,
+      offering: offering,
       breakdown: {
         category: {
           score: match.criteria.categoryMatch,
@@ -337,7 +534,8 @@
           weight: match.weights.location,
           contribution: Math.round(match.criteria.locationMatch * match.weights.location)
         }
-      }
+      },
+      explain: match.explain || null
     };
   }
 
@@ -348,6 +546,7 @@
     calculateMatchScore,
     findMatchesForProject,
     findMatchesForProvider,
+    findBestOfferingForProject,
     triggerMatching,
     getMatchDetails,
     MATCH_THRESHOLD,

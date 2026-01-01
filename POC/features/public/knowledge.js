@@ -9,25 +9,25 @@
     {
       id: 'spv',
       title: 'Special Purpose Vehicles (SPV)',
-      icon: '🏗️',
+      icon: '<i class="ph ph-buildings"></i>',
       description: 'Learn about SPVs and how they work'
     },
     {
       id: 'barter',
       title: 'Barter Systems',
-      icon: '🔄',
+      icon: '<i class="ph ph-arrow-clockwise"></i>',
       description: 'Understanding barter exchanges'
     },
     {
       id: 'collaboration',
       title: 'Collaboration Models',
-      icon: '🤝',
+      icon: '<i class="ph ph-handshake"></i>',
       description: 'Different ways to collaborate'
     },
     {
       id: 'faq',
       title: 'Frequently Asked Questions',
-      icon: '❓',
+      icon: '<i class="ph ph-question"></i>',
       description: 'Common questions and answers'
     }
   ];
@@ -192,7 +192,7 @@
         <div class="card">
           <div class="card-body">
             <div style="display: flex; align-items: start; gap: 1rem;">
-              <div style="font-size: 2rem;">${category?.icon || '📄'}</div>
+              <div style="font-size: 2rem;">${category?.icon || '<i class="ph ph-file-text"></i>'}</div>
               <div style="flex: 1;">
                 <h3 style="margin: 0 0 0.5rem 0;">${article.title}</h3>
                 <p style="margin: 0 0 1rem 0; color: var(--text-secondary);">${article.content}</p>

@@ -403,20 +403,32 @@
   }
 
   async function getMenuItems() {
+    console.log('[DashboardService] getMenuItems() called');
+    
     if (typeof PMTwinData === 'undefined') {
+      console.error('[DashboardService] PMTwinData not available');
       return { success: false, error: 'Data service not available' };
     }
     
     const currentUser = PMTwinData.Sessions.getCurrentUser();
     if (!currentUser) {
+      console.error('[DashboardService] User not authenticated');
       return { success: false, error: 'User not authenticated' };
     }
+    
+    console.log('[DashboardService] Current user:', currentUser.email, 'Role:', currentUser.role);
     
     // Get base path for routes
     function getBasePath() {
       const currentPath = window.location.pathname;
-      const segments = currentPath.split('/').filter(p => p && !p.endsWith('.html'));
-      return segments.length > 0 ? '../' : '';
+      // Remove leading/trailing slashes and split
+      const segments = currentPath.split('/').filter(p => p && !p.endsWith('.html') && p !== 'POC' && p !== '');
+      
+      // Count how many directory levels deep we are (excluding POC root and filename)
+      const depth = segments.length;
+      
+      // Generate the appropriate number of ../ to reach POC root
+      return depth > 0 ? '../'.repeat(depth) : '';
     }
     
     const basePath = getBasePath();
@@ -443,6 +455,22 @@
       // Collaboration
       // Note: Collaboration can be accessed with collaboration_opportunities OR collaboration_applications
       { id: 'collaboration', label: 'Collaboration', route: `${basePath}collaboration/`, feature: 'collaboration_opportunities', icon: '<i class="ph ph-handshake"></i>', alternativeFeatures: ['collaboration_applications'] },
+      
+      // Services Section (Grouped)
+      { 
+        id: 'services-group', 
+        label: 'Services', 
+        route: '#', 
+        feature: 'service_providers', // Show if user has any service-related permission
+        icon: '<i class="ph ph-briefcase"></i>', 
+        isGroup: true,
+        children: [
+          { id: 'service-providers', label: 'Service Providers', route: `${basePath}service-providers/`, feature: 'service_providers', icon: '<i class="ph ph-briefcase"></i>' },
+          { id: 'my-services', label: 'My Services', route: `${basePath}my-services/`, feature: 'service_portfolio', icon: '<i class="ph ph-package"></i>' },
+          { id: 'services-marketplace', label: 'Services Marketplace', route: `${basePath}services-marketplace/`, feature: 'service_offering:view', icon: '<i class="ph ph-storefront"></i>' }
+        ],
+        alternativeFeatures: ['service_portfolio', 'service_offering:view'] // Show group if user has any of these
+      },
       
       // Profile & Settings
       { id: 'profile', label: 'Profile', route: `${basePath}profile/`, feature: 'profile_management', icon: '<i class="ph ph-user"></i>' },
@@ -529,70 +557,148 @@
         
         console.log('[DashboardService] User role:', userRoleId);
         console.log('[DashboardService] Available features:', availableFeatures);
+        console.log('[DashboardService] Available features count:', availableFeatures?.length || 0);
         console.log('[DashboardService] Total menu items before filter:', allMenuItems.length);
         
-        // If no features available, log warning but continue
+        // Special case: platform_admin should see everything (check early)
+        if (userRoleId === 'platform_admin' || currentUser.role === 'admin' || currentUser.role === 'platform_admin') {
+          console.log('[DashboardService] Platform admin detected - showing all menu items');
+          return { success: true, items: allMenuItems };
+        }
+        
+        // If no features available, log warning and use fallback
         if (!availableFeatures || availableFeatures.length === 0) {
           console.warn('[DashboardService] No features available for user. Role:', userRoleId);
           console.warn('[DashboardService] User object:', currentUser);
-        }
+          console.warn('[DashboardService] Falling back to legacy role-based filtering');
+          // Fall through to legacy filtering below
+        } else {
         
-        // Filter menu items based on available features
-        const filtered = allMenuItems.filter(item => {
-          // Always show separators
-          if (item.isSeparator) return true;
-          
-          // If no feature requirement, hide it (security: explicit permission required)
-          if (!item.feature) {
-            console.log('[DashboardService] Hiding item without feature:', item.id);
-            return false;
-          }
-          
-          // Check if user has access to the primary feature
-          let hasAccess = availableFeatures.includes(item.feature);
-          
-          // Check alternative features if primary feature not available
-          if (!hasAccess && item.alternativeFeatures && Array.isArray(item.alternativeFeatures)) {
-            hasAccess = item.alternativeFeatures.some(altFeature => availableFeatures.includes(altFeature));
-            if (hasAccess) {
-              console.log(`[DashboardService] Item ${item.id} accessible via alternative feature`);
+          // Filter menu items based on available features
+          const filtered = allMenuItems.map(item => {
+            // Always show separators
+            if (item.isSeparator) return item;
+            
+            // Handle grouped items
+            if (item.isGroup && item.children) {
+              // Filter children based on permissions
+              const filteredChildren = item.children.filter(child => {
+                if (!child.feature) return false;
+                
+                let hasAccess = availableFeatures.includes(child.feature);
+                
+                // Check alternative features if primary feature not available
+                if (!hasAccess && child.alternativeFeatures && Array.isArray(child.alternativeFeatures)) {
+                  hasAccess = child.alternativeFeatures.some(altFeature => availableFeatures.includes(altFeature));
+                }
+                
+                // Special case: platform_admin should see all
+                if (userRoleId === 'platform_admin' || userRoleId === 'admin') {
+                  return true;
+                }
+                
+                return hasAccess;
+              });
+              
+              // Check if group itself should be shown (either group feature OR any child accessible)
+              let showGroup = false;
+              
+              // Check group's own feature requirement
+              if (item.feature) {
+                let groupHasAccess = availableFeatures.includes(item.feature);
+                if (!groupHasAccess && item.alternativeFeatures && Array.isArray(item.alternativeFeatures)) {
+                  groupHasAccess = item.alternativeFeatures.some(altFeature => availableFeatures.includes(altFeature));
+                }
+                if (groupHasAccess || userRoleId === 'platform_admin' || userRoleId === 'admin') {
+                  showGroup = true;
+                }
+              }
+              
+              // Also show if any child is accessible
+              if (filteredChildren.length > 0) {
+                showGroup = true;
+              }
+              
+              // Only show group if it has at least one accessible child OR group feature is available
+              if (!showGroup || filteredChildren.length === 0) {
+                return null; // Filter out empty groups
+              }
+              
+              // Return group with filtered children
+              return {
+                ...item,
+                children: filteredChildren
+              };
             }
+            
+            // Regular item filtering
+            // If no feature requirement, hide it (security: explicit permission required)
+            if (!item.feature) {
+              console.log('[DashboardService] Hiding item without feature:', item.id);
+              return null;
+            }
+            
+            // Check if user has access to the primary feature
+            let hasAccess = availableFeatures.includes(item.feature);
+            
+            // Check alternative features if primary feature not available
+            if (!hasAccess && item.alternativeFeatures && Array.isArray(item.alternativeFeatures)) {
+              hasAccess = item.alternativeFeatures.some(altFeature => availableFeatures.includes(altFeature));
+              if (hasAccess) {
+                console.log(`[DashboardService] Item ${item.id} accessible via alternative feature`);
+              }
+            }
+            
+            // Special handling for admin features - only show if user is platform_admin
+            if (item.feature.startsWith('admin_') && userRoleId !== 'platform_admin') {
+              return null;
+            }
+            
+            // Special case: platform_admin should see all menu items
+            if (userRoleId === 'platform_admin' || userRoleId === 'admin') {
+              return item;
+            }
+            
+            if (!hasAccess) {
+              console.log(`[DashboardService] Hiding ${item.id} - missing feature: ${item.feature}`);
+              return null;
+            }
+            
+            return item;
+          }).filter(item => item !== null); // Remove null items
+          
+          console.log('[DashboardService] Filtered menu items:', filtered.length);
+          console.log('[DashboardService] Menu items:', filtered.map(i => ({ id: i.id, label: i.label, feature: i.feature })));
+          
+          // Debug: Check if service-providers is in the list
+          const hasServiceProviders = filtered.some(item => item.id === 'service-providers');
+          console.log('[DashboardService] Service Providers menu item present:', hasServiceProviders);
+          if (!hasServiceProviders) {
+            console.warn('[DashboardService] Service Providers menu item is missing!');
+            console.warn('[DashboardService] Available features include service_providers:', availableFeatures.includes('service_providers'));
           }
           
-          // Special handling for admin features - only show if user is admin
-          if (item.feature.startsWith('admin_') && userRoleId !== 'platform_admin') {
-            return false;
+          // If filtered list is empty, log detailed info for debugging
+          if (filtered.length === 0) {
+            console.error('[DashboardService] WARNING: No menu items after filtering!');
+            console.error('[DashboardService] User role:', userRoleId);
+            console.error('[DashboardService] Available features:', availableFeatures);
+            console.error('[DashboardService] All menu items:', allMenuItems.map(i => ({ id: i.id, feature: i.feature })));
+            
+            // Safety fallback: show at least dashboard and profile for authenticated users
+            console.warn('[DashboardService] Using safety fallback - showing basic menu items');
+            const fallbackItems = allMenuItems.filter(item => 
+              item.feature === 'user_dashboard' || 
+              item.feature === 'service_providers' ||
+              item.feature === 'profile_management' || 
+              item.feature === 'notifications' ||
+              item.isSeparator
+            );
+            return { success: true, items: fallbackItems };
           }
           
-          if (!hasAccess) {
-            console.log(`[DashboardService] Hiding ${item.id} - missing feature: ${item.feature}`);
-          }
-          
-          return hasAccess;
-        });
-        
-        console.log('[DashboardService] Filtered menu items:', filtered.length);
-        console.log('[DashboardService] Menu items:', filtered.map(i => ({ id: i.id, label: i.label, feature: i.feature })));
-        
-        // If filtered list is empty, log detailed info for debugging
-        if (filtered.length === 0) {
-          console.error('[DashboardService] WARNING: No menu items after filtering!');
-          console.error('[DashboardService] User role:', userRoleId);
-          console.error('[DashboardService] Available features:', availableFeatures);
-          console.error('[DashboardService] All menu items:', allMenuItems.map(i => ({ id: i.id, feature: i.feature })));
-          
-          // Safety fallback: show at least dashboard and profile for authenticated users
-          console.warn('[DashboardService] Using safety fallback - showing basic menu items');
-          const fallbackItems = allMenuItems.filter(item => 
-            item.feature === 'user_dashboard' || 
-            item.feature === 'profile_management' || 
-            item.feature === 'notifications' ||
-            item.isSeparator
-          );
-          return { success: true, items: fallbackItems };
+          return { success: true, items: filtered };
         }
-        
-      return { success: true, items: filtered };
       } catch (error) {
         console.error('[DashboardService] Error filtering menu items:', error);
         console.error('[DashboardService] Error stack:', error.stack);
@@ -604,16 +710,96 @@
     const role = currentUser.role;
     console.log('[DashboardService] Using fallback filtering for legacy role:', role);
     
-    const filtered = allMenuItems.filter(item => {
+    const filtered = allMenuItems.map(item => {
       // Always show separators
-      if (item.isSeparator) return true;
+      if (item.isSeparator) return item;
       
       // Admin sees everything
       if (role === 'admin' || role === 'platform_admin') {
-        return true;
+        return item;
       }
       
-      // Entity/Project Lead permissions
+      // Handle grouped items
+      if (item.isGroup && item.children) {
+        // Filter children based on role permissions (same logic as below)
+        const filteredChildren = item.children.filter(child => {
+          if (!child.feature) return false;
+          
+          // Entity/Project Lead permissions
+          if (role === 'entity' || role === 'project_lead') {
+            const allowedFeatures = [
+              'user_dashboard', 
+              'project_creation', 
+              'project_management',
+              'project_browsing',
+              'proposal_review',
+              'proposal_management',
+              'matches_view',
+              'pipeline_management',
+              'collaboration_opportunities',
+              'collaboration_applications',
+              'service_providers',
+              'service_portfolio',
+              'service_offering:view',
+              'profile_management', 
+              'notifications'
+            ];
+            if (allowedFeatures.includes(child.feature)) return true;
+            if (child.alternativeFeatures && child.alternativeFeatures.some(alt => allowedFeatures.includes(alt))) return true;
+            return false;
+          }
+          
+          // Individual/Professional permissions
+          if (role === 'individual' || role === 'professional') {
+            const allowedFeatures = [
+              'user_dashboard',
+              'project_browsing',
+              'proposal_creation',
+              'proposal_management',
+              'matches_view',
+              'pipeline_management',
+              'collaboration_opportunities',
+              'service_providers',
+              'service_portfolio',
+              'service_offering:view',
+              'profile_management',
+              'notifications'
+            ];
+            if (allowedFeatures.includes(child.feature)) return true;
+            if (child.alternativeFeatures && child.alternativeFeatures.some(alt => allowedFeatures.includes(alt))) return true;
+            return false;
+          }
+          
+          // Service Provider permissions
+          if (role === 'service_provider' || role === 'supplier' || role === 'consultant') {
+            const allowedFeatures = [
+              'user_dashboard',
+              'service_providers',
+              'service_portfolio',
+              'service_offering:view',
+              'profile_management',
+              'notifications'
+            ];
+            if (allowedFeatures.includes(child.feature)) return true;
+            if (child.alternativeFeatures && child.alternativeFeatures.some(alt => allowedFeatures.includes(alt))) return true;
+            return false;
+          }
+          
+          return false;
+        });
+        
+        // Only show group if it has at least one accessible child
+        if (filteredChildren.length === 0) {
+          return null;
+        }
+        
+        return {
+          ...item,
+          children: filteredChildren
+        };
+      }
+      
+      // Regular items - Entity/Project Lead permissions
       if (role === 'entity' || role === 'project_lead') {
         const allowedFeatures = [
           'user_dashboard', 
@@ -626,18 +812,21 @@
           'pipeline_management',
           'collaboration_opportunities',
           'collaboration_applications', // Allow applications too
+          'service_providers',
+          'service_portfolio',
+          'service_offering:view',
           'profile_management', 
           'notifications'
         ];
         
         // Check primary feature or alternative features
-        if (!item.feature) return false;
-        if (allowedFeatures.includes(item.feature)) return true;
-        if (item.alternativeFeatures && item.alternativeFeatures.some(alt => allowedFeatures.includes(alt))) return true;
-        return false;
+        if (!item.feature) return null;
+        if (allowedFeatures.includes(item.feature)) return item;
+        if (item.alternativeFeatures && item.alternativeFeatures.some(alt => allowedFeatures.includes(alt))) return item;
+        return null;
       }
       
-      // Individual/Professional permissions
+      // Regular items - Individual/Professional permissions
       if (role === 'individual' || role === 'professional') {
         const allowedFeatures = [
           'user_dashboard', 
@@ -649,37 +838,64 @@
           'pipeline_management',
           'collaboration_opportunities',
           'collaboration_applications',
+          'service_providers',
+          'service_portfolio',
+          'service_offering:view',
           'profile_management', 
           'notifications'
         ];
         
         // Check primary feature or alternative features
-        if (!item.feature) return false;
-        if (allowedFeatures.includes(item.feature)) return true;
-        if (item.alternativeFeatures && item.alternativeFeatures.some(alt => allowedFeatures.includes(alt))) return true;
-        return false;
+        if (!item.feature) return null;
+        if (allowedFeatures.includes(item.feature)) return item;
+        if (item.alternativeFeatures && item.alternativeFeatures.some(alt => allowedFeatures.includes(alt))) return item;
+        return null;
+      }
+      
+      // Supplier, Service Provider, Consultant, Mentor permissions
+      if (role === 'supplier' || role === 'service_provider' || role === 'consultant' || role === 'mentor') {
+        const allowedFeatures = [
+          'user_dashboard',
+          'project_browsing',
+          'matches_view',
+          'proposal_creation',
+          'proposal_management',
+          'pipeline_management',
+          'collaboration_opportunities',
+          'collaboration_applications',
+          'service_providers',
+          'profile_management',
+          'notifications'
+        ];
+        
+        // Check primary feature or alternative features
+        if (!item.feature) return null;
+        if (allowedFeatures.includes(item.feature)) return item;
+        if (item.alternativeFeatures && item.alternativeFeatures.some(alt => allowedFeatures.includes(alt))) return item;
+        return null;
       }
       
       // Default: show basic items for any authenticated user
-      if (!item.feature) return false;
-      const basicFeatures = ['user_dashboard', 'profile_management', 'notifications'];
-      if (basicFeatures.includes(item.feature)) return true;
-      if (item.alternativeFeatures && item.alternativeFeatures.some(alt => basicFeatures.includes(alt))) return true;
+      if (!item.feature) return null;
+      const basicFeatures = ['user_dashboard', 'service_providers', 'service_portfolio', 'service_offering:view', 'profile_management', 'notifications'];
+      if (basicFeatures.includes(item.feature)) return item;
+      if (item.alternativeFeatures && item.alternativeFeatures.some(alt => basicFeatures.includes(alt))) return item;
       
-      return false;
-    });
+      return null;
+    }).filter(item => item !== null); // Remove null items
     
     console.log('[DashboardService] Fallback filtered menu items:', filtered.length);
     
-    // Final safety check - if still empty, return at least dashboard
-    if (filtered.length === 0) {
-      console.error('[DashboardService] CRITICAL: No menu items even after fallback!');
-      const basicItems = allMenuItems.filter(item => 
-        item.id === 'dashboard' || 
-        item.id === 'profile' || 
-        item.id === 'notifications' ||
-        item.isSeparator
-      );
+      // Final safety check - if still empty, return at least dashboard
+      if (filtered.length === 0) {
+        console.error('[DashboardService] CRITICAL: No menu items even after fallback!');
+        const basicItems = allMenuItems.filter(item => 
+          item.id === 'dashboard' || 
+          item.id === 'service-providers' ||
+          item.id === 'profile' || 
+          item.id === 'notifications' ||
+          item.isSeparator
+        );
       return { success: true, items: basicItems };
     }
     

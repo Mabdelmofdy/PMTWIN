@@ -4236,6 +4236,104 @@ select.form-control {
 }
 
 /* ============================================
+   Sidebar Menu Groups (Dropdown)
+   ============================================ */
+.sidebar-menu-group {
+  position: relative;
+}
+
+.sidebar-group-toggle {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  padding: var(--spacing-3) var(--spacing-4);
+  background: transparent;
+  border: none;
+  color: var(--text-primary);
+  cursor: pointer;
+  transition: all var(--transition-base);
+  text-align: left;
+  font-size: var(--font-size-base);
+  font-family: inherit;
+}
+
+.sidebar-group-toggle:hover {
+  background: var(--bg-secondary);
+  color: var(--color-primary);
+}
+
+.sidebar-menu-group.active > .sidebar-group-toggle {
+  background: var(--color-primary-light);
+  color: var(--color-primary);
+  font-weight: 600;
+}
+
+.sidebar-group-toggle .sidebar-icon {
+  margin-right: var(--spacing-3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+}
+
+.sidebar-group-toggle .sidebar-label {
+  flex: 1;
+}
+
+.sidebar-chevron {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  transition: transform var(--transition-base);
+}
+
+.sidebar-chevron i {
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+}
+
+.sidebar-group-toggle:hover .sidebar-chevron i {
+  color: var(--color-primary);
+}
+
+.sidebar-submenu {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  background: var(--bg-secondary);
+  border-left: 2px solid var(--border-color);
+  margin-left: var(--spacing-4);
+  overflow: hidden;
+  transition: all var(--transition-base);
+}
+
+.sidebar-submenu .sidebar-menu-item {
+  margin: 0;
+}
+
+.sidebar-submenu .sidebar-link {
+  padding-left: 2.5rem;
+  font-size: 0.9375rem;
+  color: var(--text-secondary);
+}
+
+.sidebar-submenu .sidebar-link:hover {
+  background: var(--bg-primary);
+  color: var(--color-primary);
+}
+
+.sidebar-submenu .sidebar-menu-item.active .sidebar-link {
+  background: var(--color-primary-light);
+  color: var(--color-primary);
+  font-weight: 600;
+  border-left: 3px solid var(--color-primary);
+}
+
+/* ============================================
    Project Form Builder Styles
    ============================================ */
 
@@ -4706,6 +4804,185 @@ select.form-control {
   .sub-project-meta {
     flex-direction: column;
     gap: 0.5rem;
+  }
+}
+
+/* ============================================
+   Multi-Step Onboarding Wizard Styles
+   ============================================ */
+
+.onboarding-progress {
+  margin-bottom: 2rem;
+}
+
+.progress-steps {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+.progress-step {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  flex: 1;
+  position: relative;
+}
+
+.progress-step .step-number {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: var(--color-gray-200);
+  color: var(--color-gray-600);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+  transition: all 0.3s ease;
+  border: 2px solid var(--color-gray-300);
+}
+
+.progress-step.active .step-number {
+  background: var(--color-primary);
+  color: var(--color-white);
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 4px rgba(0, 123, 255, 0.1);
+}
+
+.progress-step.completed .step-number {
+  background: var(--color-success);
+  color: var(--color-white);
+  border-color: var(--color-success);
+}
+
+.progress-step.completed .step-number::after {
+  content: '✓';
+  font-size: 1.2rem;
+}
+
+.progress-step .step-label {
+  font-size: 0.85rem;
+  color: var(--color-gray-600);
+  text-align: center;
+  font-weight: 500;
+}
+
+.progress-step.active .step-label {
+  color: var(--color-primary);
+  font-weight: 600;
+}
+
+.progress-step.completed .step-label {
+  color: var(--color-success);
+}
+
+.progress-line {
+  flex: 1;
+  height: 2px;
+  background: var(--color-gray-300);
+  margin: 0 0.5rem;
+  margin-bottom: 20px;
+  position: relative;
+}
+
+.progress-step.completed + .progress-line {
+  background: var(--color-success);
+}
+
+.progress-step.active ~ .progress-step .progress-line {
+  background: var(--color-gray-300);
+}
+
+.onboarding-step {
+  animation: fadeIn 0.3s ease-in;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.user-type-card {
+  transition: all 0.3s ease;
+}
+
+.user-type-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.file-upload-area:hover {
+  border-color: var(--color-primary);
+  background: rgba(0, 123, 255, 0.02);
+}
+
+.file-upload-area.dragover {
+  border-color: var(--color-primary);
+  background: rgba(0, 123, 255, 0.05);
+}
+
+.step-actions {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-top: 2rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--color-gray-200);
+}
+
+.terms-container {
+  line-height: 1.8;
+}
+
+.terms-container ul {
+  margin: 1rem 0;
+  padding-left: 1.5rem;
+}
+
+.terms-container li {
+  margin-bottom: 0.5rem;
+}
+
+/* Responsive wizard */
+@media (max-width: 768px) {
+  .progress-steps {
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+
+  .progress-step {
+    flex: 0 0 calc(20% - 0.5rem);
+    min-width: 60px;
+  }
+
+  .progress-step .step-label {
+    font-size: 0.75rem;
+  }
+
+  .progress-line {
+    display: none;
+  }
+
+  .user-type-selection {
+    grid-template-columns: 1fr !important;
+  }
+
+  .step-actions {
+    flex-direction: column-reverse;
+  }
+
+  .step-actions .btn {
+    width: 100%;
   }
 }
 

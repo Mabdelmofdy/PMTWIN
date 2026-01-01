@@ -260,7 +260,7 @@
             ${data.address ? `
               <div class="card" style="text-align: center;">
                 <div class="card-body">
-                  <div style="font-size: 2rem; margin-bottom: var(--spacing-3);">📍</div>
+                  <div style="font-size: 2rem; margin-bottom: var(--spacing-3);"><i class="ph ph-map-pin"></i></div>
                   <h4>Address</h4>
                   <p style="color: var(--text-secondary);">${data.address.full || data.address.street || ''}</p>
                   ${data.address.city ? `<p style="color: var(--text-secondary);">${data.address.city}${data.address.country ? `, ${data.address.country}` : ''}</p>` : ''}

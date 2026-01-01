@@ -1,0 +1,75 @@
+{
+  "categories": [
+    {
+      "id": "legal",
+      "name": "Legal Services",
+      "description": "Legal consultation, contract review, compliance, regulatory affairs",
+      "icon": "ph ph-scale",
+      "color": "#3b82f6"
+    },
+    {
+      "id": "logistics",
+      "name": "Logistics & Supply Chain",
+      "description": "Transportation, warehousing, supply chain management, customs clearance",
+      "icon": "ph ph-truck",
+      "color": "#10b981"
+    },
+    {
+      "id": "design",
+      "name": "Design & Architecture",
+      "description": "Architectural design, engineering design, interior design, 3D modeling",
+      "icon": "ph ph-pencil-line",
+      "color": "#8b5cf6"
+    },
+    {
+      "id": "engineering",
+      "name": "Engineering Services",
+      "description": "Civil engineering, structural engineering, MEP engineering, quality control",
+      "icon": "ph ph-gear",
+      "color": "#f59e0b"
+    },
+    {
+      "id": "financial",
+      "name": "Financial Services",
+      "description": "Financial consulting, accounting, tax services, project financing",
+      "icon": "ph ph-currency-circle-dollar",
+      "color": "#06b6d4"
+    },
+    {
+      "id": "safety",
+      "name": "Safety & Compliance",
+      "description": "Safety consulting, compliance audits, risk assessment, training",
+      "icon": "ph ph-shield-check",
+      "color": "#ef4444"
+    },
+    {
+      "id": "environmental",
+      "name": "Environmental Services",
+      "description": "Environmental impact assessment, sustainability consulting, waste management",
+      "icon": "ph ph-leaf",
+      "color": "#22c55e"
+    },
+    {
+      "id": "it",
+      "name": "IT & Technology",
+      "description": "Software development, IT infrastructure, BIM services, digital transformation",
+      "icon": "ph ph-device-desktop",
+      "color": "#6366f1"
+    },
+    {
+      "id": "marketing",
+      "name": "Marketing & Communications",
+      "description": "Marketing strategy, branding, public relations, digital marketing",
+      "icon": "ph ph-megaphone",
+      "color": "#ec4899"
+    },
+    {
+      "id": "hr",
+      "name": "Human Resources",
+      "description": "Recruitment, HR consulting, training and development, payroll services",
+      "icon": "ph ph-users",
+      "color": "#14b8a6"
+    }
+  ]
+}
+
