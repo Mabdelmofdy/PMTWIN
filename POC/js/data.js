@@ -88,6 +88,9 @@
     
     // Load sample projects if none exist
     loadSampleProjects();
+    
+    // Load sample collaboration opportunities if none exist
+    loadSampleCollaborationOpportunities();
   }
 
   // ============================================
@@ -2809,6 +2812,9 @@
   // ============================================
   // Collaboration Opportunities CRUD
   // ============================================
+  // ============================================
+  // Collaboration Opportunities CRUD
+  // ============================================
   const CollaborationOpportunities = {
     getAll() {
       return get(STORAGE_KEYS.COLLABORATION_OPPORTUNITIES);
@@ -2822,6 +2828,62 @@
     getByCreator(creatorId) {
       const opportunities = this.getAll();
       return opportunities.filter(o => o.creatorId === creatorId);
+    },
+
+    getByModelType(modelType) {
+      const opportunities = this.getAll();
+      return opportunities.filter(o => o.modelType === modelType);
+    },
+
+    getByStatus(status) {
+      const opportunities = this.getAll();
+      return opportunities.filter(o => o.status === status);
+    },
+
+    create(opportunityData) {
+      const opportunities = this.getAll();
+      const opportunity = {
+        id: generateId('collab'),
+        ...opportunityData,
+        status: opportunityData.status || 'draft',
+        views: 0,
+        matchesGenerated: 0,
+        applicationsReceived: 0,
+        applicationsApproved: 0,
+        createdAt: new Date().toISOString()
+      };
+      opportunities.push(opportunity);
+      if (set(STORAGE_KEYS.COLLABORATION_OPPORTUNITIES, opportunities)) {
+        this.createAuditLog('collaboration_opportunity_creation', opportunity.id, {
+          description: `Collaboration opportunity created: ${opportunity.modelName || opportunity.modelType}`,
+          creatorId: opportunity.creatorId,
+          modelType: opportunity.modelType
+        });
+        return opportunity;
+      }
+      return null;
+    },
+
+    update(id, updates) {
+      const opportunities = this.getAll();
+      const index = opportunities.findIndex(o => o.id === id);
+      if (index === -1) return null;
+
+      const oldOpportunity = { ...opportunities[index] };
+      opportunities[index] = {
+        ...opportunities[index],
+        ...updates,
+        updatedAt: new Date().toISOString()
+      };
+
+      if (set(STORAGE_KEYS.COLLABORATION_OPPORTUNITIES, opportunities)) {
+        this.createAuditLog('collaboration_opportunity_update', id, {
+          description: `Collaboration opportunity updated: ${opportunities[index].modelName || opportunities[index].modelType}`,
+          changes: updates
+        });
+        return opportunities[index];
+      }
+      return null;
     },
 
     getByModelType(modelType) {
@@ -2924,56 +2986,6 @@
       return stats;
     },
 
-    create(opportunityData) {
-      const opportunities = this.getAll();
-      const opportunity = {
-        id: generateId('collab'),
-        ...opportunityData,
-        status: opportunityData.status || 'draft',
-        views: 0,
-        matchesGenerated: 0,
-        applicationsReceived: 0,
-        applicationsApproved: 0,
-        createdAt: new Date().toISOString()
-      };
-      opportunities.push(opportunity);
-      if (set(STORAGE_KEYS.COLLABORATION_OPPORTUNITIES, opportunities)) {
-        this.createAuditLog('collaboration_opportunity_creation', opportunity.id, {
-          description: `Collaboration opportunity created: ${opportunity.modelName || opportunity.modelType}`,
-          creatorId: opportunity.creatorId,
-          modelType: opportunity.modelType
-        });
-        return opportunity;
-      }
-      return null;
-    },
-
-    update(id, updates) {
-      const opportunities = this.getAll();
-      const index = opportunities.findIndex(o => o.id === id);
-      if (index === -1) return null;
-
-      const oldOpportunity = { ...opportunities[index] };
-      opportunities[index] = {
-        ...opportunities[index],
-        ...updates,
-        updatedAt: new Date().toISOString()
-      };
-
-      if (set(STORAGE_KEYS.COLLABORATION_OPPORTUNITIES, opportunities)) {
-        if (updates.status === 'active' && oldOpportunity.status === 'draft') {
-          opportunities[index].publishedAt = new Date().toISOString();
-          set(STORAGE_KEYS.COLLABORATION_OPPORTUNITIES, opportunities);
-        }
-        this.createAuditLog('collaboration_opportunity_update', id, {
-          description: `Collaboration opportunity updated: ${opportunities[index].modelName || opportunities[index].modelType}`,
-          changes: { before: oldOpportunity, after: opportunities[index] }
-        });
-        return opportunities[index];
-      }
-      return null;
-    },
-
     delete(id) {
       const opportunities = this.getAll();
       const filtered = opportunities.filter(o => o.id !== id);
@@ -3016,6 +3028,517 @@
       set(STORAGE_KEYS.AUDIT, auditLogs);
     }
   };
+
+  // ============================================
+  // Load Sample Collaboration Opportunities
+  // ============================================
+  function loadSampleCollaborationOpportunities(forceReload = false) {
+    const existingOpportunities = CollaborationOpportunities.getAll();
+    
+    // Only load if no opportunities exist, unless forceReload is true
+    if (existingOpportunities.length > 0 && !forceReload) {
+      return;
+    }
+
+    // Get test users for creators
+    const users = Users.getAll();
+    const testUsers = users.filter(u => ['entity', 'company', 'individual', 'admin'].includes(u.role));
+    if (testUsers.length === 0) {
+      console.warn('No test users found for collaboration opportunities');
+      return;
+    }
+
+    const sampleOpportunities = [
+      // Model 1.1: Task-Based Engagement
+      {
+        modelId: '1.1',
+        modelType: '1.1',
+        modelName: 'Task-Based Engagement',
+        category: 'Project-Based Collaboration',
+        relationshipType: 'B2B',
+        creatorId: testUsers[0]?.id || 'user-1',
+        status: 'active',
+        attributes: {
+          taskTitle: 'Structural Engineering Review for Riyadh Metro Station',
+          taskType: 'Engineering',
+          detailedScope: 'Review and approve shop drawings for structural elements including foundations, columns, beams, and slabs. Provide structural calculations and ensure compliance with Saudi Building Code.',
+          duration: 45,
+          budgetRange: { min: 50000, max: 80000, currency: 'SAR' },
+          budgetType: 'Fixed Price',
+          requiredSkills: ['Structural Engineering', 'Foundation Design', 'Seismic Analysis', 'SBC Code'],
+          experienceLevel: 'Senior',
+          locationRequirement: 'Hybrid',
+          startDate: '2024-03-01',
+          deliverableFormat: 'PDF Reports, CAD Files, Excel Calculations',
+          paymentTerms: 'Milestone-Based',
+          exchangeType: 'Cash',
+          barterOffer: ''
+        },
+        views: 45,
+        matchesGenerated: 8,
+        applicationsReceived: 12,
+        applicationsApproved: 3
+      },
+      // Model 1.2: Consortium
+      {
+        modelId: '1.2',
+        modelType: '1.2',
+        modelName: 'Consortium',
+        category: 'Project-Based Collaboration',
+        relationshipType: 'B2B',
+        creatorId: testUsers[0]?.id || 'user-1',
+        status: 'active',
+        attributes: {
+          projectTitle: 'NEOM Industrial Zone Infrastructure Development',
+          projectType: 'Infrastructure',
+          projectValue: 500000000,
+          projectDuration: 36,
+          projectLocation: 'Tabuk, Saudi Arabia',
+          leadMember: true,
+          requiredMembers: 4,
+          memberRoles: [
+            { role: 'Civil Works', scope: 'Roads, bridges, and site preparation' },
+            { role: 'MEP Systems', scope: 'Electrical, plumbing, and HVAC installation' },
+            { role: 'Structural Engineering', scope: 'Building structures and foundations' },
+            { role: 'Project Management', scope: 'Overall coordination and delivery' }
+          ],
+          scopeDivision: 'By Trade',
+          liabilityStructure: 'Joint & Several',
+          clientType: 'Government',
+          tenderDeadline: '2024-04-15',
+          prequalificationRequired: true,
+          minimumRequirements: [
+            { requirement: 'Financial Capacity', value: 'Minimum 100M SAR annual revenue' },
+            { requirement: 'Experience', value: 'At least 3 similar projects completed' },
+            { requirement: 'Certifications', value: 'ISO 9001, ISO 14001' }
+          ],
+          consortiumAgreement: true,
+          paymentDistribution: 'Per Scope'
+        },
+        views: 78,
+        matchesGenerated: 15,
+        applicationsReceived: 8,
+        applicationsApproved: 4
+      },
+      // Model 1.3: Project-Specific Joint Venture
+      {
+        modelId: '1.3',
+        modelType: '1.3',
+        modelName: 'Project-Specific Joint Venture',
+        category: 'Project-Based Collaboration',
+        relationshipType: 'B2B',
+        creatorId: testUsers[0]?.id || 'user-1',
+        status: 'active',
+        attributes: {
+          projectTitle: 'Riyadh Financial District Tower',
+          projectType: 'Building',
+          projectValue: 250000000,
+          projectDuration: 30,
+          projectLocation: 'Riyadh, Saudi Arabia',
+          jvStructure: 'Incorporated LLC',
+          equitySplit: [50, 50],
+          capitalContribution: 50000000,
+          partnerRoles: [
+            { partner: 'Partner 1', contribution: 'Capital, Market Access' },
+            { partner: 'Partner 2', contribution: 'Expertise, Equipment' }
+          ],
+          managementStructure: 'Equal Management',
+          profitDistribution: 'Proportional to Equity',
+          riskAllocation: 'Risks shared proportionally. Construction risks allocated to construction partner, financial risks to capital partner.',
+          exitStrategy: 'Dissolution',
+          governance: 'Board of 4 directors (2 from each partner), decisions require majority vote.',
+          disputeResolution: 'Arbitration',
+          partnerRequirements: [
+            { requirement: 'Financial Capacity', value: 'Minimum 50M SAR net worth' },
+            { requirement: 'Experience', value: 'Completed at least 2 high-rise projects' }
+          ]
+        },
+        views: 92,
+        matchesGenerated: 12,
+        applicationsReceived: 6,
+        applicationsApproved: 2
+      },
+      // Model 1.4: Special Purpose Vehicle (SPV)
+      {
+        modelId: '1.4',
+        modelType: '1.4',
+        modelName: 'Special Purpose Vehicle (SPV)',
+        category: 'Project-Based Collaboration',
+        relationshipType: 'B2B',
+        creatorId: testUsers[0]?.id || 'user-1',
+        status: 'active',
+        attributes: {
+          projectTitle: 'Riyadh-Dammam High-Speed Rail PPP',
+          projectType: 'Infrastructure',
+          projectValue: 8000000000,
+          projectDuration: 300,
+          projectLocation: 'Riyadh to Dammam, Saudi Arabia',
+          spvLegalForm: 'LLC',
+          sponsors: [
+            { name: 'Saudi Infrastructure Fund', equity: 40 },
+            { name: 'International Rail Consortium', equity: 35 },
+            { name: 'Local Construction Group', equity: 25 }
+          ],
+          equityStructure: [
+            { sponsor: 'Saudi Infrastructure Fund', percentage: 40 },
+            { sponsor: 'International Rail Consortium', percentage: 35 },
+            { sponsor: 'Local Construction Group', percentage: 25 }
+          ],
+          debtFinancing: 5600000000,
+          debtType: 'Non-Recourse',
+          lenders: ['Saudi National Bank', 'Saudi Investment Bank', 'IFC'],
+          projectPhase: 'Financing',
+          revenueModel: 'User Fees',
+          riskAllocation: 'Construction risks to contractor, operational risks to operator, demand risks shared.',
+          governanceStructure: 'Board of 7 directors, independent chairman, professional management team.',
+          regulatoryApprovals: ['Ministry of Transport', 'SAMA', 'Ministry of Commerce'],
+          exitStrategy: 'Asset Transfer',
+          professionalServicesNeeded: ['Legal', 'Financial', 'Technical', 'Environmental']
+        },
+        views: 156,
+        matchesGenerated: 25,
+        applicationsReceived: 10,
+        applicationsApproved: 5
+      },
+      // Model 2.1: Strategic Joint Venture
+      {
+        modelId: '2.1',
+        modelType: '2.1',
+        modelName: 'Strategic Joint Venture',
+        category: 'Strategic Partnerships',
+        relationshipType: 'B2B',
+        creatorId: testUsers[0]?.id || 'user-1',
+        status: 'active',
+        attributes: {
+          jvName: 'Saudi Smart Buildings JV',
+          strategicObjective: 'Create a leading smart building solutions provider in Saudi Arabia, combining local market knowledge with international technology expertise.',
+          businessScope: 'Design, develop, and implement smart building systems including IoT integration, energy management, and building automation across multiple projects.',
+          targetSectors: ['Construction', 'Technology', 'Real Estate'],
+          geographicScope: ['Saudi Arabia', 'GCC'],
+          duration: '15-20 years',
+          jvStructure: 'Incorporated LLC',
+          equitySplit: [60, 40],
+          initialCapital: 20000000,
+          ongoingFunding: 'Mixed',
+          partnerContributions: [
+            { partner: 'Partner 1', contribution: 'Capital, Market Access, Brand' },
+            { partner: 'Partner 2', contribution: 'Technology, Expertise' }
+          ],
+          managementStructure: 'Professional CEO',
+          governance: 'Board of 5 directors (3 from majority partner, 2 from minority), CEO reports to board.',
+          profitDistribution: 'Proportional to Equity',
+          exitOptions: ['Buyout', 'IPO', 'Sale to Third Party'],
+          nonCompete: true,
+          technologyTransfer: true,
+          partnerRequirements: [
+            { requirement: 'Financial Capacity', value: 'Minimum 100M SAR annual revenue' },
+            { requirement: 'Market Presence', value: 'Established operations in target markets' },
+            { requirement: 'Technology', value: 'Proven smart building technology portfolio' }
+          ]
+        },
+        views: 134,
+        matchesGenerated: 18,
+        applicationsReceived: 7,
+        applicationsApproved: 3
+      },
+      // Model 2.2: Long-Term Strategic Alliance
+      {
+        modelId: '2.2',
+        modelType: '2.2',
+        modelName: 'Long-Term Strategic Alliance',
+        category: 'Strategic Partnerships',
+        relationshipType: 'B2B',
+        creatorId: testUsers[0]?.id || 'user-1',
+        status: 'active',
+        attributes: {
+          allianceTitle: 'Preferred Materials Supplier Alliance',
+          allianceType: 'Preferred Supplier',
+          strategicObjective: 'Establish long-term preferred supplier relationship for construction materials with volume discounts and priority delivery.',
+          scopeOfCollaboration: 'Supply of cement, steel, and ready-mix concrete for all projects. Joint R&D for sustainable materials.',
+          duration: 5,
+          exclusivity: false,
+          geographicScope: ['Saudi Arabia'],
+          financialTerms: 'Volume-based pricing: 10% discount for orders over 10M SAR, 15% for orders over 50M SAR. Payment terms: 30 days net.',
+          performanceMetrics: [
+            { metric: 'Volume', target: '100M SAR annually' },
+            { metric: 'Quality', target: 'Zero defects' },
+            { metric: 'Response Time', target: 'Within 48 hours' }
+          ],
+          governance: 'Quarterly review meetings, joint steering committee with 2 members from each party.',
+          terminationConditions: 'Termination with 90 days notice. Immediate termination for material breach.',
+          partnerRequirements: [
+            { requirement: 'Capacity', value: 'Minimum 500K tons annual production' },
+            { requirement: 'Quality Standards', value: 'ISO 9001, ISO 14001 certified' },
+            { requirement: 'Geographic Presence', value: 'Operations in Saudi Arabia' }
+          ]
+        },
+        views: 67,
+        matchesGenerated: 10,
+        applicationsReceived: 5,
+        applicationsApproved: 2
+      },
+      // Model 2.3: Mentorship Program
+      {
+        modelId: '2.3',
+        modelType: '2.3',
+        modelName: 'Mentorship Program',
+        category: 'Strategic Partnerships',
+        relationshipType: 'P2P',
+        creatorId: testUsers.find(u => u.role === 'individual')?.id || testUsers[0]?.id || 'user-1',
+        status: 'active',
+        attributes: {
+          mentorshipTitle: 'Senior Project Manager Mentorship',
+          mentorshipType: 'Project Management',
+          experienceLevel: 'Junior',
+          targetSkills: ['Project Planning', 'Stakeholder Management', 'Risk Management', 'Budget Control'],
+          duration: 12,
+          frequency: 'Bi-Weekly',
+          format: 'Hybrid',
+          compensation: 'Unpaid',
+          barterOffer: '',
+          mentorRequirements: [
+            { requirement: 'Experience', value: 'Minimum 15 years in project management' },
+            { requirement: 'Certifications', value: 'PMP certified' },
+            { requirement: 'Industry', value: 'Construction industry experience' }
+          ],
+          menteeBackground: 'Junior project manager with 2 years experience seeking guidance on complex project delivery.',
+          successMetrics: ['Skill Development', 'Project Completion', 'Career Advancement']
+        },
+        views: 34,
+        matchesGenerated: 6,
+        applicationsReceived: 4,
+        applicationsApproved: 1
+      },
+      // Model 3.1: Bulk Purchasing
+      {
+        modelId: '3.1',
+        modelType: '3.1',
+        modelName: 'Bulk Purchasing',
+        category: 'Resource Pooling & Sharing',
+        relationshipType: 'B2B',
+        creatorId: testUsers[0]?.id || 'user-1',
+        status: 'active',
+        attributes: {
+          productService: 'Portland Cement Type I',
+          category: 'Materials',
+          quantityNeeded: 5000,
+          unitOfMeasure: 'Tons',
+          targetPrice: 250,
+          currentMarketPrice: 280,
+          expectedSavings: 10.7,
+          deliveryTimeline: { start: '2024-03-15', end: '2024-04-15' },
+          deliveryLocation: 'Riyadh, Saudi Arabia',
+          paymentStructure: 'Upfront Collection',
+          participantsNeeded: 5,
+          minimumOrder: 1000,
+          leadOrganizer: true,
+          supplier: 'Saudi Cement Company',
+          distributionMethod: 'Centralized Pickup'
+        },
+        views: 89,
+        matchesGenerated: 12,
+        applicationsReceived: 8,
+        applicationsApproved: 5
+      },
+      // Model 3.2: Co-Ownership Pooling
+      {
+        modelId: '3.2',
+        modelType: '3.2',
+        modelName: 'Co-Ownership Pooling',
+        category: 'Resource Pooling & Sharing',
+        relationshipType: 'B2B',
+        creatorId: testUsers[0]?.id || 'user-1',
+        status: 'active',
+        attributes: {
+          assetDescription: 'Tower Crane 200 Ton Capacity',
+          assetType: 'Heavy Equipment',
+          purchasePrice: 2500000,
+          ownershipStructure: 'Equal Shares',
+          numberCoOwners: 3,
+          equityPerOwner: 33.33,
+          initialInvestment: 833333,
+          ongoingCosts: [
+            { cost: 'Maintenance', amount: 50000, frequency: 'Annual' },
+            { cost: 'Insurance', amount: 30000, frequency: 'Annual' },
+            { cost: 'Storage', amount: 20000, frequency: 'Annual' }
+          ],
+          costSharing: 'Equally',
+          usageSchedule: 'Booking System',
+          assetLocation: 'Riyadh Construction Yard',
+          maintenanceResponsibility: 'Shared',
+          insurance: true,
+          exitStrategy: 'Sell Share to Other Owners',
+          disputeResolution: 'Mediation'
+        },
+        views: 56,
+        matchesGenerated: 8,
+        applicationsReceived: 4,
+        applicationsApproved: 2
+      },
+      // Model 3.3: Resource Sharing & Exchange
+      {
+        modelId: '3.3',
+        modelType: '3.3',
+        modelName: 'Resource Sharing & Exchange',
+        category: 'Resource Pooling & Sharing',
+        relationshipType: 'B2B',
+        creatorId: testUsers[0]?.id || 'user-1',
+        status: 'active',
+        attributes: {
+          resourceTitle: 'Excess Steel Beams - H-Beams 400x400',
+          resourceType: 'Materials',
+          transactionType: 'Sell',
+          detailedDescription: 'Surplus steel beams from completed project. Grade S355, 400x400mm H-beams, total 50 tons. Excellent condition, stored in covered warehouse.',
+          quantity: 50,
+          unitOfMeasure: 'Tons',
+          condition: 'Good',
+          location: 'Jeddah, Saudi Arabia',
+          availability: { start: '2024-03-01', end: '2024-04-30' },
+          price: 3500,
+          barterOffer: '',
+          barterPreferences: [],
+          delivery: 'Buyer Pickup',
+          paymentTerms: 'On Delivery',
+          urgency: 'Within 1 Month'
+        },
+        views: 123,
+        matchesGenerated: 15,
+        applicationsReceived: 9,
+        applicationsApproved: 3
+      },
+      // Model 4.1: Professional Hiring
+      {
+        modelId: '4.1',
+        modelType: '4.1',
+        modelName: 'Professional Hiring',
+        category: 'Hiring a Resource',
+        relationshipType: 'B2P',
+        creatorId: testUsers[0]?.id || 'user-1',
+        status: 'active',
+        attributes: {
+          jobTitle: 'Senior Civil Engineer',
+          jobCategory: 'Engineering',
+          employmentType: 'Full-Time',
+          contractDuration: null,
+          jobDescription: 'Lead civil engineering team for infrastructure projects. Responsible for design review, site supervision, and quality assurance. Manage team of 5 engineers.',
+          requiredQualifications: ['Bachelor in Civil Engineering', 'Saudi Council of Engineers License', 'PMP Certification'],
+          requiredExperience: 8,
+          requiredSkills: ['Structural Design', 'Project Management', 'AutoCAD', 'ETABS', 'SAP2000'],
+          preferredSkills: ['BIM', 'Sustainability Design', 'LEED AP'],
+          location: 'Riyadh, Saudi Arabia',
+          workMode: 'On-Site',
+          salaryRange: { min: 15000, max: 20000, currency: 'SAR' },
+          benefits: ['Health Insurance', 'Housing Allowance', 'Transportation', 'Annual Leave'],
+          startDate: '2024-04-01',
+          reportingTo: 'Engineering Manager',
+          teamSize: 5,
+          applicationDeadline: '2024-03-25'
+        },
+        views: 234,
+        matchesGenerated: 28,
+        applicationsReceived: 18,
+        applicationsApproved: 5
+      },
+      // Model 4.2: Consultant Hiring
+      {
+        modelId: '4.2',
+        modelType: '4.2',
+        modelName: 'Consultant Hiring',
+        category: 'Hiring a Resource',
+        relationshipType: 'B2P',
+        creatorId: testUsers[0]?.id || 'user-1',
+        status: 'active',
+        attributes: {
+          consultationTitle: 'LEED Certification Consultant',
+          consultationType: 'Sustainability',
+          scopeOfWork: 'Provide LEED certification consulting services for green building project. Conduct energy audits, prepare documentation, and guide certification process.',
+          deliverables: ['LEED Documentation', 'Energy Analysis Report', 'Certification Application', 'Training Sessions'],
+          duration: 90,
+          requiredExpertise: ['LEED Certification', 'Energy Modeling', 'Green Building Design', 'Sustainability'],
+          requiredCertifications: ['LEED AP BD+C'],
+          experienceLevel: 'Expert',
+          locationRequirement: 'Hybrid',
+          budget: { min: 80000, max: 120000, currency: 'SAR' },
+          paymentTerms: 'Milestone-Based',
+          startDate: '2024-03-15',
+          exchangeType: 'Cash',
+          barterOffer: ''
+        },
+        views: 167,
+        matchesGenerated: 14,
+        applicationsReceived: 7,
+        applicationsApproved: 2
+      },
+      // Model 5.1: Competition/RFP
+      {
+        modelId: '5.1',
+        modelType: '5.1',
+        modelName: 'Competition/RFP',
+        category: 'Call for Competition',
+        relationshipType: 'B2B',
+        creatorId: testUsers[0]?.id || 'user-1',
+        status: 'active',
+        attributes: {
+          competitionTitle: 'Sustainable Building Design Competition - NEOM',
+          competitionType: 'Design Competition',
+          competitionScope: 'Design a sustainable, net-zero energy residential building for NEOM. Must incorporate renewable energy, water conservation, and smart building technologies.',
+          participantType: 'Both',
+          competitionFormat: 'Open to All',
+          eligibilityCriteria: [
+            { criterion: 'Experience', value: 'Minimum 5 years in sustainable design' },
+            { criterion: 'Certifications', value: 'LEED AP or equivalent' },
+            { criterion: 'Financial Capacity', value: 'Able to execute if selected' }
+          ],
+          submissionRequirements: ['Design Proposal', 'Technical Drawings', 'Sustainability Analysis', 'Cost Estimate', 'Timeline'],
+          evaluationCriteria: [
+            { criterion: 'Technical Quality', weight: 40 },
+            { criterion: 'Innovation', weight: 25 },
+            { criterion: 'Sustainability', weight: 20 },
+            { criterion: 'Cost Efficiency', weight: 15 }
+          ],
+          evaluationWeights: [40, 25, 20, 15],
+          prizeContractValue: 5000000,
+          numberWinners: 3,
+          submissionDeadline: '2024-05-30',
+          announcementDate: '2024-06-15',
+          competitionRules: 'All submissions become property of client. Winners must execute project within 24 months. Non-winners retain IP but grant client usage rights.',
+          intellectualProperty: 'Winner Transfers',
+          submissionFee: 0
+        },
+        views: 289,
+        matchesGenerated: 35,
+        applicationsReceived: 22,
+        applicationsApproved: 3
+      }
+    ];
+
+    if (forceReload) {
+      // Clear existing opportunities
+      set(STORAGE_KEYS.COLLABORATION_OPPORTUNITIES, []);
+    }
+
+    let loaded = 0;
+    sampleOpportunities.forEach(oppData => {
+      // Check if opportunity already exists
+      const existing = CollaborationOpportunities.getAll().find(o => 
+        o.modelId === oppData.modelId && 
+        (o.attributes?.taskTitle === oppData.attributes?.taskTitle ||
+         o.attributes?.projectTitle === oppData.attributes?.projectTitle ||
+         o.attributes?.competitionTitle === oppData.attributes?.competitionTitle)
+      );
+      
+      if (!existing) {
+        const opportunity = CollaborationOpportunities.create(oppData);
+        if (opportunity) {
+          loaded++;
+        }
+      }
+    });
+
+    if (loaded > 0) {
+      console.log(`✅ Loaded ${loaded} sample collaboration opportunities`);
+    }
+  }
 
   // ============================================
   // Collaboration Applications CRUD
@@ -3531,7 +4054,8 @@
     uploadDocument,
     generateOTP,
     checkFeatureAccess,
-    loadSampleNotifications: () => loadSampleNotifications(true)
+    loadSampleNotifications: () => loadSampleNotifications(true),
+    loadSampleCollaborationOpportunities: () => loadSampleCollaborationOpportunities(true)
   };
 
   // Initialize on load

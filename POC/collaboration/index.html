@@ -62,85 +62,115 @@
     
     <!-- Initialize Component -->
     <script>
+        let retryCount = 0;
+        const maxRetries = 50; // 5 seconds max wait time
+        
         // Wait for all scripts to load
         function initializeCollaboration() {
+            retryCount++;
+            
             // Check if required dependencies are loaded
-            if (typeof AuthCheck === 'undefined' || typeof Auth === 'undefined') {
-                console.warn('Auth scripts not loaded yet, retrying...');
-                setTimeout(initializeCollaboration, 100);
+            if (typeof PMTwinData === 'undefined' || typeof PMTwinAuth === 'undefined') {
+                if (retryCount < maxRetries) {
+                    setTimeout(initializeCollaboration, 100);
+                } else {
+                    showError('Data or authentication scripts failed to load. Please refresh the page.');
+                }
                 return;
             }
 
             if (typeof window.CollaborationModels === 'undefined') {
-                console.warn('CollaborationModels not loaded yet, retrying...');
-                setTimeout(initializeCollaboration, 100);
+                if (retryCount < maxRetries) {
+                    setTimeout(initializeCollaboration, 100);
+                } else {
+                    showError('Collaboration models definitions failed to load. Please refresh the page.');
+                }
                 return;
             }
 
             if (typeof window.CollaborationModelsUI === 'undefined') {
-                console.warn('CollaborationModelsUI not loaded yet, retrying...');
-                setTimeout(initializeCollaboration, 100);
+                if (retryCount < maxRetries) {
+                    setTimeout(initializeCollaboration, 100);
+                } else {
+                    showError('Collaboration models UI failed to load. Please refresh the page.');
+                }
                 return;
             }
 
             // All dependencies loaded, proceed with initialization
             (async function() {
                 try {
-                    // Check authentication
-                    const isAuth = await AuthCheck.checkAuth({ requireAuth: true });
+                    console.log('[Collaboration] Initializing...');
+                    
+                    // Check authentication - try AuthCheck first, then PMTwinAuth
+                    let isAuth = false;
+                    if (typeof AuthCheck !== 'undefined' && typeof AuthCheck.checkAuth === 'function') {
+                        isAuth = await AuthCheck.checkAuth({ requireAuth: false });
+                    } else if (typeof PMTwinAuth !== 'undefined' && typeof PMTwinAuth.isAuthenticated === 'function') {
+                        isAuth = PMTwinAuth.isAuthenticated();
+                    }
+                    
                     if (!isAuth) {
+                        console.log('[Collaboration] User not authenticated, redirecting to login');
                         window.location.href = '../login/';
                         return;
                     }
                     
-                    // Get current user
-                    const currentUser = Auth.getCurrentUser();
+                    // Get current user - try multiple methods
+                    let currentUser = null;
+                    if (typeof PMTwinData !== 'undefined' && PMTwinData.Sessions) {
+                        currentUser = PMTwinData.Sessions.getCurrentUser();
+                    } else if (typeof PMTwinAuth !== 'undefined' && typeof PMTwinAuth.getCurrentUser === 'function') {
+                        currentUser = PMTwinAuth.getCurrentUser();
+                    }
+                    
                     if (!currentUser) {
-                        console.error('No current user found');
-                        const container = document.getElementById('collaborationModelsContent');
-                        if (container) {
-                            container.innerHTML = `
-                                <div class="alert alert-error">
-                                    <p>No user session found. Please log in again.</p>
-                                    <a href="../login/" class="btn btn-primary">Go to Login</a>
-                                </div>
-                            `;
-                        }
+                        console.error('[Collaboration] No current user found');
+                        showError('No user session found. Please log in again.', '../login/');
                         return;
                     }
+                    
+                    console.log('[Collaboration] User:', currentUser.email || currentUser.id);
+                    console.log('[Collaboration] Initializing UI...');
                     
                     // Initialize collaboration models UI
                     try {
                         window.CollaborationModelsUI.init(currentUser);
+                        console.log('[Collaboration] UI initialized, rendering models...');
+                        
                         // Render model selection by default
-                        if (window.CollaborationModelsUI.renderModelSelection) {
+                        if (typeof window.CollaborationModelsUI.renderModelSelection === 'function') {
                             window.CollaborationModelsUI.renderModelSelection();
+                            console.log('[Collaboration] Models rendered successfully');
+                        } else {
+                            console.error('[Collaboration] renderModelSelection function not found');
+                            showError('Collaboration models rendering function not available.');
                         }
                     } catch (error) {
-                        console.error('Error initializing collaboration models:', error);
-                        const container = document.getElementById('collaborationModelsContent');
-                        if (container) {
-                            container.innerHTML = `
-                                <div class="alert alert-error">
-                                    <p>Error initializing collaboration models: ${error.message}</p>
-                                    <button class="btn btn-primary" onclick="window.location.reload()">Refresh</button>
-                                </div>
-                            `;
-                        }
+                        console.error('[Collaboration] Error initializing:', error);
+                        showError('Error initializing collaboration models: ' + error.message);
                     }
                 } catch (error) {
-                    console.error('Error in collaboration initialization:', error);
-                    const container = document.getElementById('collaborationModelsContent');
-                    if (container) {
-                        container.innerHTML = `
-                            <div class="alert alert-error">
-                                <p>Error loading collaboration page: ${error.message}</p>
-                                <button class="btn btn-primary" onclick="window.location.reload()">Refresh</button>
-                            </div>
-                        `;
-                    }
+                    console.error('[Collaboration] Error in initialization:', error);
+                    showError('Error loading collaboration page: ' + error.message);
                 }
             })();
+        }
+        
+        function showError(message, redirectUrl = null) {
+            const container = document.getElementById('collaborationModelsContent');
+            if (container) {
+                let html = `
+                    <div class="alert alert-error">
+                        <p>${message}</p>
+                        <button class="btn btn-primary" onclick="window.location.reload()" style="margin-top: 1rem;">Refresh Page</button>
+                `;
+                if (redirectUrl) {
+                    html += `<a href="${redirectUrl}" class="btn btn-secondary" style="margin-top: 1rem; margin-left: 0.5rem;">Go to Login</a>`;
+                }
+                html += '</div>';
+                container.innerHTML = html;
+            }
         }
 
         // Start initialization when DOM is ready
@@ -150,8 +180,46 @@
             // DOM already loaded
             initializeCollaboration();
         }
+        
+        // Fallback: Try to render after 2 seconds if still loading
+        setTimeout(function() {
+            const container = document.getElementById('collaborationModelsContent');
+            if (container && container.querySelector('.loading')) {
+                console.warn('[Collaboration] Fallback: Attempting to render models...');
+                
+                // Check if we have the required dependencies
+                if (typeof PMTwinData === 'undefined' || typeof PMTwinAuth === 'undefined') {
+                    showError('Required services not loaded. Please refresh the page.');
+                    return;
+                }
+                
+                // Get current user
+                const currentUser = PMTwinData.Sessions.getCurrentUser();
+                if (!currentUser) {
+                    showError('No user session found. Please log in again.', '../login/');
+                    return;
+                }
+                
+                if (typeof window.CollaborationModelsUI !== 'undefined' && 
+                    typeof window.CollaborationModelsUI.renderModelSelection === 'function') {
+                    try {
+                        // Initialize if not already done
+                        if (currentUser) {
+                            window.CollaborationModelsUI.init(currentUser);
+                        }
+                        window.CollaborationModelsUI.renderModelSelection();
+                        console.log('[Collaboration] Fallback render successful');
+                    } catch (error) {
+                        console.error('[Collaboration] Fallback render failed:', error);
+                        showError('Failed to load collaboration models: ' + error.message);
+                    }
+                } else {
+                    showError('Collaboration models UI is not available. Please refresh the page.');
+                }
+            }
+        }, 2000);
             
-            // Handle hash changes for navigation
+        // Handle hash changes for navigation
             window.addEventListener('hashchange', function() {
                 const hash = window.location.hash;
                 if (hash === '#collaboration' || hash === '#collaboration-models' || !hash) {

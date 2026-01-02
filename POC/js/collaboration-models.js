@@ -56,7 +56,7 @@
       let html = '<div class="collaboration-models-grid">';
 
       categories.forEach((category, categoryIndex) => {
-        const subModels = CollaborationModels.getModelsByCategory(category.id);
+        const subModels = window.CollaborationModels.getModelsByCategory(category.id);
         const icon = categoryIcons[category.id] || '<i class="ph ph-clipboard-text"></i>';
         const subModelCount = subModels.length;
         
@@ -849,9 +849,16 @@
         return;
       }
 
-      // Render form
-      const container = document.getElementById('createCollaborationContent');
+      // Render form - check for both container IDs for flexibility
+      const container = document.getElementById('createCollaborationContent') || 
+                        document.getElementById('collaborationFormContainer');
       if (container) {
+        // Get base path for cancel button
+        const currentPath = window.location.pathname;
+        const isIndividualPage = currentPath.includes('/collaboration/') && 
+                                 currentPath.split('/').length > 3; // e.g., /collaboration/task-based/
+        const cancelUrl = isIndividualPage ? '../../collaboration/' : '#collaboration-models';
+        
         container.innerHTML = `
           <div class="card">
             <div class="card-header">
@@ -861,10 +868,15 @@
             <div class="card-body">
               <form id="collaborationForm" onsubmit="if(window.CollaborationModelsUI && CollaborationModelsUI.handleFormSubmit) { return CollaborationModelsUI.handleFormSubmit(event); } return false;">
                 <input type="hidden" name="relationshipType" value="${relationshipType}">
+                <input type="hidden" name="modelId" value="${model.id}">
                 ${generateForm(model.id)}
                 <div class="form-actions">
-                  <button type="submit" class="btn btn-primary">Create Opportunity</button>
-                  <button type="button" class="btn btn-secondary" onclick="window.location.hash='#collaboration-models'">Cancel</button>
+                  <button type="submit" class="btn btn-primary">
+                    <i class="ph ph-check"></i> Create Opportunity
+                  </button>
+                  <button type="button" class="btn btn-secondary" onclick="window.location.href='${cancelUrl}'">
+                    <i class="ph ph-x"></i> Cancel
+                  </button>
                 </div>
               </form>
             </div>
@@ -875,7 +887,13 @@
         setTimeout(setupConditionalFields, 100);
       }
 
-      window.location.hash = '#create-collaboration';
+      // Only redirect if we're on the main collaboration page
+      const currentPath = window.location.pathname;
+      const isIndividualPage = currentPath.includes('/collaboration/') && 
+                               currentPath.split('/').length > 3;
+      if (!isIndividualPage) {
+        window.location.hash = '#create-collaboration';
+      }
     },
 
     renderModelSelection,

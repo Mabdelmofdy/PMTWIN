@@ -74,7 +74,79 @@
       { id: 'matches', label: 'Matches', route: `${basePath}matches/`, icon: '<i class="ph ph-link"></i>', roles: ['admin', 'entity', 'individual'] },
       { id: 'opportunities', label: 'Opportunities', route: `${basePath}opportunities/`, icon: '<i class="ph ph-sparkle"></i>', roles: ['admin', 'entity', 'individual'] },
       { id: 'pipeline', label: 'Pipeline', route: `${basePath}pipeline/`, icon: '<i class="ph ph-trend-up"></i>', roles: ['admin', 'entity', 'individual'] },
-      { id: 'collaboration', label: 'Collaboration', route: `${basePath}collaboration/`, icon: '<i class="ph ph-handshake"></i>', roles: ['admin', 'entity', 'individual'] },
+      { 
+        id: 'collaboration', 
+        label: 'Collaboration', 
+        route: `${basePath}collaboration/`, 
+        icon: '<i class="ph ph-handshake"></i>', 
+        roles: ['admin', 'entity', 'individual'],
+        hasChildren: true,
+        isGroup: true,
+        children: [
+          // Category 1: Project-Based Collaboration (with sub-items)
+          {
+            id: 'collab-project-based',
+            label: 'Project-Based Collaboration',
+            route: `${basePath}collaboration/`,
+            icon: '<i class="ph ph-buildings"></i>',
+            roles: ['admin', 'entity', 'individual'],
+            hasChildren: true,
+            isGroup: true,
+            children: [
+              { id: 'collab-task-based', label: 'Task-Based Engagement', route: `${basePath}collaboration/task-based/`, icon: '<i class="ph ph-file-text"></i>', roles: ['admin', 'entity', 'individual'] },
+              { id: 'collab-consortium', label: 'Consortium', route: `${basePath}collaboration/consortium/`, icon: '<i class="ph ph-users-three"></i>', roles: ['admin', 'entity', 'individual'] },
+              { id: 'collab-jv', label: 'Project-Specific Joint Venture', route: `${basePath}collaboration/joint-venture/`, icon: '<i class="ph ph-handshake"></i>', roles: ['admin', 'entity', 'individual'] },
+              { id: 'collab-spv', label: 'Special Purpose Vehicle (SPV)', route: `${basePath}collaboration/spv/`, icon: '<i class="ph ph-building-office"></i>', roles: ['admin', 'entity', 'individual'] }
+            ]
+          },
+          // Category 2: Strategic Partnerships (with sub-items)
+          {
+            id: 'collab-strategic',
+            label: 'Strategic Partnerships',
+            route: `${basePath}collaboration/`,
+            icon: '<i class="ph ph-handshake"></i>',
+            roles: ['admin', 'entity', 'individual'],
+            hasChildren: true,
+            isGroup: true,
+            children: [
+              { id: 'collab-strategic-jv', label: 'Strategic Joint Venture', route: `${basePath}collaboration/strategic-jv/`, icon: '<i class="ph ph-handshake"></i>', roles: ['admin', 'entity', 'individual'] },
+              { id: 'collab-strategic-alliance', label: 'Long-Term Strategic Alliance', route: `${basePath}collaboration/strategic-alliance/`, icon: '<i class="ph ph-link"></i>', roles: ['admin', 'entity', 'individual'] },
+              { id: 'collab-mentorship', label: 'Mentorship Program', route: `${basePath}collaboration/mentorship/`, icon: '<i class="ph ph-graduation-cap"></i>', roles: ['admin', 'entity', 'individual'] }
+            ]
+          },
+          // Category 3: Resource Pooling & Sharing (with sub-items)
+          {
+            id: 'collab-resource-pooling',
+            label: 'Resource Pooling & Sharing',
+            route: `${basePath}collaboration/`,
+            icon: '<i class="ph ph-package"></i>',
+            roles: ['admin', 'entity', 'individual'],
+            hasChildren: true,
+            isGroup: true,
+            children: [
+              { id: 'collab-bulk-purchasing', label: 'Bulk Purchasing', route: `${basePath}collaboration/bulk-purchasing/`, icon: '<i class="ph ph-shopping-cart"></i>', roles: ['admin', 'entity', 'individual'] },
+              { id: 'collab-co-ownership', label: 'Co-Ownership Pooling', route: `${basePath}collaboration/co-ownership/`, icon: '<i class="ph ph-users"></i>', roles: ['admin', 'entity', 'individual'] },
+              { id: 'collab-resource-exchange', label: 'Resource Sharing & Exchange', route: `${basePath}collaboration/resource-exchange/`, icon: '<i class="ph ph-arrows-clockwise"></i>', roles: ['admin', 'entity', 'individual'] }
+            ]
+          },
+          // Category 4: Hiring a Resource (with sub-items)
+          {
+            id: 'collab-hiring',
+            label: 'Hiring a Resource',
+            route: `${basePath}collaboration/`,
+            icon: '<i class="ph ph-briefcase"></i>',
+            roles: ['admin', 'entity', 'individual'],
+            hasChildren: true,
+            isGroup: true,
+            children: [
+              { id: 'collab-professional-hiring', label: 'Professional Hiring', route: `${basePath}collaboration/professional-hiring/`, icon: '<i class="ph ph-user"></i>', roles: ['admin', 'entity', 'individual'] },
+              { id: 'collab-consultant-hiring', label: 'Consultant Hiring', route: `${basePath}collaboration/consultant-hiring/`, icon: '<i class="ph ph-user-circle"></i>', roles: ['admin', 'entity', 'individual'] }
+            ]
+          },
+          // Category 5: Call for Competition
+          { id: 'collab-competition', label: 'Call for Competition', route: `${basePath}collaboration/competition/`, icon: '<i class="ph ph-trophy"></i>', roles: ['admin', 'entity', 'individual'] }
+        ]
+      },
       { id: 'profile', label: 'Profile', route: `${basePath}profile/`, icon: '<i class="ph ph-user"></i>', roles: ['admin', 'entity', 'individual'] },
       { id: 'notifications', label: 'Notifications', route: `${basePath}notifications/`, icon: '<i class="ph ph-bell"></i>', roles: ['admin', 'entity', 'individual'] },
       { id: 'admin', label: 'Admin Dashboard', route: `${basePath}admin/`, icon: '<i class="ph ph-gear"></i>', roles: ['admin'] },
@@ -132,31 +204,103 @@
       const isActive = currentPath.includes(item.route.replace(basePath, ''));
       html += `
         <li>
-          <a href="${item.route}" class="navbar-link ${isActive ? 'active' : ''}">
+          <a href="${item.route}" class="navbar-link ${isActive ? 'active' : ''}" onclick="Navigation.handleNavClick(event, '${item.route}');">
             ${item.icon || ''} ${item.label}
           </a>
         </li>
       `;
     });
 
+    // Search bar
+    html += `
+            <li style="margin-left: auto; margin-right: 1rem;">
+              <div style="position: relative; display: flex; align-items: center;">
+                <input type="text" id="topbarSearch" placeholder="Search projects, users..." 
+                  style="padding: 0.5rem 2.5rem 0.5rem 1rem; border: 1px solid var(--border-color); border-radius: 20px; width: 300px; font-size: 0.9rem; background: var(--bg-secondary);"
+                  onfocus="this.style.width='400px'; this.style.borderColor='var(--color-primary)';"
+                  onblur="if(!this.value) {this.style.width='300px'; this.style.borderColor='var(--border-color)';}">
+                <i class="ph ph-magnifying-glass" style="position: absolute; right: 1rem; color: var(--text-secondary); pointer-events: none;"></i>
+                <div id="searchResults" style="display: none; position: absolute; top: 100%; left: 0; right: 0; margin-top: 0.5rem; background: var(--bg-primary); border: 1px solid var(--border-color); border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); max-height: 400px; overflow-y: auto; z-index: 1000;">
+                  <!-- Search results will appear here -->
+                </div>
+              </div>
+            </li>
+    `;
+
+    // Theme toggle
+    html += `
+            <li>
+              <button id="themeToggleBtn" class="navbar-link" style="background: none; border: none; cursor: pointer; padding: 0.5rem;" title="Toggle theme">
+                <i class="ph ph-moon" id="themeIcon"></i>
+              </button>
+            </li>
+    `;
+
+    // Quick actions menu
+    html += `
+            <li>
+              <div style="position: relative;">
+                <button id="quickActionsBtn" class="navbar-link" style="background: none; border: none; cursor: pointer; padding: 0.5rem;" title="Quick Actions">
+                  <i class="ph ph-lightning"></i>
+                </button>
+                <div id="quickActionsDropdown" style="display: none; position: absolute; top: 100%; right: 0; margin-top: 0.5rem; background: var(--bg-primary); border: 1px solid var(--border-color); border-radius: var(--radius); box-shadow: 0 4px 6px rgba(0,0,0,0.1); min-width: 220px; z-index: 1000;">
+                  <div style="padding: 0.75rem 1rem; border-bottom: 1px solid var(--border-color); font-weight: 600; font-size: 0.9rem;">Quick Actions</div>
+                  <a href="${basePath}create-project/" class="navbar-link" style="display: flex; align-items: center; gap: 0.75rem; padding: 0.75rem 1rem; border-bottom: 1px solid var(--border-color);" onclick="Navigation.handleNavClick(event, '${basePath}create-project/');">
+                    <i class="ph ph-plus-circle"></i> <span>Create Project</span>
+                  </a>
+                  <a href="${basePath}create-proposal/" class="navbar-link" style="display: flex; align-items: center; gap: 0.75rem; padding: 0.75rem 1rem; border-bottom: 1px solid var(--border-color);" onclick="Navigation.handleNavClick(event, '${basePath}create-proposal/');">
+                    <i class="ph ph-file-text"></i> <span>Create Proposal</span>
+                  </a>
+                  <a href="${basePath}collaboration/" class="navbar-link" style="display: flex; align-items: center; gap: 0.75rem; padding: 0.75rem 1rem; border-bottom: 1px solid var(--border-color);" onclick="Navigation.handleNavClick(event, '${basePath}collaboration/');">
+                    <i class="ph ph-handshake"></i> <span>New Collaboration</span>
+                  </a>
+                  <a href="${basePath}wizard/" class="navbar-link" style="display: flex; align-items: center; gap: 0.75rem; padding: 0.75rem 1rem;" onclick="Navigation.handleNavClick(event, '${basePath}wizard/');">
+                    <i class="ph ph-magic-wand"></i> <span>AI Wizard</span>
+                  </a>
+                </div>
+              </div>
+            </li>
+    `;
+
     // User menu
     html += `
-            <li style="margin-left: auto;">
+            <li>
               <div style="display: flex; align-items: center; gap: 1rem;">
-                <a href="${basePath}notifications/" class="navbar-link" style="position: relative;">
+                <a href="${basePath}notifications/" class="navbar-link" style="position: relative; padding: 0.5rem;" onclick="event.preventDefault(); Navigation.handleNotificationClick(event);">
                   <i class="ph ph-bell"></i>
                   ${getNotificationBadge()}
                 </a>
                 <div style="position: relative;">
-                  <button id="userMenuBtn" class="navbar-link" style="background: none; border: none; cursor: pointer; display: flex; align-items: center; gap: 0.5rem;">
+                  <button id="userMenuBtn" class="navbar-link" style="background: none; border: none; cursor: pointer; display: flex; align-items: center; gap: 0.5rem; padding: 0.5rem 1rem;">
                     <span>${currentUser.name || currentUser.email}</span>
                     <i class="ph ph-caret-down"></i>
                   </button>
-                  <div id="userMenuDropdown" style="display: none; position: absolute; top: 100%; right: 0; margin-top: 0.5rem; background: var(--bg-primary); border: 1px solid var(--border-color); border-radius: var(--radius); box-shadow: 0 4px 6px rgba(0,0,0,0.1); min-width: 200px; z-index: 1000;">
-                    <a href="${basePath}profile/" class="navbar-link" style="display: block; padding: 0.75rem 1rem; border-bottom: 1px solid var(--border-color);"><i class="ph ph-user"></i> Profile</a>
-                    <a href="${basePath}notifications/" class="navbar-link" style="display: block; padding: 0.75rem 1rem; border-bottom: 1px solid var(--border-color);"><i class="ph ph-bell"></i> Notifications</a>
-                    ${currentUser.role === 'admin' ? `<a href="${basePath}admin/" class="navbar-link" style="display: block; padding: 0.75rem 1rem; border-bottom: 1px solid var(--border-color);"><i class="ph ph-gear"></i> Admin</a>` : ''}
-                    <button onclick="Navigation.logout()" class="navbar-link logout-link" style="display: block; width: 100%; text-align: left; padding: 0.75rem 1rem; background: none; border: none; cursor: pointer;"><i class="ph ph-sign-out"></i> Logout</button>
+                  <div id="userMenuDropdown" style="display: none; position: absolute; top: 100%; right: 0; margin-top: 0.5rem; background: var(--bg-primary); border: 1px solid var(--border-color); border-radius: var(--radius); box-shadow: 0 4px 6px rgba(0,0,0,0.1); min-width: 220px; z-index: 1000;">
+                    <div style="padding: 0.75rem 1rem; border-bottom: 1px solid var(--border-color);">
+                      <div style="font-weight: 600; font-size: 0.9rem;">${currentUser.name || 'User'}</div>
+                      <div style="font-size: 0.8rem; color: var(--text-secondary);">${currentUser.email || ''}</div>
+                    </div>
+                    <a href="${basePath}profile/" class="navbar-link" style="display: flex; align-items: center; gap: 0.75rem; padding: 0.75rem 1rem; border-bottom: 1px solid var(--border-color);" onclick="Navigation.handleNavClick(event, '${basePath}profile/');">
+                      <i class="ph ph-user"></i> <span>Profile</span>
+                    </a>
+                    <a href="${basePath}settings/" class="navbar-link" style="display: flex; align-items: center; gap: 0.75rem; padding: 0.75rem 1rem; border-bottom: 1px solid var(--border-color);" onclick="Navigation.handleNavClick(event, '${basePath}settings/');">
+                      <i class="ph ph-gear"></i> <span>Settings</span>
+                    </a>
+                    <a href="${basePath}notifications/" class="navbar-link" style="display: flex; align-items: center; gap: 0.75rem; padding: 0.75rem 1rem; border-bottom: 1px solid var(--border-color);" onclick="Navigation.handleNavClick(event, '${basePath}notifications/');">
+                      <i class="ph ph-bell"></i> <span>Notifications</span>
+                    </a>
+                    ${currentUser.role === 'admin' || currentUser.role === 'platform_admin' ? `
+                    <a href="${basePath}admin/" class="navbar-link" style="display: flex; align-items: center; gap: 0.75rem; padding: 0.75rem 1rem; border-bottom: 1px solid var(--border-color);" onclick="Navigation.handleNavClick(event, '${basePath}admin/');">
+                      <i class="ph ph-gear"></i> <span>Admin Portal</span>
+                    </a>
+                    ` : ''}
+                    <a href="${basePath}knowledge/" class="navbar-link" style="display: flex; align-items: center; gap: 0.75rem; padding: 0.75rem 1rem; border-bottom: 1px solid var(--border-color);" onclick="Navigation.handleNavClick(event, '${basePath}knowledge/');">
+                      <i class="ph ph-book"></i> <span>Help & Support</span>
+                    </a>
+                    <hr style="margin: 0.5rem 0; border: none; border-top: 1px solid var(--border-color);">
+                    <button onclick="Navigation.logout()" class="navbar-link logout-link" style="display: flex; align-items: center; gap: 0.75rem; width: 100%; text-align: left; padding: 0.75rem 1rem; background: none; border: none; cursor: pointer;">
+                      <i class="ph ph-sign-out"></i> <span>Logout</span>
+                    </button>
                   </div>
                 </div>
               </div>
@@ -171,6 +315,10 @@
     // Setup mobile toggle
     setupMobileToggle();
     setupUserMenu();
+    setupQuickActions();
+    setupSearch();
+    setupNavLinks();
+    setupThemeToggle();
   }
 
   function renderPublicNavbar(container) {
@@ -225,6 +373,8 @@
     if (btn && menu) {
       btn.onclick = (e) => {
         e.stopPropagation();
+        // Close other dropdowns
+        closeAllDropdowns();
         menu.style.display = menu.style.display === 'none' ? 'block' : 'none';
       };
       // Close on outside click
@@ -234,6 +384,238 @@
         }
       });
     }
+  }
+
+  function setupQuickActions() {
+    const btn = document.getElementById('quickActionsBtn');
+    const menu = document.getElementById('quickActionsDropdown');
+    if (btn && menu) {
+      btn.onclick = (e) => {
+        e.stopPropagation();
+        // Close other dropdowns
+        closeAllDropdowns();
+        menu.style.display = menu.style.display === 'none' ? 'block' : 'none';
+      };
+      // Close on outside click
+      document.addEventListener('click', (e) => {
+        if (!btn.contains(e.target) && !menu.contains(e.target)) {
+          menu.style.display = 'none';
+        }
+      });
+    }
+  }
+
+  function setupSearch() {
+    const searchInput = document.getElementById('topbarSearch');
+    const searchResults = document.getElementById('searchResults');
+    
+    if (!searchInput || !searchResults) return;
+
+    let searchTimeout;
+    
+    searchInput.addEventListener('input', (e) => {
+      const query = e.target.value.trim();
+      
+      clearTimeout(searchTimeout);
+      
+      if (query.length < 2) {
+        searchResults.style.display = 'none';
+        return;
+      }
+      
+      searchTimeout = setTimeout(() => {
+        performSearch(query, searchResults);
+      }, 300);
+    });
+
+    // Close search results on outside click
+    document.addEventListener('click', (e) => {
+      if (!searchInput.contains(e.target) && !searchResults.contains(e.target)) {
+        searchResults.style.display = 'none';
+      }
+    });
+
+    // Handle Enter key
+    searchInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        const query = searchInput.value.trim();
+        if (query) {
+          handleSearchSubmit(query);
+        }
+      }
+    });
+  }
+
+  function performSearch(query, resultsContainer) {
+    // This is a basic search - can be enhanced with actual API calls
+    const results = [];
+    
+    // Search in projects if available
+    if (typeof PMTwinData !== 'undefined' && PMTwinData.Projects) {
+      try {
+        const projects = PMTwinData.Projects.getAll();
+        const matchingProjects = projects.filter(p => 
+          (p.title && p.title.toLowerCase().includes(query.toLowerCase())) ||
+          (p.description && p.description.toLowerCase().includes(query.toLowerCase()))
+        ).slice(0, 5);
+        
+        matchingProjects.forEach(project => {
+          results.push({
+            type: 'project',
+            title: project.title,
+            subtitle: project.description?.substring(0, 60) + '...',
+            url: `${getBasePath()}project/?id=${project.id}`,
+            icon: '<i class="ph ph-buildings"></i>'
+          });
+        });
+      } catch (e) {
+        console.warn('Error searching projects:', e);
+      }
+    }
+
+    // If no results
+    if (results.length === 0) {
+      resultsContainer.innerHTML = `
+        <div style="padding: 2rem; text-align: center; color: var(--text-secondary);">
+          <i class="ph ph-magnifying-glass" style="font-size: 2rem; margin-bottom: 0.5rem; opacity: 0.5;"></i>
+          <p>No results found for "${query}"</p>
+        </div>
+      `;
+    } else {
+      let html = '<div style="padding: 0.5rem;">';
+      results.forEach(result => {
+        html += `
+          <a href="${result.url}" class="navbar-link" style="display: flex; align-items: center; gap: 0.75rem; padding: 0.75rem; border-radius: 4px; margin-bottom: 0.25rem;" 
+             onclick="Navigation.handleNavClick(event, '${result.url}');">
+            <span style="font-size: 1.2rem;">${result.icon}</span>
+            <div style="flex: 1;">
+              <div style="font-weight: 600; font-size: 0.9rem;">${result.title}</div>
+              <div style="font-size: 0.8rem; color: var(--text-secondary);">${result.subtitle || ''}</div>
+            </div>
+          </a>
+        `;
+      });
+      html += '</div>';
+      resultsContainer.innerHTML = html;
+    }
+    
+    resultsContainer.style.display = 'block';
+  }
+
+  function handleSearchSubmit(query) {
+    // Navigate to search results page or perform search
+    const basePath = getBasePath();
+    window.location.href = `${basePath}discovery/?search=${encodeURIComponent(query)}`;
+  }
+
+  function setupNavLinks() {
+    // Setup click handlers for all navigation links in topbar
+    const navLinks = document.querySelectorAll('#navbarNav .navbar-link[href]');
+    navLinks.forEach(link => {
+      if (!link.onclick) {
+        link.addEventListener('click', (e) => {
+          const href = link.getAttribute('href');
+          if (href && !href.startsWith('#')) {
+            handleNavClick(e, href);
+          }
+        });
+      }
+    });
+  }
+
+  function handleNavClick(event, url) {
+    event.preventDefault();
+    event.stopPropagation();
+    
+    // Close all dropdowns
+    closeAllDropdowns();
+    
+    // Navigate to URL
+    if (url) {
+      window.location.href = url;
+    }
+  }
+
+  function handleNotificationClick(event) {
+    event.preventDefault();
+    event.stopPropagation();
+    const basePath = getBasePath();
+    handleNavClick(event, `${basePath}notifications/`);
+  }
+
+  function setupThemeToggle() {
+    const themeBtn = document.getElementById('themeToggleBtn');
+    const themeIcon = document.getElementById('themeIcon');
+    
+    if (!themeBtn || !themeIcon) return;
+
+    // Load current theme from settings
+    function getCurrentTheme() {
+      try {
+        const settings = localStorage.getItem('pmtwin_user_settings');
+        if (settings) {
+          const parsed = JSON.parse(settings);
+          return parsed.theme || 'light';
+        }
+      } catch (e) {
+        console.warn('Error loading theme:', e);
+      }
+      return 'light';
+    }
+
+    // Update icon based on theme
+    function updateThemeIcon(theme) {
+      if (themeIcon) {
+        if (theme === 'dark') {
+          themeIcon.className = 'ph ph-sun';
+          themeIcon.setAttribute('title', 'Switch to light mode');
+        } else {
+          themeIcon.className = 'ph ph-moon';
+          themeIcon.setAttribute('title', 'Switch to dark mode');
+        }
+      }
+    }
+
+    // Initialize icon
+    const currentTheme = getCurrentTheme();
+    updateThemeIcon(currentTheme);
+
+    // Toggle theme
+    themeBtn.onclick = () => {
+      const currentTheme = getCurrentTheme();
+      const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+      
+      // Update settings
+      try {
+        const settings = localStorage.getItem('pmtwin_user_settings');
+        let parsed = {};
+        if (settings) {
+          parsed = JSON.parse(settings);
+        }
+        parsed.theme = newTheme;
+        localStorage.setItem('pmtwin_user_settings', JSON.stringify(parsed));
+        
+        // Apply theme
+        document.body.className = document.body.className.replace(/theme-\w+/g, '');
+        document.body.classList.add(`theme-${newTheme}`);
+        
+        // Update icon
+        updateThemeIcon(newTheme);
+      } catch (e) {
+        console.error('Error toggling theme:', e);
+      }
+    };
+  }
+
+  function closeAllDropdowns() {
+    const userMenu = document.getElementById('userMenuDropdown');
+    const quickActions = document.getElementById('quickActionsDropdown');
+    const searchResults = document.getElementById('searchResults');
+    
+    if (userMenu) userMenu.style.display = 'none';
+    if (quickActions) quickActions.style.display = 'none';
+    if (searchResults) searchResults.style.display = 'none';
   }
 
   // ============================================
@@ -298,7 +680,9 @@
     let html = `
       <div class="sidebar-header">
         <h2>Menu</h2>
-        <button id="sidebarClose" class="sidebar-close" aria-label="Close sidebar"><i class="ph ph-x"></i></button>
+        <button id="sidebarClose" class="sidebar-close" aria-label="Close sidebar" title="Close menu">
+          <i class="ph ph-x"></i>
+        </button>
       </div>
       <nav class="sidebar-nav">
         <ul class="sidebar-menu">
@@ -342,23 +726,45 @@
         isActive = normalizedPath === normalizedRoute || normalizedPath.startsWith(normalizedRoute + '/');
       }
       
-      // Check children if this is a grouped item
+      // Check children if this is a grouped item (including nested children)
       if ((item.hasChildren || item.isGroup) && item.children && Array.isArray(item.children)) {
         item.children.forEach(child => {
-          if (!child.route) return;
-          let childIsActive = false;
-          if (child.route.startsWith('#')) {
-            const hashRoute = child.route.substring(1);
-            const currentHash = window.location.hash.substring(1);
-            childIsActive = currentHash === hashRoute || currentHash.startsWith(hashRoute + '/') || currentHash.startsWith(hashRoute + '?');
+          // Check if child has nested children
+          if ((child.hasChildren || child.isGroup) && child.children && Array.isArray(child.children)) {
+            child.children.forEach(grandchild => {
+              if (!grandchild.route) return;
+              let grandchildIsActive = false;
+              if (grandchild.route.startsWith('#')) {
+                const hashRoute = grandchild.route.substring(1);
+                const currentHash = window.location.hash.substring(1);
+                grandchildIsActive = currentHash === hashRoute || currentHash.startsWith(hashRoute + '/') || currentHash.startsWith(hashRoute + '?');
+              } else {
+                const normalizedRoute = grandchild.route.replace(basePath, '').replace(/\/$/, '').replace(/\.html$/, '');
+                const normalizedPath = currentPath.replace(/\/$/, '').replace(/\.html$/, '');
+                grandchildIsActive = normalizedPath === normalizedRoute || normalizedPath.startsWith(normalizedRoute + '/');
+              }
+              if (grandchildIsActive) {
+                activeItemId = grandchild.id;
+                isActive = false; // Parent is not active if child is active
+              }
+            });
           } else {
-            const normalizedRoute = child.route.replace(basePath, '').replace(/\/$/, '').replace(/\.html$/, '');
-            const normalizedPath = currentPath.replace(/\/$/, '').replace(/\.html$/, '');
-            childIsActive = normalizedPath === normalizedRoute || normalizedPath.startsWith(normalizedRoute + '/');
-          }
-          if (childIsActive) {
-            activeItemId = child.id;
-            isActive = false; // Parent is not active if child is active
+            // Regular child
+            if (!child.route) return;
+            let childIsActive = false;
+            if (child.route.startsWith('#')) {
+              const hashRoute = child.route.substring(1);
+              const currentHash = window.location.hash.substring(1);
+              childIsActive = currentHash === hashRoute || currentHash.startsWith(hashRoute + '/') || currentHash.startsWith(hashRoute + '?');
+            } else {
+              const normalizedRoute = child.route.replace(basePath, '').replace(/\/$/, '').replace(/\.html$/, '');
+              const normalizedPath = currentPath.replace(/\/$/, '').replace(/\.html$/, '');
+              childIsActive = normalizedPath === normalizedRoute || normalizedPath.startsWith(normalizedRoute + '/');
+            }
+            if (childIsActive) {
+              activeItemId = child.id;
+              isActive = false; // Parent is not active if child is active
+            }
           }
         });
       }
@@ -378,12 +784,22 @@
       
       // Handle grouped items with children (dropdown menus)
       if ((item.hasChildren || item.isGroup) && item.children && Array.isArray(item.children) && item.children.length > 0) {
-        const isExpanded = item.isExpanded || (activeItemId && item.children.some(child => child.id === activeItemId));
+        // Check if any child or nested child is active
+        const hasActiveChild = activeItemId && item.children.some(child => {
+          if (child.id === activeItemId) return true;
+          if (child.hasChildren && child.children) {
+            return child.children.some(grandchild => grandchild.id === activeItemId);
+          }
+          return false;
+        });
+        
+        // Expand if item is explicitly set to expanded, has active child, or is collaboration (default expanded for better UX)
+        const isExpanded = item.isExpanded || hasActiveChild || item.id === 'collaboration';
         const groupId = `group-${item.id}`;
         
         html += `
           <li class="sidebar-menu-group ${isExpanded ? 'active' : ''}">
-            <button type="button" class="sidebar-group-toggle" onclick="Navigation.toggleMenuGroup(this, '${groupId}')" id="${groupId}-toggle">
+            <button type="button" class="sidebar-group-toggle" onclick="Navigation.toggleMenuGroup(this, '${groupId}', event)" id="${groupId}-toggle">
               <span class="sidebar-icon">${item.icon || '<i class="ph ph-folder"></i>'}</span>
               <span class="sidebar-label">${item.label}</span>
               <span class="sidebar-chevron"><i class="ph ph-caret-down"></i></span>
@@ -391,19 +807,58 @@
             <ul class="sidebar-submenu" id="${groupId}" style="display: ${isExpanded ? 'block' : 'none'};">
         `;
         
-        // Render children
+        // Render children (support nested groups)
         item.children.forEach(child => {
-          const childIsActive = activeItemId === child.id;
-          const childIcon = child.icon || item.icon || '<i class="ph ph-file-text"></i>';
-          
-          html += `
-            <li class="sidebar-menu-item ${childIsActive ? 'active' : ''}">
-              <a href="${child.route}" class="sidebar-link" style="padding-left: 2rem;">
-                <span class="sidebar-icon">${childIcon}</span>
-                <span class="sidebar-label">${child.label}</span>
-              </a>
-            </li>
-          `;
+          // Check if child has nested children (nested group)
+          if ((child.hasChildren || child.isGroup) && child.children && Array.isArray(child.children) && child.children.length > 0) {
+            // Expand nested groups if they have active children, or if parent is collaboration (show all categories by default)
+            const childIsExpanded = (activeItemId && child.children.some(grandchild => grandchild.id === activeItemId)) || 
+                                     (item.id === 'collaboration' && isExpanded);
+            const childGroupId = `group-${child.id}`;
+            
+            html += `
+              <li class="sidebar-menu-group ${childIsExpanded ? 'active' : ''}">
+                <button type="button" class="sidebar-group-toggle" onclick="Navigation.toggleMenuGroup(this, '${childGroupId}', event)" style="padding-left: 2rem;">
+                  <span class="sidebar-icon">${child.icon || '<i class="ph ph-folder"></i>'}</span>
+                  <span class="sidebar-label">${child.label}</span>
+                  <span class="sidebar-chevron"><i class="ph ph-caret-down"></i></span>
+                </button>
+                <ul class="sidebar-submenu" id="${childGroupId}" style="display: ${childIsExpanded ? 'block' : 'none'}; padding-left: 1rem;">
+            `;
+            
+            // Render nested children
+            child.children.forEach(grandchild => {
+              const grandchildIsActive = activeItemId === grandchild.id;
+              const grandchildIcon = grandchild.icon || child.icon || '<i class="ph ph-file-text"></i>';
+              
+              html += `
+                <li class="sidebar-menu-item ${grandchildIsActive ? 'active' : ''}">
+                  <a href="${grandchild.route}" class="sidebar-link" style="padding-left: 2rem;">
+                    <span class="sidebar-icon">${grandchildIcon}</span>
+                    <span class="sidebar-label">${grandchild.label}</span>
+                  </a>
+                </li>
+              `;
+            });
+            
+            html += `
+                </ul>
+              </li>
+            `;
+          } else {
+            // Regular child item
+            const childIsActive = activeItemId === child.id;
+            const childIcon = child.icon || item.icon || '<i class="ph ph-file-text"></i>';
+            
+            html += `
+              <li class="sidebar-menu-item ${childIsActive ? 'active' : ''}">
+                <a href="${child.route}" class="sidebar-link" style="padding-left: 2rem;">
+                  <span class="sidebar-icon">${childIcon}</span>
+                  <span class="sidebar-label">${child.label}</span>
+                </a>
+              </li>
+            `;
+          }
         });
         
         html += `
@@ -505,16 +960,18 @@
   // ============================================
   // Toggle Menu Group
   // ============================================
-  function toggleMenuGroup(button, groupId) {
-    event.preventDefault();
-    event.stopPropagation();
+  function toggleMenuGroup(button, groupId, event) {
+    if (event) {
+      event.preventDefault();
+      event.stopPropagation();
+    }
     
     const submenu = document.getElementById(groupId);
     const groupItem = button.closest('.sidebar-menu-group');
     
     if (!submenu || !groupItem) return;
     
-    const isExpanded = submenu.style.display !== 'none';
+    const isExpanded = submenu.style.display !== 'none' && submenu.style.display !== '';
     
     if (isExpanded) {
       submenu.style.display = 'none';
@@ -612,7 +1069,9 @@
     toggleMenuGroup,
     logout,
     loadMenuItems,
-    refreshMenuItems
+    refreshMenuItems,
+    handleNavClick,
+    handleNotificationClick
   };
 
 })();

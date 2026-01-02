@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Strategic Joint Venture - PMTwin</title>
+    <link rel="stylesheet" href="../../css/main.css">
+</head>
+<body>
+    <main>
+        <div class="container" style="padding: 2rem 0;">
+            <div style="margin-bottom: 2rem;">
+                <a href="../../collaboration/" class="btn btn-secondary" style="margin-bottom: 1rem;">
+                    <i class="ph ph-arrow-left"></i> Back to Collaboration
+                </a>
+                <h1>Strategic Joint Venture</h1>
+                <p style="color: var(--text-secondary); margin-top: 1rem;">
+                    Long-term JV for ongoing business
+                </p>
+            </div>
+            <div id="collaborationFormContainer">
+                <div class="loading"><div class="spinner"></div><p>Loading form...</p></div>
+            </div>
+            <div id="createCollaborationContent" style="display: none;"></div>
+        </div>
+    </main>
+    <script src="../../js/config.js"></script>
+    <script src="../../js/api/api-client.js"></script>
+    <script src="../../js/api/api-service.js"></script>
+    <script src="../../js/data.js"></script>
+    <script src="../../js/auth.js"></script>
+    <script src="../../js/auth-check.js"></script>
+    <script src="../../js/demo-credentials.js"></script>
+    <script src="../../services/services-loader.js"></script>
+    <script src="../../data/data-loader.js"></script>
+    <script src="../../js/layout.js"></script>
+    <script src="../../js/navigation.js"></script>
+    <script src="../../js/app-init.js"></script>
+    <script src="../../js/collaboration-model-definitions.js"></script>
+    <script src="../../js/collaboration-models.js"></script>
+    <script src="../collab-init.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            initCollaborationPage('2.1');
+        });
+    </script>
+</body>
+</html>
+

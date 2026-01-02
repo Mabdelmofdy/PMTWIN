@@ -338,57 +338,9 @@
       { id: 'proposals', label: 'Proposals', route: `${basePath}proposals/`, feature: 'proposal_management', icon: '<i class="ph ph-file-text"></i>', alternativeFeatures: ['proposal_creation', 'proposal_review'] },
       { id: 'pipeline', label: 'Pipeline', route: `${basePath}pipeline/`, feature: 'pipeline_management', icon: '<i class="ph ph-trend-up"></i>' },
       
-      // Services Section (Grouped with dropdown)
-      // Note: Service Providers is a specialized marketplace for individuals and companies offering services
-      // Different from Collaboration - this is for applying to Discovery projects based on skills
-      { 
-        id: 'services-group', 
-        label: 'Services', 
-        route: `${basePath}service-providers/`, // Default route to Service Providers
-        feature: 'service_providers', // Show if user has any service-related permission
-        icon: '<i class="ph ph-briefcase"></i>', 
-        hasChildren: true,
-        children: [
-          { 
-            id: 'service-providers', 
-            label: 'Service Providers', 
-            route: `${basePath}service-providers/`, 
-            feature: 'service_providers', 
-            icon: '<i class="ph ph-briefcase"></i>',
-            description: 'Marketplace for individuals and companies offering specialized services. Apply to Discovery projects aligned with your skills.'
-          },
-          { 
-            id: 'discovery', 
-            label: 'Discovery', 
-            route: `${basePath}discovery/`, 
-            feature: 'service_providers', 
-            icon: '<i class="ph ph-magnifying-glass"></i>',
-            description: 'Browse and apply to projects on Discovery that match your skills and expertise'
-          },
-          { 
-            id: 'my-services', 
-            label: 'My Services', 
-            route: `${basePath}my-services/`, 
-            feature: 'service_portfolio', 
-            icon: '<i class="ph ph-package"></i>',
-            description: 'Manage your service portfolio and offerings'
-          },
-          { 
-            id: 'services-marketplace', 
-            label: 'Services Marketplace', 
-            route: `${basePath}services-marketplace/`, 
-            feature: 'service_offering:view', 
-            icon: '<i class="ph ph-storefront"></i>',
-            description: 'Browse available service offerings from providers'
-          }
-        ],
-        alternativeFeatures: ['service_portfolio', 'service_offering:view'], // Show group if user has any of these
-        isExpanded: false // Default collapsed
-      },
-      
       // Profile & Settings
       { id: 'profile', label: 'Profile', route: `${basePath}profile/`, feature: 'profile_management', icon: '<i class="ph ph-user"></i>' },
-      { id: 'onboarding', label: 'Onboarding', route: `${basePath}onboarding/`, feature: 'profile_management', icon: '<i class="ph ph-clipboard-text"></i>' },
+      { id: 'settings', label: 'Settings', route: `${basePath}settings/`, feature: 'profile_management', icon: '<i class="ph ph-gear"></i>' },
       { id: 'notifications', label: 'Notifications', route: `${basePath}notifications/`, feature: 'notifications', icon: '<i class="ph ph-bell"></i>' },
       
       // Admin Section (will be filtered by RBAC)
@@ -451,8 +403,7 @@
       console.warn('[DashboardService] No available collaboration models for user');
     }
     
-    // Insert Collaboration menu item with dropdown before Services
-    const servicesIndex = allMenuItems.findIndex(item => item.id === 'services-group');
+    // Insert Collaboration menu item with dropdown before Profile
     const collaborationItem = {
       id: 'collaboration',
       label: 'Collaboration',
@@ -465,16 +416,12 @@
       isExpanded: false // Default collapsed
     };
     
-    if (servicesIndex >= 0) {
-      allMenuItems.splice(servicesIndex, 0, collaborationItem);
+    // Add before Profile section
+    const profileIndex = allMenuItems.findIndex(item => item.id === 'profile');
+    if (profileIndex >= 0) {
+      allMenuItems.splice(profileIndex, 0, collaborationItem);
     } else {
-      // If services-group not found, add before Profile
-      const profileIndex = allMenuItems.findIndex(item => item.id === 'profile');
-      if (profileIndex >= 0) {
-        allMenuItems.splice(profileIndex, 0, collaborationItem);
-      } else {
-        allMenuItems.push(collaborationItem);
-      }
+      allMenuItems.push(collaborationItem);
     }
     
     // Filter by role using RBAC

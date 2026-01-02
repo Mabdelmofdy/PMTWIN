@@ -1,0 +1,1296 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Settings - PMTwin</title>
+    <link rel="stylesheet" href="../css/main.css">
+    <style>
+        .settings-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem 0;
+        }
+        
+        .settings-tabs {
+            display: flex;
+            gap: 0.5rem;
+            border-bottom: 2px solid var(--border-color);
+            margin-bottom: 2rem;
+            overflow-x: auto;
+            flex-wrap: wrap;
+        }
+        
+        .settings-tab {
+            padding: 0.75rem 1.5rem;
+            background: transparent;
+            border: none;
+            border-bottom: 3px solid transparent;
+            cursor: pointer;
+            font-size: 0.95rem;
+            color: var(--text-secondary);
+            transition: all 0.2s;
+            white-space: nowrap;
+        }
+        
+        .settings-tab:hover {
+            color: var(--text-primary);
+            background: var(--bg-secondary);
+        }
+        
+        .settings-tab.active {
+            color: var(--color-primary);
+            border-bottom-color: var(--color-primary);
+            font-weight: 600;
+        }
+        
+        .settings-panel {
+            display: none;
+        }
+        
+        .settings-panel.active {
+            display: block;
+        }
+        
+        .settings-section {
+            margin-bottom: 2.5rem;
+        }
+        
+        .settings-section h3 {
+            margin-bottom: 1rem;
+            color: var(--text-primary);
+            font-size: 1.25rem;
+        }
+        
+        .settings-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+        }
+        
+        .theme-preview {
+            display: flex;
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+        
+        .theme-option {
+            flex: 1;
+            padding: 1rem;
+            border: 2px solid var(--border-color);
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-align: center;
+        }
+        
+        .theme-option:hover {
+            border-color: var(--color-primary);
+            transform: translateY(-2px);
+        }
+        
+        .theme-option.active {
+            border-color: var(--color-primary);
+            background: var(--bg-secondary);
+        }
+        
+        .theme-preview-box {
+            width: 100%;
+            height: 60px;
+            border-radius: 4px;
+            margin-bottom: 0.5rem;
+        }
+        
+        .theme-light .theme-preview-box {
+            background: linear-gradient(135deg, #ffffff 0%, #f5f5f5 100%);
+        }
+        
+        .theme-dark .theme-preview-box {
+            background: linear-gradient(135deg, #1a1a1a 0%, #333333 100%);
+        }
+        
+        .theme-auto .theme-preview-box {
+            background: linear-gradient(135deg, #ffffff 0%, #1a1a1a 100%);
+        }
+        
+        .color-scheme-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+        
+        .color-scheme-option {
+            aspect-ratio: 1;
+            border-radius: 8px;
+            cursor: pointer;
+            border: 3px solid transparent;
+            transition: all 0.2s;
+            position: relative;
+        }
+        
+        .color-scheme-option:hover {
+            transform: scale(1.05);
+        }
+        
+        .color-scheme-option.active {
+            border-color: var(--text-primary);
+            box-shadow: 0 0 0 2px var(--color-primary);
+        }
+        
+        .color-scheme-option::after {
+            content: '✓';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: white;
+            font-size: 1.5rem;
+            font-weight: bold;
+            opacity: 0;
+            transition: opacity 0.2s;
+        }
+        
+        .color-scheme-option.active::after {
+            opacity: 1;
+        }
+        
+        .timezone-select {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            font-size: 1rem;
+        }
+        
+        .format-options {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+        
+        .format-option {
+            flex: 1;
+            min-width: 150px;
+        }
+        
+        .preview-box {
+            background: var(--bg-secondary);
+            padding: 1rem;
+            border-radius: 4px;
+            margin-top: 0.5rem;
+            font-family: var(--font-family-mono);
+            font-size: 0.9rem;
+        }
+        
+        .save-indicator {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            background: var(--color-success);
+            color: white;
+            padding: 1rem 1.5rem;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            display: none;
+            z-index: 1000;
+        }
+        
+        .save-indicator.show {
+            display: block;
+            animation: slideUp 0.3s ease-out;
+        }
+        
+        @keyframes slideUp {
+            from {
+                transform: translateY(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+        
+        .session-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            margin-bottom: 0.75rem;
+        }
+        
+        .session-info {
+            flex: 1;
+        }
+        
+        .session-info strong {
+            display: block;
+            margin-bottom: 0.25rem;
+        }
+        
+        .session-info small {
+            color: var(--text-secondary);
+            font-size: 0.875rem;
+        }
+    </style>
+</head>
+<body>
+    <!-- Main Content - Sidebar and Navbar are automatically added by layout system -->
+    <main>
+        <div class="settings-container">
+            <h1 style="margin-bottom: var(--spacing-6);">Settings</h1>
+
+            <!-- Settings Tabs -->
+            <div class="settings-tabs">
+                <button class="settings-tab active" data-tab="theme">Theme & Appearance</button>
+                <button class="settings-tab" data-tab="time">Time & Date</button>
+                <button class="settings-tab" data-tab="display">Display</button>
+                <button class="settings-tab" data-tab="notifications">Notifications</button>
+                <button class="settings-tab" data-tab="account">Account & Security</button>
+                <button class="settings-tab" data-tab="portal">Portal Preferences</button>
+            </div>
+
+            <!-- Settings Content -->
+            <div id="settingsContent">
+                <!-- Theme & Appearance Panel -->
+                <div class="settings-panel active" id="panel-theme">
+                    <div class="card">
+                        <div class="settings-section">
+                            <h3>Theme Mode</h3>
+                            <div class="theme-preview">
+                                <div class="theme-option theme-light active" data-theme="light">
+                                    <div class="theme-preview-box"></div>
+                                    <strong>Light</strong>
+                                    <p style="font-size: 0.875rem; color: var(--text-secondary); margin-top: 0.25rem;">Bright and clean</p>
+                                </div>
+                                <div class="theme-option theme-dark" data-theme="dark">
+                                    <div class="theme-preview-box"></div>
+                                    <strong>Dark</strong>
+                                    <p style="font-size: 0.875rem; color: var(--text-secondary); margin-top: 0.25rem;">Easy on the eyes</p>
+                                </div>
+                                <div class="theme-option theme-auto" data-theme="auto">
+                                    <div class="theme-preview-box"></div>
+                                    <strong>Auto</strong>
+                                    <p style="font-size: 0.875rem; color: var(--text-secondary); margin-top: 0.25rem;">Follow system</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <hr style="margin: 2rem 0; border: none; border-top: 1px solid var(--border-color);">
+
+                        <div class="settings-section">
+                            <h3>Color Scheme</h3>
+                            <p style="color: var(--text-secondary); margin-bottom: 1rem;">Choose your preferred color palette</p>
+                            <div class="color-scheme-grid">
+                                <div class="color-scheme-option active" data-scheme="blue" style="background: linear-gradient(135deg, #0066CC 0%, #0052A3 100%);" title="Blue"></div>
+                                <div class="color-scheme-option" data-scheme="green" style="background: linear-gradient(135deg, #00AA44 0%, #008833 100%);" title="Green"></div>
+                                <div class="color-scheme-option" data-scheme="purple" style="background: linear-gradient(135deg, #7B68EE 0%, #5B4FC8 100%);" title="Purple"></div>
+                                <div class="color-scheme-option" data-scheme="red" style="background: linear-gradient(135deg, #DC3545 0%, #C82333 100%);" title="Red"></div>
+                                <div class="color-scheme-option" data-scheme="orange" style="background: linear-gradient(135deg, #FF6600 0%, #CC5200 100%);" title="Orange"></div>
+                                <div class="color-scheme-option" data-scheme="teal" style="background: linear-gradient(135deg, #20C997 0%, #1AA179 100%);" title="Teal"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Time & Date Panel -->
+                <div class="settings-panel" id="panel-time">
+                    <div class="card">
+                        <div class="settings-section">
+                            <h3>Timezone</h3>
+                            <div class="form-group">
+                                <label for="timezone">Select your timezone</label>
+                                <select id="timezone" class="timezone-select">
+                                    <option value="UTC">UTC (Coordinated Universal Time)</option>
+                                    <option value="America/New_York">America/New_York (EST/EDT)</option>
+                                    <option value="America/Chicago">America/Chicago (CST/CDT)</option>
+                                    <option value="America/Denver">America/Denver (MST/MDT)</option>
+                                    <option value="America/Los_Angeles">America/Los_Angeles (PST/PDT)</option>
+                                    <option value="Europe/London">Europe/London (GMT/BST)</option>
+                                    <option value="Europe/Paris">Europe/Paris (CET/CEST)</option>
+                                    <option value="Asia/Dubai">Asia/Dubai (GST)</option>
+                                    <option value="Asia/Riyadh">Asia/Riyadh (AST)</option>
+                                    <option value="Asia/Kolkata">Asia/Kolkata (IST)</option>
+                                    <option value="Asia/Shanghai">Asia/Shanghai (CST)</option>
+                                    <option value="Asia/Tokyo">Asia/Tokyo (JST)</option>
+                                    <option value="Australia/Sydney">Australia/Sydney (AEDT/AEST)</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <hr style="margin: 2rem 0; border: none; border-top: 1px solid var(--border-color);">
+
+                        <div class="settings-section">
+                            <h3>Date Format</h3>
+                            <div class="format-options">
+                                <div class="format-option">
+                                    <label>
+                                        <input type="radio" name="dateFormat" value="MM/DD/YYYY" checked>
+                                        <span>MM/DD/YYYY</span>
+                                    </label>
+                                    <div class="preview-box" id="datePreview1">12/31/2024</div>
+                                </div>
+                                <div class="format-option">
+                                    <label>
+                                        <input type="radio" name="dateFormat" value="DD/MM/YYYY">
+                                        <span>DD/MM/YYYY</span>
+                                    </label>
+                                    <div class="preview-box" id="datePreview2">31/12/2024</div>
+                                </div>
+                                <div class="format-option">
+                                    <label>
+                                        <input type="radio" name="dateFormat" value="YYYY-MM-DD">
+                                        <span>YYYY-MM-DD</span>
+                                    </label>
+                                    <div class="preview-box" id="datePreview3">2024-12-31</div>
+                                </div>
+                                <div class="format-option">
+                                    <label>
+                                        <input type="radio" name="dateFormat" value="DD MMM YYYY">
+                                        <span>DD MMM YYYY</span>
+                                    </label>
+                                    <div class="preview-box" id="datePreview4">31 Dec 2024</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <hr style="margin: 2rem 0; border: none; border-top: 1px solid var(--border-color);">
+
+                        <div class="settings-section">
+                            <h3>Time Format</h3>
+                            <div class="format-options">
+                                <div class="format-option">
+                                    <label>
+                                        <input type="radio" name="timeFormat" value="12h" checked>
+                                        <span>12-hour (AM/PM)</span>
+                                    </label>
+                                    <div class="preview-box" id="timePreview1">02:30 PM</div>
+                                </div>
+                                <div class="format-option">
+                                    <label>
+                                        <input type="radio" name="timeFormat" value="24h">
+                                        <span>24-hour</span>
+                                    </label>
+                                    <div class="preview-box" id="timePreview2">14:30</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <hr style="margin: 2rem 0; border: none; border-top: 1px solid var(--border-color);">
+
+                        <div class="settings-section">
+                            <h3>Current Time Preview</h3>
+                            <div class="preview-box" style="font-size: 1.25rem; text-align: center; padding: 1.5rem;" id="currentTimePreview">
+                                Loading...
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Display Panel -->
+                <div class="settings-panel" id="panel-display">
+                    <div class="card">
+                        <div class="settings-section">
+                            <h3>Font Size</h3>
+                            <div class="form-group">
+                                <label for="fontSize">Adjust text size</label>
+                                <input type="range" id="fontSize" min="0" max="2" step="0.25" value="0" style="width: 100%;">
+                                <div style="display: flex; justify-content: space-between; margin-top: 0.5rem; font-size: 0.875rem; color: var(--text-secondary);">
+                                    <span>Small</span>
+                                    <span>Default</span>
+                                    <span>Large</span>
+                                    <span>Extra Large</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <hr style="margin: 2rem 0; border: none; border-top: 1px solid var(--border-color);">
+
+                        <div class="settings-section">
+                            <h3>Display Density</h3>
+                            <div class="format-options">
+                                <div class="format-option">
+                                    <label style="display: flex; align-items: center; gap: 0.5rem;">
+                                        <input type="radio" name="density" value="compact" checked>
+                                        <span>Compact</span>
+                                    </label>
+                                    <small style="color: var(--text-secondary);">More content per screen</small>
+                                </div>
+                                <div class="format-option">
+                                    <label style="display: flex; align-items: center; gap: 0.5rem;">
+                                        <input type="radio" name="density" value="comfortable">
+                                        <span>Comfortable</span>
+                                    </label>
+                                    <small style="color: var(--text-secondary);">Balanced spacing</small>
+                                </div>
+                                <div class="format-option">
+                                    <label style="display: flex; align-items: center; gap: 0.5rem;">
+                                        <input type="radio" name="density" value="spacious">
+                                        <span>Spacious</span>
+                                    </label>
+                                    <small style="color: var(--text-secondary);">More breathing room</small>
+                                </div>
+                            </div>
+                        </div>
+
+                        <hr style="margin: 2rem 0; border: none; border-top: 1px solid var(--border-color);">
+
+                        <div class="settings-section">
+                            <h3>Language</h3>
+                            <div class="form-group">
+                                <label for="language">Select language</label>
+                                <select id="language" class="timezone-select">
+                                    <option value="en">English</option>
+                                    <option value="ar">العربية (Arabic)</option>
+                                    <option value="fr">Français (French)</option>
+                                    <option value="es">Español (Spanish)</option>
+                                    <option value="de">Deutsch (German)</option>
+                                    <option value="zh">中文 (Chinese)</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Notifications Panel -->
+                <div class="settings-panel" id="panel-notifications">
+                    <div class="card">
+                        <div class="settings-section">
+                            <h3>Email Notifications</h3>
+                            <div class="form-group" style="margin-bottom: 1.5rem;">
+                                <label style="display: flex; align-items: center; gap: 0.5rem;">
+                                    <input type="checkbox" id="emailNotifications" checked style="width: auto;">
+                                    <span>Enable email notifications</span>
+                                </label>
+                                <small style="color: var(--text-secondary); display: block; margin-top: 0.5rem;">
+                                    Receive email notifications for important account activities
+                                </small>
+                            </div>
+                            
+                            <div class="form-group" style="margin-bottom: 1.5rem;">
+                                <label style="display: flex; align-items: center; gap: 0.5rem;">
+                                    <input type="checkbox" id="emailMatches" checked style="width: auto;">
+                                    <span>New matches</span>
+                                </label>
+                            </div>
+                            
+                            <div class="form-group" style="margin-bottom: 1.5rem;">
+                                <label style="display: flex; align-items: center; gap: 0.5rem;">
+                                    <input type="checkbox" id="emailProposals" checked style="width: auto;">
+                                    <span>Proposal updates</span>
+                                </label>
+                            </div>
+                            
+                            <div class="form-group" style="margin-bottom: 1.5rem;">
+                                <label style="display: flex; align-items: center; gap: 0.5rem;">
+                                    <input type="checkbox" id="emailProjects" checked style="width: auto;">
+                                    <span>Project notifications</span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <hr style="margin: 2rem 0; border: none; border-top: 1px solid var(--border-color);">
+
+                        <div class="settings-section">
+                            <h3>In-App Notifications</h3>
+                            <div class="form-group" style="margin-bottom: 1.5rem;">
+                                <label style="display: flex; align-items: center; gap: 0.5rem;">
+                                    <input type="checkbox" id="inAppNotifications" checked style="width: auto;">
+                                    <span>Enable in-app notifications</span>
+                                </label>
+                            </div>
+                            
+                            <div class="form-group" style="margin-bottom: 1.5rem;">
+                                <label style="display: flex; align-items: center; gap: 0.5rem;">
+                                    <input type="checkbox" id="browserNotifications" style="width: auto;">
+                                    <span>Browser push notifications</span>
+                                </label>
+                                <small style="color: var(--text-secondary); display: block; margin-top: 0.5rem;">
+                                    Receive browser notifications even when the portal is closed
+                                </small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Account & Security Panel -->
+                <div class="settings-panel" id="panel-account">
+                    <div class="card">
+                        <div class="settings-section">
+                            <h3>Change Password</h3>
+                            <div class="form-group" style="margin-bottom: 1.5rem;">
+                                <label for="currentPassword">Current Password</label>
+                                <input type="password" id="currentPassword" class="form-control" placeholder="Enter current password">
+                            </div>
+                            
+                            <div class="form-group" style="margin-bottom: 1.5rem;">
+                                <label for="newPassword">New Password</label>
+                                <input type="password" id="newPassword" class="form-control" placeholder="Enter new password">
+                                <small style="color: var(--text-secondary);">Password must be at least 8 characters long</small>
+                            </div>
+                            
+                            <div class="form-group" style="margin-bottom: 1.5rem;">
+                                <label for="confirmPassword">Confirm New Password</label>
+                                <input type="password" id="confirmPassword" class="form-control" placeholder="Confirm new password">
+                            </div>
+                            
+                            <button id="changePasswordBtn" class="btn btn-primary">Change Password</button>
+                        </div>
+
+                        <hr style="margin: 2rem 0; border: none; border-top: 1px solid var(--border-color);">
+
+                        <div class="settings-section">
+                            <h3>Security</h3>
+                            <div class="form-group" style="margin-bottom: 1.5rem;">
+                                <label style="display: flex; align-items: center; gap: 0.5rem;">
+                                    <input type="checkbox" id="twoFactorAuth" style="width: auto;">
+                                    <span>Enable Two-Factor Authentication</span>
+                                </label>
+                                <small style="color: var(--text-secondary); display: block; margin-top: 0.5rem;">
+                                    Add an extra layer of security to your account
+                                </small>
+                            </div>
+                            
+                            <button id="saveSecurityBtn" class="btn btn-primary">Save Security Settings</button>
+                        </div>
+
+                        <hr style="margin: 2rem 0; border: none; border-top: 1px solid var(--border-color);">
+
+                        <div class="settings-section">
+                            <h3>Active Sessions</h3>
+                            <p style="color: var(--text-secondary); margin-bottom: 1rem;">
+                                Manage your active sessions across different devices
+                            </p>
+                            <div id="activeSessions" style="margin-bottom: 1rem;">
+                                <!-- Active sessions will be loaded here -->
+                            </div>
+                            <button id="refreshSessionsBtn" class="btn btn-secondary">Refresh Sessions</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Portal Preferences Panel -->
+                <div class="settings-panel" id="panel-portal">
+                    <div class="card">
+                        <div class="settings-section">
+                            <h3>Dashboard Preferences</h3>
+                            <div class="form-group" style="margin-bottom: 1.5rem;">
+                                <label style="display: flex; align-items: center; gap: 0.5rem;">
+                                    <input type="checkbox" id="showWelcomeMessage" checked style="width: auto;">
+                                    <span>Show welcome message on dashboard</span>
+                                </label>
+                            </div>
+                            
+                            <div class="form-group" style="margin-bottom: 1.5rem;">
+                                <label style="display: flex; align-items: center; gap: 0.5rem;">
+                                    <input type="checkbox" id="showQuickActions" checked style="width: auto;">
+                                    <span>Show quick action buttons</span>
+                                </label>
+                            </div>
+                            
+                            <div class="form-group" style="margin-bottom: 1.5rem;">
+                                <label style="display: flex; align-items: center; gap: 0.5rem;">
+                                    <input type="checkbox" id="showRecentActivity" checked style="width: auto;">
+                                    <span>Show recent activity feed</span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <hr style="margin: 2rem 0; border: none; border-top: 1px solid var(--border-color);">
+
+                        <div class="settings-section">
+                            <h3>Navigation</h3>
+                            <div class="form-group" style="margin-bottom: 1.5rem;">
+                                <label style="display: flex; align-items: center; gap: 0.5rem;">
+                                    <input type="checkbox" id="sidebarCollapsed" style="width: auto;">
+                                    <span>Start with sidebar collapsed</span>
+                                </label>
+                            </div>
+                            
+                            <div class="form-group" style="margin-bottom: 1.5rem;">
+                                <label style="display: flex; align-items: center; gap: 0.5rem;">
+                                    <input type="checkbox" id="rememberSidebarState" checked style="width: auto;">
+                                    <span>Remember sidebar state</span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <hr style="margin: 2rem 0; border: none; border-top: 1px solid var(--border-color);">
+
+                        <div class="settings-section">
+                            <h3>Data & Privacy</h3>
+                            <div class="form-group" style="margin-bottom: 1.5rem;">
+                                <label style="display: flex; align-items: center; gap: 0.5rem;">
+                                    <input type="checkbox" id="autoSave" checked style="width: auto;">
+                                    <span>Auto-save form data</span>
+                                </label>
+                                <small style="color: var(--text-secondary); display: block; margin-top: 0.5rem;">
+                                    Automatically save form progress as you type
+                                </small>
+                            </div>
+                            
+                            <div class="form-group" style="margin-bottom: 1.5rem;">
+                                <label style="display: flex; align-items: center; gap: 0.5rem;">
+                                    <input type="checkbox" id="analyticsTracking" checked style="width: auto;">
+                                    <span>Allow analytics tracking</span>
+                                </label>
+                                <small style="color: var(--text-secondary); display: block; margin-top: 0.5rem;">
+                                    Help us improve by sharing anonymous usage data
+                                </small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Save Indicator -->
+    <div class="save-indicator" id="saveIndicator">
+        <strong>✓ Settings saved successfully!</strong>
+    </div>
+
+    <!-- Configuration (must load first) -->
+    <script src="../js/config.js"></script>
+    
+    <!-- API Layer (for future Java backend integration) -->
+    <script src="../js/api/api-client.js"></script>
+    <script src="../js/api/api-service.js"></script>
+    
+    <!-- Core Scripts -->
+    <script src="../js/data.js"></script>
+    <script src="../js/auth.js"></script>
+    <script src="../js/auth-check.js"></script>
+    <script src="../js/demo-credentials.js"></script>
+    <script src="../services/services-loader.js"></script>
+    <script src="../data/data-loader.js"></script>
+    
+    <!-- Layout System (automatically includes sidebar and navbar) -->
+    <script src="../js/layout.js"></script>
+    <script src="../js/navigation.js"></script>
+    <script src="../js/app-init.js"></script>
+    
+    <!-- Settings Script -->
+    <script>
+        // Settings storage key
+        const SETTINGS_KEY = 'pmtwin_user_settings';
+        
+        // Default settings
+        const defaultSettings = {
+            theme: 'light',
+            colorScheme: 'blue',
+            timezone: (() => {
+                try {
+                    return Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC';
+                } catch (e) {
+                    return 'UTC';
+                }
+            })(),
+            dateFormat: 'MM/DD/YYYY',
+            timeFormat: '12h',
+            fontSize: 0,
+            density: 'compact',
+            language: 'en',
+            emailNotifications: true,
+            emailMatches: true,
+            emailProposals: true,
+            emailProjects: true,
+            inAppNotifications: true,
+            browserNotifications: false,
+            twoFactorAuth: false,
+            showWelcomeMessage: true,
+            showQuickActions: true,
+            showRecentActivity: true,
+            sidebarCollapsed: false,
+            rememberSidebarState: true,
+            autoSave: true,
+            analyticsTracking: true
+        };
+        
+        // Load settings from localStorage
+        function loadSettings() {
+            try {
+                const stored = localStorage.getItem(SETTINGS_KEY);
+                if (stored) {
+                    const parsed = JSON.parse(stored);
+                    // Merge with defaults to ensure all settings exist (handles new settings added later)
+                    return { ...defaultSettings, ...parsed };
+                }
+            } catch (e) {
+                console.error('Error loading settings:', e);
+            }
+            return { ...defaultSettings };
+        }
+        
+        // Save settings to localStorage
+        function saveSettings(settings) {
+            try {
+                localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
+                showSaveIndicator();
+                return true;
+            } catch (e) {
+                console.error('Error saving settings:', e);
+                return false;
+            }
+        }
+        
+        // Get current settings
+        function getSettings() {
+            return loadSettings();
+        }
+        
+        // Update settings
+        function updateSettings(updates) {
+            const current = getSettings();
+            const updated = { ...current, ...updates };
+            saveSettings(updated);
+            applySettings(updated);
+        }
+        
+        // Apply settings to the page
+        function applySettings(settings) {
+            try {
+                // Apply theme
+                document.body.className = document.body.className.replace(/theme-\w+/g, '');
+                if (settings.theme === 'auto') {
+                    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+                    document.body.classList.add(prefersDark ? 'theme-dark' : 'theme-light');
+                } else {
+                    document.body.classList.add(`theme-${settings.theme || 'light'}`);
+                }
+                
+                // Apply color scheme (update CSS variables)
+                applyColorScheme(settings.colorScheme || 'blue');
+                
+                // Apply font size
+                const fontSizeMap = { 
+                    0: '1rem', 0.25: '1.05rem', 0.5: '1.1rem', 0.75: '1.15rem', 
+                    1: '1.2rem', 1.25: '1.3rem', 1.5: '1.4rem', 1.75: '1.5rem', 2: '1.6rem' 
+                };
+                const fontSize = fontSizeMap[settings.fontSize] || '1rem';
+                document.documentElement.style.setProperty('--font-size-base', fontSize);
+                
+                // Apply density (update spacing)
+                applyDensity(settings.density || 'compact');
+            } catch (error) {
+                console.error('Error applying settings:', error);
+            }
+        }
+        
+        // Apply color scheme
+        function applyColorScheme(scheme) {
+            const colorSchemes = {
+                blue: { primary: '#0066CC', primaryDark: '#0052A3', primaryLight: '#3385D6' },
+                green: { primary: '#00AA44', primaryDark: '#008833', primaryLight: '#33BB66' },
+                purple: { primary: '#7B68EE', primaryDark: '#5B4FC8', primaryLight: '#9B88FF' },
+                red: { primary: '#DC3545', primaryDark: '#C82333', primaryLight: '#E85D6D' },
+                orange: { primary: '#FF6600', primaryDark: '#CC5200', primaryLight: '#FF8533' },
+                teal: { primary: '#20C997', primaryDark: '#1AA179', primaryLight: '#4DD4B0' }
+            };
+            
+            const colors = colorSchemes[scheme] || colorSchemes.blue;
+            document.documentElement.style.setProperty('--color-primary', colors.primary);
+            document.documentElement.style.setProperty('--color-primary-dark', colors.primaryDark);
+            document.documentElement.style.setProperty('--color-primary-light', colors.primaryLight);
+            document.documentElement.style.setProperty('--text-link', colors.primary);
+            document.documentElement.style.setProperty('--text-link-hover', colors.primaryDark);
+        }
+        
+        // Apply display density
+        function applyDensity(density) {
+            const densityMap = {
+                compact: { spacing: '0.5rem', padding: '0.75rem' },
+                comfortable: { spacing: '1rem', padding: '1rem' },
+                spacious: { spacing: '1.5rem', padding: '1.5rem' }
+            };
+            
+            const densitySettings = densityMap[density] || densityMap.comfortable;
+            // Apply density to specific elements if needed
+            document.documentElement.style.setProperty('--density-spacing', densitySettings.spacing);
+            document.documentElement.style.setProperty('--density-padding', densitySettings.padding);
+        }
+        
+        // Show save indicator
+        function showSaveIndicator() {
+            const indicator = document.getElementById('saveIndicator');
+            if (indicator) {
+                indicator.classList.add('show');
+                setTimeout(() => {
+                    indicator.classList.remove('show');
+                }, 3000);
+            }
+        }
+        
+        // Listen for system theme changes when auto theme is selected
+        function setupThemeListener() {
+            const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+            mediaQuery.addEventListener('change', (e) => {
+                const settings = getSettings();
+                if (settings.theme === 'auto') {
+                    applySettings(settings);
+                }
+            });
+        }
+        
+        // Initialize settings page
+        document.addEventListener('DOMContentLoaded', async function() {
+            try {
+                // Check authentication
+                const isAuth = await AuthCheck.checkAuth({ requireAuth: true });
+                if (!isAuth) {
+                    window.location.href = '../login/';
+                    return;
+                }
+                
+                // Get current user
+                const currentUser = Auth.getCurrentUser();
+                if (!currentUser) {
+                    console.error('No current user found');
+                    const container = document.getElementById('settingsContent');
+                    if (container) {
+                        container.innerHTML = `
+                            <div class="alert alert-error">
+                                <p>No user session found. Please log in again.</p>
+                                <a href="../login/" class="btn btn-primary">Go to Login</a>
+                            </div>
+                        `;
+                    }
+                    return;
+                }
+                
+                // Load and apply settings
+                const settings = getSettings();
+                applySettings(settings);
+                populateSettingsForm(settings);
+                
+                // Initialize UI
+                initializeTabs();
+                initializeSettingsHandlers();
+                loadActiveSessions();
+                startTimePreview();
+                setupThemeListener();
+            } catch (error) {
+                console.error('Error initializing settings:', error);
+            }
+        });
+        
+        // Initialize tabs
+        function initializeTabs() {
+            const tabs = document.querySelectorAll('.settings-tab');
+            tabs.forEach(tab => {
+                tab.addEventListener('click', () => {
+                    const tabName = tab.dataset.tab;
+                    
+                    // Update active tab
+                    tabs.forEach(t => t.classList.remove('active'));
+                    tab.classList.add('active');
+                    
+                    // Update active panel
+                    document.querySelectorAll('.settings-panel').forEach(panel => {
+                        panel.classList.remove('active');
+                    });
+                    document.getElementById(`panel-${tabName}`).classList.add('active');
+                });
+            });
+        }
+        
+        // Populate form with current settings
+        function populateSettingsForm(settings) {
+            try {
+                // Theme
+                const themeOption = document.querySelector(`.theme-option[data-theme="${settings.theme}"]`);
+                if (themeOption) {
+                    document.querySelectorAll('.theme-option').forEach(o => o.classList.remove('active'));
+                    themeOption.classList.add('active');
+                }
+                
+                const colorSchemeOption = document.querySelector(`.color-scheme-option[data-scheme="${settings.colorScheme}"]`);
+                if (colorSchemeOption) {
+                    document.querySelectorAll('.color-scheme-option').forEach(o => o.classList.remove('active'));
+                    colorSchemeOption.classList.add('active');
+                }
+                
+                // Time
+                const timezoneSelect = document.getElementById('timezone');
+                if (timezoneSelect) {
+                    // Check if timezone exists in options, otherwise use UTC
+                    const timezoneOption = Array.from(timezoneSelect.options).find(opt => opt.value === settings.timezone);
+                    timezoneSelect.value = timezoneOption ? settings.timezone : 'UTC';
+                }
+                
+                const dateFormatRadio = document.querySelector(`input[name="dateFormat"][value="${settings.dateFormat}"]`);
+                if (dateFormatRadio) {
+                    dateFormatRadio.checked = true;
+                }
+                
+                const timeFormatRadio = document.querySelector(`input[name="timeFormat"][value="${settings.timeFormat}"]`);
+                if (timeFormatRadio) {
+                    timeFormatRadio.checked = true;
+                }
+                
+                // Display
+                const fontSizeSlider = document.getElementById('fontSize');
+                if (fontSizeSlider) {
+                    fontSizeSlider.value = settings.fontSize || 0;
+                }
+                
+                const densityRadio = document.querySelector(`input[name="density"][value="${settings.density}"]`);
+                if (densityRadio) {
+                    densityRadio.checked = true;
+                }
+                
+                const languageSelect = document.getElementById('language');
+                if (languageSelect) {
+                    languageSelect.value = settings.language || 'en';
+                }
+                
+                // Notifications
+                const emailNotifications = document.getElementById('emailNotifications');
+                if (emailNotifications) emailNotifications.checked = settings.emailNotifications !== false;
+                
+                const emailMatches = document.getElementById('emailMatches');
+                if (emailMatches) emailMatches.checked = settings.emailMatches !== false;
+                
+                const emailProposals = document.getElementById('emailProposals');
+                if (emailProposals) emailProposals.checked = settings.emailProposals !== false;
+                
+                const emailProjects = document.getElementById('emailProjects');
+                if (emailProjects) emailProjects.checked = settings.emailProjects !== false;
+                
+                const inAppNotifications = document.getElementById('inAppNotifications');
+                if (inAppNotifications) inAppNotifications.checked = settings.inAppNotifications !== false;
+                
+                const browserNotifications = document.getElementById('browserNotifications');
+                if (browserNotifications) browserNotifications.checked = settings.browserNotifications === true;
+                
+                // Account
+                const twoFactorAuth = document.getElementById('twoFactorAuth');
+                if (twoFactorAuth) twoFactorAuth.checked = settings.twoFactorAuth === true;
+                
+                // Portal
+                const showWelcomeMessage = document.getElementById('showWelcomeMessage');
+                if (showWelcomeMessage) showWelcomeMessage.checked = settings.showWelcomeMessage !== false;
+                
+                const showQuickActions = document.getElementById('showQuickActions');
+                if (showQuickActions) showQuickActions.checked = settings.showQuickActions !== false;
+                
+                const showRecentActivity = document.getElementById('showRecentActivity');
+                if (showRecentActivity) showRecentActivity.checked = settings.showRecentActivity !== false;
+                
+                const sidebarCollapsed = document.getElementById('sidebarCollapsed');
+                if (sidebarCollapsed) sidebarCollapsed.checked = settings.sidebarCollapsed === true;
+                
+                const rememberSidebarState = document.getElementById('rememberSidebarState');
+                if (rememberSidebarState) rememberSidebarState.checked = settings.rememberSidebarState !== false;
+                
+                const autoSave = document.getElementById('autoSave');
+                if (autoSave) autoSave.checked = settings.autoSave !== false;
+                
+                const analyticsTracking = document.getElementById('analyticsTracking');
+                if (analyticsTracking) analyticsTracking.checked = settings.analyticsTracking !== false;
+            } catch (error) {
+                console.error('Error populating settings form:', error);
+            }
+        }
+        
+        // Initialize settings handlers
+        function initializeSettingsHandlers() {
+            try {
+                // Theme handlers
+                document.querySelectorAll('.theme-option').forEach(option => {
+                    option.addEventListener('click', () => {
+                        document.querySelectorAll('.theme-option').forEach(o => o.classList.remove('active'));
+                        option.classList.add('active');
+                        updateSettings({ theme: option.dataset.theme });
+                    });
+                });
+                
+                document.querySelectorAll('.color-scheme-option').forEach(option => {
+                    option.addEventListener('click', () => {
+                        document.querySelectorAll('.color-scheme-option').forEach(o => o.classList.remove('active'));
+                        option.classList.add('active');
+                        updateSettings({ colorScheme: option.dataset.scheme });
+                    });
+                });
+                
+                // Time handlers
+                const timezoneSelect = document.getElementById('timezone');
+                if (timezoneSelect) {
+                    timezoneSelect.addEventListener('change', (e) => {
+                        updateSettings({ timezone: e.target.value });
+                    });
+                }
+                
+                document.querySelectorAll('input[name="dateFormat"]').forEach(radio => {
+                    radio.addEventListener('change', (e) => {
+                        updateSettings({ dateFormat: e.target.value });
+                        // Restart time preview to show new format
+                        startTimePreview();
+                    });
+                });
+                
+                document.querySelectorAll('input[name="timeFormat"]').forEach(radio => {
+                    radio.addEventListener('change', (e) => {
+                        updateSettings({ timeFormat: e.target.value });
+                        // Restart time preview to show new format
+                        startTimePreview();
+                    });
+                });
+                
+                // Display handlers
+                const fontSizeSlider = document.getElementById('fontSize');
+                if (fontSizeSlider) {
+                    fontSizeSlider.addEventListener('input', (e) => {
+                        updateSettings({ fontSize: parseFloat(e.target.value) });
+                    });
+                }
+                
+                document.querySelectorAll('input[name="density"]').forEach(radio => {
+                    radio.addEventListener('change', (e) => {
+                        updateSettings({ density: e.target.value });
+                    });
+                });
+                
+                const languageSelect = document.getElementById('language');
+                if (languageSelect) {
+                    languageSelect.addEventListener('change', (e) => {
+                        updateSettings({ language: e.target.value });
+                    });
+                }
+                
+                // Notification handlers
+                const emailNotifications = document.getElementById('emailNotifications');
+                if (emailNotifications) {
+                    emailNotifications.addEventListener('change', (e) => {
+                        updateSettings({ emailNotifications: e.target.checked });
+                    });
+                }
+                
+                const emailMatches = document.getElementById('emailMatches');
+                if (emailMatches) {
+                    emailMatches.addEventListener('change', (e) => {
+                        updateSettings({ emailMatches: e.target.checked });
+                    });
+                }
+                
+                const emailProposals = document.getElementById('emailProposals');
+                if (emailProposals) {
+                    emailProposals.addEventListener('change', (e) => {
+                        updateSettings({ emailProposals: e.target.checked });
+                    });
+                }
+                
+                const emailProjects = document.getElementById('emailProjects');
+                if (emailProjects) {
+                    emailProjects.addEventListener('change', (e) => {
+                        updateSettings({ emailProjects: e.target.checked });
+                    });
+                }
+                
+                const inAppNotifications = document.getElementById('inAppNotifications');
+                if (inAppNotifications) {
+                    inAppNotifications.addEventListener('change', (e) => {
+                        updateSettings({ inAppNotifications: e.target.checked });
+                    });
+                }
+                
+                const browserNotifications = document.getElementById('browserNotifications');
+                if (browserNotifications) {
+                    browserNotifications.addEventListener('change', (e) => {
+                        updateSettings({ browserNotifications: e.target.checked });
+                    });
+                }
+                
+                // Account handlers
+                const changePasswordBtn = document.getElementById('changePasswordBtn');
+                if (changePasswordBtn) {
+                    changePasswordBtn.addEventListener('click', handlePasswordChange);
+                }
+                
+                const saveSecurityBtn = document.getElementById('saveSecurityBtn');
+                if (saveSecurityBtn) {
+                    saveSecurityBtn.addEventListener('click', handleSecuritySave);
+                }
+                
+                const refreshSessionsBtn = document.getElementById('refreshSessionsBtn');
+                if (refreshSessionsBtn) {
+                    refreshSessionsBtn.addEventListener('click', loadActiveSessions);
+                }
+                
+                // Portal handlers
+                const showWelcomeMessage = document.getElementById('showWelcomeMessage');
+                if (showWelcomeMessage) {
+                    showWelcomeMessage.addEventListener('change', (e) => {
+                        updateSettings({ showWelcomeMessage: e.target.checked });
+                    });
+                }
+                
+                const showQuickActions = document.getElementById('showQuickActions');
+                if (showQuickActions) {
+                    showQuickActions.addEventListener('change', (e) => {
+                        updateSettings({ showQuickActions: e.target.checked });
+                    });
+                }
+                
+                const showRecentActivity = document.getElementById('showRecentActivity');
+                if (showRecentActivity) {
+                    showRecentActivity.addEventListener('change', (e) => {
+                        updateSettings({ showRecentActivity: e.target.checked });
+                    });
+                }
+                
+                const sidebarCollapsed = document.getElementById('sidebarCollapsed');
+                if (sidebarCollapsed) {
+                    sidebarCollapsed.addEventListener('change', (e) => {
+                        updateSettings({ sidebarCollapsed: e.target.checked });
+                    });
+                }
+                
+                const rememberSidebarState = document.getElementById('rememberSidebarState');
+                if (rememberSidebarState) {
+                    rememberSidebarState.addEventListener('change', (e) => {
+                        updateSettings({ rememberSidebarState: e.target.checked });
+                    });
+                }
+                
+                const autoSave = document.getElementById('autoSave');
+                if (autoSave) {
+                    autoSave.addEventListener('change', (e) => {
+                        updateSettings({ autoSave: e.target.checked });
+                    });
+                }
+                
+                const analyticsTracking = document.getElementById('analyticsTracking');
+                if (analyticsTracking) {
+                    analyticsTracking.addEventListener('change', (e) => {
+                        updateSettings({ analyticsTracking: e.target.checked });
+                    });
+                }
+            } catch (error) {
+                console.error('Error initializing settings handlers:', error);
+            }
+        }
+        
+        // Time preview
+        let timePreviewInterval = null;
+        function startTimePreview() {
+            function updateTimePreview() {
+                const previewElement = document.getElementById('currentTimePreview');
+                if (!previewElement) return;
+                
+                try {
+                    const settings = getSettings();
+                    const now = new Date();
+                    
+                    // Format date
+                    let dateStr = '';
+                    const year = now.getFullYear();
+                    const month = String(now.getMonth() + 1).padStart(2, '0');
+                    const day = String(now.getDate()).padStart(2, '0');
+                    const monthName = now.toLocaleString('en-US', { month: 'short' });
+                    
+                    switch(settings.dateFormat || 'MM/DD/YYYY') {
+                        case 'MM/DD/YYYY': dateStr = `${month}/${day}/${year}`; break;
+                        case 'DD/MM/YYYY': dateStr = `${day}/${month}/${year}`; break;
+                        case 'YYYY-MM-DD': dateStr = `${year}-${month}-${day}`; break;
+                        case 'DD MMM YYYY': dateStr = `${day} ${monthName} ${year}`; break;
+                        default: dateStr = `${month}/${day}/${year}`;
+                    }
+                    
+                    // Format time
+                    let timeStr = '';
+                    if ((settings.timeFormat || '12h') === '24h') {
+                        timeStr = now.toLocaleTimeString('en-US', { hour12: false, hour: '2-digit', minute: '2-digit' });
+                    } else {
+                        timeStr = now.toLocaleTimeString('en-US', { hour12: true, hour: '2-digit', minute: '2-digit' });
+                    }
+                    
+                    previewElement.textContent = `${dateStr} ${timeStr}`;
+                } catch (error) {
+                    console.error('Error updating time preview:', error);
+                    previewElement.textContent = 'Error loading time';
+                }
+            }
+            
+            // Clear existing interval if any
+            if (timePreviewInterval) {
+                clearInterval(timePreviewInterval);
+            }
+            
+            updateTimePreview();
+            timePreviewInterval = setInterval(updateTimePreview, 1000);
+        }
+        
+        // Load active sessions
+        function loadActiveSessions() {
+            const container = document.getElementById('activeSessions');
+            if (!container) return;
+            
+            const currentSession = {
+                device: navigator.userAgent.includes('Mobile') ? 'Mobile Device' : 'Desktop',
+                browser: getBrowserName(),
+                location: 'Current Location',
+                lastActive: 'Now',
+                isCurrent: true
+            };
+            
+            container.innerHTML = `
+                <div class="session-item">
+                    <div class="session-info">
+                        <strong>${currentSession.device}</strong>
+                        <small>${currentSession.browser} • ${currentSession.location}</small>
+                        <small style="display: block; margin-top: 0.25rem;">Last active: ${currentSession.lastActive}</small>
+                    </div>
+                    <span class="badge" style="background: var(--success-color); color: white;">Current Session</span>
+                </div>
+            `;
+        }
+        
+        function getBrowserName() {
+            const ua = navigator.userAgent;
+            if (ua.includes('Chrome')) return 'Chrome';
+            if (ua.includes('Firefox')) return 'Firefox';
+            if (ua.includes('Safari')) return 'Safari';
+            if (ua.includes('Edge')) return 'Edge';
+            return 'Unknown';
+        }
+        
+        async function handlePasswordChange() {
+            const currentPassword = document.getElementById('currentPassword').value;
+            const newPassword = document.getElementById('newPassword').value;
+            const confirmPassword = document.getElementById('confirmPassword').value;
+            
+            if (!currentPassword || !newPassword || !confirmPassword) {
+                alert('Please fill in all password fields');
+                return;
+            }
+            
+            if (newPassword.length < 8) {
+                alert('New password must be at least 8 characters long');
+                return;
+            }
+            
+            if (newPassword !== confirmPassword) {
+                alert('New passwords do not match');
+                return;
+            }
+            
+            // TODO: Implement password change API call
+            alert('Password change functionality will be implemented with backend integration');
+            
+            // Clear form
+            document.getElementById('currentPassword').value = '';
+            document.getElementById('newPassword').value = '';
+            document.getElementById('confirmPassword').value = '';
+        }
+        
+        async function handleSecuritySave() {
+            const twoFactorAuth = document.getElementById('twoFactorAuth').checked;
+            updateSettings({ twoFactorAuth });
+        }
+    </script>
+</body>
+</html>
