@@ -565,7 +565,50 @@
                                 Manage your active sessions across different devices
                             </p>
                             <div id="activeSessions" style="margin-bottom: 1rem;">
-                                <!-- Active sessions will be loaded here -->
+                                <!-- Test Data: Active Sessions -->
+                                <div class="session-item" style="border-left: 3px solid var(--success-color); margin-bottom: 0.75rem; padding: 1rem; border: 1px solid var(--border-color); border-radius: 8px; display: flex; justify-content: space-between; align-items: center;">
+                                    <div class="session-info" style="flex: 1;">
+                                        <strong style="display: block; margin-bottom: 0.25rem;">Desktop</strong>
+                                        <small style="color: var(--text-secondary);">Chrome • Current Location</small>
+                                        <small style="display: block; margin-top: 0.25rem; color: var(--text-secondary);">
+                                            Last active: Now • IP: 192.168.1.100
+                                        </small>
+                                    </div>
+                                    <span class="badge" style="background: var(--success-color); color: white; padding: 0.25rem 0.5rem; border-radius: 12px; font-size: 0.75rem;">Current Session</span>
+                                </div>
+                                
+                                <div class="session-item" style="opacity: 0.85; margin-bottom: 0.75rem; padding: 1rem; border: 1px solid var(--border-color); border-radius: 8px; display: flex; justify-content: space-between; align-items: center;">
+                                    <div class="session-info" style="flex: 1;">
+                                        <strong style="display: block; margin-bottom: 0.25rem;">iPhone 14 Pro</strong>
+                                        <small style="color: var(--text-secondary);">Safari • Riyadh, Saudi Arabia</small>
+                                        <small style="display: block; margin-top: 0.25rem; color: var(--text-secondary);">
+                                            Last active: 2 hours ago • IP: 185.123.45.67
+                                        </small>
+                                    </div>
+                                    <button onclick="revokeSession(0)" class="btn btn-sm" style="padding: 0.25rem 0.75rem; font-size: 0.75rem; background: var(--color-danger, #dc3545); color: white; border: none; border-radius: 4px; cursor: pointer;">Revoke</button>
+                                </div>
+                                
+                                <div class="session-item" style="opacity: 0.85; margin-bottom: 0.75rem; padding: 1rem; border: 1px solid var(--border-color); border-radius: 8px; display: flex; justify-content: space-between; align-items: center;">
+                                    <div class="session-info" style="flex: 1;">
+                                        <strong style="display: block; margin-bottom: 0.25rem;">Windows PC</strong>
+                                        <small style="color: var(--text-secondary);">Chrome • Dubai, UAE</small>
+                                        <small style="display: block; margin-top: 0.25rem; color: var(--text-secondary);">
+                                            Last active: 1 day ago • IP: 203.0.113.42
+                                        </small>
+                                    </div>
+                                    <button onclick="revokeSession(1)" class="btn btn-sm" style="padding: 0.25rem 0.75rem; font-size: 0.75rem; background: var(--color-danger, #dc3545); color: white; border: none; border-radius: 4px; cursor: pointer;">Revoke</button>
+                                </div>
+                                
+                                <div class="session-item" style="opacity: 0.85; margin-bottom: 0.75rem; padding: 1rem; border: 1px solid var(--border-color); border-radius: 8px; display: flex; justify-content: space-between; align-items: center;">
+                                    <div class="session-info" style="flex: 1;">
+                                        <strong style="display: block; margin-bottom: 0.25rem;">iPad Pro</strong>
+                                        <small style="color: var(--text-secondary);">Safari • Jeddah, Saudi Arabia</small>
+                                        <small style="display: block; margin-top: 0.25rem; color: var(--text-secondary);">
+                                            Last active: 3 days ago • IP: 198.51.100.10
+                                        </small>
+                                    </div>
+                                    <button onclick="revokeSession(2)" class="btn btn-sm" style="padding: 0.25rem 0.75rem; font-size: 0.75rem; background: var(--color-danger, #dc3545); color: white; border: none; border-radius: 4px; cursor: pointer;">Revoke</button>
+                                </div>
                             </div>
                             <button id="refreshSessionsBtn" class="btn btn-secondary">Refresh Sessions</button>
                         </div>
@@ -709,6 +752,43 @@
             autoSave: true,
             analyticsTracking: true
         };
+        
+        // Initialize with test data if no settings exist
+        function initializeTestData() {
+            try {
+                const stored = localStorage.getItem(SETTINGS_KEY);
+                if (!stored) {
+                    // Set some test values for demonstration
+                    const testSettings = {
+                        ...defaultSettings,
+                        timezone: 'Asia/Riyadh', // Test timezone
+                        dateFormat: 'DD/MM/YYYY', // Test date format
+                        timeFormat: '24h', // Test time format
+                        fontSize: 0.5, // Slightly larger font
+                        density: 'comfortable',
+                        language: 'en',
+                        emailNotifications: true,
+                        emailMatches: true,
+                        emailProposals: false, // Test: some disabled
+                        emailProjects: true,
+                        inAppNotifications: true,
+                        browserNotifications: true, // Test: enabled
+                        twoFactorAuth: false,
+                        showWelcomeMessage: true,
+                        showQuickActions: true,
+                        showRecentActivity: false, // Test: disabled
+                        sidebarCollapsed: false,
+                        rememberSidebarState: true,
+                        autoSave: true,
+                        analyticsTracking: true
+                    };
+                    localStorage.setItem(SETTINGS_KEY, JSON.stringify(testSettings));
+                    console.log('[Settings] Test data initialized');
+                }
+            } catch (e) {
+                console.error('Error initializing test data:', e);
+            }
+        }
         
         // Load settings from localStorage
         function loadSettings() {
@@ -867,6 +947,9 @@
                     return;
                 }
                 
+                // Initialize test data if needed
+                initializeTestData();
+                
                 // Load and apply settings
                 const settings = getSettings();
                 applySettings(settings);
@@ -875,7 +958,12 @@
                 // Initialize UI
                 initializeTabs();
                 initializeSettingsHandlers();
-                loadActiveSessions();
+                
+                // Load active sessions after a short delay to ensure DOM is ready
+                setTimeout(() => {
+                    loadActiveSessions();
+                }, 100);
+                
                 startTimePreview();
                 setupThemeListener();
                 
@@ -1273,30 +1361,132 @@
             timePreviewInterval = setInterval(updateTimePreview, 1000);
         }
         
-        // Load active sessions
+        // Load active sessions with test data
         function loadActiveSessions() {
             const container = document.getElementById('activeSessions');
-            if (!container) return;
+            if (!container) {
+                console.warn('[Settings] Active sessions container not found');
+                // Try again after a short delay
+                setTimeout(loadActiveSessions, 500);
+                return;
+            }
             
+            console.log('[Settings] Loading active sessions...');
+            
+            // If container already has content (from HTML), we can update it or leave it
+            // This function will refresh/update the sessions if called
+            
+            // Current session
             const currentSession = {
                 device: navigator.userAgent.includes('Mobile') ? 'Mobile Device' : 'Desktop',
                 browser: getBrowserName(),
                 location: 'Current Location',
                 lastActive: 'Now',
-                isCurrent: true
+                isCurrent: true,
+                ip: '192.168.1.100'
             };
             
-            container.innerHTML = `
-                <div class="session-item">
+            // Test data: Additional active sessions
+            const testSessions = [
+                {
+                    device: 'iPhone 14 Pro',
+                    browser: 'Safari',
+                    location: 'Riyadh, Saudi Arabia',
+                    lastActive: '2 hours ago',
+                    isCurrent: false,
+                    ip: '185.123.45.67'
+                },
+                {
+                    device: 'Windows PC',
+                    browser: 'Chrome',
+                    location: 'Dubai, UAE',
+                    lastActive: '1 day ago',
+                    isCurrent: false,
+                    ip: '203.0.113.42'
+                },
+                {
+                    device: 'iPad Pro',
+                    browser: 'Safari',
+                    location: 'Jeddah, Saudi Arabia',
+                    lastActive: '3 days ago',
+                    isCurrent: false,
+                    ip: '198.51.100.10'
+                }
+            ];
+            
+            let html = '';
+            
+            // Current session
+            html += `
+                <div class="session-item" style="border-left: 3px solid var(--success-color);">
                     <div class="session-info">
                         <strong>${currentSession.device}</strong>
                         <small>${currentSession.browser} • ${currentSession.location}</small>
-                        <small style="display: block; margin-top: 0.25rem;">Last active: ${currentSession.lastActive}</small>
+                        <small style="display: block; margin-top: 0.25rem; color: var(--text-secondary);">
+                            Last active: ${currentSession.lastActive} • IP: ${currentSession.ip}
+                        </small>
                     </div>
-                    <span class="badge" style="background: var(--success-color); color: white;">Current Session</span>
+                    <span class="badge" style="background: var(--success-color); color: white; padding: 0.25rem 0.5rem; border-radius: 12px; font-size: 0.75rem;">Current Session</span>
                 </div>
             `;
+            
+            // Other sessions
+            testSessions.forEach((session, index) => {
+                html += `
+                    <div class="session-item" style="opacity: 0.85;">
+                        <div class="session-info">
+                            <strong>${session.device}</strong>
+                            <small>${session.browser} • ${session.location}</small>
+                            <small style="display: block; margin-top: 0.25rem; color: var(--text-secondary);">
+                                Last active: ${session.lastActive} • IP: ${session.ip}
+                            </small>
+                        </div>
+                        <button onclick="revokeSession(${index})" class="btn btn-sm" style="padding: 0.25rem 0.75rem; font-size: 0.75rem; background: var(--color-danger, #dc3545); color: white; border: none; border-radius: 4px; cursor: pointer;">
+                            Revoke
+                        </button>
+                    </div>
+                `;
+            });
+            
+            if (html) {
+                container.innerHTML = html;
+                console.log('[Settings] Active sessions loaded:', testSessions.length + 1, 'sessions');
+            } else {
+                console.error('[Settings] No HTML generated for sessions');
+                container.innerHTML = `
+                    <div style="padding: 2rem; text-align: center; color: var(--text-secondary);">
+                        <p>Error loading sessions. Please refresh the page.</p>
+                        <button onclick="loadActiveSessions()" class="btn btn-primary" style="margin-top: 1rem;">Retry</button>
+                    </div>
+                `;
+            }
         }
+        
+        // Make loadActiveSessions available globally for retry
+        window.loadActiveSessions = loadActiveSessions;
+        
+        // Revoke session function
+        function revokeSession(index) {
+            if (confirm('Are you sure you want to revoke this session? The user will need to log in again from this device.')) {
+                // Remove session from display
+                const container = document.getElementById('activeSessions');
+                if (container) {
+                    const sessions = container.querySelectorAll('.session-item');
+                    if (sessions[index + 1]) { // +1 because first is current session
+                        sessions[index + 1].style.opacity = '0.5';
+                        sessions[index + 1].innerHTML = `
+                            <div class="session-info" style="flex: 1;">
+                                <small style="color: var(--text-secondary); font-style: italic;">Session revoked</small>
+                            </div>
+                        `;
+                    }
+                }
+                console.log('Session revoked:', index);
+            }
+        }
+        
+        // Make revokeSession available globally
+        window.revokeSession = revokeSession;
         
         function getBrowserName() {
             const ua = navigator.userAgent;
