@@ -7,7 +7,31 @@
 
   let currentFilters = {};
 
-  function init(params) {
+  async function init(params) {
+    // Wait for MatchingService to be available
+    if (typeof MatchingService === 'undefined') {
+      // Wait a bit for services to load
+      await new Promise(resolve => {
+        if (typeof MatchingService !== 'undefined') {
+          resolve();
+          return;
+        }
+        
+        const checkInterval = setInterval(() => {
+          if (typeof MatchingService !== 'undefined') {
+            clearInterval(checkInterval);
+            resolve();
+          }
+        }, 100);
+        
+        // Timeout after 5 seconds
+        setTimeout(() => {
+          clearInterval(checkInterval);
+          resolve();
+        }, 5000);
+      });
+    }
+    
     loadMatches();
     setupEventListeners();
   }
@@ -133,6 +157,9 @@
         <div class="card">
           <div class="card-body" style="text-align: center; padding: 3rem;">
             <p>No matches found.</p>
+            <p style="color: var(--text-secondary); margin-top: 1rem;">
+              Complete your profile with skills to see matching projects!
+            </p>
           </div>
         </div>
       `;
@@ -143,35 +170,111 @@
     
     matches.forEach(match => {
       const project = PMTwinData?.Projects.getById(match.projectId);
+      const isMegaProject = match.isMegaProject || project?.projectType === 'mega' || project?.subProjects;
+      
+      // Escape HTML to prevent XSS
+      const escapeHtml = (text) => {
+        if (!text) return '';
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+      };
+      
       html += `
         <div class="card">
           <div class="card-body">
             <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 1rem;">
-              <div>
-                <h3 style="margin: 0 0 0.5rem 0;">${project?.title || 'Project ' + match.projectId}</h3>
+              <div style="flex: 1;">
+                <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem;">
+                  <h3 style="margin: 0;">${escapeHtml(project?.title || 'Project ' + match.projectId)}</h3>
+                  ${isMegaProject ? `
+                    <span class="badge badge-info" title="Mega-Project">
+                      <i class="ph ph-stack"></i> Mega-Project
+                    </span>
+                  ` : ''}
+                  ${match.isSkillBased ? `
+                    <span class="badge badge-secondary" title="Skill-based match">
+                      <i class="ph ph-lightning"></i> Skills Match
+                    </span>
+                  ` : ''}
+                </div>
                 <p style="margin: 0; color: var(--text-secondary);">
-                  Match Score: <strong>${match.score}%</strong>
+                  ${project?.category || 'General'} • ${project?.location?.city || 'Location TBD'}
                 </p>
               </div>
-              <span class="badge badge-${match.score >= 80 ? 'success' : 'warning'}">
+              <span class="badge badge-${match.score >= 80 ? 'success' : match.score >= 50 ? 'warning' : 'secondary'}" style="font-size: 1.1rem; padding: 0.5rem 1rem;">
                 ${match.score}% Match
               </span>
             </div>
             
-            <div style="margin-bottom: 1rem;">
-              <p><strong>Category Match:</strong> ${match.criteria?.categoryMatch || 'N/A'}%</p>
-              <p><strong>Skills Match:</strong> ${match.criteria?.skillsMatch || 'N/A'}%</p>
-              <p><strong>Experience Match:</strong> ${match.criteria?.experienceMatch || 'N/A'}%</p>
-              <p><strong>Location Match:</strong> ${match.criteria?.locationMatch || 'N/A'}%</p>
-            </div>
+            ${match.isSkillBased ? `
+              <div style="background: var(--color-info-light, #e3f2fd); padding: 1rem; border-radius: var(--border-radius); margin-bottom: 1rem;">
+                <p style="margin: 0 0 0.5rem 0; font-weight: var(--font-weight-semibold);">
+                  <i class="ph ph-lightning"></i> Skills Match: ${match.score}%
+                </p>
+                ${match.matchedSkills && match.matchedSkills.length > 0 ? `
+                  <p style="margin: 0 0 0.5rem 0; font-size: 0.9rem;">
+                    <strong>Matched Skills:</strong>
+                    <div style="display: flex; flex-wrap: wrap; gap: 0.25rem; margin-top: 0.25rem;">
+                      ${match.matchedSkills.map(skill => `
+                        <span class="badge badge-success" style="font-size: 0.85rem;">${escapeHtml(skill)}</span>
+                      `).join('')}
+                    </div>
+                  </p>
+                ` : ''}
+                ${match.requiredSkills && match.requiredSkills.length > match.matchedSkills?.length ? `
+                  <p style="margin: 0; font-size: 0.9rem; color: var(--text-secondary);">
+                    <strong>Required Skills:</strong> ${match.requiredSkills.length} total
+                    ${match.matchedSkills ? `(${match.matchedSkills.length} matched)` : ''}
+                  </p>
+                ` : ''}
+              </div>
+            ` : `
+              <div style="margin-bottom: 1rem;">
+                <p><strong>Category Match:</strong> ${match.criteria?.categoryMatch || 'N/A'}%</p>
+                <p><strong>Skills Match:</strong> ${match.criteria?.skillsMatch || 'N/A'}%</p>
+                <p><strong>Experience Match:</strong> ${match.criteria?.experienceMatch || 'N/A'}%</p>
+                <p><strong>Location Match:</strong> ${match.criteria?.locationMatch || 'N/A'}%</p>
+              </div>
+            `}
             
-            <div style="display: flex; gap: 1rem;">
-              <button onclick="matchesComponent.viewMatch('${match.id}')" class="btn btn-primary btn-sm">
-                View Details
-              </button>
-              ${!match.viewed ? `
+            ${isMegaProject && match.subProjectMatches && match.subProjectMatches.length > 0 ? `
+              <div style="background: var(--color-background-secondary, #f5f5f5); padding: 1rem; border-radius: var(--border-radius); margin-bottom: 1rem;">
+                <p style="margin: 0 0 0.75rem 0; font-weight: var(--font-weight-semibold);">
+                  <i class="ph ph-stack"></i> Matching Sub-Projects (${match.matchingSubProjects} of ${match.totalSubProjects}):
+                </p>
+                <div style="display: grid; gap: 0.75rem;">
+                  ${match.subProjectMatches.map(subMatch => `
+                    <div style="background: white; padding: 0.75rem; border-radius: var(--border-radius); border-left: 3px solid var(--color-primary);">
+                      <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 0.5rem;">
+                        <strong style="font-size: 0.95rem;">${escapeHtml(subMatch.title)}</strong>
+                        <span class="badge badge-${subMatch.matchPercentage >= 80 ? 'success' : subMatch.matchPercentage >= 50 ? 'warning' : 'secondary'}" style="font-size: 0.85rem;">
+                          ${subMatch.matchPercentage}% Match
+                        </span>
+                      </div>
+                      ${subMatch.matchedSkills && subMatch.matchedSkills.length > 0 ? `
+                        <div style="display: flex; flex-wrap: wrap; gap: 0.25rem; margin-top: 0.25rem;">
+                          ${subMatch.matchedSkills.map(skill => `
+                            <span class="badge badge-success" style="font-size: 0.8rem;">${escapeHtml(skill)}</span>
+                          `).join('')}
+                        </div>
+                      ` : ''}
+                    </div>
+                  `).join('')}
+                </div>
+              </div>
+            ` : ''}
+            
+            <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
+              <a href="../project/?id=${match.projectId}" class="btn btn-primary btn-sm">
+                <i class="ph ph-eye"></i> View Project
+              </a>
+              <a href="../create-proposal/?projectId=${match.projectId}" class="btn btn-success btn-sm">
+                <i class="ph ph-paper-plane-tilt"></i> Submit Proposal
+              </a>
+              ${match.isExistingMatch && !match.viewed ? `
                 <button onclick="matchesComponent.markAsViewed('${match.id}')" class="btn btn-secondary btn-sm">
-                  Mark as Viewed
+                  <i class="ph ph-check"></i> Mark as Viewed
                 </button>
               ` : ''}
             </div>
@@ -186,35 +289,129 @@
 
   function showMatchDetails(match) {
     const project = PMTwinData?.Projects.getById(match.projectId);
+    const isMegaProject = match.isMegaProject || project?.projectType === 'mega' || project?.subProjects;
+    
+    // Escape HTML to prevent XSS
+    const escapeHtml = (text) => {
+      if (!text) return '';
+      const div = document.createElement('div');
+      div.textContent = text;
+      return div.innerHTML;
+    };
+    
     const modal = document.createElement('div');
     modal.className = 'modal';
     modal.style.cssText = 'position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 1000;';
     
+    let criteriaHtml = '';
+    if (match.isSkillBased) {
+      criteriaHtml = `
+        <div style="background: var(--color-info-light, #e3f2fd); padding: 1rem; border-radius: var(--border-radius); margin-bottom: 1rem;">
+          <h4 style="margin: 0 0 0.75rem 0;"><i class="ph ph-lightning"></i> Skills Match: ${match.score}%</h4>
+          ${match.matchedSkills && match.matchedSkills.length > 0 ? `
+            <p style="margin: 0 0 0.5rem 0;"><strong>Matched Skills:</strong></p>
+            <div style="display: flex; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 0.5rem;">
+              ${match.matchedSkills.map(skill => `
+                <span class="badge badge-success">${escapeHtml(skill)}</span>
+              `).join('')}
+            </div>
+          ` : ''}
+          ${match.requiredSkills && match.requiredSkills.length > 0 ? `
+            <p style="margin: 0;"><strong>All Required Skills:</strong></p>
+            <div style="display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 0.5rem;">
+              ${match.requiredSkills.map(skill => {
+                const isMatched = match.matchedSkills?.some(ms => ms.toLowerCase() === skill.toLowerCase());
+                return `<span class="badge ${isMatched ? 'badge-success' : 'badge-secondary'}">${escapeHtml(skill)}</span>`;
+              }).join('')}
+            </div>
+          ` : ''}
+        </div>
+      `;
+    } else {
+      criteriaHtml = `
+        <div>
+          <h4>Criteria Breakdown:</h4>
+          <ul>
+            <li>Category Match: ${match.criteria?.categoryMatch || 'N/A'}%</li>
+            <li>Skills Match: ${match.criteria?.skillsMatch || 'N/A'}%</li>
+            <li>Experience Match: ${match.criteria?.experienceMatch || 'N/A'}%</li>
+            <li>Location Match: ${match.criteria?.locationMatch || 'N/A'}%</li>
+          </ul>
+        </div>
+      `;
+    }
+    
+    let megaProjectHtml = '';
+    if (isMegaProject && match.subProjectMatches && match.subProjectMatches.length > 0) {
+      megaProjectHtml = `
+        <div style="background: var(--color-background-secondary, #f5f5f5); padding: 1rem; border-radius: var(--border-radius); margin-top: 1rem;">
+          <h4 style="margin: 0 0 0.75rem 0;">
+            <i class="ph ph-stack"></i> Matching Sub-Projects (${match.matchingSubProjects} of ${match.totalSubProjects})
+          </h4>
+          <div style="display: grid; gap: 0.75rem;">
+            ${match.subProjectMatches.map(subMatch => `
+              <div style="background: white; padding: 1rem; border-radius: var(--border-radius); border-left: 3px solid var(--color-primary);">
+                <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 0.5rem;">
+                  <strong>${escapeHtml(subMatch.title)}</strong>
+                  <span class="badge badge-${subMatch.matchPercentage >= 80 ? 'success' : subMatch.matchPercentage >= 50 ? 'warning' : 'secondary'}">
+                    ${subMatch.matchPercentage}% Match
+                  </span>
+                </div>
+                ${subMatch.matchedSkills && subMatch.matchedSkills.length > 0 ? `
+                  <p style="margin: 0.5rem 0 0.25rem 0; font-size: 0.9rem;"><strong>Matched Skills:</strong></p>
+                  <div style="display: flex; flex-wrap: wrap; gap: 0.25rem;">
+                    ${subMatch.matchedSkills.map(skill => `
+                      <span class="badge badge-success" style="font-size: 0.85rem;">${escapeHtml(skill)}</span>
+                    `).join('')}
+                  </div>
+                ` : ''}
+              </div>
+            `).join('')}
+          </div>
+        </div>
+      `;
+    }
+    
     modal.innerHTML = `
-      <div class="card" style="max-width: 600px; width: 90%; max-height: 90vh; overflow-y: auto;">
+      <div class="card" style="max-width: 700px; width: 90%; max-height: 90vh; overflow-y: auto;">
         <div class="card-body">
           <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 1rem;">
-            <h2>Match Details</h2>
+            <h2 style="margin: 0;">Match Details</h2>
             <button onclick="this.closest('.modal').remove()" class="btn btn-secondary btn-sm">Close</button>
           </div>
-          <h3>${project?.title || 'Project ' + match.projectId}</h3>
-          <p><strong>Match Score:</strong> ${match.score}%</p>
-          <div>
-            <h4>Criteria Breakdown:</h4>
-            <ul>
-              <li>Category Match: ${match.criteria?.categoryMatch || 'N/A'}%</li>
-              <li>Skills Match: ${match.criteria?.skillsMatch || 'N/A'}%</li>
-              <li>Experience Match: ${match.criteria?.experienceMatch || 'N/A'}%</li>
-              <li>Location Match: ${match.criteria?.locationMatch || 'N/A'}%</li>
-            </ul>
+          <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 1rem;">
+            <h3 style="margin: 0;">${escapeHtml(project?.title || 'Project ' + match.projectId)}</h3>
+            ${isMegaProject ? `
+              <span class="badge badge-info">
+                <i class="ph ph-stack"></i> Mega-Project
+              </span>
+            ` : ''}
+            ${match.isSkillBased ? `
+              <span class="badge badge-secondary">
+                <i class="ph ph-lightning"></i> Skills Match
+              </span>
+            ` : ''}
           </div>
-          <div style="margin-top: 1rem;">
-            <button onclick="window.location.href='../create-proposal/?projectId=${match.projectId}'" class="btn btn-primary">
-              Submit Proposal
-            </button>
-            <button onclick="matchesComponent.markAsViewed('${match.id}'); this.closest('.modal').remove();" class="btn btn-secondary">
-              Mark as Viewed
-            </button>
+          <p style="margin-bottom: 1rem;">
+            <strong>Match Score:</strong> 
+            <span class="badge badge-${match.score >= 80 ? 'success' : match.score >= 50 ? 'warning' : 'secondary'}" style="font-size: 1rem;">
+              ${match.score}%
+            </span>
+          </p>
+          ${criteriaHtml}
+          ${megaProjectHtml}
+          <div style="margin-top: 1.5rem; display: flex; gap: 1rem; flex-wrap: wrap;">
+            <a href="../project/?id=${match.projectId}" class="btn btn-primary">
+              <i class="ph ph-eye"></i> View Full Project
+            </a>
+            <a href="../create-proposal/?projectId=${match.projectId}" class="btn btn-success">
+              <i class="ph ph-paper-plane-tilt"></i> Submit Proposal
+            </a>
+            ${match.isExistingMatch && !match.viewed ? `
+              <button onclick="matchesComponent.markAsViewed('${match.id}'); this.closest('.modal').remove();" class="btn btn-secondary">
+                <i class="ph ph-check"></i> Mark as Viewed
+              </button>
+            ` : ''}
           </div>
         </div>
       </div>

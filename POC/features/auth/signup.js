@@ -7,9 +7,12 @@
   'use strict';
 
   let currentStep = 1;
-  const totalSteps = 5;
+  const totalSteps = 3;
   let formData = {
-    documents: {}
+    documents: {},
+    emailVerified: false,
+    mobileVerified: false,
+    tempUserId: null
   };
   let registrationResult = null;
 
@@ -19,6 +22,7 @@
     setupUserTypeSelection();
     setupFileUploads();
     setupPasswordStrength();
+    initializeLocationDropdowns();
   }
 
   // ============================================
@@ -39,16 +43,10 @@
       showStep(currentStep);
       updateProgressIndicator();
 
-      // Special handling for step 4 (OTP)
-      if (currentStep === 4) {
-        initiateRegistration();
-        // Show/hide mobile OTP field based on whether mobile was provided
-        const mobileOTPGroup = document.getElementById('mobileOTPGroup');
-        if (mobileOTPGroup && !formData.mobile) {
-          mobileOTPGroup.style.display = 'none';
-        } else if (mobileOTPGroup) {
-          mobileOTPGroup.style.display = 'block';
-        }
+      // Special handling for step 3 (Review & Submit)
+      if (currentStep === 3) {
+        // Registration already handled in Step 1 during verification
+        // Just show review page
       }
     }
   }
@@ -71,6 +69,194 @@
     const stepEl = document.getElementById(`step${step}`);
     if (stepEl) {
       stepEl.style.display = 'block';
+    }
+
+    // Restore location selections if returning to step 2
+    if (step === 2 && formData.location) {
+      setTimeout(() => restoreLocationSelections(), 100);
+    }
+
+    // Update verification status display in step 3
+    if (step === 3) {
+      updateVerificationStatusDisplay();
+    }
+  }
+
+  function updateVerificationStatusDisplay() {
+    const statusDiv = document.getElementById('verificationStatusDisplay');
+    const warningDiv = document.getElementById('verificationWarning');
+    
+    if (!statusDiv) return;
+
+    let html = '';
+    
+    // Email verification status
+    html += `
+      <span class="badge badge-${formData.emailVerified ? 'success' : 'warning'}">
+        <i class="ph ph-${formData.emailVerified ? 'check-circle' : 'clock'}"></i> 
+        Email ${formData.emailVerified ? 'Verified' : 'Pending'}
+      </span>
+    `;
+    
+    // Mobile verification status (if mobile provided)
+    if (formData.mobile) {
+      html += `
+        <span class="badge badge-${formData.mobileVerified ? 'success' : 'warning'}">
+          <i class="ph ph-${formData.mobileVerified ? 'check-circle' : 'clock'}"></i> 
+          Mobile ${formData.mobileVerified ? 'Verified' : 'Pending'}
+        </span>
+      `;
+    }
+    
+    statusDiv.innerHTML = html;
+    
+    // Show warning if not all verified
+    if (warningDiv) {
+      const userType = document.querySelector('input[name="userType"]:checked')?.value;
+      const needsMobileVerification = userType === 'entity' && formData.mobile && !formData.mobileVerified;
+      
+      if (!formData.emailVerified || needsMobileVerification) {
+        warningDiv.style.display = 'block';
+      } else {
+        warningDiv.style.display = 'none';
+      }
+    }
+  }
+
+  async function restoreLocationSelections() {
+    if (!formData.location || !window.LocationService) return;
+
+    const countrySelect = document.getElementById('signupCountry');
+    const regionSelect = document.getElementById('signupRegion');
+    const citySelect = document.getElementById('signupCity');
+
+    if (!countrySelect || !regionSelect || !citySelect) return;
+
+    // Restore country
+    if (formData.location.countryCode) {
+      countrySelect.value = formData.location.countryCode;
+      await onCountryChange();
+      
+      // Restore region
+      if (formData.location.regionCode) {
+        regionSelect.value = formData.location.regionCode;
+        await onRegionChange();
+        
+        // Restore city
+        if (formData.location.city) {
+          citySelect.value = formData.location.city;
+        }
+      }
+    } else if (formData.location.country) {
+      // Try to find country by name
+      const countries = await LocationService.getCountries();
+      const country = countries.find(c => c.name === formData.location.country);
+      if (country) {
+        countrySelect.value = country.code;
+        await onCountryChange();
+        
+        // Try to restore region
+        if (formData.location.region) {
+          const regions = await LocationService.getRegions(country.code);
+          const region = regions.find(r => r.name === formData.location.region);
+          if (region) {
+            regionSelect.value = region.code;
+            await onRegionChange();
+            
+            // Restore city
+            if (formData.location.city) {
+              citySelect.value = formData.location.city;
+            }
+          }
+        }
+      }
+    }
+  }
+
+  // ============================================
+  // Location Management
+  // ============================================
+
+  async function initializeLocationDropdowns() {
+    if (!window.LocationService) {
+      console.warn('[Signup] LocationService not available');
+      return;
+    }
+
+    const countrySelect = document.getElementById('signupCountry');
+    const regionSelect = document.getElementById('signupRegion');
+    const citySelect = document.getElementById('signupCity');
+
+    if (!countrySelect || !regionSelect || !citySelect) return;
+
+    try {
+      // Load countries
+      const countries = await LocationService.getCountries();
+      countrySelect.innerHTML = '<option value="">Select Country</option>';
+      countries.forEach(country => {
+        const option = document.createElement('option');
+        option.value = country.code;
+        option.textContent = country.name;
+        countrySelect.appendChild(option);
+      });
+    } catch (error) {
+      console.error('[Signup] Error initializing location dropdowns:', error);
+    }
+  }
+
+  async function onCountryChange() {
+    const countrySelect = document.getElementById('signupCountry');
+    const regionSelect = document.getElementById('signupRegion');
+    const citySelect = document.getElementById('signupCity');
+
+    if (!countrySelect || !regionSelect || !citySelect) return;
+
+    const countryCode = countrySelect.value;
+
+    // Clear region and city
+    regionSelect.innerHTML = '<option value="">Select Region</option>';
+    citySelect.innerHTML = '<option value="">Select City</option>';
+
+    if (!countryCode || !window.LocationService) return;
+
+    try {
+      const regions = await LocationService.getRegions(countryCode);
+      regions.forEach(region => {
+        const option = document.createElement('option');
+        option.value = region.code;
+        option.textContent = region.name;
+        regionSelect.appendChild(option);
+      });
+    } catch (error) {
+      console.error('[Signup] Error loading regions:', error);
+    }
+  }
+
+  async function onRegionChange() {
+    const countrySelect = document.getElementById('signupCountry');
+    const regionSelect = document.getElementById('signupRegion');
+    const citySelect = document.getElementById('signupCity');
+
+    if (!countrySelect || !regionSelect || !citySelect) return;
+
+    const countryCode = countrySelect.value;
+    const regionCode = regionSelect.value;
+
+    // Clear city
+    citySelect.innerHTML = '<option value="">Select City</option>';
+
+    if (!countryCode || !regionCode || !window.LocationService) return;
+
+    try {
+      const cities = await LocationService.getCities(countryCode, regionCode);
+      cities.forEach(city => {
+        const option = document.createElement('option');
+        option.value = city;
+        option.textContent = city;
+        citySelect.appendChild(option);
+      });
+    } catch (error) {
+      console.error('[Signup] Error loading cities:', error);
     }
   }
 
@@ -101,10 +287,6 @@
         return validateStep2();
       case 3:
         return validateStep3();
-      case 4:
-        return true; // OTP validation handled separately
-      case 5:
-        return validateStep5();
       default:
         return true;
     }
@@ -142,10 +324,21 @@
       return false;
     }
 
+    // Require email verification
+    if (!formData.emailVerified) {
+      showMessage('Please verify your email address before proceeding', 'error');
+      return false;
+    }
+
     if (userType === 'entity') {
       const mobile = document.getElementById('signupMobile').value.trim();
       if (!mobile) {
         showMessage('Mobile number is required for entities', 'error');
+        return false;
+      }
+      // Require mobile verification for entities
+      if (!formData.mobileVerified) {
+        showMessage('Please verify your mobile number before proceeding', 'error');
         return false;
       }
     }
@@ -167,10 +360,18 @@
       return false;
     }
 
+    // Validate location (country is required)
+    const country = document.getElementById('signupCountry')?.value;
+    if (!country) {
+      showMessage('Please select your country', 'error');
+      return false;
+    }
+
     return true;
   }
 
-  function validateStep3() {
+  function validateStep2() {
+    // Validate documents based on user type
     const userType = document.querySelector('input[name="userType"]:checked')?.value;
     
     if (userType === 'individual') {
@@ -207,15 +408,17 @@
       }
     }
 
-    return true;
-  }
-
-  function validateStep5() {
+    // Validate terms acceptance
     const acceptTerms = document.getElementById('acceptTerms').checked;
     if (!acceptTerms) {
       showMessage('Please accept the Terms & Conditions to continue', 'error');
       return false;
     }
+    return true;
+  }
+
+  function validateStep3() {
+    // Step 3 is just review, no validation needed
     return true;
   }
 
@@ -233,18 +436,85 @@
     if (currentStep === 1) {
       formData.userType = userType;
       updateFormFieldsVisibility();
-    } else if (currentStep === 2) {
+      
+      // Save basic info from Step 1 (now includes user type + basic info)
       if (userType === 'individual') {
-        formData.name = document.getElementById('signupName').value.trim();
-        formData.professionalTitle = document.getElementById('signupProfessionalTitle').value.trim();
+        formData.name = document.getElementById('signupName')?.value.trim();
+        formData.professionalTitle = document.getElementById('signupProfessionalTitle')?.value.trim();
       } else {
-        formData.companyName = document.getElementById('signupCompanyName').value.trim();
-        formData.website = document.getElementById('signupWebsite').value.trim();
+        formData.companyName = document.getElementById('signupCompanyName')?.value.trim();
+        formData.website = document.getElementById('signupWebsite')?.value.trim();
       }
-      formData.email = document.getElementById('signupEmail').value.trim();
-      formData.mobile = document.getElementById('signupMobile').value.trim();
-      formData.password = document.getElementById('signupPassword').value;
+      formData.email = document.getElementById('signupEmail')?.value.trim();
+      formData.mobile = document.getElementById('signupMobile')?.value.trim();
+      formData.password = document.getElementById('signupPassword')?.value;
+      
+      // Save location data synchronously (values only, names will be resolved later)
+      const countrySelect = document.getElementById('signupCountry');
+      const regionSelect = document.getElementById('signupRegion');
+      const citySelect = document.getElementById('signupCity');
+      
+      if (countrySelect && regionSelect && citySelect) {
+        formData.location = {
+          countryCode: countrySelect.value,
+          regionCode: regionSelect.value,
+          city: citySelect.value || ''
+        };
+      }
+    } else if (currentStep === 2) {
+      // Step 2 is documents and terms - data already saved during file uploads
+      // Terms acceptance is validated but not saved here (saved on submit)
     }
+  }
+
+  async function saveLocationData() {
+    if (!window.LocationService) {
+      // Fallback: use codes if service not available
+      const countrySelect = document.getElementById('signupCountry');
+      const regionSelect = document.getElementById('signupRegion');
+      const citySelect = document.getElementById('signupCity');
+      
+      if (countrySelect && regionSelect && citySelect) {
+        formData.location = {
+          country: countrySelect.options[countrySelect.selectedIndex]?.text || '',
+          region: regionSelect.options[regionSelect.selectedIndex]?.text || '',
+          city: citySelect.value || ''
+        };
+      }
+      return;
+    }
+    
+    const countrySelect = document.getElementById('signupCountry');
+    const regionSelect = document.getElementById('signupRegion');
+    const citySelect = document.getElementById('signupCity');
+    
+    if (!countrySelect || !regionSelect || !citySelect) return;
+    
+    const countryCode = countrySelect.value;
+    const regionCode = regionSelect.value;
+    const cityValue = citySelect.value;
+    
+    // Get country name
+    let countryName = '';
+    if (countryCode) {
+      const countries = await LocationService.getCountries();
+      const country = countries.find(c => c.code === countryCode);
+      countryName = country ? country.name : countryCode;
+    }
+    
+    // Get region name
+    let regionName = '';
+    if (regionCode && countryCode) {
+      const regions = await LocationService.getRegions(countryCode);
+      const region = regions.find(r => r.code === regionCode);
+      regionName = region ? region.name : regionCode;
+    }
+    
+    formData.location = {
+      country: countryName,
+      region: regionName,
+      city: cityValue || ''
+    };
   }
 
   function updateFormFieldsVisibility() {
@@ -463,7 +733,46 @@
   // ============================================
 
   async function initiateRegistration() {
-    // Prepare user data
+    // If user already exists (from Step 2 verification), update it instead of creating new
+    if (formData.tempUserId) {
+      // User already created during verification, just update with final data
+      await saveLocationData();
+      
+      const userType = formData.userType;
+      const user = PMTwinData.Users.getById(formData.tempUserId);
+      
+      if (user) {
+        // Update user with final registration data
+        const encodePassword = (typeof PMTwinAuth !== 'undefined' && PMTwinAuth.encodePassword) 
+          ? PMTwinAuth.encodePassword 
+          : (pwd) => btoa(pwd); // Fallback encoding
+        
+        const updates = {
+          password: encodePassword(formData.password),
+          mobile: formData.mobile || user.mobile,
+          profile: {
+            ...user.profile,
+            name: userType === 'individual' ? formData.name : formData.companyName,
+            location: formData.location || {},
+            phone: formData.mobile || null,
+            ...(userType === 'individual' && formData.professionalTitle ? { professionalTitle: formData.professionalTitle } : {}),
+            ...(userType === 'entity' && formData.website ? { website: formData.website } : {}),
+            ...(userType === 'entity' && formData.companyName ? { companyName: formData.companyName } : {}),
+            ...(userType === 'individual' && formData.portfolioLink ? { portfolioLink: formData.portfolioLink } : {})
+          },
+          documents: formData.documents,
+          emailVerified: formData.emailVerified || user.emailVerified,
+          mobileVerified: formData.mobileVerified || user.mobileVerified
+        };
+        
+        PMTwinData.Users.update(formData.tempUserId, updates);
+        registrationResult = { success: true, userId: formData.tempUserId };
+        showOTPMessage('Registration complete. Proceeding to document upload...', 'success');
+        return;
+      }
+    }
+
+    // Prepare user data for new registration
     const userType = formData.userType;
     const roleMapping = {
       'individual': 'individual',
@@ -471,18 +780,26 @@
     };
     const role = roleMapping[userType] || 'individual';
 
+    // Ensure location data is saved with proper names
+    await saveLocationData();
+    
     const userData = {
       email: formData.email,
       mobile: formData.mobile || null,
       password: formData.password,
       role: role,
       userType: userType,
+      emailVerified: formData.emailVerified || false,
+      mobileVerified: formData.mobileVerified || false,
       profile: {
         name: userType === 'individual' ? formData.name : formData.companyName,
         status: 'pending',
         createdAt: new Date().toISOString(),
+        location: formData.location || {},
+        phone: formData.mobile || null,
         ...(userType === 'individual' && formData.professionalTitle ? { professionalTitle: formData.professionalTitle } : {}),
         ...(userType === 'entity' && formData.website ? { website: formData.website } : {}),
+        ...(userType === 'entity' && formData.companyName ? { companyName: formData.companyName } : {}),
         ...(userType === 'individual' && formData.portfolioLink ? { portfolioLink: formData.portfolioLink } : {})
       },
       documents: formData.documents
@@ -638,6 +955,313 @@
   }
 
   // ============================================
+  // Email & Phone Verification Functions
+  // ============================================
+  
+  async function onEmailBlur() {
+    const email = document.getElementById('signupEmail')?.value.trim();
+    if (email && isValidEmail(email)) {
+      // Check if email already exists
+      if (PMTwinData && PMTwinData.Users) {
+        const existing = PMTwinData.Users.getByEmail(email);
+        if (existing) {
+          showVerificationMessage('emailVerificationMessage', 'This email is already registered', 'error');
+          return;
+        }
+      }
+      // Enable send OTP button
+      const sendBtn = document.getElementById('sendEmailOTP');
+      if (sendBtn) {
+        sendBtn.disabled = false;
+      }
+    }
+  }
+
+  async function onMobileBlur() {
+    const mobile = document.getElementById('signupMobile')?.value.trim();
+    if (mobile) {
+      // Enable send OTP button
+      const sendBtn = document.getElementById('sendMobileOTP');
+      if (sendBtn) {
+        sendBtn.disabled = false;
+      }
+    }
+  }
+
+  async function sendEmailOTP() {
+    const email = document.getElementById('signupEmail')?.value.trim();
+    if (!email || !isValidEmail(email)) {
+      showVerificationMessage('emailVerificationMessage', 'Please enter a valid email address', 'error');
+      return;
+    }
+
+    try {
+      // Check if user already exists
+      let user = null;
+      if (PMTwinData && PMTwinData.Users) {
+        user = PMTwinData.Users.getByEmail(email);
+        
+        // If user exists and is already verified/approved, show error
+        if (user && (user.emailVerified || user.onboardingStage === 'approved')) {
+          showVerificationMessage('emailVerificationMessage', 'This email is already registered', 'error');
+          return;
+        }
+        
+        // If user exists but not verified, use it
+        if (user) {
+          formData.tempUserId = user.id;
+        } else {
+          // Create temporary user account for OTP verification
+          const userType = document.querySelector('input[name="userType"]:checked')?.value;
+          const roleMapping = {
+            'individual': 'individual',
+            'entity': 'entity'
+          };
+          const role = roleMapping[userType] || 'individual';
+
+          // Create temporary user with minimal data
+          const tempUser = PMTwinData.Users.create({
+            email: email,
+            mobile: document.getElementById('signupMobile')?.value.trim() || null,
+            password: 'temp_password_' + Date.now(), // Temporary password, will be updated later
+            role: role,
+            userType: userType,
+            emailVerified: false,
+            mobileVerified: false,
+            onboardingStage: 'registered',
+            profile: {
+              name: email.split('@')[0], // Temporary name
+              status: 'pending',
+              createdAt: new Date().toISOString()
+            }
+          });
+
+          if (tempUser) {
+            formData.tempUserId = tempUser.id;
+            user = tempUser;
+          }
+        }
+      }
+
+      if (!user) {
+        showVerificationMessage('emailVerificationMessage', 'Failed to initialize user account', 'error');
+        return;
+      }
+
+      // Request OTP
+      let result;
+      if (typeof AuthService !== 'undefined' && AuthService.requestOTP) {
+        result = await AuthService.requestOTP(email, 'email');
+      } else if (typeof PMTwinAuth !== 'undefined' && PMTwinAuth.requestOTP) {
+        result = PMTwinAuth.requestOTP(email, 'email');
+      } else {
+        showVerificationMessage('emailVerificationMessage', 'OTP service not available', 'error');
+        return;
+      }
+
+      if (result && result.success) {
+        // Show OTP input
+        const statusDiv = document.getElementById('emailVerificationStatus');
+        if (statusDiv) {
+          statusDiv.style.display = 'block';
+        }
+        showVerificationMessage('emailVerificationMessage', 'Verification code sent to your email. Check your inbox.', 'success');
+        
+        // Show OTP in console for POC
+        if (result.otpCode) {
+          console.log(`[Signup] Email OTP for ${email}: ${result.otpCode}`);
+        }
+      } else {
+        showVerificationMessage('emailVerificationMessage', result?.error || 'Failed to send verification code', 'error');
+      }
+    } catch (error) {
+      console.error('Error sending email OTP:', error);
+      showVerificationMessage('emailVerificationMessage', 'An error occurred. Please try again.', 'error');
+    }
+  }
+
+  async function sendMobileOTP() {
+    const mobile = document.getElementById('signupMobile')?.value.trim();
+    if (!mobile) {
+      showVerificationMessage('mobileVerificationMessage', 'Please enter a mobile number', 'error');
+      return;
+    }
+
+    try {
+      // Ensure temp user exists
+      if (!formData.tempUserId) {
+        const email = document.getElementById('signupEmail')?.value.trim();
+        if (!email) {
+          showVerificationMessage('mobileVerificationMessage', 'Please enter email first', 'error');
+          return;
+        }
+        await sendEmailOTP(); // This will create temp user
+      }
+
+      const email = document.getElementById('signupEmail')?.value.trim();
+      if (!email) {
+        showVerificationMessage('mobileVerificationMessage', 'Email is required', 'error');
+        return;
+      }
+
+      // Request OTP
+      let result;
+      if (typeof AuthService !== 'undefined' && AuthService.requestOTP) {
+        result = await AuthService.requestOTP(email, 'mobile');
+      } else if (typeof PMTwinAuth !== 'undefined' && PMTwinAuth.requestOTP) {
+        result = PMTwinAuth.requestOTP(email, 'mobile');
+      } else {
+        showVerificationMessage('mobileVerificationMessage', 'OTP service not available', 'error');
+        return;
+      }
+
+      if (result && result.success) {
+        // Show OTP input
+        const statusDiv = document.getElementById('mobileVerificationStatus');
+        if (statusDiv) {
+          statusDiv.style.display = 'block';
+        }
+        showVerificationMessage('mobileVerificationMessage', 'Verification code sent to your mobile. Check your messages.', 'success');
+        
+        // Show OTP in console for POC
+        if (result.otpCode) {
+          console.log(`[Signup] Mobile OTP for ${mobile}: ${result.otpCode}`);
+        }
+      } else {
+        showVerificationMessage('mobileVerificationMessage', result?.error || 'Failed to send verification code', 'error');
+      }
+    } catch (error) {
+      console.error('Error sending mobile OTP:', error);
+      showVerificationMessage('mobileVerificationMessage', 'An error occurred. Please try again.', 'error');
+    }
+  }
+
+  async function verifyEmailOTP() {
+    const email = document.getElementById('signupEmail')?.value.trim();
+    const otpCode = document.getElementById('emailOTPInput')?.value.trim();
+
+    if (!email) {
+      showVerificationMessage('emailVerificationMessage', 'Email is required', 'error');
+      return;
+    }
+
+    if (!otpCode || otpCode.length !== 6) {
+      showVerificationMessage('emailVerificationMessage', 'Please enter a valid 6-digit code', 'error');
+      return;
+    }
+
+    try {
+      let result;
+      if (typeof AuthService !== 'undefined' && AuthService.verifyOTP) {
+        result = await AuthService.verifyOTP(email, otpCode, 'email');
+      } else if (typeof PMTwinAuth !== 'undefined' && PMTwinAuth.verifyOTP) {
+        result = PMTwinAuth.verifyOTP(email, otpCode, 'email');
+      } else {
+        showVerificationMessage('emailVerificationMessage', 'Verification service not available', 'error');
+        return;
+      }
+
+      if (result && result.success) {
+        formData.emailVerified = true;
+        showVerificationMessage('emailVerificationMessage', 'Email verified successfully!', 'success');
+        
+        // Hide OTP input, show verified badge
+        const statusDiv = document.getElementById('emailVerificationStatus');
+        if (statusDiv) {
+          statusDiv.style.display = 'none';
+        }
+        const badge = document.getElementById('emailVerifiedBadge');
+        if (badge) {
+          badge.style.display = 'block';
+        }
+        const sendBtn = document.getElementById('sendEmailOTP');
+        if (sendBtn) {
+          sendBtn.disabled = true;
+        }
+      } else {
+        showVerificationMessage('emailVerificationMessage', result?.error || 'Invalid verification code', 'error');
+        const resendBtn = document.getElementById('resendEmailOTP');
+        if (resendBtn) {
+          resendBtn.style.display = 'inline-block';
+        }
+      }
+    } catch (error) {
+      console.error('Error verifying email OTP:', error);
+      showVerificationMessage('emailVerificationMessage', 'An error occurred during verification', 'error');
+    }
+  }
+
+  async function verifyMobileOTP() {
+    const email = document.getElementById('signupEmail')?.value.trim();
+    const mobile = document.getElementById('signupMobile')?.value.trim();
+    const otpCode = document.getElementById('mobileOTPInput')?.value.trim();
+
+    if (!mobile) {
+      showVerificationMessage('mobileVerificationMessage', 'Mobile number is required', 'error');
+      return;
+    }
+
+    if (!otpCode || otpCode.length !== 6) {
+      showVerificationMessage('mobileVerificationMessage', 'Please enter a valid 6-digit code', 'error');
+      return;
+    }
+
+    if (!email) {
+      showVerificationMessage('mobileVerificationMessage', 'Email is required', 'error');
+      return;
+    }
+
+    try {
+      let result;
+      if (typeof AuthService !== 'undefined' && AuthService.verifyOTP) {
+        result = await AuthService.verifyOTP(email, otpCode, 'mobile');
+      } else if (typeof PMTwinAuth !== 'undefined' && PMTwinAuth.verifyOTP) {
+        result = PMTwinAuth.verifyOTP(email, otpCode, 'mobile');
+      } else {
+        showVerificationMessage('mobileVerificationMessage', 'Verification service not available', 'error');
+        return;
+      }
+
+      if (result && result.success) {
+        formData.mobileVerified = true;
+        showVerificationMessage('mobileVerificationMessage', 'Mobile number verified successfully!', 'success');
+        
+        // Hide OTP input, show verified badge
+        const statusDiv = document.getElementById('mobileVerificationStatus');
+        if (statusDiv) {
+          statusDiv.style.display = 'none';
+        }
+        const badge = document.getElementById('mobileVerifiedBadge');
+        if (badge) {
+          badge.style.display = 'block';
+        }
+        const sendBtn = document.getElementById('sendMobileOTP');
+        if (sendBtn) {
+          sendBtn.disabled = true;
+        }
+      } else {
+        showVerificationMessage('mobileVerificationMessage', result?.error || 'Invalid verification code', 'error');
+        const resendBtn = document.getElementById('resendMobileOTP');
+        if (resendBtn) {
+          resendBtn.style.display = 'inline-block';
+        }
+      }
+    } catch (error) {
+      console.error('Error verifying mobile OTP:', error);
+      showVerificationMessage('mobileVerificationMessage', 'An error occurred during verification', 'error');
+    }
+  }
+
+  function showVerificationMessage(elementId, message, type) {
+    const messageDiv = document.getElementById(elementId);
+    if (messageDiv) {
+      messageDiv.textContent = message;
+      messageDiv.className = type === 'error' ? 'text-danger' : type === 'success' ? 'text-success' : 'text-info';
+      messageDiv.style.display = 'block';
+    }
+  }
+
+  // ============================================
   // Public API
   // ============================================
 
@@ -647,7 +1271,15 @@
     nextStep,
     prevStep,
     verifyOTP,
-    handleSubmit
+    handleSubmit,
+    onCountryChange,
+    onRegionChange,
+    onEmailBlur,
+    onMobileBlur,
+    sendEmailOTP,
+    sendMobileOTP,
+    verifyEmailOTP,
+    verifyMobileOTP
   };
 
   // Global reference for form onsubmit and onclick handlers

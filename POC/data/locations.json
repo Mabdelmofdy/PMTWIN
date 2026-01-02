@@ -1,0 +1,383 @@
+{
+  "countries": [
+    {
+      "code": "SA",
+      "name": "Saudi Arabia",
+      "regions": [
+        {
+          "code": "RIYADH",
+          "name": "Riyadh Province",
+          "cities": ["Riyadh", "Diriyah", "Al Kharj", "Dawadmi", "Afif", "Al Majma'ah", "Al Zulfi", "Shagra", "Hotat Bani Tamim", "Al Aflaj"]
+        },
+        {
+          "code": "MAKKAH",
+          "name": "Makkah Province",
+          "cities": ["Makkah", "Jeddah", "Taif", "Rabigh", "Al Qunfudhah", "Al Lith", "Al Jumum", "Khulays", "Al Kamil", "Al Khurmah"]
+        },
+        {
+          "code": "MADINAH",
+          "name": "Madinah Province",
+          "cities": ["Madinah", "Yanbu", "Al Ula", "Badr", "Khaybar", "Al Henakiyah", "Mahd adh Dhahab", "Al Suqaybiqah", "Wadi al-Fara'", "Al Jum'ah"]
+        },
+        {
+          "code": "EASTERN",
+          "name": "Eastern Province",
+          "cities": ["Dammam", "Khobar", "Dhahran", "Jubail", "Qatif", "Hafr al-Batin", "Abqaiq", "Ras Tanura", "Safwa", "Al Khobar"]
+        },
+        {
+          "code": "QASSIM",
+          "name": "Qassim Province",
+          "cities": ["Buraydah", "Unaizah", "Ar Rass", "Al Mithnab", "Al Bukayriyah", "Al Badayea", "Uyun AlJiwa", "Riyadh Al Khabra", "Al Asyah", "Al Nabhaniyah"]
+        },
+        {
+          "code": "ASIR",
+          "name": "Asir Province",
+          "cities": ["Abha", "Khamis Mushait", "Bisha", "Najran", "Jizan", "Sabya", "Al Namas", "Tanomah", "Rijal Alma", "Al Harf"]
+        },
+        {
+          "code": "TABUK",
+          "name": "Tabuk Province",
+          "cities": ["Tabuk", "Al Wajh", "Duba", "Umluj", "Haql", "Taima", "Al Bada", "Al Qurayyat", "Al Jawf", "Sakaka"]
+        },
+        {
+          "code": "HAIL",
+          "name": "Hail Province",
+          "cities": ["Hail", "Baqaa", "Al Ghat", "Al Shinan", "Al Sulaimi", "Al Kharma", "Al Qasr", "Al Qaryat", "Al Faw", "Al Qara"]
+        },
+        {
+          "code": "NORTHERN",
+          "name": "Northern Borders Province",
+          "cities": ["Arar", "Turaif", "Rafha", "Al Uwayqilah", "Al Qurayyat", "Al Jawf", "Sakaka", "Dumat al-Jandal", "Tabarjal", "Al Hadithah"]
+        },
+        {
+          "code": "JAWF",
+          "name": "Al Jawf Province",
+          "cities": ["Sakaka", "Al Qurayyat", "Dumat al-Jandal", "Tabarjal", "Al Hadithah", "Al Isawiyah", "Al Qaryat", "Al Faw", "Al Qara", "Al Kharma"]
+        },
+        {
+          "code": "NAJRAN",
+          "name": "Najran Province",
+          "cities": ["Najran", "Sharurah", "Hubuna", "Badr al-Janoob", "Yadamah", "Thar", "Al Kharkhir", "Al Wadeen", "Al Aqiq", "Al Faraa"]
+        },
+        {
+          "code": "BAHA",
+          "name": "Al Bahah Province",
+          "cities": ["Al Bahah", "Baljurashi", "Al Mandaq", "Al Makhwah", "Qilwah", "Al Aqiq", "Al Qara", "Al Kharma", "Al Faw", "Al Qaryat"]
+        },
+        {
+          "code": "JOUF",
+          "name": "Al Jouf Province",
+          "cities": ["Sakaka", "Al Qurayyat", "Dumat al-Jandal", "Tabarjal", "Al Hadithah", "Al Isawiyah", "Al Qaryat", "Al Faw", "Al Qara", "Al Kharma"]
+        }
+      ]
+    },
+    {
+      "code": "AE",
+      "name": "United Arab Emirates",
+      "regions": [
+        {
+          "code": "DXB",
+          "name": "Dubai",
+          "cities": ["Dubai", "Jebel Ali", "Al Barsha", "Deira", "Bur Dubai", "Marina", "Downtown", "Business Bay", "Jumeirah", "Al Quoz"]
+        },
+        {
+          "code": "AUH",
+          "name": "Abu Dhabi",
+          "cities": ["Abu Dhabi", "Al Ain", "Al Dhafra", "Liwa Oasis", "Ruwais", "Ghayathi", "Madinat Zayed", "Al Mirfa", "Delma Island", "Sir Bani Yas"]
+        },
+        {
+          "code": "SHJ",
+          "name": "Sharjah",
+          "cities": ["Sharjah", "Khor Fakkan", "Kalba", "Dibba Al-Hisn", "Al Dhaid", "Maliha", "Al Madam", "Al Hamriyah", "Al Batayeh", "Al Qasimia"]
+        },
+        {
+          "code": "AJM",
+          "name": "Ajman",
+          "cities": ["Ajman", "Al Manama", "Masfout", "Al Hamidiyah", "Al Nuaimiya", "Al Jerf", "Al Rashidiya", "Al Mowaihat", "Al Rawda", "Al Bustan"]
+        },
+        {
+          "code": "RAK",
+          "name": "Ras Al Khaimah",
+          "cities": ["Ras Al Khaimah", "Al Rams", "Al Jazirah Al Hamra", "Digdaga", "Khatt", "Al Ghayl", "Al Qawaim", "Al Hudaibah", "Al Marjan Island", "Al Hamra"]
+        },
+        {
+          "code": "FJH",
+          "name": "Fujairah",
+          "cities": ["Fujairah", "Dibba", "Khor Fakkan", "Al Bidiyah", "Masafi", "Al Aqah", "Al Hayl", "Al Ghurfah", "Al Tawyeen", "Al Bithnah"]
+        },
+        {
+          "code": "UMM",
+          "name": "Umm Al Quwain",
+          "cities": ["Umm Al Quwain", "Al Salamah", "Al Raas", "Al Maidan", "Al Khor", "Al Hamra", "Al Qasimia", "Al Rawda", "Al Bustan", "Al Nuaimiya"]
+        }
+      ]
+    },
+    {
+      "code": "KW",
+      "name": "Kuwait",
+      "regions": [
+        {
+          "code": "KUWAIT",
+          "name": "Kuwait",
+          "cities": ["Kuwait City", "Al Ahmadi", "Hawalli", "Farwaniya", "Jahra", "Mubarak Al-Kabeer", "Salmiya", "Mahboula", "Fahaheel", "Abu Halifa"]
+        }
+      ]
+    },
+    {
+      "code": "QA",
+      "name": "Qatar",
+      "regions": [
+        {
+          "code": "DOHA",
+          "name": "Doha",
+          "cities": ["Doha", "Al Rayyan", "Al Wakrah", "Al Khor", "Dukhan", "Lusail", "The Pearl", "West Bay", "Al Sadd", "Al Gharrafa"]
+        }
+      ]
+    },
+    {
+      "code": "BH",
+      "name": "Bahrain",
+      "regions": [
+        {
+          "code": "MANAMA",
+          "name": "Manama",
+          "cities": ["Manama", "Riffa", "Muharraq", "Hamad Town", "A'ali", "Isa Town", "Sitra", "Budaiya", "Jidhafs", "Sanabis"]
+        }
+      ]
+    },
+    {
+      "code": "OM",
+      "name": "Oman",
+      "regions": [
+        {
+          "code": "MUSCAT",
+          "name": "Muscat",
+          "cities": ["Muscat", "Seeb", "Barka", "Sohar", "Salalah", "Nizwa", "Sur", "Ibri", "Rustaq", "Khasab"]
+        },
+        {
+          "code": "DHOFAR",
+          "name": "Dhofar",
+          "cities": ["Salalah", "Mirbat", "Taqah", "Rakhyut", "Dalkut", "Shalim", "Al Mazyunah", "Thumrait", "Al Mazyunah", "Al Ashkharah"]
+        },
+        {
+          "code": "AD_DAKHILIYAH",
+          "name": "Ad Dakhiliyah",
+          "cities": ["Nizwa", "Bahla", "Adam", "Izki", "Samail", "Bidbid", "Al Hamra", "Manah", "Al Jabal Al Akhdar", "Wadi Bani Khalid"]
+        }
+      ]
+    },
+    {
+      "code": "EG",
+      "name": "Egypt",
+      "regions": [
+        {
+          "code": "CAIRO",
+          "name": "Cairo",
+          "cities": ["Cairo", "Giza", "Heliopolis", "Nasr City", "Maadi", "Zamalek", "New Cairo", "6th of October", "Shubra", "Ain Shams"]
+        },
+        {
+          "code": "ALEXANDRIA",
+          "name": "Alexandria",
+          "cities": ["Alexandria", "Borg El Arab", "Abu Qir", "El Montazah", "El Raml", "El Agamy", "Sidi Bishr", "Smouha", "Gleem", "Stanley"]
+        }
+      ]
+    },
+    {
+      "code": "JO",
+      "name": "Jordan",
+      "regions": [
+        {
+          "code": "AMMAN",
+          "name": "Amman",
+          "cities": ["Amman", "Zarqa", "Irbid", "Aqaba", "Madaba", "Salt", "Mafraq", "Karak", "Tafilah", "Ma'an"]
+        }
+      ]
+    },
+    {
+      "code": "US",
+      "name": "United States",
+      "regions": [
+        {
+          "code": "CA",
+          "name": "California",
+          "cities": ["Los Angeles", "San Francisco", "San Diego", "Sacramento", "San Jose", "Oakland", "Fresno", "Long Beach", "Santa Ana", "Anaheim"]
+        },
+        {
+          "code": "NY",
+          "name": "New York",
+          "cities": ["New York City", "Buffalo", "Rochester", "Albany", "Syracuse", "Yonkers", "Utica", "White Plains", "New Rochelle", "Mount Vernon"]
+        },
+        {
+          "code": "TX",
+          "name": "Texas",
+          "cities": ["Houston", "Dallas", "Austin", "San Antonio", "Fort Worth", "El Paso", "Arlington", "Corpus Christi", "Plano", "Laredo"]
+        },
+        {
+          "code": "FL",
+          "name": "Florida",
+          "cities": ["Miami", "Tampa", "Orlando", "Jacksonville", "Fort Lauderdale", "Tallahassee", "St. Petersburg", "Hialeah", "Port St. Lucie", "Cape Coral"]
+        }
+      ]
+    },
+    {
+      "code": "GB",
+      "name": "United Kingdom",
+      "regions": [
+        {
+          "code": "ENG",
+          "name": "England",
+          "cities": ["London", "Manchester", "Birmingham", "Liverpool", "Leeds", "Sheffield", "Bristol", "Leicester", "Coventry", "Nottingham"]
+        },
+        {
+          "code": "SCT",
+          "name": "Scotland",
+          "cities": ["Edinburgh", "Glasgow", "Aberdeen", "Dundee", "Inverness", "Perth", "Stirling", "Ayr", "Dumfries", "Falkirk"]
+        },
+        {
+          "code": "WLS",
+          "name": "Wales",
+          "cities": ["Cardiff", "Swansea", "Newport", "Wrexham", "Barry", "Caerphilly", "Rhondda", "Merthyr Tydfil", "Bridgend", "Port Talbot"]
+        }
+      ]
+    },
+    {
+      "code": "FR",
+      "name": "France",
+      "regions": [
+        {
+          "code": "IDF",
+          "name": "Île-de-France",
+          "cities": ["Paris", "Versailles", "Boulogne-Billancourt", "Saint-Denis", "Argenteuil", "Montreuil", "Nanterre", "Créteil", "Aubervilliers", "Asnières-sur-Seine"]
+        },
+        {
+          "code": "PACA",
+          "name": "Provence-Alpes-Côte d'Azur",
+          "cities": ["Marseille", "Nice", "Toulon", "Aix-en-Provence", "Cannes", "Antibes", "Avignon", "Grasse", "La Seyne-sur-Mer", "Hyères"]
+        }
+      ]
+    },
+    {
+      "code": "DE",
+      "name": "Germany",
+      "regions": [
+        {
+          "code": "BY",
+          "name": "Bavaria",
+          "cities": ["Munich", "Nuremberg", "Augsburg", "Regensburg", "Würzburg", "Ingolstadt", "Fürth", "Erlangen", "Bayreuth", "Bamberg"]
+        },
+        {
+          "code": "NW",
+          "name": "North Rhine-Westphalia",
+          "cities": ["Cologne", "Düsseldorf", "Dortmund", "Essen", "Duisburg", "Bochum", "Wuppertal", "Bielefeld", "Bonn", "Münster"]
+        },
+        {
+          "code": "BE",
+          "name": "Berlin",
+          "cities": ["Berlin", "Potsdam", "Brandenburg", "Cottbus", "Frankfurt (Oder)", "Eberswalde", "Schwedt", "Fürstenwalde", "Strausberg", "Bernau"]
+        }
+      ]
+    },
+    {
+      "code": "IN",
+      "name": "India",
+      "regions": [
+        {
+          "code": "MH",
+          "name": "Maharashtra",
+          "cities": ["Mumbai", "Pune", "Nagpur", "Nashik", "Aurangabad", "Solapur", "Amravati", "Kolhapur", "Sangli", "Nanded"]
+        },
+        {
+          "code": "DL",
+          "name": "Delhi",
+          "cities": ["New Delhi", "Delhi", "Noida", "Gurgaon", "Faridabad", "Ghaziabad", "Greater Noida", "Sonipat", "Panipat", "Karnal"]
+        },
+        {
+          "code": "KA",
+          "name": "Karnataka",
+          "cities": ["Bangalore", "Mysore", "Hubli", "Mangalore", "Belgaum", "Gulbarga", "Davangere", "Bellary", "Bijapur", "Raichur"]
+        }
+      ]
+    },
+    {
+      "code": "CN",
+      "name": "China",
+      "regions": [
+        {
+          "code": "BJ",
+          "name": "Beijing",
+          "cities": ["Beijing", "Tongzhou", "Changping", "Daxing", "Fangshan", "Fengtai", "Haidian", "Mentougou", "Miyun", "Pinggu"]
+        },
+        {
+          "code": "SH",
+          "name": "Shanghai",
+          "cities": ["Shanghai", "Pudong", "Huangpu", "Xuhui", "Changning", "Jing'an", "Putuo", "Hongkou", "Yangpu", "Minhang"]
+        },
+        {
+          "code": "GD",
+          "name": "Guangdong",
+          "cities": ["Guangzhou", "Shenzhen", "Dongguan", "Foshan", "Zhongshan", "Zhuhai", "Jiangmen", "Huizhou", "Shantou", "Zhanjiang"]
+        }
+      ]
+    },
+    {
+      "code": "JP",
+      "name": "Japan",
+      "regions": [
+        {
+          "code": "TO",
+          "name": "Tokyo",
+          "cities": ["Tokyo", "Shibuya", "Shinjuku", "Chiyoda", "Minato", "Setagaya", "Suginami", "Nakano", "Meguro", "Ota"]
+        },
+        {
+          "code": "OS",
+          "name": "Osaka",
+          "cities": ["Osaka", "Sakai", "Higashiosaka", "Hirakata", "Toyonaka", "Suita", "Ibaraki", "Neyagawa", "Kishiwada", "Izumi"]
+        }
+      ]
+    },
+    {
+      "code": "AU",
+      "name": "Australia",
+      "regions": [
+        {
+          "code": "NSW",
+          "name": "New South Wales",
+          "cities": ["Sydney", "Newcastle", "Wollongong", "Albury", "Wagga Wagga", "Tamworth", "Orange", "Dubbo", "Nowra", "Broken Hill"]
+        },
+        {
+          "code": "VIC",
+          "name": "Victoria",
+          "cities": ["Melbourne", "Geelong", "Ballarat", "Bendigo", "Shepparton", "Warrnambool", "Mildura", "Traralgon", "Sale", "Hamilton"]
+        },
+        {
+          "code": "QLD",
+          "name": "Queensland",
+          "cities": ["Brisbane", "Gold Coast", "Cairns", "Townsville", "Toowoomba", "Rockhampton", "Mackay", "Bundaberg", "Hervey Bay", "Gladstone"]
+        }
+      ]
+    },
+    {
+      "code": "CA",
+      "name": "Canada",
+      "regions": [
+        {
+          "code": "ON",
+          "name": "Ontario",
+          "cities": ["Toronto", "Ottawa", "Mississauga", "Brampton", "Hamilton", "London", "Markham", "Vaughan", "Kitchener", "Windsor"]
+        },
+        {
+          "code": "BC",
+          "name": "British Columbia",
+          "cities": ["Vancouver", "Victoria", "Surrey", "Burnaby", "Richmond", "Coquitlam", "Langley", "Delta", "Kelowna", "Abbotsford"]
+        },
+        {
+          "code": "QC",
+          "name": "Quebec",
+          "cities": ["Montreal", "Quebec City", "Laval", "Gatineau", "Longueuil", "Sherbrooke", "Saguenay", "Lévis", "Trois-Rivières", "Terrebonne"]
+        }
+      ]
+    }
+  ]
+}
+
+

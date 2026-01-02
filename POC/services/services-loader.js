@@ -63,6 +63,7 @@
       console.log('[ServicesLoader] ✅ All services loaded successfully');
       console.log('[ServicesLoader] DashboardService available:', typeof DashboardService !== 'undefined');
       console.log('[ServicesLoader] PMTwinRBAC available:', typeof PMTwinRBAC !== 'undefined');
+      console.log('[ServicesLoader] MatchingService available:', typeof MatchingService !== 'undefined');
       
       // Initialize role assignments for existing users
       if (typeof PMTwinData !== 'undefined' && typeof PMTwinRBAC !== 'undefined') {

@@ -84,6 +84,35 @@
     if (filters.category) {
       projects = projects.filter(p => p.category === filters.category);
     }
+    if (filters.projectType) {
+      if (filters.projectType === 'mega') {
+        projects = projects.filter(p => p.projectType === 'mega' || p.subProjects);
+      } else if (filters.projectType === 'single') {
+        projects = projects.filter(p => p.projectType !== 'mega' && !p.subProjects);
+      }
+    }
+    if (filters.dateFrom) {
+      projects = projects.filter(p => {
+        const createdDate = new Date(p.createdAt || p.created);
+        return createdDate >= new Date(filters.dateFrom);
+      });
+    }
+    if (filters.dateTo) {
+      projects = projects.filter(p => {
+        const createdDate = new Date(p.createdAt || p.created);
+        const toDate = new Date(filters.dateTo);
+        toDate.setHours(23, 59, 59, 999);
+        return createdDate <= toDate;
+      });
+    }
+    if (filters.search) {
+      const searchTerm = filters.search.toLowerCase();
+      projects = projects.filter(p => {
+        const title = (p.title || '').toLowerCase();
+        const description = (p.description || '').toLowerCase();
+        return title.includes(searchTerm) || description.includes(searchTerm);
+      });
+    }
     
     return { success: true, projects: projects };
   }

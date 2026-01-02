@@ -87,18 +87,103 @@
     
     <!-- Initialize Component -->
     <script>
-        document.addEventListener('DOMContentLoaded', async function() {
-            // Check authentication
-            const isAuth = await AuthCheck.checkAuth({ requireAuth: true });
-            if (!isAuth) return;
-            
-            // Initialize matches
-            // Note: Sidebar and navbar are automatically initialized by app-init.js
-            if (window.matching && window.matching.matches) {
-                window.matching.matches.init();
+        async function initializeMatches() {
+            try {
+                console.log('[Matches] Starting initialization...');
+                
+                // Check authentication
+                const isAuth = await AuthCheck.checkAuth({ requireAuth: true });
+                if (!isAuth) {
+                    console.log('[Matches] User not authenticated, skipping initialization');
+                    return;
+                }
+                
+                // Wait for services to load (similar to app-init.js pattern)
+                console.log('[Matches] Waiting for MatchingService to load...');
+                
+                // Check if MatchingService is already available
+                let serviceReady = typeof MatchingService !== 'undefined';
+                
+                if (!serviceReady) {
+                    // Set up event listener for servicesLoaded
+                    let eventReceived = false;
+                    const eventHandler = () => {
+                        console.log('[Matches] Received servicesLoaded event');
+                        eventReceived = true;
+                        serviceReady = typeof MatchingService !== 'undefined';
+                    };
+                    window.addEventListener('servicesLoaded', eventHandler, { once: true });
+                    
+                    // Poll for service with timeout
+                    const servicesMaxWait = 10000; // 10 seconds max wait
+                    const servicesStartTime = Date.now();
+                    const pollInterval = 100; // Check every 100ms
+                    
+                    while (!serviceReady && (Date.now() - servicesStartTime) < servicesMaxWait) {
+                        serviceReady = typeof MatchingService !== 'undefined';
+                        if (!serviceReady) {
+                            await new Promise(resolve => setTimeout(resolve, pollInterval));
+                        }
+                    }
+                    
+                    // Remove event listener if still attached
+                    window.removeEventListener('servicesLoaded', eventHandler);
+                }
+                
+                if (serviceReady) {
+                    console.log('[Matches] ✅ MatchingService is ready');
+                } else {
+                    console.warn('[Matches] ⚠️ MatchingService not available after waiting');
+                    console.warn('[Matches] MatchingService available:', typeof MatchingService !== 'undefined');
+                }
+                
+                // Wait a bit for the matches component script to load
+                await new Promise(resolve => setTimeout(resolve, 100));
+                
+                // Initialize matches component
+                // Note: Sidebar and navbar are automatically initialized by app-init.js
+                console.log('[Matches] Checking for matches component...');
+                console.log('[Matches] window.matching:', typeof window.matching);
+                console.log('[Matches] window.matching.matches:', typeof window.matching?.matches);
+                console.log('[Matches] window.matchesComponent:', typeof window.matchesComponent);
+                
+                // Try multiple ways to access the component
+                if (window.matching && window.matching.matches) {
+                    console.log('[Matches] Initializing via window.matching.matches');
+                    await window.matching.matches.init();
+                    console.log('[Matches] ✅ Component initialized successfully');
+                } else if (window.matchesComponent) {
+                    console.log('[Matches] Initializing via window.matchesComponent');
+                    await window.matchesComponent.init();
+                    console.log('[Matches] ✅ Component initialized successfully');
+                } else {
+                    console.error('[Matches] Matches component not found');
+                    console.error('[Matches] Available window properties:', Object.keys(window).filter(k => k.includes('match')));
+                    // Try to wait a bit more for the script to load
+                    setTimeout(async () => {
+                        if (window.matchesComponent) {
+                            console.log('[Matches] Found component after delay, initializing...');
+                            await window.matchesComponent.init();
+                            console.log('[Matches] ✅ Component initialized successfully after delay');
+                        } else {
+                            console.error('[Matches] Component still not found after delay');
+                        }
+                    }, 500);
+                }
+            } catch (error) {
+                console.error('[Matches] Error during initialization:', error);
             }
-        });
+        }
+        
+        // Wait for DOM and core services
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', initializeMatches);
+        } else {
+            // DOM already loaded, but wait a bit for scripts to initialize
+            setTimeout(initializeMatches, 300);
+        }
     </script>
 </body>
 </html>
+
 

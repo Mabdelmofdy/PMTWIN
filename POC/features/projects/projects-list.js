@@ -5,8 +5,52 @@
 (function() {
   'use strict';
 
-  async function init(params) {
+  let currentFilters = {};
+
+  function init(params) {
+    setupEventListeners();
     loadProjects();
+  }
+
+  function setupEventListeners() {
+    // Filter form
+    const filterForm = document.getElementById('projectsFilterForm');
+    if (filterForm) {
+      filterForm.addEventListener('submit', applyFilters);
+    }
+
+    // Search input
+    const searchInput = document.getElementById('projectSearch');
+    if (searchInput) {
+      searchInput.addEventListener('input', debounce(handleSearch, 300));
+    }
+  }
+
+  function handleSearch(event) {
+    const searchTerm = event.target.value.toLowerCase().trim();
+    if (searchTerm.length < 2 && searchTerm.length > 0) {
+      return; // Wait for at least 2 characters
+    }
+    
+    // Update currentFilters and reload
+    if (searchTerm.length >= 2) {
+      currentFilters.search = searchTerm;
+    } else {
+      delete currentFilters.search;
+    }
+    loadProjects();
+  }
+
+  function debounce(func, wait) {
+    let timeout;
+    return function executedFunction(...args) {
+      const later = () => {
+        clearTimeout(timeout);
+        func(...args);
+      };
+      clearTimeout(timeout);
+      timeout = setTimeout(later, wait);
+    };
   }
 
   async function loadProjects() {
@@ -14,13 +58,53 @@
     if (!container) return;
 
     try {
+      container.innerHTML = '<p style="text-align: center; padding: 2rem;"><i class="ph ph-spinner ph-spin"></i> Loading projects...</p>';
+
       let result;
       if (typeof ProjectService !== 'undefined') {
-        result = await ProjectService.getProjects();
+        result = await ProjectService.getProjects(currentFilters);
       } else if (typeof PMTwinData !== 'undefined') {
         const currentUser = PMTwinData.Sessions.getCurrentUser();
         if (currentUser) {
-          const projects = PMTwinData.Projects.getByCreator(currentUser.id);
+          let projects = PMTwinData.Projects.getByCreator(currentUser.id);
+          
+          // Apply filters
+          if (currentFilters.status) {
+            projects = projects.filter(p => p.status === currentFilters.status);
+          }
+          if (currentFilters.category) {
+            projects = projects.filter(p => p.category === currentFilters.category);
+          }
+          if (currentFilters.projectType) {
+            if (currentFilters.projectType === 'mega') {
+              projects = projects.filter(p => p.projectType === 'mega' || p.subProjects);
+            } else if (currentFilters.projectType === 'single') {
+              projects = projects.filter(p => p.projectType !== 'mega' && !p.subProjects);
+            }
+          }
+          if (currentFilters.dateFrom) {
+            projects = projects.filter(p => {
+              const createdDate = new Date(p.createdAt || p.created);
+              return createdDate >= new Date(currentFilters.dateFrom);
+            });
+          }
+          if (currentFilters.dateTo) {
+            projects = projects.filter(p => {
+              const createdDate = new Date(p.createdAt || p.created);
+              const toDate = new Date(currentFilters.dateTo);
+              toDate.setHours(23, 59, 59, 999);
+              return createdDate <= toDate;
+            });
+          }
+          if (currentFilters.search) {
+            const searchTerm = currentFilters.search.toLowerCase();
+            projects = projects.filter(p => {
+              const title = (p.title || '').toLowerCase();
+              const description = (p.description || '').toLowerCase();
+              return title.includes(searchTerm) || description.includes(searchTerm);
+            });
+          }
+          
           result = { success: true, projects };
         } else {
           result = { success: false, error: 'Not authenticated' };
@@ -37,6 +121,52 @@
     } catch (error) {
       console.error('Error loading projects:', error);
       container.innerHTML = '<p class="alert alert-error">Error loading projects. Please try again.</p>';
+    }
+  }
+
+  async function applyFilters(event) {
+    event.preventDefault();
+    
+    const filters = {};
+    
+    const status = document.getElementById('projectStatusFilter')?.value;
+    if (status) filters.status = status;
+    
+    const category = document.getElementById('projectCategoryFilter')?.value;
+    if (category) filters.category = category;
+    
+    const projectType = document.getElementById('projectTypeFilter')?.value;
+    if (projectType) filters.projectType = projectType;
+    
+    const dateFrom = document.getElementById('projectDateFromFilter')?.value;
+    if (dateFrom) filters.dateFrom = dateFrom;
+    
+    const dateTo = document.getElementById('projectDateToFilter')?.value;
+    if (dateTo) filters.dateTo = dateTo;
+    
+    currentFilters = filters;
+    await loadProjects();
+  }
+
+  function clearFilters() {
+    currentFilters = {};
+    const form = document.getElementById('projectsFilterForm');
+    if (form) {
+      form.reset();
+    }
+    // Hide advanced filters
+    const advancedFilters = document.getElementById('advancedFilters');
+    if (advancedFilters) {
+      advancedFilters.style.display = 'none';
+    }
+    loadProjects();
+  }
+
+  function toggleAdvancedFilters() {
+    const advancedFilters = document.getElementById('advancedFilters');
+    if (advancedFilters) {
+      const isVisible = advancedFilters.style.display !== 'none';
+      advancedFilters.style.display = isVisible ? 'none' : 'block';
     }
   }
 
@@ -122,6 +252,14 @@
     html += '</div>';
     container.innerHTML = html;
   }
+
+  // Export functions to window for onclick handlers
+  window.projectsListComponent = {
+    init,
+    applyFilters,
+    clearFilters,
+    toggleAdvancedFilters
+  };
 
   // Export
   if (!window.projects) window.projects = {};

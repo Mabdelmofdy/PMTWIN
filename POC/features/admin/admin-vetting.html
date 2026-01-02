@@ -11,7 +11,7 @@
                         <label for="userStatusFilter" class="form-label">Status</label>
                         <select id="userStatusFilter" class="form-control">
                             <option value="">All Statuses</option>
-                            <option value="pending">Pending</option>
+                            <option value="pending" selected>Pending (New Registrations)</option>
                             <option value="approved">Approved</option>
                             <option value="rejected">Rejected</option>
                         </select>
@@ -26,6 +26,22 @@
                             <option value="approved">Approved</option>
                             <option value="rejected">Rejected</option>
                         </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="userTypeFilter" class="form-label">User Type</label>
+                        <select id="userTypeFilter" class="form-control">
+                            <option value="">All Types</option>
+                            <option value="individual">Individual</option>
+                            <option value="entity">Entity</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="dateFromFilter" class="form-label">Registration Date From</label>
+                        <input type="date" id="dateFromFilter" class="form-control">
+                    </div>
+                    <div class="form-group">
+                        <label for="dateToFilter" class="form-label">Registration Date To</label>
+                        <input type="date" id="dateToFilter" class="form-control">
                     </div>
                 </div>
                 <button type="submit" class="btn btn-primary" style="margin-top: 1rem;">Apply Filters</button>

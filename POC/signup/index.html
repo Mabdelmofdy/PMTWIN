@@ -35,27 +35,17 @@
                 <div class="progress-steps">
                     <div class="progress-step active" data-step="1">
                         <div class="step-number">1</div>
-                        <div class="step-label">User Type</div>
+                        <div class="step-label">Account Setup</div>
                     </div>
                     <div class="progress-line"></div>
                     <div class="progress-step" data-step="2">
                         <div class="step-number">2</div>
-                        <div class="step-label">Basic Info</div>
+                        <div class="step-label">Documents & Terms</div>
                     </div>
                     <div class="progress-line"></div>
                     <div class="progress-step" data-step="3">
                         <div class="step-number">3</div>
-                        <div class="step-label">Documents</div>
-                    </div>
-                    <div class="progress-line"></div>
-                    <div class="progress-step" data-step="4">
-                        <div class="step-number">4</div>
-                        <div class="step-label">Verify</div>
-                    </div>
-                    <div class="progress-line"></div>
-                    <div class="progress-step" data-step="5">
-                        <div class="step-number">5</div>
-                        <div class="step-label">Terms</div>
+                        <div class="step-label">Review & Submit</div>
                     </div>
                 </div>
             </div>
@@ -64,30 +54,28 @@
             <div class="card">
                 <div class="card-body">
                     <form id="signupForm">
-                        <!-- Step 1: User Type Selection -->
+                        <!-- Step 1: Account Setup (User Type + Basic Info + Verification) -->
                         <div class="onboarding-step" id="step1" data-step="1">
-                            <h2 style="margin-bottom: var(--spacing-4); text-align: center;">I want to join as:</h2>
-                            <div class="user-type-selection" style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 2rem;">
-                                <label class="user-type-card" style="cursor: pointer; border: 2px solid var(--color-gray-300); border-radius: var(--radius-md); padding: 2rem; text-align: center; transition: all 0.3s;">
-                                    <input type="radio" name="userType" value="individual" checked style="display: none;">
-                                    <div class="user-type-icon" style="font-size: 3rem; margin-bottom: 1rem;"><i class="ph ph-user"></i></div>
-                                    <div class="user-type-title" style="font-weight: 600; font-size: 1.1rem; margin-bottom: 0.5rem;">Individual Professional</div>
-                                    <div class="user-type-desc" style="color: var(--color-gray-600); font-size: 0.9rem;">For professionals, consultants, and experts</div>
-                                </label>
-                                <label class="user-type-card" style="cursor: pointer; border: 2px solid var(--color-gray-300); border-radius: var(--radius-md); padding: 2rem; text-align: center; transition: all 0.3s;">
-                                    <input type="radio" name="userType" value="entity" style="display: none;">
-                                    <div class="user-type-icon" style="font-size: 3rem; margin-bottom: 1rem;"><i class="ph ph-buildings"></i></div>
-                                    <div class="user-type-title" style="font-weight: 600; font-size: 1.1rem; margin-bottom: 0.5rem;">Company/Entity</div>
-                                    <div class="user-type-desc" style="color: var(--color-gray-600); font-size: 0.9rem;">For companies, contractors, and organizations</div>
-                                </label>
+                            <h2 style="margin-bottom: var(--spacing-4); text-align: center;">Create Your Account</h2>
+                            
+                            <!-- User Type Selection -->
+                            <div style="margin-bottom: 2rem;">
+                                <label class="form-label" style="margin-bottom: 0.75rem; display: block;">I want to join as: *</label>
+                                <div class="user-type-selection" style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                                    <label class="user-type-card" style="cursor: pointer; border: 2px solid var(--color-gray-300); border-radius: var(--radius-md); padding: 1.5rem; text-align: center; transition: all 0.3s;">
+                                        <input type="radio" name="userType" value="individual" checked style="display: none;">
+                                        <div class="user-type-icon" style="font-size: 2.5rem; margin-bottom: 0.75rem;"><i class="ph ph-user"></i></div>
+                                        <div class="user-type-title" style="font-weight: 600; font-size: 1rem; margin-bottom: 0.5rem;">Individual Professional</div>
+                                        <div class="user-type-desc" style="color: var(--color-gray-600); font-size: 0.85rem;">For professionals, consultants, and experts</div>
+                                    </label>
+                                    <label class="user-type-card" style="cursor: pointer; border: 2px solid var(--color-gray-300); border-radius: var(--radius-md); padding: 1.5rem; text-align: center; transition: all 0.3s;">
+                                        <input type="radio" name="userType" value="entity" style="display: none;">
+                                        <div class="user-type-icon" style="font-size: 2.5rem; margin-bottom: 0.75rem;"><i class="ph ph-buildings"></i></div>
+                                        <div class="user-type-title" style="font-weight: 600; font-size: 1rem; margin-bottom: 0.5rem;">Company/Entity</div>
+                                        <div class="user-type-desc" style="color: var(--color-gray-600); font-size: 0.85rem;">For companies, contractors, and organizations</div>
+                                    </label>
+                                </div>
                             </div>
-                            <div class="step-actions" style="display: flex; justify-content: flex-end; gap: 1rem;">
-                                <button type="button" class="btn btn-primary" onclick="signupComponent.nextStep()">Continue</button>
-                            </div>
-                        </div>
-
-                        <!-- Step 2: Basic Information -->
-                        <div class="onboarding-step" id="step2" data-step="2" style="display: none;">
                             <h2 style="margin-bottom: var(--spacing-4); text-align: center;">Basic Information</h2>
                             
                             <!-- Individual Fields -->
@@ -117,12 +105,81 @@
                             <!-- Common Fields -->
                             <div class="form-group">
                                 <label for="signupEmail" class="form-label">Email *</label>
-                                <input type="email" id="signupEmail" class="form-control" required placeholder="your.email@example.com">
+                                <div style="display: flex; gap: 0.5rem; align-items: start;">
+                                    <input type="email" id="signupEmail" class="form-control" required placeholder="your.email@example.com" style="flex: 1;" onblur="signupComponent.onEmailBlur()">
+                                    <button type="button" id="sendEmailOTP" class="btn btn-secondary" onclick="signupComponent.sendEmailOTP()" style="white-space: nowrap;">
+                                        <i class="ph ph-paper-plane-tilt"></i> Send Code
+                                    </button>
+                                </div>
+                                <div id="emailVerificationStatus" style="margin-top: 0.5rem; display: none;">
+                                    <div style="display: flex; gap: 0.5rem; align-items: center; margin-bottom: 0.5rem;">
+                                        <input type="text" id="emailOTPInput" class="form-control" placeholder="Enter 6-digit code" maxlength="6" pattern="[0-9]{6}" style="flex: 1;">
+                                        <button type="button" class="btn btn-success btn-sm" onclick="signupComponent.verifyEmailOTP()">
+                                            <i class="ph ph-check"></i> Verify
+                                        </button>
+                                    </div>
+                                    <div id="emailVerificationMessage" style="font-size: 0.875rem;"></div>
+                                    <button type="button" id="resendEmailOTP" class="btn btn-link btn-sm" onclick="signupComponent.sendEmailOTP()" style="display: none; padding: 0; margin-top: 0.25rem;">
+                                        Resend Code
+                                    </button>
+                                </div>
+                                <div id="emailVerifiedBadge" style="display: none; margin-top: 0.5rem;">
+                                    <span class="badge badge-success">
+                                        <i class="ph ph-check-circle"></i> Email Verified
+                                    </span>
+                                </div>
                             </div>
                             <div class="form-group">
                                 <label for="signupMobile" class="form-label">Mobile Number <span id="mobileRequired" style="color: var(--color-error);">*</span></label>
-                                <input type="tel" id="signupMobile" class="form-control" placeholder="+966501234567">
+                                <div style="display: flex; gap: 0.5rem; align-items: start;">
+                                    <input type="tel" id="signupMobile" class="form-control" placeholder="+966501234567" style="flex: 1;" onblur="signupComponent.onMobileBlur()">
+                                    <button type="button" id="sendMobileOTP" class="btn btn-secondary" onclick="signupComponent.sendMobileOTP()" style="white-space: nowrap;">
+                                        <i class="ph ph-paper-plane-tilt"></i> Send Code
+                                    </button>
+                                </div>
                                 <small class="form-help">Required for entities, optional for individuals</small>
+                                <div id="mobileVerificationStatus" style="margin-top: 0.5rem; display: none;">
+                                    <div style="display: flex; gap: 0.5rem; align-items: center; margin-bottom: 0.5rem;">
+                                        <input type="text" id="mobileOTPInput" class="form-control" placeholder="Enter 6-digit code" maxlength="6" pattern="[0-9]{6}" style="flex: 1;">
+                                        <button type="button" class="btn btn-success btn-sm" onclick="signupComponent.verifyMobileOTP()">
+                                            <i class="ph ph-check"></i> Verify
+                                        </button>
+                                    </div>
+                                    <div id="mobileVerificationMessage" style="font-size: 0.875rem;"></div>
+                                    <button type="button" id="resendMobileOTP" class="btn btn-link btn-sm" onclick="signupComponent.sendMobileOTP()" style="display: none; padding: 0; margin-top: 0.25rem;">
+                                        Resend Code
+                                    </button>
+                                </div>
+                                <div id="mobileVerifiedBadge" style="display: none; margin-top: 0.5rem;">
+                                    <span class="badge badge-success">
+                                        <i class="ph ph-check-circle"></i> Mobile Verified
+                                    </span>
+                                </div>
+                            </div>
+                            
+                            <!-- Location Fields -->
+                            <div style="margin-top: 1.5rem; padding-top: 1.5rem; border-top: 1px solid var(--border-color);">
+                                <h3 style="font-size: 1.1rem; margin-bottom: 1rem;">Location</h3>
+                                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">
+                                    <div class="form-group">
+                                        <label for="signupCountry" class="form-label">Country *</label>
+                                        <select id="signupCountry" class="form-control" required onchange="signupComponent.onCountryChange()">
+                                            <option value="">Select Country</option>
+                                        </select>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="signupRegion" class="form-label">Region</label>
+                                        <select id="signupRegion" class="form-control" onchange="signupComponent.onRegionChange()">
+                                            <option value="">Select Region</option>
+                                        </select>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="signupCity" class="form-label">City</label>
+                                        <select id="signupCity" class="form-control">
+                                            <option value="">Select City</option>
+                                        </select>
+                                    </div>
+                                </div>
                             </div>
                             <div class="form-group">
                                 <label for="signupPassword" class="form-label">Password *</label>
@@ -137,15 +194,14 @@
                                 <input type="password" id="signupPasswordConfirm" class="form-control" required placeholder="Confirm your password">
                             </div>
 
-                            <div class="step-actions" style="display: flex; justify-content: space-between; gap: 1rem; margin-top: 2rem;">
-                                <button type="button" class="btn btn-secondary" onclick="signupComponent.prevStep()">Back</button>
+                            <div class="step-actions" style="display: flex; justify-content: flex-end; gap: 1rem; margin-top: 2rem;">
                                 <button type="button" class="btn btn-primary" onclick="signupComponent.nextStep()">Continue</button>
                             </div>
                         </div>
 
-                        <!-- Step 3: Document Upload -->
-                        <div class="onboarding-step" id="step3" data-step="3" style="display: none;">
-                            <h2 style="margin-bottom: var(--spacing-4); text-align: center;">Upload Documents</h2>
+                        <!-- Step 2: Documents & Terms -->
+                        <div class="onboarding-step" id="step2" data-step="2" style="display: none;">
+                            <h2 style="margin-bottom: var(--spacing-4); text-align: center;">Upload Documents & Accept Terms</h2>
                             
                             <!-- Individual Documents -->
                             <div id="individualDocuments">
@@ -229,66 +285,59 @@
                                 </div>
                             </div>
 
+                            <!-- Terms & Conditions -->
+                            <div style="margin-top: 2rem; padding-top: 2rem; border-top: 1px solid var(--border-color);">
+                                <h3 style="margin-bottom: 1rem; font-size: 1.1rem;">Terms & Conditions</h3>
+                                <div class="terms-container" style="max-height: 300px; overflow-y: auto; border: 1px solid var(--color-gray-300); border-radius: var(--radius-md); padding: 1.5rem; margin-bottom: 1.5rem; background: var(--bg-secondary);">
+                                    <h4 style="margin-bottom: 0.75rem; font-size: 1rem;">PMTwin Terms of Service</h4>
+                                    <p style="margin-bottom: 0.75rem; line-height: 1.6; font-size: 0.9rem;">
+                                        By signing up for PMTwin, you agree to the following terms and conditions:
+                                    </p>
+                                    <ul style="line-height: 1.8; padding-left: 1.5rem; font-size: 0.9rem;">
+                                        <li>You are responsible for maintaining the confidentiality of your account</li>
+                                        <li>You agree to provide accurate and complete information</li>
+                                        <li>You understand that your profile will be reviewed by platform administrators</li>
+                                        <li>You agree to comply with all applicable laws and regulations</li>
+                                        <li>You understand that PMTwin reserves the right to verify your credentials</li>
+                                        <li>You agree to use the platform in accordance with our community guidelines</li>
+                                    </ul>
+                                    <p style="margin-top: 0.75rem; line-height: 1.6; font-size: 0.9rem;">
+                                        For the complete terms of service, please visit our <a href="#" target="_blank">Terms & Conditions</a> page.
+                                    </p>
+                                </div>
+
+                                <div class="form-group">
+                                    <label style="display: flex; align-items: flex-start; cursor: pointer; gap: 0.5rem;">
+                                        <input type="checkbox" id="acceptTerms" required style="margin-top: 0.25rem;">
+                                        <span>I have read and agree to the Terms & Conditions and Privacy Policy *</span>
+                                    </label>
+                                </div>
+                            </div>
+
                             <div class="step-actions" style="display: flex; justify-content: space-between; gap: 1rem; margin-top: 2rem;">
                                 <button type="button" class="btn btn-secondary" onclick="signupComponent.prevStep()">Back</button>
                                 <button type="button" class="btn btn-primary" onclick="signupComponent.nextStep()">Continue</button>
                             </div>
                         </div>
 
-                        <!-- Step 4: OTP Verification -->
-                        <div class="onboarding-step" id="step4" data-step="4" style="display: none;">
-                            <h2 style="margin-bottom: var(--spacing-4); text-align: center;">Verify Your Account</h2>
+                        <!-- Step 3: Review & Submit -->
+                        <div class="onboarding-step" id="step3" data-step="3" style="display: none;">
+                            <h2 style="margin-bottom: var(--spacing-4); text-align: center;">Review & Submit</h2>
                             <p style="text-align: center; color: var(--color-gray-600); margin-bottom: 2rem;">
-                                We've sent verification codes to your email and mobile number. Please enter them below.
+                                Please review your information before submitting your registration.
                             </p>
                             
-                            <div class="form-group">
-                                <label for="emailOTP" class="form-label">Email Verification Code *</label>
-                                <input type="text" id="emailOTP" class="form-control" required placeholder="Enter 6-digit code" maxlength="6" pattern="[0-9]{6}">
-                                <small class="form-help">Check your email for the verification code</small>
-                            </div>
-                            
-                            <div class="form-group" id="mobileOTPGroup">
-                                <label for="mobileOTP" class="form-label">Mobile Verification Code</label>
-                                <input type="text" id="mobileOTP" class="form-control" placeholder="Enter 6-digit code" maxlength="6" pattern="[0-9]{6}">
-                                <small class="form-help">Check your mobile for the verification code (if provided)</small>
-                            </div>
-
-                            <div id="otpMessage" style="display: none; margin-top: 1rem;"></div>
-
-                            <div class="step-actions" style="display: flex; justify-content: space-between; gap: 1rem; margin-top: 2rem;">
-                                <button type="button" class="btn btn-secondary" onclick="signupComponent.prevStep()">Back</button>
-                                <button type="button" class="btn btn-primary" onclick="signupComponent.verifyOTP()">Verify & Continue</button>
-                            </div>
-                        </div>
-
-                        <!-- Step 5: Terms & Conditions -->
-                        <div class="onboarding-step" id="step5" data-step="5" style="display: none;">
-                            <h2 style="margin-bottom: var(--spacing-4); text-align: center;">Terms & Conditions</h2>
-                            
-                            <div class="terms-container" style="max-height: 400px; overflow-y: auto; border: 1px solid var(--color-gray-300); border-radius: var(--radius-md); padding: 1.5rem; margin-bottom: 2rem; background: var(--bg-secondary);">
-                                <h3 style="margin-bottom: 1rem;">PMTwin Terms of Service</h3>
-                                <p style="margin-bottom: 1rem; line-height: 1.6;">
-                                    By signing up for PMTwin, you agree to the following terms and conditions:
-                                </p>
-                                <ul style="line-height: 2; padding-left: 1.5rem;">
-                                    <li>You are responsible for maintaining the confidentiality of your account</li>
-                                    <li>You agree to provide accurate and complete information</li>
-                                    <li>You understand that your profile will be reviewed by platform administrators</li>
-                                    <li>You agree to comply with all applicable laws and regulations</li>
-                                    <li>You understand that PMTwin reserves the right to verify your credentials</li>
-                                    <li>You agree to use the platform in accordance with our community guidelines</li>
-                                </ul>
-                                <p style="margin-top: 1rem; line-height: 1.6;">
-                                    For the complete terms of service, please visit our <a href="#" target="_blank">Terms & Conditions</a> page.
-                                </p>
-                            </div>
-
-                            <div class="form-group">
-                                <label style="display: flex; align-items: flex-start; cursor: pointer; gap: 0.5rem;">
-                                    <input type="checkbox" id="acceptTerms" required style="margin-top: 0.25rem;">
-                                    <span>I have read and agree to the Terms & Conditions and Privacy Policy *</span>
-                                </label>
+                            <div class="card" style="margin-bottom: 2rem;">
+                                <div class="card-body">
+                                    <h3 style="margin-bottom: 1rem;">Verification Status</h3>
+                                    <div id="verificationStatusDisplay" style="display: flex; gap: 1rem; margin-bottom: 1rem; flex-wrap: wrap;">
+                                        <!-- Status will be populated by JavaScript -->
+                                    </div>
+                                    <div id="verificationWarning" class="alert alert-warning" style="display: none;">
+                                        <i class="ph ph-warning"></i> 
+                                        Please complete email and phone verification in Step 1 before proceeding.
+                                    </div>
+                                </div>
                             </div>
 
                             <!-- Error/Success Messages -->
@@ -315,6 +364,9 @@
     <!-- API Layer (for future Java backend integration) -->
     <script src="../js/api/api-client.js"></script>
     <script src="../js/api/api-service.js"></script>
+    
+    <!-- Location Service -->
+    <script src="../services/location/location-service.js"></script>
     
     <!-- Core Scripts -->
     <script src="../js/data.js"></script>

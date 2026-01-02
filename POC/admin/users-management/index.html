@@ -14,60 +14,68 @@
                 <h1>User Management</h1>
             </div>
 
-            <!-- Search and Filters -->
+            <!-- Statistics Section -->
             <div class="card" style="margin-bottom: 2rem;">
                 <div class="card-body">
-                    <div style="margin-bottom: 1rem;">
-                        <div class="form-group">
-                            <label for="userSearch">Search Users</label>
-                            <input type="text" id="userSearch" class="form-control" placeholder="Search by name or email...">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                        <h2 style="margin: 0;">User Statistics</h2>
+                        <div style="display: flex; gap: 0.5rem;">
+                            <button type="button" class="btn btn-secondary btn-sm" onclick="if(window.admin && window.admin['admin-users-management']) { window.admin['admin-users-management'].createTestUsers(); }">
+                                <i class="ph ph-plus"></i> Create Test Data
+                            </button>
+                            <button type="button" class="btn btn-outline btn-sm" onclick="if(window.admin && window.admin['admin-users-management']) { window.admin['admin-users-management'].createSuspendedTestUsers(); }">
+                                <i class="ph ph-lock"></i> Add Suspended Users
+                            </button>
                         </div>
                     </div>
-                    <form id="usersFilterForm">
-                        <h2 style="margin-bottom: 1rem;">Filters</h2>
-                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">
-                            <div class="form-group">
-                                <label for="roleFilter">Role</label>
-                                <select id="roleFilter" class="form-control">
+                    <div id="usersStatistics">
+                        <!-- Statistics will be loaded here -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Simplified Search and Filters -->
+            <div class="card" style="margin-bottom: 2rem;">
+                <div class="card-body" style="padding: 1rem;">
+                    <form id="usersFilterForm" onsubmit="return false;">
+                        <div style="display: flex; gap: 1rem; align-items: end; flex-wrap: wrap;">
+                            <div style="flex: 1; min-width: 250px; position: relative;">
+                                <i class="ph ph-magnifying-glass" style="position: absolute; left: 0.75rem; top: 50%; transform: translateY(-50%); color: var(--text-secondary); pointer-events: none;"></i>
+                                <input type="text" id="userSearch" class="form-control" placeholder="Search by name or email..." style="padding-left: 2.5rem;">
+                            </div>
+                            <select id="statusFilter" class="form-control" style="width: 200px;">
+                                <option value="approved" selected>Approved</option>
+                                <option value="approved_and_suspended">Approved & Suspended</option>
+                                <option value="suspended">Suspended</option>
+                                <option value="pending">Pending</option>
+                                <option value="under_review">Under Review</option>
+                                <option value="rejected">Rejected</option>
+                            </select>
+                            <select id="userTypeFilter" class="form-control" style="width: 150px;">
+                                <option value="">All Types</option>
+                                <option value="company">Company</option>
+                                <option value="individual">Individual</option>
+                                <option value="consultant">Consultant</option>
+                            </select>
+                            <button type="button" onclick="if(window.admin && window.admin['admin-users-management']) { window.admin['admin-users-management'].toggleAdvancedFilters(); }" class="btn btn-outline" style="white-space: nowrap;">
+                                <i class="ph ph-funnel"></i> More
+                            </button>
+                            <button type="button" class="btn btn-outline" id="clearFilters" style="white-space: nowrap;">
+                                <i class="ph ph-x"></i> Clear
+                            </button>
+                        </div>
+                        <div id="advancedFilters" style="display: none; margin-top: 1rem; padding-top: 1rem; border-top: 1px solid var(--border-color);">
+                            <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
+                                <select id="roleFilter" class="form-control" style="width: 150px;">
                                     <option value="">All Roles</option>
                                     <option value="admin">Admin</option>
                                     <option value="entity">Entity</option>
                                     <option value="individual">Individual</option>
                                     <option value="consultant">Consultant</option>
                                 </select>
+                                <input type="date" id="dateFromFilter" class="form-control" style="width: 150px;" placeholder="From Date">
+                                <input type="date" id="dateToFilter" class="form-control" style="width: 150px;" placeholder="To Date">
                             </div>
-                            <div class="form-group">
-                                <label for="statusFilter">Status</label>
-                                <select id="statusFilter" class="form-control">
-                                    <option value="">All Statuses</option>
-                                    <option value="approved">Approved</option>
-                                    <option value="pending">Pending</option>
-                                    <option value="under_review">Under Review</option>
-                                    <option value="rejected">Rejected</option>
-                                    <option value="suspended">Suspended</option>
-                                </select>
-                            </div>
-                            <div class="form-group">
-                                <label for="userTypeFilter">User Type</label>
-                                <select id="userTypeFilter" class="form-control">
-                                    <option value="">All Types</option>
-                                    <option value="company">Company</option>
-                                    <option value="individual">Individual</option>
-                                    <option value="consultant">Consultant</option>
-                                </select>
-                            </div>
-                            <div class="form-group">
-                                <label for="dateFromFilter">From Date</label>
-                                <input type="date" id="dateFromFilter" class="form-control">
-                            </div>
-                            <div class="form-group">
-                                <label for="dateToFilter">To Date</label>
-                                <input type="date" id="dateToFilter" class="form-control">
-                            </div>
-                        </div>
-                        <div style="margin-top: 1rem;">
-                            <button type="submit" class="btn btn-primary">Apply Filters</button>
-                            <button type="button" class="btn btn-outline" id="clearFilters">Clear Filters</button>
                         </div>
                     </form>
                 </div>

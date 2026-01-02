@@ -10,37 +10,52 @@
     <!-- Main Content - Sidebar and Navbar are automatically added by layout system -->
     <main>
         <div class="container" style="padding: 2rem 0;">
-            <h1 style="margin-bottom: var(--spacing-6);">User Vetting</h1>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--spacing-6);">
+                <h1 style="margin: 0;">User Vetting</h1>
+                <button type="button" class="btn btn-secondary btn-sm" onclick="if(window.adminVettingComponent) { window.adminVettingComponent.createRejectedTestUsers(); }">
+                    <i class="ph ph-plus"></i> Add Rejected Test Data
+                </button>
+            </div>
 
-            <!-- Filter Section - Trigger getUsersForVetting with filters -->
+            <!-- Simplified Filter Section -->
             <div class="card" style="margin-bottom: 2rem;">
-                <div class="card-body">
-                    <h3>Filter Users</h3>
+                <div class="card-body" style="padding: 1rem;">
                     <form id="vettingFiltersForm" onsubmit="return adminVettingComponent.applyFilters(event)">
-                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">
-                            <div class="form-group">
-                                <label for="userStatusFilter" class="form-label">Status</label>
-                                <select id="userStatusFilter" class="form-control">
-                                    <option value="">All Statuses</option>
-                                    <option value="pending">Pending</option>
-                                    <option value="approved">Approved</option>
-                                    <option value="rejected">Rejected</option>
-                                </select>
+                        <div style="display: flex; gap: 1rem; align-items: end; flex-wrap: wrap;">
+                            <div style="flex: 1; min-width: 250px; position: relative;">
+                                <i class="ph ph-magnifying-glass" style="position: absolute; left: 0.75rem; top: 50%; transform: translateY(-50%); color: var(--text-secondary); pointer-events: none;"></i>
+                                <input type="text" id="userSearch" class="form-control" placeholder="Search by name or email..." style="padding-left: 2.5rem;">
                             </div>
-                            <div class="form-group">
-                                <label for="onboardingStageFilter" class="form-label">Onboarding Stage</label>
-                                <select id="onboardingStageFilter" class="form-control">
+                            <select id="userStatusFilter" class="form-control" style="width: 180px;">
+                                <option value="all_vetting" selected>All Vetting Statuses</option>
+                                <option value="pending">Pending</option>
+                                <option value="under_review">Under Review</option>
+                                <option value="rejected">Rejected</option>
+                            </select>
+                            <select id="userTypeFilter" class="form-control" style="width: 150px;">
+                                <option value="">All Types</option>
+                                <option value="individual">Individual</option>
+                                <option value="entity">Entity</option>
+                            </select>
+                            <button type="button" onclick="adminVettingComponent.toggleAdvancedFilters()" class="btn btn-outline" style="white-space: nowrap;">
+                                <i class="ph ph-funnel"></i> More
+                            </button>
+                            <button type="button" onclick="adminVettingComponent.clearFilters()" class="btn btn-outline" style="white-space: nowrap;">
+                                <i class="ph ph-x"></i> Clear
+                            </button>
+                        </div>
+                        <div id="advancedFilters" style="display: none; margin-top: 1rem; padding-top: 1rem; border-top: 1px solid var(--border-color);">
+                            <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
+                                <select id="onboardingStageFilter" class="form-control" style="width: 180px;">
                                     <option value="">All Stages</option>
                                     <option value="registered">Registered</option>
                                     <option value="profile_in_progress">Profile In Progress</option>
                                     <option value="under_review">Under Review</option>
-                                    <option value="approved">Approved</option>
-                                    <option value="rejected">Rejected</option>
                                 </select>
+                                <input type="date" id="dateFromFilter" class="form-control" style="width: 150px;" placeholder="From Date">
+                                <input type="date" id="dateToFilter" class="form-control" style="width: 150px;" placeholder="To Date">
                             </div>
                         </div>
-                        <button type="submit" class="btn btn-primary" style="margin-top: 1rem;">Apply Filters</button>
-                        <button type="button" onclick="adminVettingComponent.clearFilters()" class="btn btn-secondary" style="margin-top: 1rem; margin-left: 0.5rem;">Clear</button>
                     </form>
                 </div>
             </div>
@@ -66,6 +81,9 @@
     <script src="../js/demo-credentials.js"></script>
     <script src="../services/services-loader.js"></script>
     <script src="../data/data-loader.js"></script>
+    
+    <!-- Admin Service (must load before admin-vetting component) -->
+    <script src="../services/admin/admin-service.js"></script>
     
     <!-- Layout System (automatically includes sidebar and navbar) -->
     <script src="../js/layout.js"></script>

@@ -60,7 +60,7 @@ PMTwin revolutionizes how construction entities, professionals, and service prov
 |--------|-------|
 | **Features** | 24 features |
 | **Services** | 9 service modules |
-| **Collaboration Models** | 5 categories, 14 sub-models |
+| **Collaboration Models** | 5 categories, 13 sub-models |
 | **User Roles** | 8 roles (Project Lead, Supplier, Service Provider, Professional, Consultant, Mentor, Platform Admin, Auditor) |
 | **Portals** | 4 (Public, User, Admin, Mobile) |
 | **Documentation Files** | 10+ |
@@ -245,7 +245,7 @@ Legend: ✅ = Full Access, 👁️ = Read-Only, ❌ = No Access
 
 ### Overview
 
-PMTwin supports **5 main categories** with **14 sub-models** for different collaboration scenarios:
+PMTwin supports **5 main categories** with **13 sub-models** for different collaboration scenarios:
 
 ```mermaid
 graph TB
@@ -258,14 +258,14 @@ graph TB
     
     subgraph Model2["Model 2: Strategic Partnerships"]
         M2_1[2.1 Strategic Joint Venture]
-        M2_2[2.2 Strategic Alliance]
+        M2_2[2.2 Long-Term Strategic Alliance]
         M2_3[2.3 Mentorship Program]
     end
     
     subgraph Model3["Model 3: Resource Pooling & Sharing"]
         M3_1[3.1 Bulk Purchasing]
-        M3_2[3.2 Co-Ownership]
-        M3_3[3.3 Resource Exchange/Barter]
+        M3_2[3.2 Co-Ownership Pooling]
+        M3_3[3.3 Resource Sharing & Exchange]
     end
     
     subgraph Model4["Model 4: Hiring a Resource"]
@@ -275,7 +275,6 @@ graph TB
     
     subgraph Model5["Model 5: Call for Competition"]
         M5_1[5.1 Competition/RFP]
-        M5_2[5.2 Sub-Main]
     end
 ```
 
@@ -341,8 +340,8 @@ graph TB
   - Long-term commitment (10+ years)
 - **Use Cases:** Entering new markets, technology transfer, capacity building
 
-#### 2.2 Strategic Alliance
-- **Description:** Ongoing contractual relationship without new entity formation
+#### 2.2 Long-Term Strategic Alliance
+- **Description:** Ongoing contractual relationship without new entity formation for long-term collaboration
 - **Applicability:** B2B, B2P, P2B, P2P
 - **Key Attributes:**
   - Alliance scope, duration
@@ -372,8 +371,8 @@ graph TB
   - Delivery timeline, payment terms
 - **Use Cases:** Materials procurement, equipment rental, service contracts
 
-#### 3.2 Co-Ownership
-- **Description:** Joint ownership of high-value assets (machinery, equipment, facilities)
+#### 3.2 Co-Ownership Pooling
+- **Description:** Joint ownership of high-value assets (machinery, equipment, facilities) through pooling resources
 - **Applicability:** B2B
 - **Key Attributes:**
   - Asset type, value, ownership percentage
@@ -381,8 +380,8 @@ graph TB
   - Exit strategy
 - **Use Cases:** Heavy machinery, specialized equipment, shared facilities
 
-#### 3.3 Resource Exchange/Barter
-- **Description:** Marketplace for trading services, materials, or equipment
+#### 3.3 Resource Sharing & Exchange
+- **Description:** Marketplace for sharing, trading, buying, selling, or bartering services, materials, or equipment
 - **Applicability:** B2B, B2P, P2B, P2P
 - **Key Attributes:**
   - Resource type, quantity, value
@@ -425,13 +424,6 @@ graph TB
   - Submission deadline, requirements
 - **Use Cases:** Design competitions, innovation challenges, RFQ for materials
 
-#### 5.2 Sub-Main
-- **Description:** [Description to be defined]
-- **Applicability:** [Applicability to be defined]
-- **Key Attributes:**
-  - [Key attributes to be defined]
-- **Use Cases:** [Use cases to be defined]
-
 ### Collaboration Model Access by Role
 
 | Model | Project Lead | Supplier | Service Provider | Professional | Consultant | Mentor |
@@ -441,15 +433,14 @@ graph TB
 | 1.3 Project JV | ✅ | ❌ | ❌ | ❌ | ❌ | ❌ |
 | 1.4 SPV | ✅ | ❌ | ❌ | ❌ | ❌ | ❌ |
 | 2.1 Strategic JV | ✅ | ❌ | ❌ | ❌ | ❌ | ❌ |
-| 2.2 Strategic Alliance | ✅ | ✅ | ✅ | ❌ | ✅ | ❌ |
+| 2.2 Long-Term Strategic Alliance | ✅ | ✅ | ✅ | ❌ | ✅ | ❌ |
 | 2.3 Mentorship | ❌ | ❌ | ❌ | ✅ | ❌ | ✅ |
 | 3.1 Bulk Purchasing | ✅ | ✅ | ❌ | ❌ | ❌ | ❌ |
-| 3.2 Co-Ownership | ✅ | ✅ | ❌ | ❌ | ❌ | ❌ |
-| 3.3 Resource Exchange | ✅ | ✅ | ❌ | ❌ | ❌ | ❌ |
+| 3.2 Co-Ownership Pooling | ✅ | ✅ | ❌ | ❌ | ❌ | ❌ |
+| 3.3 Resource Sharing & Exchange | ✅ | ✅ | ❌ | ❌ | ❌ | ❌ |
 | 4.1 Professional Hiring | ✅ | ❌ | ❌ | ✅ | ❌ | ❌ |
 | 4.2 Consultant Hiring | ✅ | ❌ | ❌ | ❌ | ✅ | ❌ |
 | 5.1 Competition | ✅ | ❌ | ❌ | ❌ | ❌ | ❌ |
-| 5.2 Sub-Main | ✅ | ❌ | ❌ | ❌ | ❌ | ❌ |
 
 ---
 
@@ -490,7 +481,7 @@ graph TB
   - Hires resources (professionals and consultants)
   - Initiates Special Purpose Vehicles (SPVs)
   - Manages project lifecycle from initiation to completion
-- **Available Models:** All 14 sub-models (1.1-1.4, 2.1-2.2, 3.1-3.3, 4.1-4.2, 5.1-5.2)
+- **Available Models:** All 13 sub-models (1.1-1.4, 2.1-2.2, 3.1-3.3, 4.1-4.2, 5.1)
 
 #### 2. Supplier
 - **Role ID:** `supplier`
@@ -1072,7 +1063,7 @@ POC/
 | **Model 2: Strategic** | 3 | 2.1, 2.2, 2.3 |
 | **Model 3: Resource Pooling** | 3 | 3.1, 3.2, 3.3 |
 | **Model 4: Hiring** | 2 | 4.1, 4.2 |
-| **Model 5: Competition** | 2 | 5.1, 5.2 |
+| **Model 5: Competition** | 1 | 5.1 |
 | **Total** | **14** | **5 categories** |
 
 ### User Roles
@@ -1153,7 +1144,7 @@ POC/
 PMTwin is a comprehensive construction collaboration platform for the MENA region with:
 
 - **24 Features** across 4 portals
-- **5 Collaboration Model Categories** with 14 sub-models
+- **5 Collaboration Model Categories** with 13 sub-models
 - **8 User Roles** with granular permissions
 - **9 Service Modules** with RBAC integration
 - **Intelligent Matching Algorithm** with 80% threshold

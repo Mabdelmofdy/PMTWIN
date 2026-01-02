@@ -184,7 +184,7 @@
     const userType = user.userType || mapRoleToUserType(user.role);
     const profileSections = user.profileSections || {};
     const identity = user.identity || {};
-    const documents = user.documents || [];
+    const documents = Array.isArray(user.documents) ? user.documents : [];
     const profile = user.profile || {};
 
     // ============================================
@@ -502,37 +502,151 @@
 
     // Create Consultant (Individual) if doesn't exist
     if (!individualExists) {
+      const individualCreatedAt = new Date();
+      individualCreatedAt.setDate(individualCreatedAt.getDate() - 5); // 5 days ago
+      
       Users.create({
         email: 'individual@pmtwin.com',
         password: btoa('User123'),
         role: 'individual',
-        userType: 'consultant',
+        userType: 'individual',
+        mobile: '+966501234567',
         onboardingStage: 'approved',
         emailVerified: true,
+        mobileVerified: true,
+        identity: {
+          fullLegalName: 'John Doe',
+          nationalId: '1234567890',
+          nationalIdVerified: true,
+          nationalIdVerifiedAt: new Date().toISOString(),
+          passportNumber: null,
+          professionalCertifications: [
+            {
+              name: 'PMP Certification',
+              issuer: 'PMI',
+              issueDate: '2020-01-15',
+              expiryDate: '2026-01-15',
+              credentialId: 'PMP-123456'
+            },
+            {
+              name: 'Professional Engineer License',
+              issuer: 'Saudi Council of Engineers',
+              issueDate: '2018-03-20',
+              expiryDate: '2025-03-20',
+              credentialId: 'PE-SA-789012'
+            }
+          ]
+        },
         profile: {
           name: 'John Doe',
           professionalTitle: 'Senior Civil Engineer',
           phone: '+966501234567',
+          bio: 'Experienced civil engineer with over 10 years in construction project management, specializing in infrastructure development and quality control.',
           location: {
             city: 'Riyadh',
             region: 'Riyadh Province',
             country: 'Saudi Arabia'
           },
-          skills: ['Project Management', 'Civil Engineering', 'Construction Planning', 'Quality Control'],
+          skills: ['Project Management', 'Civil Engineering', 'Construction Planning', 'Quality Control', 'Budget Management', 'Team Leadership'],
           experienceLevel: 'senior',
-          status: 'approved',
-          createdAt: new Date().toISOString(),
-          approvedAt: new Date().toISOString(),
-          approvedBy: 'system',
-          credentials: [
+          certifications: [
             {
-              type: 'license',
-              fileName: 'professional_license.pdf',
-              fileSize: 2048000,
-              uploadedAt: new Date().toISOString(),
-              verified: true
+              name: 'PMP Certification',
+              issuer: 'PMI',
+              issueDate: '2020-01-15',
+              expiryDate: '2026-01-15',
+              credentialId: 'PMP-123456'
+            },
+            {
+              name: 'Professional Engineer License',
+              issuer: 'Saudi Council of Engineers',
+              issueDate: '2018-03-20',
+              expiryDate: '2025-03-20',
+              credentialId: 'PE-SA-789012'
+            }
+          ],
+          portfolio: [
+            {
+              id: 'portfolio_1',
+              title: 'Highway Infrastructure Project',
+              description: 'Led construction of 50km highway connecting Riyadh to Dammam',
+              completionDate: '2023-06-01',
+              link: 'https://portfolio.example.com/project1',
+              value: 50000000
+            },
+            {
+              id: 'portfolio_2',
+              title: 'Commercial Building Complex',
+              description: 'Project manager for 20-story commercial building in King Fahd District',
+              completionDate: '2022-12-15',
+              link: 'https://portfolio.example.com/project2',
+              value: 35000000
+            }
+          ],
+          status: 'approved',
+          createdAt: individualCreatedAt.toISOString(),
+          approvedAt: new Date(individualCreatedAt.getTime() + 2 * 24 * 60 * 60 * 1000).toISOString(), // Approved 2 days after registration
+          approvedBy: 'system'
+        },
+        documents: {
+          professionalLicense: [
+            {
+              name: 'professional_license.pdf',
+              size: 2048000,
+              type: 'application/pdf',
+              uploadedAt: individualCreatedAt.toISOString()
+            }
+          ],
+          resume: [
+            {
+              name: 'john_doe_resume.pdf',
+              size: 1536000,
+              type: 'application/pdf',
+              uploadedAt: individualCreatedAt.toISOString()
+            }
+          ],
+          additionalCerts: [
+            {
+              name: 'pmp_certificate.pdf',
+              size: 1024000,
+              type: 'application/pdf',
+              uploadedAt: individualCreatedAt.toISOString()
             }
           ]
+        },
+        documentVerifications: {
+          professionalLicense: {
+            documentType: 'professionalLicense',
+            verified: true,
+            verifiedBy: 'system',
+            verifiedByName: 'System Admin',
+            verifiedAt: new Date(individualCreatedAt.getTime() + 1 * 24 * 60 * 60 * 1000).toISOString(),
+            notes: 'License verified and valid'
+          },
+          resume: {
+            documentType: 'resume',
+            verified: true,
+            verifiedBy: 'system',
+            verifiedByName: 'System Admin',
+            verifiedAt: new Date(individualCreatedAt.getTime() + 1 * 24 * 60 * 60 * 1000).toISOString(),
+            notes: 'CV reviewed and approved'
+          }
+        },
+        vettingComments: [
+          {
+            id: 'comment_1',
+            comment: 'Professional credentials verified. License is valid and in good standing.',
+            addedBy: 'system',
+            addedByName: 'System Admin',
+            addedAt: new Date(individualCreatedAt.getTime() + 1 * 24 * 60 * 60 * 1000).toISOString()
+          }
+        ],
+        review: {
+          submittedAt: new Date(individualCreatedAt.getTime() + 1 * 24 * 60 * 60 * 1000).toISOString(),
+          reviewedAt: new Date(individualCreatedAt.getTime() + 2 * 24 * 60 * 60 * 1000).toISOString(),
+          reviewedBy: 'system',
+          status: 'approved',
+          reviewNotes: 'All documents verified. Profile complete and approved.'
         }
       });
       created++;
@@ -540,52 +654,881 @@
 
     // Create Company (Entity) if doesn't exist
     if (!entityExists) {
+      const entityCreatedAt = new Date();
+      entityCreatedAt.setDate(entityCreatedAt.getDate() - 7); // 7 days ago
+      
       Users.create({
         email: 'entity@pmtwin.com',
         password: btoa('Entity123'),
         role: 'entity',
-        userType: 'company',
+        userType: 'entity',
+        mobile: '+966112345678',
         onboardingStage: 'approved',
         emailVerified: true,
+        mobileVerified: true,
+        identity: {
+          legalEntityName: 'ABC Construction Company Ltd.',
+          crNumber: 'CR-1234567890',
+          crVerified: true,
+          crVerifiedAt: new Date(entityCreatedAt.getTime() + 1 * 24 * 60 * 60 * 1000).toISOString(),
+          crIssueDate: '2010-05-15',
+          crExpiryDate: '2025-05-15',
+          taxNumber: 'VAT-123456789012345',
+          taxNumberVerified: true,
+          authorizedRepresentativeNID: '9876543210',
+          authorizedRepresentativeName: 'Ahmed Al-Saud',
+          scaClassifications: ['General Contracting', 'Infrastructure Development'],
+          scaVerified: true
+        },
         profile: {
           name: 'ABC Construction Co.',
           companyName: 'ABC Construction Company Ltd.',
+          legalName: 'ABC Construction Company Ltd.',
           phone: '+966112345678',
           website: 'https://www.abcconstruction.com',
+          companyDescription: 'Leading construction company specializing in large-scale infrastructure projects across Saudi Arabia. Established in 2009 with a proven track record of delivering quality projects on time and within budget.',
           location: {
             headquarters: {
+              address: 'King Fahd Road, Al Olaya District',
               city: 'Riyadh',
               region: 'Riyadh Province',
               country: 'Saudi Arabia'
             }
           },
+          hqAddress: 'King Fahd Road, Al Olaya District',
+          hqCity: 'Riyadh',
+          hqRegion: 'Riyadh Province',
+          hqCountry: 'Saudi Arabia',
+          branches: [
+            {
+              id: 'branch_1',
+              name: 'Jeddah Branch',
+              address: 'Corniche Road, Al Hamra District',
+              city: 'Jeddah',
+              region: 'Makkah Province',
+              country: 'Saudi Arabia',
+              phone: '+966122345678'
+            }
+          ],
           commercialRegistration: {
             number: 'CR-1234567890',
-            verified: true
+            verified: true,
+            issueDate: '2010-05-15',
+            expiryDate: '2025-05-15'
           },
           vatNumber: {
             number: 'VAT-123456789012345',
             verified: true
           },
-          services: ['General Contracting', 'Infrastructure Development', 'Project Management'],
+          services: ['General Contracting', 'Infrastructure Development', 'Project Management', 'Design-Build'],
+          serviceDescriptions: {
+            'General Contracting': 'Full-service general contracting for commercial and residential projects',
+            'Infrastructure Development': 'Highway, bridge, and public infrastructure construction',
+            'Project Management': 'Comprehensive project management services'
+          },
           yearsInBusiness: 15,
-          status: 'approved',
-          createdAt: new Date().toISOString(),
-          approvedAt: new Date().toISOString(),
-          approvedBy: 'system',
-          credentials: [
+          employeeCount: '100-500',
+          annualRevenueRange: '50M-100M',
+          maxProjectValue: 100000000,
+          concurrentProjects: 5,
+          keyProjects: [
             {
-              type: 'cr',
-              fileName: 'commercial_registration.pdf',
-              fileSize: 1024000,
-              uploadedAt: new Date().toISOString(),
-              verified: true
+              id: 'project_1',
+              title: 'Riyadh Metro Station Construction',
+              description: 'Construction of 3 metro stations as part of Riyadh Metro project',
+              completionDate: '2023-08-30',
+              value: 85000000
+            },
+            {
+              id: 'project_2',
+              title: 'King Abdullah Financial District',
+              description: 'Multi-building complex in KAFD',
+              completionDate: '2022-11-15',
+              value: 120000000
+            }
+          ],
+          status: 'approved',
+          createdAt: entityCreatedAt.toISOString(),
+          approvedAt: new Date(entityCreatedAt.getTime() + 3 * 24 * 60 * 60 * 1000).toISOString(), // Approved 3 days after registration
+          approvedBy: 'system'
+        },
+        documents: {
+          cr: [
+            {
+              name: 'commercial_registration.pdf',
+              size: 1024000,
+              type: 'application/pdf',
+              uploadedAt: entityCreatedAt.toISOString()
+            }
+          ],
+          vat: [
+            {
+              name: 'vat_certificate.pdf',
+              size: 896000,
+              type: 'application/pdf',
+              uploadedAt: entityCreatedAt.toISOString()
+            }
+          ],
+          companyProfile: [
+            {
+              name: 'company_profile.pdf',
+              size: 2560000,
+              type: 'application/pdf',
+              uploadedAt: entityCreatedAt.toISOString()
             }
           ]
+        },
+        documentVerifications: {
+          cr: {
+            documentType: 'cr',
+            verified: true,
+            verifiedBy: 'system',
+            verifiedByName: 'System Admin',
+            verifiedAt: new Date(entityCreatedAt.getTime() + 2 * 24 * 60 * 60 * 1000).toISOString(),
+            notes: 'CR verified and valid until 2025-05-15'
+          },
+          vat: {
+            documentType: 'vat',
+            verified: true,
+            verifiedBy: 'system',
+            verifiedByName: 'System Admin',
+            verifiedAt: new Date(entityCreatedAt.getTime() + 2 * 24 * 60 * 60 * 1000).toISOString(),
+            notes: 'VAT certificate verified'
+          },
+          companyProfile: {
+            documentType: 'companyProfile',
+            verified: true,
+            verifiedBy: 'system',
+            verifiedByName: 'System Admin',
+            verifiedAt: new Date(entityCreatedAt.getTime() + 2 * 24 * 60 * 60 * 1000).toISOString(),
+            notes: 'Company profile document reviewed and approved'
+          }
+        },
+        vettingComments: [
+          {
+            id: 'comment_1',
+            comment: 'Commercial Registration verified. Company is in good standing.',
+            addedBy: 'system',
+            addedByName: 'System Admin',
+            addedAt: new Date(entityCreatedAt.getTime() + 2 * 24 * 60 * 60 * 1000).toISOString()
+          },
+          {
+            id: 'comment_2',
+            comment: 'VAT certificate confirmed. All financial documents in order.',
+            addedBy: 'system',
+            addedByName: 'System Admin',
+            addedAt: new Date(entityCreatedAt.getTime() + 2 * 24 * 60 * 60 * 1000).toISOString()
+          }
+        ],
+        review: {
+          submittedAt: new Date(entityCreatedAt.getTime() + 1 * 24 * 60 * 60 * 1000).toISOString(),
+          reviewedAt: new Date(entityCreatedAt.getTime() + 3 * 24 * 60 * 60 * 1000).toISOString(),
+          reviewedBy: 'system',
+          status: 'approved',
+          reviewNotes: 'All documents verified. Company profile complete. Approved for full platform access.'
         }
       });
       created++;
     }
+
+    // Create comprehensive test users for vetting (new registrations with different stages)
+    const testUsers = [
+      // Individual - Registered (just signed up)
+      {
+        email: 'new.individual@pmtwin.com',
+        password: 'Pending123',
+        role: 'individual',
+        userType: 'individual',
+        mobile: '+966502345678',
+        onboardingStage: 'registered',
+        emailVerified: true,
+        mobileVerified: false,
+        daysAgo: 1,
+        identity: {
+          fullLegalName: 'Sarah Al-Mansouri',
+          nationalId: '2345678901',
+          nationalIdVerified: false
+        },
+        profile: {
+          name: 'Sarah Al-Mansouri',
+          professionalTitle: 'Junior Project Manager',
+          phone: '+966502345678',
+          bio: 'Recent graduate with passion for construction project management. Eager to contribute to infrastructure projects.',
+          location: {
+            city: 'Jeddah',
+            region: 'Makkah Province',
+            country: 'Saudi Arabia'
+          },
+          skills: ['Project Management', 'Communication', 'Team Coordination', 'MS Project'],
+          experienceLevel: 'junior',
+          status: 'pending',
+          createdAt: null // Will be set
+        },
+        documents: {
+          resume: [
+            {
+              name: 'sarah_resume.pdf',
+              size: 1024000,
+              type: 'application/pdf',
+              uploadedAt: null
+            }
+          ]
+        },
+        review: {
+          submittedAt: null,
+          status: 'pending'
+        }
+      },
+      // Individual - Profile In Progress
+      {
+        email: 'profile.individual@pmtwin.com',
+        password: 'Pending123',
+        role: 'individual',
+        userType: 'individual',
+        mobile: '+966503456789',
+        onboardingStage: 'profile_in_progress',
+        emailVerified: true,
+        mobileVerified: true,
+        daysAgo: 3,
+        identity: {
+          fullLegalName: 'Mohammed Al-Rashid',
+          nationalId: '3456789012',
+          nationalIdVerified: false
+        },
+        profile: {
+          name: 'Mohammed Al-Rashid',
+          professionalTitle: 'Structural Engineer',
+          phone: '+966503456789',
+          bio: 'Experienced structural engineer with 5 years in building design and analysis.',
+          location: {
+            city: 'Riyadh',
+            region: 'Riyadh Province',
+            country: 'Saudi Arabia'
+          },
+          skills: ['Structural Engineering', 'AutoCAD', 'ETABS', 'Building Design', 'Code Compliance'],
+          experienceLevel: 'intermediate',
+          certifications: [
+            {
+              name: 'Structural Engineer License',
+              issuer: 'Saudi Council of Engineers',
+              issueDate: '2020-06-15',
+              expiryDate: '2025-06-15',
+              credentialId: 'SE-SA-456789'
+            }
+          ],
+          status: 'pending',
+          createdAt: null
+        },
+        documents: {
+          professionalLicense: [
+            {
+              name: 'mohammed_license.pdf',
+              size: 1536000,
+              type: 'application/pdf',
+              uploadedAt: null
+            }
+          ],
+          resume: [
+            {
+              name: 'mohammed_resume.pdf',
+              size: 1280000,
+              type: 'application/pdf',
+              uploadedAt: null
+            }
+          ]
+        },
+        review: {
+          submittedAt: null,
+          status: 'pending'
+        }
+      },
+      // Consultant - Under Review
+      {
+        email: 'review.consultant@pmtwin.com',
+        password: 'Pending123',
+        role: 'consultant',
+        userType: 'consultant',
+        mobile: '+966504567890',
+        onboardingStage: 'under_review',
+        emailVerified: true,
+        mobileVerified: true,
+        daysAgo: 5,
+        identity: {
+          fullLegalName: 'Fatima Al-Zahra',
+          nationalId: '4567890123',
+          nationalIdVerified: true,
+          nationalIdVerifiedAt: null,
+          professionalCertifications: [
+            {
+              name: 'PMP Certification',
+              issuer: 'PMI',
+              issueDate: '2021-03-10',
+              expiryDate: '2027-03-10',
+              credentialId: 'PMP-789012'
+            }
+          ]
+        },
+        profile: {
+          name: 'Fatima Al-Zahra',
+          professionalTitle: 'Senior Project Management Consultant',
+          phone: '+966504567890',
+          bio: 'Certified PMP with 12 years of experience managing large-scale construction projects. Specialized in infrastructure and commercial developments.',
+          location: {
+            city: 'Dammam',
+            region: 'Eastern Province',
+            country: 'Saudi Arabia'
+          },
+          skills: ['Project Management', 'Risk Management', 'Stakeholder Management', 'Agile Methodologies', 'Budget Control'],
+          experienceLevel: 'senior',
+          certifications: [
+            {
+              name: 'PMP Certification',
+              issuer: 'PMI',
+              issueDate: '2021-03-10',
+              expiryDate: '2027-03-10',
+              credentialId: 'PMP-789012'
+            },
+            {
+              name: 'PRINCE2 Practitioner',
+              issuer: 'AXELOS',
+              issueDate: '2019-11-20',
+              expiryDate: '2025-11-20',
+              credentialId: 'PR2-345678'
+            }
+          ],
+          portfolio: [
+            {
+              id: 'portfolio_1',
+              title: 'Airport Terminal Expansion',
+              description: 'Managed $200M airport terminal expansion project',
+              completionDate: '2023-09-30',
+              link: 'https://portfolio.example.com/airport',
+              value: 200000000
+            }
+          ],
+          status: 'pending',
+          createdAt: null
+        },
+        documents: {
+          professionalLicense: [
+            {
+              name: 'fatima_license.pdf',
+              size: 2048000,
+              type: 'application/pdf',
+              uploadedAt: null
+            }
+          ],
+          resume: [
+            {
+              name: 'fatima_resume.pdf',
+              size: 1792000,
+              type: 'application/pdf',
+              uploadedAt: null
+            }
+          ],
+          additionalCerts: [
+            {
+              name: 'pmp_certificate.pdf',
+              size: 1024000,
+              type: 'application/pdf',
+              uploadedAt: null
+            },
+            {
+              name: 'prince2_certificate.pdf',
+              size: 896000,
+              type: 'application/pdf',
+              uploadedAt: null
+            }
+          ]
+        },
+        review: {
+          submittedAt: null,
+          reviewedAt: null,
+          status: 'pending'
+        },
+        vettingComments: [
+          {
+            id: 'comment_1',
+            comment: 'Professional certifications verified. PMP and PRINCE2 are valid.',
+            addedBy: 'system',
+            addedByName: 'System Admin',
+            addedAt: null
+          }
+        ]
+      },
+      // Entity/Company - Registered
+      {
+        email: 'new.company@pmtwin.com',
+        password: 'Pending123',
+        role: 'entity',
+        userType: 'entity',
+        mobile: '+966123456789',
+        onboardingStage: 'registered',
+        emailVerified: true,
+        mobileVerified: true,
+        daysAgo: 2,
+        identity: {
+          legalEntityName: 'New Build Construction LLC',
+          crNumber: 'CR-9876543210',
+          crVerified: false,
+          crIssueDate: '2023-01-15',
+          crExpiryDate: '2028-01-15',
+          taxNumber: 'VAT-987654321098765',
+          taxNumberVerified: false,
+          authorizedRepresentativeNID: '1112223334',
+          authorizedRepresentativeName: 'Khalid Al-Otaibi',
+          scaClassifications: ['General Contracting'],
+          scaVerified: false
+        },
+        profile: {
+          name: 'New Build Construction',
+          companyName: 'New Build Construction LLC',
+          legalName: 'New Build Construction LLC',
+          phone: '+966123456789',
+          website: 'https://www.newbuild.com',
+          companyDescription: 'New construction company established in 2023, focusing on residential and commercial projects.',
+          location: {
+            headquarters: {
+              address: 'Al Khobar Corniche, Building 45',
+              city: 'Al Khobar',
+              region: 'Eastern Province',
+              country: 'Saudi Arabia'
+            }
+          },
+          hqAddress: 'Al Khobar Corniche, Building 45',
+          hqCity: 'Al Khobar',
+          hqRegion: 'Eastern Province',
+          hqCountry: 'Saudi Arabia',
+          services: ['General Contracting', 'Residential Construction'],
+          serviceDescriptions: {
+            'General Contracting': 'Full-service general contracting for residential and commercial projects',
+            'Residential Construction': 'Single-family homes and apartment complexes'
+          },
+          yearsInBusiness: 1,
+          employeeCount: '10-50',
+          annualRevenueRange: '5M-10M',
+          maxProjectValue: 10000000,
+          concurrentProjects: 2,
+          status: 'pending',
+          createdAt: null
+        },
+        documents: {
+          cr: [
+            {
+              name: 'cr_newbuild.pdf',
+              size: 1024000,
+              type: 'application/pdf',
+              uploadedAt: null
+            }
+          ],
+          vat: [
+            {
+              name: 'vat_newbuild.pdf',
+              size: 896000,
+              type: 'application/pdf',
+              uploadedAt: null
+            }
+          ]
+        },
+        review: {
+          submittedAt: null,
+          status: 'pending'
+        }
+      },
+      // Entity/Company - Profile In Progress
+      {
+        email: 'profile.company@pmtwin.com',
+        password: 'Pending123',
+        role: 'entity',
+        userType: 'entity',
+        mobile: '+966124567890',
+        onboardingStage: 'profile_in_progress',
+        emailVerified: true,
+        mobileVerified: true,
+        daysAgo: 4,
+        identity: {
+          legalEntityName: 'Elite Infrastructure Group',
+          crNumber: 'CR-1122334455',
+          crVerified: false,
+          crIssueDate: '2018-06-20',
+          crExpiryDate: '2026-06-20',
+          taxNumber: 'VAT-112233445566778',
+          taxNumberVerified: false,
+          authorizedRepresentativeNID: '5556667778',
+          authorizedRepresentativeName: 'Omar Al-Shehri',
+          scaClassifications: ['Infrastructure Development', 'General Contracting'],
+          scaVerified: false
+        },
+        profile: {
+          name: 'Elite Infrastructure Group',
+          companyName: 'Elite Infrastructure Group',
+          legalName: 'Elite Infrastructure Group Ltd.',
+          phone: '+966124567890',
+          website: 'https://www.eliteinfra.com',
+          companyDescription: 'Established infrastructure development company specializing in roads, bridges, and public works projects.',
+          location: {
+            headquarters: {
+              address: 'King Abdullah Road, Al Malaz District',
+              city: 'Riyadh',
+              region: 'Riyadh Province',
+              country: 'Saudi Arabia'
+            }
+          },
+          hqAddress: 'King Abdullah Road, Al Malaz District',
+          hqCity: 'Riyadh',
+          hqRegion: 'Riyadh Province',
+          hqCountry: 'Saudi Arabia',
+          branches: [
+            {
+              id: 'branch_1',
+              name: 'Jeddah Office',
+              address: 'Prince Sultan Street',
+              city: 'Jeddah',
+              region: 'Makkah Province',
+              country: 'Saudi Arabia',
+              phone: '+966125678901'
+            }
+          ],
+          commercialRegistration: {
+            number: 'CR-1122334455',
+            verified: false,
+            issueDate: '2018-06-20',
+            expiryDate: '2026-06-20'
+          },
+          vatNumber: {
+            number: 'VAT-112233445566778',
+            verified: false
+          },
+          services: ['Infrastructure Development', 'General Contracting', 'Road Construction', 'Bridge Construction'],
+          serviceDescriptions: {
+            'Infrastructure Development': 'Comprehensive infrastructure projects including roads, bridges, and utilities',
+            'General Contracting': 'Full-service general contracting for public and private projects',
+            'Road Construction': 'Highway and road construction and maintenance',
+            'Bridge Construction': 'Design and construction of bridges and overpasses'
+          },
+          yearsInBusiness: 6,
+          employeeCount: '50-100',
+          annualRevenueRange: '25M-50M',
+          maxProjectValue: 50000000,
+          concurrentProjects: 4,
+          keyProjects: [
+            {
+              id: 'project_1',
+              title: 'Highway 40 Expansion',
+              description: '20km highway expansion project',
+              completionDate: '2023-12-15',
+              value: 35000000
+            }
+          ],
+          status: 'pending',
+          createdAt: null
+        },
+        documents: {
+          cr: [
+            {
+              name: 'cr_elite.pdf',
+              size: 1536000,
+              type: 'application/pdf',
+              uploadedAt: null
+            }
+          ],
+          vat: [
+            {
+              name: 'vat_elite.pdf',
+              size: 1024000,
+              type: 'application/pdf',
+              uploadedAt: null
+            }
+          ],
+          companyProfile: [
+            {
+              name: 'elite_company_profile.pdf',
+              size: 3072000,
+              type: 'application/pdf',
+              uploadedAt: null
+            }
+          ]
+        },
+        review: {
+          submittedAt: null,
+          status: 'pending'
+        }
+      },
+      // Entity/Company - Under Review
+      {
+        email: 'review.company@pmtwin.com',
+        password: 'Pending123',
+        role: 'entity',
+        userType: 'entity',
+        mobile: '+966125678901',
+        onboardingStage: 'under_review',
+        emailVerified: true,
+        mobileVerified: true,
+        daysAgo: 6,
+        identity: {
+          legalEntityName: 'Mega Construction International',
+          crNumber: 'CR-9988776655',
+          crVerified: true,
+          crVerifiedAt: null,
+          crIssueDate: '2015-03-10',
+          crExpiryDate: '2025-03-10',
+          taxNumber: 'VAT-998877665544332',
+          taxNumberVerified: true,
+          authorizedRepresentativeNID: '9998887776',
+          authorizedRepresentativeName: 'Faisal Al-Mutairi',
+          scaClassifications: ['General Contracting', 'Infrastructure Development', 'Project Management'],
+          scaVerified: true
+        },
+        profile: {
+          name: 'Mega Construction International',
+          companyName: 'Mega Construction International',
+          legalName: 'Mega Construction International Ltd.',
+          phone: '+966125678901',
+          website: 'https://www.megaconstruction.com',
+          companyDescription: 'Leading construction company with 10+ years of experience in mega infrastructure projects. Specialized in airports, ports, and transportation infrastructure.',
+          location: {
+            headquarters: {
+              address: 'King Fahd Road, Al Olaya, Tower 200',
+              city: 'Riyadh',
+              region: 'Riyadh Province',
+              country: 'Saudi Arabia'
+            }
+          },
+          hqAddress: 'King Fahd Road, Al Olaya, Tower 200',
+          hqCity: 'Riyadh',
+          hqRegion: 'Riyadh Province',
+          hqCountry: 'Saudi Arabia',
+          branches: [
+            {
+              id: 'branch_1',
+              name: 'Jeddah Branch',
+              address: 'Corniche Road, Al Hamra',
+              city: 'Jeddah',
+              region: 'Makkah Province',
+              country: 'Saudi Arabia',
+              phone: '+966126789012'
+            },
+            {
+              id: 'branch_2',
+              name: 'Dammam Branch',
+              address: 'King Faisal Road',
+              city: 'Dammam',
+              region: 'Eastern Province',
+              country: 'Saudi Arabia',
+              phone: '+966127890123'
+            }
+          ],
+          commercialRegistration: {
+            number: 'CR-9988776655',
+            verified: true,
+            issueDate: '2015-03-10',
+            expiryDate: '2025-03-10'
+          },
+          vatNumber: {
+            number: 'VAT-998877665544332',
+            verified: true
+          },
+          services: ['General Contracting', 'Infrastructure Development', 'Project Management', 'Design-Build', 'Airport Construction'],
+          serviceDescriptions: {
+            'General Contracting': 'Full-service general contracting for large-scale projects',
+            'Infrastructure Development': 'Airports, ports, highways, and public infrastructure',
+            'Project Management': 'Comprehensive project management and consulting services',
+            'Design-Build': 'Integrated design and construction services',
+            'Airport Construction': 'Specialized airport terminal and runway construction'
+          },
+          yearsInBusiness: 10,
+          employeeCount: '500-1000',
+          annualRevenueRange: '100M-500M',
+          maxProjectValue: 500000000,
+          concurrentProjects: 10,
+          keyProjects: [
+            {
+              id: 'project_1',
+              title: 'King Khalid International Airport Terminal 5',
+              description: 'Design and construction of new terminal building',
+              completionDate: '2023-11-20',
+              value: 250000000
+            },
+            {
+              id: 'project_2',
+              title: 'Riyadh-Dammam High-Speed Rail Stations',
+              description: 'Construction of 3 high-speed rail stations',
+              completionDate: '2022-08-10',
+              value: 180000000
+            },
+            {
+              id: 'project_3',
+              title: 'Jeddah Port Expansion',
+              description: 'Port infrastructure expansion project',
+              completionDate: '2024-01-15',
+              value: 320000000
+            }
+          ],
+          status: 'pending',
+          createdAt: null
+        },
+        documents: {
+          cr: [
+            {
+              name: 'cr_mega.pdf',
+              size: 2048000,
+              type: 'application/pdf',
+              uploadedAt: null
+            }
+          ],
+          vat: [
+            {
+              name: 'vat_mega.pdf',
+              size: 1536000,
+              type: 'application/pdf',
+              uploadedAt: null
+            }
+          ],
+          companyProfile: [
+            {
+              name: 'mega_company_profile.pdf',
+              size: 5120000,
+              type: 'application/pdf',
+              uploadedAt: null
+            }
+          ],
+          scaLicense: [
+            {
+              name: 'sca_license_mega.pdf',
+              size: 1024000,
+              type: 'application/pdf',
+              uploadedAt: null
+            }
+          ]
+        },
+        documentVerifications: {
+          cr: {
+            documentType: 'cr',
+            verified: true,
+            verifiedBy: 'system',
+            verifiedByName: 'System Admin',
+            verifiedAt: null,
+            notes: 'CR verified and valid until 2025-03-10'
+          },
+          vat: {
+            documentType: 'vat',
+            verified: true,
+            verifiedBy: 'system',
+            verifiedByName: 'System Admin',
+            verifiedAt: null,
+            notes: 'VAT certificate verified'
+          }
+        },
+        review: {
+          submittedAt: null,
+          reviewedAt: null,
+          reviewedBy: 'system',
+          status: 'pending',
+          reviewNotes: 'Documents verified. Company profile comprehensive. Awaiting final approval.'
+        },
+        vettingComments: [
+          {
+            id: 'comment_1',
+            comment: 'Commercial Registration verified. Company is in good standing with SCA.',
+            addedBy: 'system',
+            addedByName: 'System Admin',
+            addedAt: null
+          },
+          {
+            id: 'comment_2',
+            comment: 'VAT certificate confirmed. Financial documents in order.',
+            addedBy: 'system',
+            addedByName: 'System Admin',
+            addedAt: null
+          },
+          {
+            id: 'comment_3',
+            comment: 'Impressive portfolio of mega projects. Company has strong track record.',
+            addedBy: 'system',
+            addedByName: 'System Admin',
+            addedAt: null
+          }
+        ]
+      }
+    ];
+
+    // Create all test users
+    testUsers.forEach(userData => {
+      const exists = users.some(u => u.email === userData.email);
+      if (!exists) {
+        const createdAt = new Date();
+        createdAt.setDate(createdAt.getDate() - userData.daysAgo);
+        const submittedAt = new Date(createdAt.getTime() + (userData.daysAgo > 1 ? 1 * 24 * 60 * 60 * 1000 : 0));
+        const reviewedAt = userData.onboardingStage === 'under_review' ? new Date(submittedAt.getTime() + 1 * 24 * 60 * 60 * 1000) : null;
+        
+        // Set dates in profile
+        if (userData.profile) {
+          userData.profile.createdAt = createdAt.toISOString();
+        }
+        
+        // Set dates in documents
+        Object.keys(userData.documents || {}).forEach(docType => {
+          userData.documents[docType].forEach(doc => {
+            doc.uploadedAt = createdAt.toISOString();
+          });
+        });
+        
+        // Set dates in review
+        if (userData.review) {
+          userData.review.submittedAt = submittedAt.toISOString();
+          if (reviewedAt) {
+            userData.review.reviewedAt = reviewedAt.toISOString();
+          }
+        }
+        
+        // Set dates in vetting comments
+        if (userData.vettingComments) {
+          userData.vettingComments.forEach(comment => {
+            if (!comment.addedAt) {
+              comment.addedAt = reviewedAt ? reviewedAt.toISOString() : submittedAt.toISOString();
+            }
+          });
+        }
+        
+        // Set dates in document verifications
+        if (userData.documentVerifications) {
+          Object.keys(userData.documentVerifications).forEach(docType => {
+            const verification = userData.documentVerifications[docType];
+            if (verification.verifiedAt === null) {
+              verification.verifiedAt = reviewedAt ? reviewedAt.toISOString() : submittedAt.toISOString();
+            }
+          });
+        }
+        
+        // Set identity verification dates
+        if (userData.identity) {
+          if (userData.identity.nationalIdVerifiedAt === null && userData.identity.nationalIdVerified) {
+            userData.identity.nationalIdVerifiedAt = reviewedAt ? reviewedAt.toISOString() : submittedAt.toISOString();
+          }
+          if (userData.identity.crVerifiedAt === null && userData.identity.crVerified) {
+            userData.identity.crVerifiedAt = reviewedAt ? reviewedAt.toISOString() : submittedAt.toISOString();
+          }
+        }
+        
+        Users.create({
+          email: userData.email,
+          password: btoa(userData.password),
+          role: userData.role,
+          userType: userData.userType,
+          mobile: userData.mobile,
+          onboardingStage: userData.onboardingStage,
+          emailVerified: userData.emailVerified,
+          mobileVerified: userData.mobileVerified,
+          identity: userData.identity,
+          profile: userData.profile,
+          documents: userData.documents,
+          documentVerifications: userData.documentVerifications || {},
+          vettingComments: userData.vettingComments || [],
+          review: userData.review
+        });
+        created++;
+      }
+    });
 
     if (created > 0) {
       console.log(`✅ Created ${created} test account(s) automatically!`);
@@ -593,6 +1536,14 @@
       console.log('   Admin: admin@pmtwin.com / Admin123');
       console.log('   Individual: individual@pmtwin.com / User123');
       console.log('   Entity: entity@pmtwin.com / Entity123');
+      console.log('');
+      console.log('📋 New Registration Test Accounts (for Vetting):');
+      console.log('   Individual - Registered: new.individual@pmtwin.com / Pending123');
+      console.log('   Individual - Profile In Progress: profile.individual@pmtwin.com / Pending123');
+      console.log('   Consultant - Under Review: review.consultant@pmtwin.com / Pending123');
+      console.log('   Company - Registered: new.company@pmtwin.com / Pending123');
+      console.log('   Company - Profile In Progress: profile.company@pmtwin.com / Pending123');
+      console.log('   Company - Under Review: review.company@pmtwin.com / Pending123');
     }
   }
   
@@ -944,7 +1895,7 @@
       };
 
       // Update document verification status
-      if (verificationData.crVerified && user.documents) {
+      if (verificationData.crVerified && Array.isArray(user.documents)) {
         const crDoc = user.documents.find(doc => doc.type === 'cr');
         if (crDoc) {
           crDoc.verified = true;
@@ -998,7 +1949,7 @@
       };
 
       // Update document verification status
-      if (verificationData.nationalIdVerified && user.documents) {
+      if (verificationData.nationalIdVerified && Array.isArray(user.documents)) {
         const idDoc = user.documents.find(doc => doc.type === 'national_id' || doc.type === 'passport');
         if (idDoc) {
           idDoc.verified = true;
@@ -1008,7 +1959,7 @@
       }
 
       // Update certification documents
-      if (verificationData.certifications && user.documents) {
+      if (verificationData.certifications && Array.isArray(user.documents)) {
         verificationData.certifications.forEach(cert => {
           const certDoc = user.documents.find(doc => doc.type === 'certification' && doc.fileName === cert.fileName);
           if (certDoc) {
@@ -2232,7 +3183,7 @@
     }
 
     // Check required documents (only for Company and Consultant)
-    const documents = user.documents || [];
+    const documents = Array.isArray(user.documents) ? user.documents : [];
     if (userType === 'company') {
       if (!documents.some(doc => doc.type === 'cr' && doc.base64Data)) {
         errors.push('Commercial Registration document is required');

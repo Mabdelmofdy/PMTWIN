@@ -116,3 +116,4 @@ All features now have their own directory with `index.html`:
 - The project is now ready for active development
 - The structure follows best practices for multi-page applications
 
+

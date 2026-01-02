@@ -26,6 +26,13 @@
       }
 
       renderProfile(container, currentUser);
+
+      // Initialize location dropdowns after rendering
+      if (isEditMode && window.LocationService) {
+        setTimeout(() => {
+          initializeLocationDropdowns();
+        }, 100);
+      }
     } catch (error) {
       console.error('Error loading profile:', error);
       container.innerHTML = '<p class="alert alert-error">Error loading profile. Please try again.</p>';
@@ -155,16 +162,22 @@
                 <input type="tel" id="profilePhone" class="form-control" value="${escapeHtml(profile.phone || user.mobile || '')}" placeholder="+966501234567">
               </div>
               <div class="form-group">
-                <label for="profileCity" class="form-label">City</label>
-                <input type="text" id="profileCity" class="form-control" value="${escapeHtml(location.city || '')}" placeholder="Riyadh">
+                <label for="profileCountry" class="form-label">Country *</label>
+                <select id="profileCountry" class="form-control" required onchange="profileComponent.onCountryChange('profile')">
+                  <option value="">Select Country</option>
+                </select>
               </div>
               <div class="form-group">
                 <label for="profileRegion" class="form-label">Region</label>
-                <input type="text" id="profileRegion" class="form-control" value="${escapeHtml(location.region || '')}" placeholder="Riyadh Province">
+                <select id="profileRegion" class="form-control" onchange="profileComponent.onRegionChange('profile')">
+                  <option value="">Select Region</option>
+                </select>
               </div>
               <div class="form-group">
-                <label for="profileCountry" class="form-label">Country</label>
-                <input type="text" id="profileCountry" class="form-control" value="${escapeHtml(location.country || 'Saudi Arabia')}" placeholder="Saudi Arabia">
+                <label for="profileCity" class="form-label">City</label>
+                <select id="profileCity" class="form-control">
+                  <option value="">Select City</option>
+                </select>
               </div>
               <div class="form-group">
                 <label for="profileExperienceLevel" class="form-label">Experience Level</label>
@@ -332,16 +345,22 @@
                 <input type="text" id="hqAddress" class="form-control" value="${escapeHtml(hq.address || '')}" placeholder="Street address">
               </div>
               <div class="form-group">
-                <label for="hqCity" class="form-label">City</label>
-                <input type="text" id="hqCity" class="form-control" value="${escapeHtml(hq.city || '')}" placeholder="Riyadh">
+                <label for="hqCountry" class="form-label">Country *</label>
+                <select id="hqCountry" class="form-control" required onchange="profileComponent.onCountryChange('hq')">
+                  <option value="">Select Country</option>
+                </select>
               </div>
               <div class="form-group">
                 <label for="hqRegion" class="form-label">Region</label>
-                <input type="text" id="hqRegion" class="form-control" value="${escapeHtml(hq.region || '')}" placeholder="Riyadh Province">
+                <select id="hqRegion" class="form-control" onchange="profileComponent.onRegionChange('hq')">
+                  <option value="">Select Region</option>
+                </select>
               </div>
               <div class="form-group">
-                <label for="hqCountry" class="form-label">Country</label>
-                <input type="text" id="hqCountry" class="form-control" value="${escapeHtml(hq.country || 'Saudi Arabia')}" placeholder="Saudi Arabia">
+                <label for="hqCity" class="form-label">City</label>
+                <select id="hqCity" class="form-control">
+                  <option value="">Select City</option>
+                </select>
               </div>
             </div>
           </div>
@@ -534,16 +553,22 @@
       <div class="branch-item" data-index="${index}" style="padding: 1rem; background: var(--bg-secondary); border-radius: var(--radius-md); margin-bottom: 1rem;">
         <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">
           <div class="form-group">
-            <label class="form-label">City</label>
-            <input type="text" class="form-control branch-city" value="${escapeHtml(branch.city || '')}" placeholder="Jeddah">
+            <label class="form-label">Country *</label>
+            <select class="form-control branch-country" data-branch-index="${index}" required onchange="profileComponent.onBranchCountryChange(${index})">
+              <option value="">Select Country</option>
+            </select>
           </div>
           <div class="form-group">
             <label class="form-label">Region</label>
-            <input type="text" class="form-control branch-region" value="${escapeHtml(branch.region || '')}" placeholder="Makkah Province">
+            <select class="form-control branch-region" data-branch-index="${index}" onchange="profileComponent.onBranchRegionChange(${index})">
+              <option value="">Select Region</option>
+            </select>
           </div>
           <div class="form-group">
-            <label class="form-label">Country</label>
-            <input type="text" class="form-control branch-country" value="${escapeHtml(branch.country || 'Saudi Arabia')}" placeholder="Saudi Arabia">
+            <label class="form-label">City</label>
+            <select class="form-control branch-city" data-branch-index="${index}">
+              <option value="">Select City</option>
+            </select>
           </div>
         </div>
         <button type="button" onclick="profileComponent.removeBranch(${index})" class="btn btn-sm btn-danger" style="margin-top: 0.5rem;">
@@ -670,19 +695,30 @@
     }
   }
 
-  function addBranch() {
+  async function addBranch() {
     const container = document.getElementById('branchesContainer');
     if (!container) return;
     
     const newBranch = {
       city: '',
       region: '',
-      country: 'Saudi Arabia'
+      country: ''
     };
     
     const index = container.querySelectorAll('.branch-item').length;
     const html = renderBranchForm(newBranch, index);
     container.insertAdjacentHTML('beforeend', html);
+    
+    // Initialize dropdowns for the new branch
+    const newBranchItem = container.querySelector(`.branch-item[data-index="${index}"]`);
+    if (newBranchItem && window.LocationService) {
+      const countrySelect = newBranchItem.querySelector('.branch-country');
+      const regionSelect = newBranchItem.querySelector('.branch-region');
+      const citySelect = newBranchItem.querySelector('.branch-city');
+      if (countrySelect && regionSelect && citySelect) {
+        await initializeLocationDropdownForElement(countrySelect, regionSelect, citySelect, {});
+      }
+    }
   }
 
   function removeBranch(index) {
@@ -749,9 +785,84 @@
   }
 
   // ============================================
+  // Location Helper Functions
+  // ============================================
+  async function getLocationFromDropdowns(prefix) {
+    const countrySelect = document.getElementById(prefix + 'Country');
+    const regionSelect = document.getElementById(prefix + 'Region');
+    const citySelect = document.getElementById(prefix + 'City');
+
+    if (!countrySelect || !regionSelect || !citySelect) {
+      return { city: '', region: '', country: '' };
+    }
+
+    const countryCode = countrySelect.value;
+    const regionCode = regionSelect.value;
+    const cityValue = citySelect.value;
+
+    // Get country name
+    let countryName = '';
+    if (countryCode && window.LocationService) {
+      const countries = await LocationService.getCountries();
+      const country = countries.find(c => c.code === countryCode);
+      countryName = country ? country.name : countryCode;
+    }
+
+    // Get region name
+    let regionName = '';
+    if (regionCode && countryCode && window.LocationService) {
+      const regions = await LocationService.getRegions(countryCode);
+      const region = regions.find(r => r.code === regionCode);
+      regionName = region ? region.name : regionCode;
+    }
+
+    return {
+      city: cityValue || '',
+      region: regionName,
+      country: countryName
+    };
+  }
+
+  async function getBranchLocationFromDropdowns(branchItem) {
+    const countrySelect = branchItem.querySelector('.branch-country');
+    const regionSelect = branchItem.querySelector('.branch-region');
+    const citySelect = branchItem.querySelector('.branch-city');
+
+    if (!countrySelect || !regionSelect || !citySelect) {
+      return { city: '', region: '', country: '' };
+    }
+
+    const countryCode = countrySelect.value;
+    const regionCode = regionSelect.value;
+    const cityValue = citySelect.value;
+
+    // Get country name
+    let countryName = '';
+    if (countryCode && window.LocationService) {
+      const countries = await LocationService.getCountries();
+      const country = countries.find(c => c.code === countryCode);
+      countryName = country ? country.name : countryCode;
+    }
+
+    // Get region name
+    let regionName = '';
+    if (regionCode && countryCode && window.LocationService) {
+      const regions = await LocationService.getRegions(countryCode);
+      const region = regions.find(r => r.code === regionCode);
+      regionName = region ? region.name : regionCode;
+    }
+
+    return {
+      city: cityValue || '',
+      region: regionName,
+      country: countryName
+    };
+  }
+
+  // ============================================
   // Save Profile Functionality
   // ============================================
-  function handleSaveProfile(event) {
+  async function handleSaveProfile(event) {
     event.preventDefault();
     
     if (!currentUser) {
@@ -766,9 +877,9 @@
       let profileUpdates = {};
 
       if (isEntity) {
-        profileUpdates = collectEntityProfileData();
+        profileUpdates = await collectEntityProfileData();
       } else {
-        profileUpdates = collectIndividualProfileData();
+        profileUpdates = await collectIndividualProfileData();
       }
 
       // Update user profile
@@ -804,18 +915,14 @@
     return false;
   }
 
-  function collectIndividualProfileData() {
+  async function collectIndividualProfileData() {
     const profile = {
       name: document.getElementById('profileName')?.value || '',
       professionalTitle: document.getElementById('profileTitle')?.value || '',
       phone: document.getElementById('profilePhone')?.value || '',
       bio: document.getElementById('profileBio')?.value || '',
       experienceLevel: document.getElementById('profileExperienceLevel')?.value || '',
-      location: {
-        city: document.getElementById('profileCity')?.value || '',
-        region: document.getElementById('profileRegion')?.value || '',
-        country: document.getElementById('profileCountry')?.value || 'Saudi Arabia'
-      }
+      location: await getLocationFromDropdowns('profile')
     };
 
     // Collect skills
@@ -857,7 +964,9 @@
     return profile;
   }
 
-  function collectEntityProfileData() {
+  async function collectEntityProfileData() {
+    const hqLocation = await getLocationFromDropdowns('hq');
+    
     const profile = {
       companyName: document.getElementById('companyName')?.value || '',
       legalName: document.getElementById('legalName')?.value || '',
@@ -870,9 +979,7 @@
       location: {
         headquarters: {
           address: document.getElementById('hqAddress')?.value || '',
-          city: document.getElementById('hqCity')?.value || '',
-          region: document.getElementById('hqRegion')?.value || '',
-          country: document.getElementById('hqCountry')?.value || 'Saudi Arabia'
+          ...hqLocation
         },
         branches: []
       },
@@ -890,16 +997,14 @@
 
     // Collect branches
     const branchItems = document.querySelectorAll('.branch-item');
-    profile.location.branches = Array.from(branchItems).map(item => {
-      const city = item.querySelector('.branch-city')?.value.trim();
-      if (!city) return null; // Skip empty branches
-      
-      return {
-        city: city,
-        region: item.querySelector('.branch-region')?.value.trim() || '',
-        country: item.querySelector('.branch-country')?.value.trim() || 'Saudi Arabia'
-      };
-    }).filter(branch => branch !== null);
+    profile.location.branches = await Promise.all(
+      Array.from(branchItems).map(async (item) => {
+        const branchLocation = await getBranchLocationFromDropdowns(item);
+        if (!branchLocation.city) return null; // Skip empty branches
+        return branchLocation;
+      })
+    );
+    profile.location.branches = profile.location.branches.filter(branch => branch !== null);
 
     // Collect services
     const serviceInputs = document.querySelectorAll('.service-input');
@@ -1571,6 +1676,234 @@
     return (bytes / (1024 * 1024)).toFixed(2) + ' MB';
   }
 
+  // ============================================
+  // Location Dropdown Functions
+  // ============================================
+  async function initializeLocationDropdowns() {
+    if (!window.LocationService) {
+      console.warn('[Profile] LocationService not available');
+      return;
+    }
+
+    // Initialize Individual profile location dropdowns
+    await initializeLocationDropdown('profileCountry', 'profileRegion', 'profileCity', currentUser?.profile?.location);
+
+    // Initialize Entity HQ location dropdowns
+    await initializeLocationDropdown('hqCountry', 'hqRegion', 'hqCity', currentUser?.profile?.location?.headquarters);
+
+    // Initialize branch location dropdowns
+    const branchItems = document.querySelectorAll('.branch-item');
+    branchItems.forEach((item, index) => {
+      const branch = currentUser?.profile?.location?.branches?.[index];
+      if (branch) {
+        const countrySelect = item.querySelector('.branch-country');
+        const regionSelect = item.querySelector('.branch-region');
+        const citySelect = item.querySelector('.branch-city');
+        if (countrySelect && regionSelect && citySelect) {
+          initializeLocationDropdownForElement(countrySelect, regionSelect, citySelect, branch);
+        }
+      }
+    });
+  }
+
+  async function initializeLocationDropdown(countryId, regionId, cityId, locationData) {
+    const countrySelect = document.getElementById(countryId);
+    const regionSelect = document.getElementById(regionId);
+    const citySelect = document.getElementById(cityId);
+
+    if (!countrySelect || !regionSelect || !citySelect) return;
+
+    // Load countries
+    const countries = await LocationService.getCountries();
+    countries.forEach(country => {
+      const option = document.createElement('option');
+      option.value = country.code;
+      option.textContent = country.name;
+      if (locationData?.country && (locationData.country === country.name || locationData.country === country.code)) {
+        option.selected = true;
+      }
+      countrySelect.appendChild(option);
+    });
+
+    // If country is set, load regions
+    if (locationData?.country) {
+      const countryCode = await LocationService.getCountryCode(locationData.country);
+      if (countryCode) {
+        countrySelect.value = countryCode;
+        await loadRegions(countryCode, regionSelect, citySelect, locationData);
+      }
+    }
+  }
+
+  async function initializeLocationDropdownForElement(countrySelect, regionSelect, citySelect, locationData) {
+    if (!countrySelect || !regionSelect || !citySelect) return;
+
+    // Load countries
+    const countries = await LocationService.getCountries();
+    countries.forEach(country => {
+      const option = document.createElement('option');
+      option.value = country.code;
+      option.textContent = country.name;
+      if (locationData?.country && (locationData.country === country.name || locationData.country === country.code)) {
+        option.selected = true;
+      }
+      countrySelect.appendChild(option);
+    });
+
+    // If country is set, load regions
+    if (locationData?.country) {
+      const countryCode = await LocationService.getCountryCode(locationData.country);
+      if (countryCode) {
+        countrySelect.value = countryCode;
+        await loadRegionsForElement(countryCode, regionSelect, citySelect, locationData);
+      }
+    }
+  }
+
+  async function loadRegions(countryCode, regionSelect, citySelect, locationData) {
+    if (!regionSelect || !citySelect) return;
+
+    // Clear existing options
+    regionSelect.innerHTML = '<option value="">Select Region</option>';
+    citySelect.innerHTML = '<option value="">Select City</option>';
+
+    if (!countryCode) return;
+
+    const regions = await LocationService.getRegions(countryCode);
+    regions.forEach(region => {
+      const option = document.createElement('option');
+      option.value = region.code;
+      option.textContent = region.name;
+      if (locationData?.region && (locationData.region === region.name || locationData.region === region.code)) {
+        option.selected = true;
+      }
+      regionSelect.appendChild(option);
+    });
+
+    // If region is set, load cities
+    if (locationData?.region && regionSelect.value) {
+      await loadCities(countryCode, regionSelect.value, citySelect, locationData);
+    }
+  }
+
+  async function loadRegionsForElement(countryCode, regionSelect, citySelect, locationData) {
+    if (!regionSelect || !citySelect) return;
+
+    // Clear existing options
+    regionSelect.innerHTML = '<option value="">Select Region</option>';
+    citySelect.innerHTML = '<option value="">Select City</option>';
+
+    if (!countryCode) return;
+
+    const regions = await LocationService.getRegions(countryCode);
+    regions.forEach(region => {
+      const option = document.createElement('option');
+      option.value = region.code;
+      option.textContent = region.name;
+      if (locationData?.region && (locationData.region === region.name || locationData.region === region.code)) {
+        option.selected = true;
+      }
+      regionSelect.appendChild(option);
+    });
+
+    // If region is set, load cities
+    if (locationData?.region && regionSelect.value) {
+      await loadCitiesForElement(countryCode, regionSelect.value, citySelect, locationData);
+    }
+  }
+
+  async function loadCities(countryCode, regionCode, citySelect, locationData) {
+    if (!citySelect) return;
+
+    // Clear existing options
+    citySelect.innerHTML = '<option value="">Select City</option>';
+
+    if (!countryCode || !regionCode) return;
+
+    const cities = await LocationService.getCities(countryCode, regionCode);
+    cities.forEach(city => {
+      const option = document.createElement('option');
+      option.value = city;
+      option.textContent = city;
+      if (locationData?.city && locationData.city === city) {
+        option.selected = true;
+      }
+      citySelect.appendChild(option);
+    });
+  }
+
+  async function loadCitiesForElement(countryCode, regionCode, citySelect, locationData) {
+    if (!citySelect) return;
+
+    // Clear existing options
+    citySelect.innerHTML = '<option value="">Select City</option>';
+
+    if (!countryCode || !regionCode) return;
+
+    const cities = await LocationService.getCities(countryCode, regionCode);
+    cities.forEach(city => {
+      const option = document.createElement('option');
+      option.value = city;
+      option.textContent = city;
+      if (locationData?.city && locationData.city === city) {
+        option.selected = true;
+      }
+      citySelect.appendChild(option);
+    });
+  }
+
+  async function onCountryChange(prefix) {
+    const countrySelect = document.getElementById(prefix + 'Country');
+    const regionSelect = document.getElementById(prefix + 'Region');
+    const citySelect = document.getElementById(prefix + 'City');
+
+    if (!countrySelect || !regionSelect || !citySelect) return;
+
+    const countryCode = countrySelect.value;
+    await loadRegions(countryCode, regionSelect, citySelect, {});
+  }
+
+  async function onRegionChange(prefix) {
+    const countrySelect = document.getElementById(prefix + 'Country');
+    const regionSelect = document.getElementById(prefix + 'Region');
+    const citySelect = document.getElementById(prefix + 'City');
+
+    if (!countrySelect || !regionSelect || !citySelect) return;
+
+    const countryCode = countrySelect.value;
+    const regionCode = regionSelect.value;
+    await loadCities(countryCode, regionCode, citySelect, {});
+  }
+
+  async function onBranchCountryChange(branchIndex) {
+    const branchItem = document.querySelector(`.branch-item[data-index="${branchIndex}"]`);
+    if (!branchItem) return;
+
+    const countrySelect = branchItem.querySelector('.branch-country');
+    const regionSelect = branchItem.querySelector('.branch-region');
+    const citySelect = branchItem.querySelector('.branch-city');
+
+    if (!countrySelect || !regionSelect || !citySelect) return;
+
+    const countryCode = countrySelect.value;
+    await loadRegionsForElement(countryCode, regionSelect, citySelect, {});
+  }
+
+  async function onBranchRegionChange(branchIndex) {
+    const branchItem = document.querySelector(`.branch-item[data-index="${branchIndex}"]`);
+    if (!branchItem) return;
+
+    const countrySelect = branchItem.querySelector('.branch-country');
+    const regionSelect = branchItem.querySelector('.branch-region');
+    const citySelect = branchItem.querySelector('.branch-city');
+
+    if (!countrySelect || !regionSelect || !citySelect) return;
+
+    const countryCode = countrySelect.value;
+    const regionCode = regionSelect.value;
+    await loadCitiesForElement(countryCode, regionCode, citySelect, {});
+  }
+
   function editProfile() {
     isEditMode = true;
     loadProfile();
@@ -1608,7 +1941,11 @@
     addService,
     removeService,
     addKeyProject,
-    removeKeyProject
+    removeKeyProject,
+    onCountryChange,
+    onRegionChange,
+    onBranchCountryChange,
+    onBranchRegionChange
   };
 
   // Global reference for onclick handlers

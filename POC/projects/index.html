@@ -14,6 +14,50 @@
                 <h1 style="margin: 0;">My Projects</h1>
                 <a href="../create-project/" class="btn btn-primary">Create New Project</a>
             </div>
+
+            <!-- Simplified Filter Section -->
+            <div class="card" style="margin-bottom: 2rem;">
+                <div class="card-body" style="padding: 1rem;">
+                    <form id="projectsFilterForm" onsubmit="return projectsListComponent.applyFilters(event)">
+                        <div style="display: flex; gap: 1rem; align-items: end; flex-wrap: wrap;">
+                            <div style="flex: 1; min-width: 250px; position: relative;">
+                                <i class="ph ph-magnifying-glass" style="position: absolute; left: 0.75rem; top: 50%; transform: translateY(-50%); color: var(--text-secondary); pointer-events: none;"></i>
+                                <input type="text" id="projectSearch" class="form-control" placeholder="Search projects..." style="padding-left: 2.5rem;">
+                            </div>
+                            <select id="projectStatusFilter" class="form-control" style="width: 150px;">
+                                <option value="">All Statuses</option>
+                                <option value="active">Active</option>
+                                <option value="draft">Draft</option>
+                                <option value="completed">Completed</option>
+                            </select>
+                            <select id="projectCategoryFilter" class="form-control" style="width: 150px;">
+                                <option value="">All Categories</option>
+                                <option value="infrastructure">Infrastructure</option>
+                                <option value="residential">Residential</option>
+                                <option value="commercial">Commercial</option>
+                                <option value="industrial">Industrial</option>
+                            </select>
+                            <button type="button" onclick="projectsListComponent.toggleAdvancedFilters()" class="btn btn-outline" style="white-space: nowrap;">
+                                <i class="ph ph-funnel"></i> More
+                            </button>
+                            <button type="button" onclick="projectsListComponent.clearFilters()" class="btn btn-outline" style="white-space: nowrap;">
+                                <i class="ph ph-x"></i> Clear
+                            </button>
+                        </div>
+                        <div id="advancedFilters" style="display: none; margin-top: 1rem; padding-top: 1rem; border-top: 1px solid var(--border-color);">
+                            <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
+                                <select id="projectTypeFilter" class="form-control" style="width: 150px;">
+                                    <option value="">All Types</option>
+                                    <option value="single">Single Project</option>
+                                    <option value="mega">Mega-Project</option>
+                                </select>
+                                <input type="date" id="projectDateFromFilter" class="form-control" style="width: 150px;" placeholder="From Date">
+                                <input type="date" id="projectDateToFilter" class="form-control" style="width: 150px;" placeholder="To Date">
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
             
             <div id="projectsList">
                 <!-- Projects will be loaded here -->
