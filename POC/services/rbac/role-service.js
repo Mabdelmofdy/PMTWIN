@@ -264,7 +264,7 @@
       'service-providers': ['service_providers'],
       'service_providers': ['service_providers'],
       'onboarding': ['profile_management'], // Onboarding is part of profile management
-      'admin': ['admin_dashboard', 'user_vetting', 'user_management', 'project_moderation', 'audit_trail', 'reports'],
+      'admin': ['admin_dashboard', 'admin_directory', 'user_vetting', 'user_management', 'project_moderation', 'audit_trail', 'reports'],
       'public': ['public_portal', 'project_discovery_limited', 'pmtwin_wizard', 'knowledge_hub', 'registration'],
       'auth': ['registration'] // Auth features are public
     };

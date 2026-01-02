@@ -9,6 +9,22 @@
   let layoutInitialized = false;
 
   // ============================================
+  // Load Phosphor Icons CSS
+  // ============================================
+  function loadPhosphorIcons() {
+    // Check if already loaded
+    if (document.querySelector('link[href*="phosphor-icons"]')) {
+      return;
+    }
+    
+    // Load Phosphor Icons CSS
+    const link = document.createElement('link');
+    link.rel = 'stylesheet';
+    link.href = 'https://unpkg.com/@phosphor-icons/web@2.0.3/src/regular/style.css';
+    document.head.appendChild(link);
+  }
+
+  // ============================================
   // Initialize Application Layout
   // ============================================
   async function initLayout(options = {}) {
@@ -23,6 +39,9 @@
     } = options;
 
     console.log('[Layout] Initializing application layout...');
+    
+    // Load Phosphor Icons CSS if not already loaded
+    loadPhosphorIcons();
 
     // Check authentication
     if (typeof AuthCheck !== 'undefined') {

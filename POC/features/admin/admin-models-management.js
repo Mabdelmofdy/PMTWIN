@@ -10,8 +10,11 @@
   let currentModel = 'all';
 
   function init(params) {
+    currentFilters = {};
+    currentModel = 'all';
     loadModelsOverview();
     setupEventListeners();
+    loadOpportunities();
   }
 
   function setupEventListeners() {
@@ -24,16 +27,56 @@
       });
     }
 
-    // Filter form
-    const filterForm = document.getElementById('modelsFilterForm');
-    if (filterForm) {
-      filterForm.addEventListener('submit', applyFilters);
+    // Status filter
+    const statusFilter = document.getElementById('statusFilter');
+    if (statusFilter) {
+      statusFilter.addEventListener('change', function() {
+        applyFilters();
+      });
+    }
+
+    // Search input with debounce
+    const searchInput = document.getElementById('modelSearch');
+    if (searchInput) {
+      searchInput.addEventListener('input', debounce(handleSearch, 300));
     }
 
     // Clear filters button
     const clearBtn = document.getElementById('clearFilters');
     if (clearBtn) {
       clearBtn.addEventListener('click', clearFilters);
+    }
+  }
+
+  function debounce(func, wait) {
+    let timeout;
+    return function executedFunction(...args) {
+      const later = () => {
+        clearTimeout(timeout);
+        func(...args);
+      };
+      clearTimeout(timeout);
+      timeout = setTimeout(later, wait);
+    };
+  }
+
+  function handleSearch(event) {
+    const searchTerm = event.target.value.toLowerCase().trim();
+    
+    if (searchTerm.length >= 2) {
+      currentFilters.search = searchTerm;
+    } else {
+      delete currentFilters.search;
+    }
+    
+    loadOpportunities();
+  }
+
+  function toggleAdvancedFilters() {
+    const advancedFilters = document.getElementById('advancedFilters');
+    if (advancedFilters) {
+      const isVisible = advancedFilters.style.display !== 'none';
+      advancedFilters.style.display = isVisible ? 'none' : 'block';
     }
   }
 
@@ -108,7 +151,7 @@
     if (!container) return;
 
     try {
-      container.innerHTML = '<p>Loading opportunities...</p>';
+      container.innerHTML = '<p style="text-align: center; padding: 2rem;"><i class="ph ph-spinner ph-spin"></i> Loading opportunities...</p>';
 
       if (typeof ModelsManagementService === 'undefined') {
         container.innerHTML = '<p class="alert alert-error">Models management service not available</p>';
@@ -123,7 +166,19 @@
       }
 
       if (result.success && result.opportunities) {
-        renderOpportunities(container, result.opportunities);
+        // Apply search filter if present
+        let filteredOpportunities = result.opportunities;
+        if (currentFilters.search) {
+          const searchTerm = currentFilters.search.toLowerCase();
+          filteredOpportunities = result.opportunities.filter(opp => {
+            const title = (opp.title || '').toLowerCase();
+            const creator = PMTwinData?.Users?.getById(opp.creatorId);
+            const creatorName = (creator?.profile?.name || creator?.email || '').toLowerCase();
+            return title.includes(searchTerm) || creatorName.includes(searchTerm);
+          });
+        }
+        
+        renderOpportunities(container, filteredOpportunities);
       } else {
         container.innerHTML = `<p class="alert alert-error">${result.error || 'Failed to load opportunities'}</p>`;
       }
@@ -135,62 +190,200 @@
 
   function renderOpportunities(container, opportunities) {
     if (opportunities.length === 0) {
-      container.innerHTML = '<p class="alert alert-info">No opportunities found</p>';
+      container.innerHTML = `
+        <div class="card">
+          <div class="card-body" style="text-align: center; padding: 3rem;">
+            <p style="color: var(--text-secondary);">No opportunities found.</p>
+            <p style="color: var(--text-secondary); font-size: var(--font-size-sm); margin-top: 0.5rem;">
+              Try adjusting your filters or search criteria.
+            </p>
+          </div>
+        </div>
+      `;
       return;
     }
 
-    let html = `
-      <div style="overflow-x: auto;">
-        <table class="table" style="width: 100%;">
-          <thead>
-            <tr>
-              <th>Model</th>
-              <th>Title</th>
-              <th>Creator</th>
-              <th>Status</th>
-              <th>Applications</th>
-              <th>Created</th>
-              <th>Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-    `;
+    // Group opportunities by status
+    const grouped = {
+      pending: opportunities.filter(opp => opp.status === 'pending'),
+      active: opportunities.filter(opp => opp.status === 'active'),
+      draft: opportunities.filter(opp => opp.status === 'draft'),
+      closed: opportunities.filter(opp => opp.status === 'closed'),
+      rejected: opportunities.filter(opp => opp.status === 'rejected'),
+      other: opportunities.filter(opp => !['pending', 'active', 'draft', 'closed', 'rejected'].includes(opp.status))
+    };
 
-    opportunities.forEach(opp => {
-      const modelName = opp.modelName || opp.modelId || 'Unknown';
-      const creator = PMTwinData.Users.getById(opp.creatorId);
-      const creatorName = creator?.profile?.name || creator?.email || 'Unknown';
-      
+    let html = '';
+
+    // Render Pending section
+    if (grouped.pending.length > 0) {
       html += `
-        <tr>
-          <td><span class="badge badge-info">${modelName}</span></td>
-          <td>${opp.title || 'Untitled'}</td>
-          <td>${creatorName}</td>
-          <td><span class="badge badge-${getStatusColor(opp.status)}">${opp.status || 'draft'}</span></td>
-          <td>${opp.applicationsReceived || 0}</td>
-          <td>${new Date(opp.createdAt).toLocaleDateString()}</td>
-          <td>
-            <button class="btn btn-sm btn-primary" onclick="viewOpportunityDetails('${opp.id}')">View</button>
-            ${opp.status === 'pending' ? `
-              <button class="btn btn-sm btn-success" onclick="approveOpportunity('${opp.id}')">Approve</button>
-              <button class="btn btn-sm btn-error" onclick="rejectOpportunity('${opp.id}')">Reject</button>
-            ` : ''}
-          </td>
-        </tr>
+        <div style="margin-bottom: 2rem;">
+          <h3 style="margin-bottom: 1rem; color: var(--text-primary); font-size: var(--font-size-lg);">
+            <span class="badge badge-warning" style="margin-right: 0.5rem;">${grouped.pending.length}</span>
+            Pending Review
+          </h3>
+          <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(350px, 1fr)); gap: 1rem;">
+            ${grouped.pending.map(opp => renderOpportunityCard(opp)).join('')}
+          </div>
+        </div>
       `;
-    });
+    }
 
-    html += `
-          </tbody>
-        </table>
-      </div>
-    `;
+    // Render Active section
+    if (grouped.active.length > 0) {
+      html += `
+        <div style="margin-bottom: 2rem;">
+          <h3 style="margin-bottom: 1rem; color: var(--text-primary); font-size: var(--font-size-lg);">
+            <span class="badge badge-success" style="margin-right: 0.5rem;">${grouped.active.length}</span>
+            Active
+          </h3>
+          <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(350px, 1fr)); gap: 1rem;">
+            ${grouped.active.map(opp => renderOpportunityCard(opp)).join('')}
+          </div>
+        </div>
+      `;
+    }
+
+    // Render Draft section
+    if (grouped.draft.length > 0) {
+      html += `
+        <div style="margin-bottom: 2rem;">
+          <h3 style="margin-bottom: 1rem; color: var(--text-primary); font-size: var(--font-size-lg);">
+            <span class="badge badge-secondary" style="margin-right: 0.5rem;">${grouped.draft.length}</span>
+            Draft
+          </h3>
+          <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(350px, 1fr)); gap: 1rem;">
+            ${grouped.draft.map(opp => renderOpportunityCard(opp)).join('')}
+          </div>
+        </div>
+      `;
+    }
+
+    // Render Closed section
+    if (grouped.closed.length > 0) {
+      html += `
+        <div style="margin-bottom: 2rem;">
+          <h3 style="margin-bottom: 1rem; color: var(--text-primary); font-size: var(--font-size-lg);">
+            <span class="badge badge-info" style="margin-right: 0.5rem;">${grouped.closed.length}</span>
+            Closed
+          </h3>
+          <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(350px, 1fr)); gap: 1rem;">
+            ${grouped.closed.map(opp => renderOpportunityCard(opp)).join('')}
+          </div>
+        </div>
+      `;
+    }
+
+    // Render Rejected section
+    if (grouped.rejected.length > 0) {
+      html += `
+        <div style="margin-bottom: 2rem;">
+          <h3 style="margin-bottom: 1rem; color: var(--text-primary); font-size: var(--font-size-lg);">
+            <span class="badge badge-error" style="margin-right: 0.5rem;">${grouped.rejected.length}</span>
+            Rejected
+          </h3>
+          <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(350px, 1fr)); gap: 1rem;">
+            ${grouped.rejected.map(opp => renderOpportunityCard(opp)).join('')}
+          </div>
+        </div>
+      `;
+    }
+
+    // Render Other statuses
+    if (grouped.other.length > 0) {
+      html += `
+        <div style="margin-bottom: 2rem;">
+          <h3 style="margin-bottom: 1rem; color: var(--text-primary); font-size: var(--font-size-lg);">
+            Other
+          </h3>
+          <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(350px, 1fr)); gap: 1rem;">
+            ${grouped.other.map(opp => renderOpportunityCard(opp)).join('')}
+          </div>
+        </div>
+      `;
+    }
 
     container.innerHTML = html;
   }
 
+  function renderOpportunityCard(opp) {
+    const modelName = opp.modelName || opp.modelId || 'Unknown';
+    const creator = typeof PMTwinData !== 'undefined' ? PMTwinData.Users.getById(opp.creatorId) : null;
+    const creatorName = creator?.profile?.name || creator?.email || 'Unknown';
+    const createdAt = opp.createdAt ? new Date(opp.createdAt) : new Date();
+    const createdDate = createdAt.toLocaleDateString();
+    const createdTime = createdAt.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    const applicationsCount = opp.applicationsReceived || 0;
+    const status = opp.status || 'draft';
+
+    return `
+      <div class="card" style="cursor: pointer; transition: transform 0.2s, box-shadow 0.2s;" 
+           onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 4px 12px rgba(0,0,0,0.1)'"
+           onmouseout="this.style.transform=''; this.style.boxShadow=''"
+           onclick="viewOpportunityDetails('${opp.id}')">
+        <div class="card-body">
+          <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 0.75rem;">
+            <div style="flex: 1;">
+              <h4 style="margin: 0 0 0.5rem 0; font-size: var(--font-size-lg); color: var(--text-primary);">
+                ${escapeHtml(opp.title || 'Untitled')}
+              </h4>
+              <span class="badge badge-${getStatusColor(status)}" style="text-transform: uppercase; font-size: var(--font-size-xs);">
+                ${status}
+              </span>
+            </div>
+            <span class="badge badge-info" style="margin-left: 0.5rem;">${modelName}</span>
+          </div>
+          
+          <div style="margin-bottom: 0.75rem; color: var(--text-secondary); font-size: var(--font-size-sm);">
+            <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.25rem;">
+              <i class="ph ph-user"></i>
+              <span>${escapeHtml(creatorName)}</span>
+            </div>
+            <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.25rem;">
+              <i class="ph ph-calendar"></i>
+              <span>${createdDate} at ${createdTime}</span>
+            </div>
+            <div style="display: flex; align-items: center; gap: 0.5rem;">
+              <i class="ph ph-handshake"></i>
+              <span>${applicationsCount} application${applicationsCount !== 1 ? 's' : ''}</span>
+            </div>
+          </div>
+
+          ${opp.description ? `
+            <p style="margin: 0.75rem 0 0 0; color: var(--text-secondary); font-size: var(--font-size-sm); 
+                      display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">
+              ${escapeHtml(opp.description)}
+            </p>
+          ` : ''}
+
+          <div style="margin-top: 1rem; padding-top: 0.75rem; border-top: 1px solid var(--border-color); 
+                      display: flex; gap: 0.5rem; justify-content: flex-end;">
+            <button class="btn btn-sm btn-primary" onclick="event.stopPropagation(); viewOpportunityDetails('${opp.id}')">
+              <i class="ph ph-eye"></i> View
+            </button>
+            ${status === 'pending' ? `
+              <button class="btn btn-sm btn-success" onclick="event.stopPropagation(); approveOpportunity('${opp.id}')">
+                <i class="ph ph-check"></i> Approve
+              </button>
+              <button class="btn btn-sm btn-error" onclick="event.stopPropagation(); rejectOpportunity('${opp.id}')">
+                <i class="ph ph-x"></i> Reject
+              </button>
+            ` : ''}
+          </div>
+        </div>
+      </div>
+    `;
+  }
+
+  function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+  }
+
   async function applyFilters(event) {
-    event.preventDefault();
+    if (event) event.preventDefault();
     
     const filters = {};
     
@@ -203,13 +396,31 @@
     const dateTo = document.getElementById('dateToFilter')?.value;
     if (dateTo) filters.dateTo = dateTo;
     
+    // Keep search filter if it exists
+    if (currentFilters.search) {
+      filters.search = currentFilters.search;
+    }
+    
     currentFilters = filters;
     await loadOpportunities();
   }
 
   function clearFilters() {
     currentFilters = {};
-    document.getElementById('modelsFilterForm')?.reset();
+    currentModel = 'all';
+    const form = document.getElementById('modelsFilterForm');
+    if (form) {
+      form.reset();
+      const modelSelector = document.getElementById('modelSelector');
+      if (modelSelector) modelSelector.value = 'all';
+      const searchInput = document.getElementById('modelSearch');
+      if (searchInput) searchInput.value = '';
+    }
+    // Hide advanced filters
+    const advancedFilters = document.getElementById('advancedFilters');
+    if (advancedFilters) {
+      advancedFilters.style.display = 'none';
+    }
     loadOpportunities();
   }
 
@@ -403,7 +614,10 @@
   if (!window.admin) window.admin = {};
   window.admin['admin-models-management'] = { 
     init,
-    exportOpportunities
+    exportOpportunities,
+    toggleAdvancedFilters,
+    clearFilters,
+    applyFilters
   };
 
 })();

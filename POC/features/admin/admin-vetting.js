@@ -564,7 +564,7 @@
                     </div>
                     <button onclick="adminVettingComponent.viewDocument('${user.id}', '${docType}', ${idx})" class="btn btn-sm btn-primary">
                       View
-                    </button>
+                </button>
                   </div>
                 `).join('')}
               </div>

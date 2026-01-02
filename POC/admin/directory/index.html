@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Project Directory - PMTwin Admin</title>
+    <link rel="stylesheet" href="../../css/main.css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap">
+    <link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.0.3/src/regular/style.css">
+</head>
+<body>
+    <!-- Main Content - Sidebar and Navbar are automatically added by layout system -->
+    <main>
+        <div class="container" style="padding: 2rem 0;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+                <div>
+                    <h1>Project Directory</h1>
+                    <p style="color: var(--text-secondary); margin-top: 0.5rem;">Browse and manage all projects in the platform</p>
+                </div>
+            </div>
+
+            <!-- Statistics Section -->
+            <div class="card" style="margin-bottom: 2rem;">
+                <div class="card-body">
+                    <h2 style="margin: 0 0 1rem 0;">Project Statistics</h2>
+                    <div id="directoryStatistics" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">
+                        <!-- Statistics will be loaded here -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Search and Filters -->
+            <div class="card" style="margin-bottom: 2rem;">
+                <div class="card-body" style="padding: 1rem;">
+                    <form id="directoryFilterForm" onsubmit="return false;">
+                        <div style="display: flex; gap: 1rem; align-items: end; flex-wrap: wrap;">
+                            <div style="flex: 1; min-width: 250px; position: relative;">
+                                <i class="ph ph-magnifying-glass" style="position: absolute; left: 0.75rem; top: 50%; transform: translateY(-50%); color: var(--text-secondary); pointer-events: none;"></i>
+                                <input type="text" id="directorySearch" class="form-control" placeholder="Search projects by title, description, or location..." style="padding-left: 2.5rem;">
+                            </div>
+                            <select id="categoryFilter" class="form-control" style="width: 200px;">
+                                <option value="">All Categories</option>
+                                <option value="Infrastructure">Infrastructure</option>
+                                <option value="Residential">Residential</option>
+                                <option value="Commercial">Commercial</option>
+                                <option value="Industrial">Industrial</option>
+                            </select>
+                            <select id="statusFilter" class="form-control" style="width: 150px;">
+                                <option value="">All Status</option>
+                                <option value="draft">Draft</option>
+                                <option value="active">Active</option>
+                                <option value="in_progress">In Progress</option>
+                                <option value="completed">Completed</option>
+                                <option value="cancelled">Cancelled</option>
+                            </select>
+                            <select id="typeFilter" class="form-control" style="width: 150px;">
+                                <option value="">All Types</option>
+                                <option value="single">Single</option>
+                                <option value="jv">Joint Venture</option>
+                                <option value="consortium">Consortium</option>
+                                <option value="spv">SPV</option>
+                            </select>
+                            <button type="button" class="btn btn-outline" id="clearFilters" style="white-space: nowrap;">
+                                <i class="ph ph-x"></i> Clear
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Projects Table -->
+            <div class="card">
+                <div class="card-body">
+                    <div style="overflow-x: auto;">
+                        <table class="table" id="directoryTable">
+                            <thead>
+                                <tr>
+                                    <th>Project Title</th>
+                                    <th>Category</th>
+                                    <th>Type</th>
+                                    <th>Location</th>
+                                    <th>Status</th>
+                                    <th>Created</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="directoryTableBody">
+                                <!-- Projects will be loaded here -->
+                            </tbody>
+                        </table>
+                    </div>
+                    <div id="directoryPagination" style="margin-top: 1rem; display: flex; justify-content: center; gap: 0.5rem;">
+                        <!-- Pagination will be loaded here -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Scripts -->
+    <script src="../../js/config.js"></script>
+    <script src="../../js/data.js"></script>
+    <script src="../../js/auth.js"></script>
+    <script src="../../js/auth-check.js"></script>
+    <script src="../../js/demo-credentials.js"></script>
+    <script src="../../services/services-loader.js"></script>
+    <script src="../../data/data-loader.js"></script>
+    <script src="../../js/navigation.js"></script>
+    <script src="../../js/layout.js"></script>
+    <script src="../../js/app-init.js"></script>
+    <script src="../../features/admin/admin-directory.js"></script>
+    <script>
+        // Initialize auth check
+        if (typeof requireAuth !== 'undefined') {
+            requireAuth({ requireRole: 'admin' });
+        }
+
+        // Initialize component when DOM is ready
+        document.addEventListener('DOMContentLoaded', function() {
+            if (window.admin && window.admin['admin-directory']) {
+                window.admin['admin-directory'].init();
+            }
+        });
+    </script>
+</body>
+</html>
+

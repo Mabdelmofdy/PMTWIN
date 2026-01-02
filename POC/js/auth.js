@@ -75,6 +75,10 @@
       return { success: false, error: 'Email and OTP code required' };
     }
 
+    if (typeof PMTwinData === 'undefined') {
+      return { success: false, error: 'Data service not available' };
+    }
+
     const user = PMTwinData.Users.getByEmail(email);
     if (!user) {
       return { success: false, error: 'User not found' };
@@ -161,6 +165,10 @@
       return { success: false, error: 'Valid email required' };
     }
 
+    if (typeof PMTwinData === 'undefined') {
+      return { success: false, error: 'Data service not available' };
+    }
+
     const user = PMTwinData.Users.getByEmail(email);
     if (!user) {
       return { success: false, error: 'User not found' };
@@ -218,6 +226,10 @@
 
     if (!['individual', 'entity'].includes(role)) {
       return { success: false, error: 'Invalid role' };
+    }
+
+    if (typeof PMTwinData === 'undefined') {
+      return { success: false, error: 'Data service not available' };
     }
 
     // Check if user already exists
@@ -295,9 +307,26 @@
   // ============================================
   // Login (Progressive Authentication)
   // ============================================
-  function login(email, password) {
+  async function login(email, password) {
     if (!email || !password) {
       return { success: false, error: 'Email and password required' };
+    }
+
+    // Wait for PMTwinData to be available
+    if (typeof PMTwinData === 'undefined') {
+      // Wait up to 3 seconds for PMTwinData to load
+      let waitTime = 0;
+      const maxWait = 3000;
+      const pollInterval = 50;
+      
+      while (typeof PMTwinData === 'undefined' && waitTime < maxWait) {
+        await new Promise(resolve => setTimeout(resolve, pollInterval));
+        waitTime += pollInterval;
+      }
+      
+      if (typeof PMTwinData === 'undefined') {
+        return { success: false, error: 'Data service not available. Please refresh the page.' };
+      }
     }
 
     const user = PMTwinData.Users.getByEmail(email);
@@ -410,6 +439,10 @@
 
   // Check if user can login based on onboarding stage
   function canUserLogin(user) {
+    if (typeof PMTwinData === 'undefined') {
+      return { allowed: false, reason: 'Data service not available' };
+    }
+
     const stage = user.onboardingStage;
     const userType = user.userType;
 
@@ -498,6 +531,10 @@
   // Logout
   // ============================================
   function logout() {
+    if (typeof PMTwinData === 'undefined') {
+      return { success: false, error: 'Data service not available' };
+    }
+    
     const session = PMTwinData.Sessions.getCurrentSession();
     if (session) {
       const user = PMTwinData.Users.getById(session.userId);
@@ -532,23 +569,38 @@
   // Session Management
   // ============================================
   function getCurrentUser() {
+    if (typeof PMTwinData === 'undefined') {
+      return null;
+    }
     return PMTwinData.Sessions.getCurrentUser();
   }
 
   function getCurrentSession() {
+    if (typeof PMTwinData === 'undefined') {
+      return null;
+    }
     return PMTwinData.Sessions.getCurrentSession();
   }
 
   function isAuthenticated() {
+    if (typeof PMTwinData === 'undefined') {
+      return false;
+    }
     return PMTwinData.Sessions.getCurrentSession() !== null;
   }
 
   function hasRole(role) {
+    if (typeof PMTwinData === 'undefined') {
+      return false;
+    }
     const session = PMTwinData.Sessions.getCurrentSession();
     return session && session.role === role;
   }
 
   function hasAnyRole(roles) {
+    if (typeof PMTwinData === 'undefined') {
+      return false;
+    }
     const session = PMTwinData.Sessions.getCurrentSession();
     return session && roles.includes(session.role);
   }

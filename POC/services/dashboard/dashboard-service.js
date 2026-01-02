@@ -1,6 +1,6 @@
 /**
  * Dashboard Service
- * Provides role-based dashboard data
+ * Provides role-based dashboard data and menu items
  */
 
 (function() {
@@ -37,62 +37,53 @@
       notifications: []
     };
     
-    // Role-specific dashboard data
-    if (roleId === 'project_lead') {
-      dashboardData = getProjectLeadDashboard(currentUser);
-    } else if (roleId === 'supplier') {
-      dashboardData = getSupplierDashboard(currentUser);
-    } else if (roleId === 'service_provider') {
-      dashboardData = getServiceProviderDashboard(currentUser);
-    } else if (roleId === 'professional') {
-      dashboardData = getProfessionalDashboard(currentUser);
-    } else if (roleId === 'consultant') {
-      dashboardData = getConsultantDashboard(currentUser);
-    } else if (roleId === 'mentor') {
-      dashboardData = getMentorDashboard(currentUser);
-    } else if (roleId === 'platform_admin') {
-      dashboardData = getPlatformAdminDashboard(currentUser);
-    } else if (roleId === 'auditor') {
-      dashboardData = getAuditorDashboard(currentUser);
-    } else {
-      // Fallback for legacy roles
-      if (roleId === 'admin' || roleId === 'entity' || roleId === 'individual') {
-        dashboardData = getLegacyRoleDashboard(currentUser, roleId);
-      }
-    }
-    
-    // Get notifications
-    dashboardData.notifications = PMTwinData.Notifications.getUnread(currentUser.id);
-    
-    return { success: true, data: dashboardData };
-  }
-
-  // ============================================
-  // Role-Specific Dashboard Functions
-  // ============================================
-  
-  function getProjectLeadDashboard(user) {
-    const userProjects = PMTwinData.Projects.getByCreator(user.id);
-    const userProposals = PMTwinData.Proposals.getAll().filter(p => {
-      const project = PMTwinData.Projects.getById(p.projectId);
-      return project && project.creatorId === user.id;
-    });
-    const collaborationOpps = PMTwinData.CollaborationOpportunities.getByCreator(user.id);
-    
-    return {
-      user: user,
-      role: 'project_lead',
-      features: [],
-      stats: {
-        totalProjects: userProjects.length,
-        activeProjects: userProjects.filter(p => p.status === 'active').length,
-        totalTenders: userProjects.filter(p => p.modelType === 'tender').length,
+    // Role-specific dashboard data with comprehensive stats
+    if (roleId === 'platform_admin' || roleId === 'admin') {
+      const allUsers = PMTwinData.Users.getAll();
+      const allProjects = PMTwinData.Projects.getAll();
+      const allProposals = PMTwinData.Proposals.getAll();
+      const collaborationOpps = PMTwinData.CollaborationOpportunities.getAll();
+      
+      dashboardData.stats = {
+        totalUsers: allUsers.length,
+        pendingUsers: allUsers.filter(u => u.onboardingStage === 'pending' || u.status === 'pending').length,
+        approvedUsers: allUsers.filter(u => u.onboardingStage === 'approved' || u.status === 'approved').length,
+        suspendedUsers: allUsers.filter(u => u.status === 'suspended').length,
+        totalProjects: allProjects.length,
+        activeProjects: allProjects.filter(p => p.status === 'active').length,
+        totalProposals: allProposals.length,
+        pendingProposals: allProposals.filter(p => p.status === 'in_review').length,
+        totalCollaborations: collaborationOpps.length,
+        activeCollaborations: collaborationOpps.filter(o => o.status === 'active').length,
+        totalTaskEngagements: collaborationOpps.filter(o => o.modelId === '1.1').length,
         totalConsortia: collaborationOpps.filter(o => o.modelId === '1.2').length,
         totalSPVs: collaborationOpps.filter(o => o.modelId === '1.4').length,
+        totalProposals: allProposals.length,
+        pendingProposals: allProposals.filter(p => p.status === 'in_review').length
+      };
+      
+      dashboardData.recentActivity = PMTwinData.Audit.getRecent(10);
+    } else if (roleId === 'project_lead' || roleId === 'entity') {
+      const userProjects = PMTwinData.Projects.getByCreator(currentUser.id);
+    const userProposals = PMTwinData.Proposals.getAll().filter(p => {
+      const project = PMTwinData.Projects.getById(p.projectId);
+        return project && project.creatorId === currentUser.id;
+      });
+      const collaborationOpps = PMTwinData.CollaborationOpportunities.getByCreator(currentUser.id);
+      
+      dashboardData.stats = {
+        totalProjects: userProjects.length,
+        activeProjects: userProjects.filter(p => p.status === 'active').length,
         totalProposals: userProposals.length,
-        pendingProposals: userProposals.filter(p => p.status === 'in_review').length
-      },
-      recentActivity: [
+        pendingProposals: userProposals.filter(p => p.status === 'in_review').length,
+        totalCollaborations: collaborationOpps.length,
+        activeCollaborations: collaborationOpps.filter(o => o.status === 'active').length,
+        totalTaskEngagements: collaborationOpps.filter(o => o.modelId === '1.1').length,
+        totalConsortia: collaborationOpps.filter(o => o.modelId === '1.2').length,
+        totalSPVs: collaborationOpps.filter(o => o.modelId === '1.4').length
+      };
+      
+      dashboardData.recentActivity = [
         ...userProjects.slice(0, 5).map(p => ({
           type: 'project',
           title: p.title,
@@ -103,95 +94,22 @@
           title: `Proposal for ${PMTwinData.Projects.getById(p.projectId)?.title || 'Project'}`,
           date: p.submittedAt
         }))
-      ].sort((a, b) => new Date(b.date) - new Date(a.date)).slice(0, 10),
-      notifications: PMTwinData.Notifications.getUnread(user.id)
-    };
-  }
-  
-  function getSupplierDashboard(user) {
-    const bulkPurchasing = PMTwinData.CollaborationOpportunities.getAll().filter(o => 
-      o.modelId === '3.1' && (o.creatorId === user.id || o.participants?.includes(user.id))
-    );
-    const inventoryListings = PMTwinData.CollaborationOpportunities.getAll().filter(o => 
-      o.modelId === '3.3' && o.creatorId === user.id
-    );
-    
-    return {
-      user: user,
-      role: 'supplier',
-      features: [],
-      stats: {
-        activeBulkPurchasing: bulkPurchasing.filter(o => o.status === 'active').length,
-        totalInventoryListings: inventoryListings.length,
-        activeListings: inventoryListings.filter(o => o.status === 'active').length,
-        strategicAlliances: PMTwinData.CollaborationOpportunities.getAll().filter(o => 
-          o.modelId === '2.2' && (o.creatorId === user.id || o.participants?.includes(user.id))
-        ).length
-      },
-      recentActivity: [
-        ...bulkPurchasing.slice(0, 5).map(o => ({
-          type: 'bulk_purchasing',
-          title: o.title,
-          date: o.createdAt
-        })),
-        ...inventoryListings.slice(0, 5).map(o => ({
-          type: 'inventory',
-          title: o.title,
-          date: o.createdAt
-        }))
-      ].sort((a, b) => new Date(b.date) - new Date(a.date)).slice(0, 10),
-      notifications: PMTwinData.Notifications.getUnread(user.id)
-    };
-  }
-  
-  function getServiceProviderDashboard(user) {
-    const taskEngagements = PMTwinData.CollaborationOpportunities.getAll().filter(o => 
-      o.modelId === '1.1' && (o.creatorId === user.id || o.applicants?.includes(user.id))
-    );
-    
-    return {
-      user: user,
-      role: 'service_provider',
-      features: [],
-      stats: {
-        activeServices: taskEngagements.filter(o => o.status === 'active').length,
-        totalEngagements: taskEngagements.length,
-        strategicAlliances: PMTwinData.CollaborationOpportunities.getAll().filter(o => 
-          o.modelId === '2.2' && (o.creatorId === user.id || o.participants?.includes(user.id))
-        ).length
-      },
-      recentActivity: taskEngagements.slice(0, 10).map(o => ({
-        type: 'task_engagement',
-        title: o.title,
-        date: o.createdAt
-      })),
-      notifications: PMTwinData.Notifications.getUnread(user.id)
-    };
-  }
-  
-  function getProfessionalDashboard(user) {
-    const userProposals = PMTwinData.Proposals.getByProvider(user.id);
-    const userMatches = PMTwinData.Matches.getByProvider(user.id);
-    const taskEngagements = PMTwinData.CollaborationOpportunities.getAll().filter(o => 
-      o.modelId === '1.1' && o.applicants?.includes(user.id)
-    );
-    const consortia = PMTwinData.CollaborationOpportunities.getAll().filter(o => 
-      o.modelId === '1.2' && o.applicants?.includes(user.id)
-    );
-    
-    return {
-      user: user,
-      role: 'professional',
-      features: [],
-      stats: {
+      ].sort((a, b) => new Date(b.date) - new Date(a.date)).slice(0, 10);
+    } else if (roleId === 'professional' || roleId === 'individual' || roleId === 'consultant') {
+      const userProposals = PMTwinData.Proposals.getByProvider(currentUser.id);
+      const userMatches = PMTwinData.Matches.getByProvider(currentUser.id);
+      const userApplications = PMTwinData.CollaborationApplications.getByApplicant(currentUser.id);
+      
+      dashboardData.stats = {
         totalProposals: userProposals.length,
         activeProposals: userProposals.filter(p => p.status === 'in_review' || p.status === 'approved').length,
         totalMatches: userMatches.length,
         highMatches: userMatches.filter(m => m.score >= 80).length,
-        taskEngagements: taskEngagements.length,
-        consortiaApplications: consortia.length
-      },
-      recentActivity: [
+        totalApplications: userApplications.length,
+        pendingApplications: userApplications.filter(a => a.status === 'pending').length
+      };
+      
+      dashboardData.recentActivity = [
         ...userProposals.slice(0, 5).map(p => ({
           type: 'proposal',
           title: `Proposal for ${PMTwinData.Projects.getById(p.projectId)?.title || 'Project'}`,
@@ -203,161 +121,129 @@
           date: m.createdAt,
           score: m.score
         }))
-      ].sort((a, b) => new Date(b.date) - new Date(a.date)).slice(0, 10),
-      notifications: PMTwinData.Notifications.getUnread(user.id)
-    };
-  }
-  
-  function getConsultantDashboard(user) {
-    const userProposals = PMTwinData.Proposals.getByProvider(user.id);
+      ].sort((a, b) => new Date(b.date) - new Date(a.date)).slice(0, 10);
+    } else if (roleId === 'service_provider') {
+      const userProposals = PMTwinData.Proposals.getByProvider(currentUser.id);
+      const userMatches = PMTwinData.Matches.getByProvider(currentUser.id);
     const taskEngagements = PMTwinData.CollaborationOpportunities.getAll().filter(o => 
-      o.modelId === '1.1' && (o.creatorId === user.id || o.applicants?.includes(user.id))
-    );
-    const consultantHiring = PMTwinData.CollaborationOpportunities.getAll().filter(o => 
-      o.modelId === '4.2' && o.applicants?.includes(user.id)
-    );
-    
-    return {
-      user: user,
-      role: 'consultant',
-      features: [],
-      stats: {
+        o.modelId === '1.1' && (o.creatorId === currentUser.id || o.applicants?.includes(currentUser.id))
+      );
+      
+      dashboardData.stats = {
         totalProposals: userProposals.length,
         activeProposals: userProposals.filter(p => p.status === 'in_review' || p.status === 'approved').length,
-        taskEngagements: taskEngagements.length,
-        consultantHiringApplications: consultantHiring.length,
+        totalMatches: userMatches.length,
+        highMatches: userMatches.filter(m => m.score >= 80).length,
+        activeServices: taskEngagements.filter(o => o.status === 'active').length,
+        totalEngagements: taskEngagements.length,
         strategicAlliances: PMTwinData.CollaborationOpportunities.getAll().filter(o => 
-          o.modelId === '2.2' && (o.creatorId === user.id || o.participants?.includes(user.id))
+          o.modelId === '2.2' && (o.creatorId === currentUser.id || o.participants?.includes(currentUser.id))
         ).length
-      },
-      recentActivity: [
+      };
+      
+      dashboardData.recentActivity = [
+        ...taskEngagements.slice(0, 5).map(o => ({
+          type: 'collaboration',
+          title: o.title || o.modelName,
+          date: o.createdAt
+        })),
         ...userProposals.slice(0, 5).map(p => ({
           type: 'proposal',
           title: `Proposal for ${PMTwinData.Projects.getById(p.projectId)?.title || 'Project'}`,
           date: p.submittedAt
+        }))
+      ].sort((a, b) => new Date(b.date) - new Date(a.date)).slice(0, 10);
+    } else if (roleId === 'supplier') {
+      const bulkPurchasing = PMTwinData.CollaborationOpportunities.getAll().filter(o => 
+        o.modelId === '3.1' && (o.creatorId === currentUser.id || o.participants?.includes(currentUser.id))
+      );
+      const inventoryListings = PMTwinData.CollaborationOpportunities.getAll().filter(o => 
+        o.modelId === '3.3' && o.creatorId === currentUser.id
+      );
+      
+      dashboardData.stats = {
+        activeBulkPurchasing: bulkPurchasing.filter(o => o.status === 'active').length,
+        totalBulkPurchasing: bulkPurchasing.length,
+        inventoryListings: inventoryListings.length,
+        activeListings: inventoryListings.filter(o => o.status === 'active').length,
+        strategicAlliances: PMTwinData.CollaborationOpportunities.getAll().filter(o => 
+          o.modelId === '2.2' && (o.creatorId === currentUser.id || o.participants?.includes(currentUser.id))
+        ).length
+      };
+      
+      dashboardData.recentActivity = [
+        ...bulkPurchasing.slice(0, 5).map(o => ({
+          type: 'bulk_purchase',
+          title: o.title || 'Bulk Purchasing',
+          date: o.createdAt
         })),
-        ...taskEngagements.slice(0, 5).map(o => ({
-          type: 'task_engagement',
-          title: o.title,
+        ...inventoryListings.slice(0, 5).map(o => ({
+          type: 'inventory',
+          title: o.title || 'Inventory Listing',
           date: o.createdAt
         }))
-      ].sort((a, b) => new Date(b.date) - new Date(a.date)).slice(0, 10),
-      notifications: PMTwinData.Notifications.getUnread(user.id)
-    };
-  }
-  
-  function getMentorDashboard(user) {
+      ].sort((a, b) => new Date(b.date) - new Date(a.date)).slice(0, 10);
+    } else if (roleId === 'mentor') {
     const mentorshipPrograms = PMTwinData.CollaborationOpportunities.getAll().filter(o => 
-      o.modelId === '2.3' && o.creatorId === user.id
+        o.modelId === '2.3' && o.creatorId === currentUser.id
     );
     const mentees = mentorshipPrograms.reduce((acc, program) => {
-      return acc + (program.applicants?.length || 0);
+        const applications = PMTwinData.CollaborationApplications.getByOpportunity(program.id);
+        return acc + applications.filter(a => a.status === 'approved').length;
     }, 0);
     
-    return {
-      user: user,
-      role: 'mentor',
-      features: [],
-      stats: {
+      dashboardData.stats = {
         activePrograms: mentorshipPrograms.filter(o => o.status === 'active').length,
         totalPrograms: mentorshipPrograms.length,
         totalMentees: mentees,
-        activeMentees: mentorshipPrograms.filter(o => o.status === 'active').reduce((acc, program) => {
-          return acc + (program.applicants?.length || 0);
-        }, 0)
-      },
-      recentActivity: mentorshipPrograms.slice(0, 10).map(o => ({
+        activeMentees: mentorshipPrograms.filter(o => o.status === 'active').length
+      };
+      
+      dashboardData.recentActivity = mentorshipPrograms.slice(0, 10).map(o => ({
         type: 'mentorship',
-        title: o.title,
-        date: o.createdAt,
-        mentees: o.applicants?.length || 0
-      })),
-      notifications: PMTwinData.Notifications.getUnread(user.id)
-    };
-  }
-  
-  function getPlatformAdminDashboard(user) {
-    const allUsers = PMTwinData.Users.getAll();
-    const pendingUsers = allUsers.filter(u => u.onboardingStage === 'under_review');
-    
-    return {
-      user: user,
-      role: 'platform_admin',
-      features: [],
-      stats: {
-        totalUsers: allUsers.length,
-        pendingUsers: pendingUsers.length,
-        totalProjects: PMTwinData.Projects.getAll().length,
-        activeProjects: PMTwinData.Projects.getActive().length,
-        totalProposals: PMTwinData.Proposals.getAll().length,
-        pendingVerifications: pendingUsers.length,
-        totalCollaborations: PMTwinData.CollaborationOpportunities.getAll().length
-      },
-      recentActivity: PMTwinData.Audit.getRecent(10),
-      notifications: PMTwinData.Notifications.getUnread(user.id)
-    };
-  }
-  
-  function getAuditorDashboard(user) {
-    return {
-      user: user,
-      role: 'auditor',
-      features: [],
-      stats: {
+        title: o.title || 'Mentorship Program',
+        date: o.createdAt
+      }));
+    } else if (roleId === 'auditor') {
+      dashboardData.stats = {
         totalUsers: PMTwinData.Users.getAll().length,
         totalProjects: PMTwinData.Projects.getAll().length,
         totalProposals: PMTwinData.Proposals.getAll().length,
-        totalAuditLogs: PMTwinData.Audit.getAll().length,
-        recentAuditLogs: PMTwinData.Audit.getRecent(100).length
+        totalCollaborations: PMTwinData.CollaborationOpportunities.getAll().length
       },
-      recentActivity: PMTwinData.Audit.getRecent(10),
-      notifications: PMTwinData.Notifications.getUnread(user.id)
-    };
-  }
-  
-  function getLegacyRoleDashboard(user, roleId) {
-    // Legacy role handling for backward compatibility
-    if (roleId === 'admin') {
-      return getPlatformAdminDashboard(user);
-    } else if (roleId === 'entity') {
-      return getProjectLeadDashboard(user);
-    } else if (roleId === 'individual') {
-      return getProfessionalDashboard(user);
+      dashboardData.recentActivity = PMTwinData.Audit.getRecent(10);
     }
-    return {
-      user: user,
-      role: roleId,
-      features: [],
-      stats: {},
-      recentActivity: [],
-      notifications: PMTwinData.Notifications.getUnread(user.id)
-    };
+    
+    // Get notifications
+    dashboardData.notifications = PMTwinData.Notifications.getUnread(currentUser.id);
+    
+    return { success: true, data: dashboardData };
   }
 
   // ============================================
-  // Helper: Map User Role to Relationship Types
+  // Helper: Get User Relationship Types
   // ============================================
   function getUserRelationshipTypes(userRole, userType) {
-    // Map user role/type to relationship types they can participate in
-    // B2B = Business-to-Business
-    // B2P = Business-to-Professional
-    // P2B = Professional-to-Business
-    // P2P = Professional-to-Professional
+    // Map roles to relationship types (B2B, B2P, P2B, P2P)
+    const roleMap = {
+      'project_lead': ['B2B', 'B2P'],
+      'supplier': ['B2B', 'B2P'],
+      'service_provider': ['B2B', 'B2P'],
+      'professional': ['P2B', 'P2P'],
+      'consultant': ['B2B', 'B2P', 'P2B', 'P2P'],
+      'mentor': ['B2P', 'P2B', 'P2P'],
+      'platform_admin': ['B2B', 'B2P', 'P2B', 'P2P'],
+      'auditor': ['B2B', 'B2P', 'P2B', 'P2P']
+    };
     
-    if (userRole === 'admin') {
-      // Admin can see all models
-      return ['B2B', 'B2P', 'P2B', 'P2P'];
+    if (roleMap[userRole]) {
+      return roleMap[userRole];
     }
     
-    // Determine if user is a Business or Professional
-    const isBusiness = userRole === 'entity' || userType === 'company';
-    const isProfessional = userRole === 'individual' || userRole === 'consultant' || userType === 'consultant' || userType === 'individual';
-    
-    if (isBusiness) {
-      // Business can participate in B2B and B2P
+    // Fallback based on userType
+    if (userType === 'company' || userType === 'entity') {
       return ['B2B', 'B2P'];
-    } else if (isProfessional) {
-      // Professional can participate in P2B and P2P
+    } else if (userType === 'individual' || userType === 'consultant') {
       return ['P2B', 'P2P'];
     }
     
@@ -452,24 +338,52 @@
       { id: 'proposals', label: 'Proposals', route: `${basePath}proposals/`, feature: 'proposal_management', icon: '<i class="ph ph-file-text"></i>', alternativeFeatures: ['proposal_creation', 'proposal_review'] },
       { id: 'pipeline', label: 'Pipeline', route: `${basePath}pipeline/`, feature: 'pipeline_management', icon: '<i class="ph ph-trend-up"></i>' },
       
-      // Collaboration
-      // Note: Collaboration can be accessed with collaboration_opportunities OR collaboration_applications
-      { id: 'collaboration', label: 'Collaboration', route: `${basePath}collaboration/`, feature: 'collaboration_opportunities', icon: '<i class="ph ph-handshake"></i>', alternativeFeatures: ['collaboration_applications'] },
-      
-      // Services Section (Grouped)
+      // Services Section (Grouped with dropdown)
+      // Note: Service Providers is a specialized marketplace for individuals and companies offering services
+      // Different from Collaboration - this is for applying to Discovery projects based on skills
       { 
         id: 'services-group', 
         label: 'Services', 
-        route: '#', 
+        route: `${basePath}service-providers/`, // Default route to Service Providers
         feature: 'service_providers', // Show if user has any service-related permission
         icon: '<i class="ph ph-briefcase"></i>', 
-        isGroup: true,
+        hasChildren: true,
         children: [
-          { id: 'service-providers', label: 'Service Providers', route: `${basePath}service-providers/`, feature: 'service_providers', icon: '<i class="ph ph-briefcase"></i>' },
-          { id: 'my-services', label: 'My Services', route: `${basePath}my-services/`, feature: 'service_portfolio', icon: '<i class="ph ph-package"></i>' },
-          { id: 'services-marketplace', label: 'Services Marketplace', route: `${basePath}services-marketplace/`, feature: 'service_offering:view', icon: '<i class="ph ph-storefront"></i>' }
+          { 
+            id: 'service-providers', 
+            label: 'Service Providers', 
+            route: `${basePath}service-providers/`, 
+            feature: 'service_providers', 
+            icon: '<i class="ph ph-briefcase"></i>',
+            description: 'Marketplace for individuals and companies offering specialized services. Apply to Discovery projects aligned with your skills.'
+          },
+          { 
+            id: 'discovery', 
+            label: 'Discovery', 
+            route: `${basePath}discovery/`, 
+            feature: 'service_providers', 
+            icon: '<i class="ph ph-magnifying-glass"></i>',
+            description: 'Browse and apply to projects on Discovery that match your skills and expertise'
+          },
+          { 
+            id: 'my-services', 
+            label: 'My Services', 
+            route: `${basePath}my-services/`, 
+            feature: 'service_portfolio', 
+            icon: '<i class="ph ph-package"></i>',
+            description: 'Manage your service portfolio and offerings'
+          },
+          { 
+            id: 'services-marketplace', 
+            label: 'Services Marketplace', 
+            route: `${basePath}services-marketplace/`, 
+            feature: 'service_offering:view', 
+            icon: '<i class="ph ph-storefront"></i>',
+            description: 'Browse available service offerings from providers'
+          }
         ],
-        alternativeFeatures: ['service_portfolio', 'service_offering:view'] // Show group if user has any of these
+        alternativeFeatures: ['service_portfolio', 'service_offering:view'], // Show group if user has any of these
+        isExpanded: false // Default collapsed
       },
       
       // Profile & Settings
@@ -480,7 +394,7 @@
       // Admin Section (will be filtered by RBAC)
       { id: 'admin-separator', label: '---', route: '#', feature: null, icon: '', isSeparator: true },
       { id: 'admin-dashboard', label: 'Admin Dashboard', route: `${basePath}admin/`, feature: 'admin_dashboard', icon: '<i class="ph ph-gear"></i>' },
-      { id: 'discovery', label: 'Discovery', route: `${basePath}discovery/`, feature: 'admin_dashboard', icon: '<i class="ph ph-magnifying-glass"></i>' },
+      { id: 'directory', label: 'Directory', route: `${basePath}admin/directory/`, feature: 'admin_directory', icon: '<i class="ph ph-folder"></i>' },
       { id: 'user-vetting', label: 'User Vetting', route: `${basePath}admin-vetting/`, feature: 'user_vetting', icon: '<i class="ph ph-check-circle"></i>' },
       { id: 'user-management', label: 'User Management', route: `${basePath}admin/users-management/`, feature: 'user_management', icon: '<i class="ph ph-users"></i>' },
       { id: 'project-moderation', label: 'Project Moderation', route: `${basePath}admin-moderation/`, feature: 'project_moderation', icon: '<i class="ph ph-shield-check"></i>' },
@@ -490,10 +404,18 @@
     
     // Get available collaboration models for current user
     const availableModels = getAvailableCollaborationModels(currentUser.id);
+    console.log('[DashboardService] Available collaboration models:', availableModels.length, availableModels);
     
-    // Add collaboration models menu items (flat structure, grouped by category)
-    if (availableModels.length > 0 && typeof CollaborationModels !== 'undefined') {
+    // Create Collaboration menu item with dropdown submenus for all model categories
+    const collaborationChildren = [];
+    
+    // Check if CollaborationModels is available
+    if (typeof CollaborationModels === 'undefined') {
+      console.warn('[DashboardService] CollaborationModels not loaded yet');
+    } else if (availableModels.length > 0) {
+      try {
       const categories = CollaborationModels.getAllCategories();
+        console.log('[DashboardService] Collaboration categories:', categories.length);
       const categoryIcons = {
         '1': '<i class="ph ph-buildings"></i>',
         '2': '<i class="ph ph-handshake"></i>',
@@ -502,46 +424,57 @@
         '5': '<i class="ph ph-trophy"></i>'
       };
       
-      // Add a separator before collaboration models
-      allMenuItems.push({
-        id: 'collab-separator',
-        label: '---',
-        route: '#',
-        feature: null,
-        icon: '',
-        isSeparator: true
-      });
-      
-      // Add category headers and their models
+        // Build children array with all category models
       categories.forEach(category => {
         const categoryModels = availableModels.filter(model => 
           model.category === category.name || model.id.startsWith(category.id + '.')
         );
         
         if (categoryModels.length > 0) {
-          // Add category header (non-clickable, for visual grouping)
-          allMenuItems.push({
-            id: `collab-category-${category.id}`,
-            label: category.name,
-            route: `#/collaboration?category=${category.id}`,
-            feature: 'collaboration_opportunities',
-            icon: categoryIcons[category.id] || '<i class="ph ph-clipboard"></i>',
-            isCategoryHeader: true
-          });
-          
-          // Add individual model items
+            // Add each sub-model as a child
           categoryModels.forEach(model => {
-            allMenuItems.push({
+              collaborationChildren.push({
               id: `collab-model-${model.id}`,
               label: model.name,
               route: `#/collaboration?model=${model.id}`,
               feature: 'collaboration_opportunities',
-              icon: categoryIcons[category.id] || '<i class="ph ph-clipboard"></i>',
-              indent: true // For visual indentation in sidebar
-            });
+                icon: categoryIcons[category.id] || '<i class="ph ph-clipboard"></i>'
+              });
           });
         }
       });
+        console.log('[DashboardService] Collaboration children built:', collaborationChildren.length);
+      } catch (error) {
+        console.error('[DashboardService] Error building collaboration children:', error);
+      }
+    } else {
+      console.warn('[DashboardService] No available collaboration models for user');
+    }
+    
+    // Insert Collaboration menu item with dropdown before Services
+    const servicesIndex = allMenuItems.findIndex(item => item.id === 'services-group');
+    const collaborationItem = {
+      id: 'collaboration',
+      label: 'Collaboration',
+      route: `${basePath}collaboration/`,
+      feature: 'collaboration_opportunities',
+      icon: '<i class="ph ph-handshake"></i>',
+      alternativeFeatures: ['collaboration_applications'],
+      hasChildren: collaborationChildren.length > 0,
+      children: collaborationChildren.length > 0 ? collaborationChildren : [],
+      isExpanded: false // Default collapsed
+    };
+    
+    if (servicesIndex >= 0) {
+      allMenuItems.splice(servicesIndex, 0, collaborationItem);
+    } else {
+      // If services-group not found, add before Profile
+      const profileIndex = allMenuItems.findIndex(item => item.id === 'profile');
+      if (profileIndex >= 0) {
+        allMenuItems.splice(profileIndex, 0, collaborationItem);
+      } else {
+        allMenuItems.push(collaborationItem);
+      }
     }
     
     // Filter by role using RBAC
@@ -579,8 +512,8 @@
             // Always show separators
             if (item.isSeparator) return item;
             
-            // Handle grouped items
-            if (item.isGroup && item.children) {
+            // Handle grouped items (both isGroup and hasChildren)
+            if ((item.isGroup || item.hasChildren) && item.children && Array.isArray(item.children)) {
               // Filter children based on permissions
               const filteredChildren = item.children.filter(child => {
                 if (!child.feature) return false;
@@ -627,7 +560,9 @@
               // Return group with filtered children
               return {
                 ...item,
-                children: filteredChildren
+                children: filteredChildren,
+                hasChildren: filteredChildren.length > 0, // Ensure hasChildren is set
+                isGroup: false // Remove isGroup, use hasChildren instead
               };
             }
             
@@ -638,7 +573,7 @@
               return null;
             }
             
-            // Check if user has access to the primary feature
+            // Check if user has access to this feature
             let hasAccess = availableFeatures.includes(item.feature);
             
             // Check alternative features if primary feature not available
@@ -649,264 +584,88 @@
               }
             }
             
-            // Special handling for admin features - only show if user is platform_admin
-            if (item.feature.startsWith('admin_') && userRoleId !== 'platform_admin') {
-              return null;
-            }
-            
-            // Special case: platform_admin should see all menu items
+            // Special case: platform_admin should see all
             if (userRoleId === 'platform_admin' || userRoleId === 'admin') {
               return item;
             }
             
-            if (!hasAccess) {
-              console.log(`[DashboardService] Hiding ${item.id} - missing feature: ${item.feature}`);
-              return null;
+            if (hasAccess) {
+              return item;
             }
             
-            return item;
+            return null; // Filter out items user doesn't have access to
           }).filter(item => item !== null); // Remove null items
           
           console.log('[DashboardService] Filtered menu items:', filtered.length);
-          console.log('[DashboardService] Menu items:', filtered.map(i => ({ id: i.id, label: i.label, feature: i.feature })));
           
-          // Debug: Check if service-providers is in the list
+          // Debug: Check if Service Providers is in filtered list
+          if (filtered.length > 0) {
           const hasServiceProviders = filtered.some(item => item.id === 'service-providers');
           console.log('[DashboardService] Service Providers menu item present:', hasServiceProviders);
           if (!hasServiceProviders) {
             console.warn('[DashboardService] Service Providers menu item is missing!');
-            console.warn('[DashboardService] Available features include service_providers:', availableFeatures.includes('service_providers'));
-          }
-          
-          // If filtered list is empty, log detailed info for debugging
-          if (filtered.length === 0) {
-            console.error('[DashboardService] WARNING: No menu items after filtering!');
-            console.error('[DashboardService] User role:', userRoleId);
-            console.error('[DashboardService] Available features:', availableFeatures);
-            console.error('[DashboardService] All menu items:', allMenuItems.map(i => ({ id: i.id, feature: i.feature })));
-            
-            // Safety fallback: show at least dashboard and profile for authenticated users
-            console.warn('[DashboardService] Using safety fallback - showing basic menu items');
-            const fallbackItems = allMenuItems.filter(item => 
-              item.feature === 'user_dashboard' || 
-              item.feature === 'service_providers' ||
-              item.feature === 'profile_management' || 
-              item.feature === 'notifications' ||
-              item.isSeparator
-            );
-            return { success: true, items: fallbackItems };
+            }
           }
           
           return { success: true, items: filtered };
         }
       } catch (error) {
         console.error('[DashboardService] Error filtering menu items:', error);
-        console.error('[DashboardService] Error stack:', error.stack);
         // Fall through to legacy filtering
       }
     }
     
-    // Fallback: filter by legacy role (for backward compatibility)
+    // Legacy role-based filtering (fallback)
     const role = currentUser.role;
-    console.log('[DashboardService] Using fallback filtering for legacy role:', role);
-    
-    const filtered = allMenuItems.map(item => {
-      // Always show separators
-      if (item.isSeparator) return item;
-      
-      // Admin sees everything
-      if (role === 'admin' || role === 'platform_admin') {
-        return item;
-      }
-      
-      // Handle grouped items
-      if (item.isGroup && item.children) {
-        // Filter children based on role permissions (same logic as below)
-        const filteredChildren = item.children.filter(child => {
-          if (!child.feature) return false;
-          
-          // Entity/Project Lead permissions
-          if (role === 'entity' || role === 'project_lead') {
-            const allowedFeatures = [
-              'user_dashboard', 
-              'project_creation', 
-              'project_management',
-              'project_browsing',
-              'proposal_review',
-              'proposal_management',
-              'matches_view',
-              'pipeline_management',
-              'collaboration_opportunities',
-              'collaboration_applications',
-              'service_providers',
-              'service_portfolio',
-              'service_offering:view',
-              'profile_management', 
-              'notifications'
-            ];
-            if (allowedFeatures.includes(child.feature)) return true;
-            if (child.alternativeFeatures && child.alternativeFeatures.some(alt => allowedFeatures.includes(alt))) return true;
-            return false;
-          }
-          
-          // Individual/Professional permissions
-          if (role === 'individual' || role === 'professional') {
-            const allowedFeatures = [
-              'user_dashboard',
-              'project_browsing',
-              'proposal_creation',
-              'proposal_management',
-              'matches_view',
-              'pipeline_management',
-              'collaboration_opportunities',
-              'service_providers',
-              'service_portfolio',
-              'service_offering:view',
-              'profile_management',
-              'notifications'
-            ];
-            if (allowedFeatures.includes(child.feature)) return true;
-            if (child.alternativeFeatures && child.alternativeFeatures.some(alt => allowedFeatures.includes(alt))) return true;
-            return false;
-          }
-          
-          // Service Provider permissions
-          if (role === 'service_provider' || role === 'supplier' || role === 'consultant') {
-            const allowedFeatures = [
-              'user_dashboard',
-              'service_providers',
-              'service_portfolio',
-              'service_offering:view',
-              'profile_management',
-              'notifications'
-            ];
-            if (allowedFeatures.includes(child.feature)) return true;
-            if (child.alternativeFeatures && child.alternativeFeatures.some(alt => allowedFeatures.includes(alt))) return true;
-            return false;
-          }
-          
-          return false;
-        });
-        
-        // Only show group if it has at least one accessible child
-        if (filteredChildren.length === 0) {
-          return null;
-        }
-        
-        return {
-          ...item,
-          children: filteredChildren
-        };
-      }
-      
-      // Regular items - Entity/Project Lead permissions
+    const filtered = allMenuItems.filter(item => {
+      if (role === 'admin' || role === 'platform_admin') return true;
       if (role === 'entity' || role === 'project_lead') {
-        const allowedFeatures = [
-          'user_dashboard', 
-          'project_creation', 
-          'project_management',
-          'project_browsing', // Allow browsing too
-          'proposal_review',
-          'proposal_management', // Allow management too
-          'matches_view',
-          'pipeline_management',
-          'collaboration_opportunities',
-          'collaboration_applications', // Allow applications too
-          'service_providers',
-          'service_portfolio',
-          'service_offering:view',
-          'profile_management', 
-          'notifications'
-        ];
-        
-        // Check primary feature or alternative features
-        if (!item.feature) return null;
-        if (allowedFeatures.includes(item.feature)) return item;
-        if (item.alternativeFeatures && item.alternativeFeatures.some(alt => allowedFeatures.includes(alt))) return item;
-        return null;
+        return !item.feature || ['user_dashboard', 'project_creation', 'project_management', 
+                                'proposal_review', 'matches_view', 'profile_management', 
+                                'notifications', 'collaboration_opportunities', 'pipeline_management',
+                                'service_providers', 'service_portfolio', 'service_offering:view'].includes(item.feature);
       }
-      
-      // Regular items - Individual/Professional permissions
-      if (role === 'individual' || role === 'professional') {
-        const allowedFeatures = [
-          'user_dashboard', 
-          'project_browsing',
-          'project_management', // Allow management too
-          'matches_view', 
-          'proposal_creation', 
-          'proposal_management',
-          'pipeline_management',
-          'collaboration_opportunities',
-          'collaboration_applications',
-          'service_providers',
-          'service_portfolio',
-          'service_offering:view',
-          'profile_management', 
-          'notifications'
-        ];
-        
-        // Check primary feature or alternative features
-        if (!item.feature) return null;
-        if (allowedFeatures.includes(item.feature)) return item;
-        if (item.alternativeFeatures && item.alternativeFeatures.some(alt => allowedFeatures.includes(alt))) return item;
-        return null;
+      if (role === 'individual' || role === 'professional' || role === 'consultant') {
+        return !item.feature || ['user_dashboard', 'project_browsing', 'matches_view', 
+                                'proposal_creation', 'proposal_management', 'profile_management', 
+                                'notifications', 'collaboration_opportunities', 'collaboration_applications',
+                                'service_providers', 'service_portfolio', 'service_offering:view',
+                                'pipeline_management'].includes(item.feature);
       }
-      
-      // Supplier, Service Provider, Consultant, Mentor permissions
-      if (role === 'supplier' || role === 'service_provider' || role === 'consultant' || role === 'mentor') {
-        const allowedFeatures = [
-          'user_dashboard',
-          'project_browsing',
-          'matches_view',
-          'proposal_creation',
-          'proposal_management',
-          'pipeline_management',
-          'collaboration_opportunities',
-          'collaboration_applications',
-          'service_providers',
-          'profile_management',
-          'notifications'
-        ];
-        
-        // Check primary feature or alternative features
-        if (!item.feature) return null;
-        if (allowedFeatures.includes(item.feature)) return item;
-        if (item.alternativeFeatures && item.alternativeFeatures.some(alt => allowedFeatures.includes(alt))) return item;
-        return null;
+      if (role === 'service_provider') {
+        return !item.feature || ['user_dashboard', 'project_browsing', 'matches_view',
+                                'service_providers', 'service_portfolio', 'service_offering:view',
+                                'collaboration_opportunities', 'collaboration_applications',
+                                'proposal_creation', 'proposal_management', 'pipeline_management',
+                                'profile_management', 'notifications'].includes(item.feature);
       }
-      
-      // Default: show basic items for any authenticated user
-      if (!item.feature) return null;
-      const basicFeatures = ['user_dashboard', 'service_providers', 'service_portfolio', 'service_offering:view', 'profile_management', 'notifications'];
-      if (basicFeatures.includes(item.feature)) return item;
-      if (item.alternativeFeatures && item.alternativeFeatures.some(alt => basicFeatures.includes(alt))) return item;
-      
-      return null;
-    }).filter(item => item !== null); // Remove null items
-    
-    console.log('[DashboardService] Fallback filtered menu items:', filtered.length);
-    
-      // Final safety check - if still empty, return at least dashboard
-      if (filtered.length === 0) {
-        console.error('[DashboardService] CRITICAL: No menu items even after fallback!');
-        const basicItems = allMenuItems.filter(item => 
-          item.id === 'dashboard' || 
-          item.id === 'service-providers' ||
-          item.id === 'profile' || 
-          item.id === 'notifications' ||
-          item.isSeparator
-        );
-      return { success: true, items: basicItems };
-    }
+      if (role === 'supplier') {
+        return !item.feature || ['user_dashboard', 'project_browsing', 'matches_view',
+                                'collaboration_opportunities', 'collaboration_applications',
+                                'service_providers', 'pipeline_management',
+                                'profile_management', 'notifications'].includes(item.feature);
+      }
+      if (role === 'mentor') {
+        return !item.feature || ['user_dashboard', 'project_browsing', 'matches_view',
+                                'collaboration_opportunities', 'service_providers',
+                                'pipeline_management', 'profile_management', 'notifications'].includes(item.feature);
+      }
+      if (role === 'auditor') {
+        return !item.feature || ['user_dashboard', 'admin_dashboard', 'audit_trail', 'reports',
+                                'project_browsing', 'notifications'].includes(item.feature);
+      }
+      return false;
+    });
     
     return { success: true, items: filtered };
   }
 
+  // ============================================
+  // Public API
+  // ============================================
   window.DashboardService = {
     getDashboardData,
     getMenuItems
   };
 
 })();
-
-

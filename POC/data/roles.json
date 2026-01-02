@@ -355,6 +355,7 @@
   },
   "featureDescriptions": {
     "admin_dashboard": "Administrative dashboard with system overview",
+    "admin_directory": "Admin directory for managing platform directories and listings",
     "user_dashboard": "User dashboard with personalized content",
     "user_vetting": "Review and approve/reject user registrations",
     "user_management": "Manage all users in the system",
