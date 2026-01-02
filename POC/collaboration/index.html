@@ -1,1 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Collaboration Models - PMTwin</title>
+    <link rel="stylesheet" href="../css/main.css">
+</head>
+<body>
+    <!-- Main Content - Sidebar and Navbar are automatically added by layout system -->
+    <main>
+        <div class="container" style="padding: 2rem 0;">
+            <h1 style="margin-bottom: var(--spacing-6);">Collaboration Models</h1>
+            <p style="margin-bottom: 2rem; color: var(--text-secondary);">
+                Explore different collaboration models to find the best fit for your project
+            </p>
 
+            <!-- Collaboration Models Content -->
+            <div id="collaborationModelsContent">
+                <!-- Models will be loaded here by CollaborationModelsUI -->
+                <div class="loading">
+                    <div class="spinner"></div>
+                    <p>Loading collaboration models...</p>
+                </div>
+            </div>
+
+            <!-- Category Detail View (hidden by default) -->
+            <div id="collaborationCategoryContent" style="display: none;">
+                <!-- Category details will be loaded here -->
+            </div>
+
+            <!-- Create Collaboration Form (hidden by default) -->
+            <div id="createCollaborationContent" style="display: none;">
+                <!-- Form will be loaded here -->
+            </div>
+        </div>
+    </main>
+
+    <!-- Configuration (must load first) -->
+    <script src="../js/config.js"></script>
+    
+    <!-- API Layer (for future Java backend integration) -->
+    <script src="../js/api/api-client.js"></script>
+    <script src="../js/api/api-service.js"></script>
+    
+    <!-- Core Scripts -->
+    <script src="../js/data.js"></script>
+    <script src="../js/auth.js"></script>
+    <script src="../js/auth-check.js"></script>
+    <script src="../js/demo-credentials.js"></script>
+    <script src="../services/services-loader.js"></script>
+    <script src="../data/data-loader.js"></script>
+    
+    <!-- Layout System (automatically includes sidebar and navbar) -->
+    <script src="../js/layout.js"></script>
+    <script src="../js/navigation.js"></script>
+    <script src="../js/app-init.js"></script>
+    
+    <!-- Collaboration Models Scripts -->
+    <script src="../js/collaboration-model-definitions.js"></script>
+    <script src="../js/collaboration-models.js"></script>
+    
+    <!-- Initialize Component -->
+    <script>
+        // Wait for all scripts to load
+        function initializeCollaboration() {
+            // Check if required dependencies are loaded
+            if (typeof AuthCheck === 'undefined' || typeof Auth === 'undefined') {
+                console.warn('Auth scripts not loaded yet, retrying...');
+                setTimeout(initializeCollaboration, 100);
+                return;
+            }
+
+            if (typeof window.CollaborationModels === 'undefined') {
+                console.warn('CollaborationModels not loaded yet, retrying...');
+                setTimeout(initializeCollaboration, 100);
+                return;
+            }
+
+            if (typeof window.CollaborationModelsUI === 'undefined') {
+                console.warn('CollaborationModelsUI not loaded yet, retrying...');
+                setTimeout(initializeCollaboration, 100);
+                return;
+            }
+
+            // All dependencies loaded, proceed with initialization
+            (async function() {
+                try {
+                    // Check authentication
+                    const isAuth = await AuthCheck.checkAuth({ requireAuth: true });
+                    if (!isAuth) {
+                        window.location.href = '../login/';
+                        return;
+                    }
+                    
+                    // Get current user
+                    const currentUser = Auth.getCurrentUser();
+                    if (!currentUser) {
+                        console.error('No current user found');
+                        const container = document.getElementById('collaborationModelsContent');
+                        if (container) {
+                            container.innerHTML = `
+                                <div class="alert alert-error">
+                                    <p>No user session found. Please log in again.</p>
+                                    <a href="../login/" class="btn btn-primary">Go to Login</a>
+                                </div>
+                            `;
+                        }
+                        return;
+                    }
+                    
+                    // Initialize collaboration models UI
+                    try {
+                        window.CollaborationModelsUI.init(currentUser);
+                        // Render model selection by default
+                        if (window.CollaborationModelsUI.renderModelSelection) {
+                            window.CollaborationModelsUI.renderModelSelection();
+                        }
+                    } catch (error) {
+                        console.error('Error initializing collaboration models:', error);
+                        const container = document.getElementById('collaborationModelsContent');
+                        if (container) {
+                            container.innerHTML = `
+                                <div class="alert alert-error">
+                                    <p>Error initializing collaboration models: ${error.message}</p>
+                                    <button class="btn btn-primary" onclick="window.location.reload()">Refresh</button>
+                                </div>
+                            `;
+                        }
+                    }
+                } catch (error) {
+                    console.error('Error in collaboration initialization:', error);
+                    const container = document.getElementById('collaborationModelsContent');
+                    if (container) {
+                        container.innerHTML = `
+                            <div class="alert alert-error">
+                                <p>Error loading collaboration page: ${error.message}</p>
+                                <button class="btn btn-primary" onclick="window.location.reload()">Refresh</button>
+                            </div>
+                        `;
+                    }
+                }
+            })();
+        }
+
+        // Start initialization when DOM is ready
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', initializeCollaboration);
+        } else {
+            // DOM already loaded
+            initializeCollaboration();
+        }
+            
+            // Handle hash changes for navigation
+            window.addEventListener('hashchange', function() {
+                const hash = window.location.hash;
+                if (hash === '#collaboration' || hash === '#collaboration-models' || !hash) {
+                    // Show main content, hide others
+                    document.getElementById('collaborationModelsContent').style.display = 'block';
+                    document.getElementById('collaborationCategoryContent').style.display = 'none';
+                    document.getElementById('createCollaborationContent').style.display = 'none';
+                    
+                    // Re-render if UI is initialized
+                    if (window.CollaborationModelsUI && window.CollaborationModelsUI.renderModelSelection) {
+                        window.CollaborationModelsUI.renderModelSelection();
+                    }
+                } else if (hash.startsWith('#collaboration-models/')) {
+                    // Show category detail
+                    const categoryId = hash.split('/')[1];
+                    document.getElementById('collaborationModelsContent').style.display = 'none';
+                    document.getElementById('collaborationCategoryContent').style.display = 'block';
+                    document.getElementById('createCollaborationContent').style.display = 'none';
+                    
+                    if (window.CollaborationModelsUI && window.CollaborationModelsUI.viewCategory) {
+                        window.CollaborationModelsUI.viewCategory(categoryId);
+                    }
+                } else if (hash === '#create-collaboration') {
+                    // Show create form
+                    document.getElementById('collaborationModelsContent').style.display = 'none';
+                    document.getElementById('collaborationCategoryContent').style.display = 'none';
+                    document.getElementById('createCollaborationContent').style.display = 'block';
+                }
+            });
+    </script>
+</body>
+</html>

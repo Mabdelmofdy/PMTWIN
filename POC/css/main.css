@@ -4045,3 +4045,478 @@ select.form-control {
   background: var(--bg-secondary);
 }
 
+/* ============================================
+   Create Project Page Enhancements
+   ============================================ */
+
+/* Enhanced Tab Container */
+.tab-container {
+  margin-bottom: var(--spacing-8);
+}
+
+/* Modern Tab Navigation */
+.tab-nav {
+  display: flex;
+  gap: var(--spacing-2);
+  margin-bottom: var(--spacing-6);
+  padding: var(--spacing-3);
+  background: var(--color-gray-100);
+  border-radius: var(--border-radius-lg);
+  overflow-x: auto;
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-gray-300) transparent;
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.tab-nav::-webkit-scrollbar {
+  height: 6px;
+}
+
+.tab-nav::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.tab-nav::-webkit-scrollbar-thumb {
+  background: var(--color-gray-300);
+  border-radius: 3px;
+}
+
+.tab-nav::-webkit-scrollbar-thumb:hover {
+  background: var(--color-gray-400);
+}
+
+/* Enhanced Tab Navigation Items */
+.tab-nav-item {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2);
+  padding: var(--spacing-3) var(--spacing-5);
+  background: var(--bg-primary);
+  border: none;
+  border-radius: var(--border-radius-md);
+  color: var(--text-secondary);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  cursor: pointer;
+  transition: all var(--transition-base);
+  white-space: nowrap;
+  position: relative;
+  flex-shrink: 0;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.tab-nav-item i {
+  font-size: var(--font-size-lg);
+  transition: all var(--transition-fast);
+  color: inherit;
+}
+
+.tab-nav-item:hover {
+  background: var(--color-gray-50);
+  color: var(--text-primary);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+}
+
+.tab-nav-item:hover i {
+  color: var(--text-primary);
+}
+
+.tab-nav-item.active {
+  background: var(--color-primary);
+  color: var(--text-inverse);
+  box-shadow: 0 4px 12px rgba(0, 102, 204, 0.4), 0 2px 4px rgba(0, 102, 204, 0.2);
+  font-weight: var(--font-weight-semibold);
+  transform: translateY(-1px);
+}
+
+.tab-nav-item.active::after {
+  content: '';
+  position: absolute;
+  bottom: -3px;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: var(--color-primary-dark);
+  border-radius: 0 0 var(--border-radius-md) var(--border-radius-md);
+  box-shadow: 0 2px 4px rgba(0, 102, 204, 0.3);
+}
+
+.tab-nav-item.active i {
+  color: var(--text-inverse);
+  filter: brightness(1.2);
+}
+
+/* Tab Badge */
+.tab-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 20px;
+  height: 20px;
+  padding: 0 var(--spacing-1);
+  background: var(--color-error);
+  color: var(--text-inverse);
+  border-radius: var(--border-radius-full);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-bold);
+  margin-left: var(--spacing-1);
+  animation: pulse 2s ease-in-out infinite;
+  box-shadow: 0 2px 4px rgba(204, 0, 0, 0.3);
+}
+
+.tab-nav-item.active .tab-badge {
+  background: var(--text-inverse);
+  color: var(--color-error);
+  box-shadow: 0 2px 4px rgba(255, 255, 255, 0.3);
+}
+
+/* Enhanced Tab Progress */
+.tab-progress {
+  margin-bottom: var(--spacing-6);
+  padding: var(--spacing-4);
+  background: linear-gradient(135deg, rgba(0, 102, 204, 0.05) 0%, rgba(0, 102, 204, 0.02) 100%);
+  border-radius: var(--border-radius-md);
+  border: 1px solid rgba(0, 102, 204, 0.1);
+}
+
+.tab-progress-text {
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-primary);
+  background: var(--bg-primary);
+  padding: var(--spacing-2) var(--spacing-4);
+  border-radius: var(--border-radius-full);
+  display: inline-block;
+}
+
+.tab-progress-bar {
+  width: 100%;
+  height: 8px;
+  background: var(--bg-secondary);
+  border-radius: var(--border-radius-full);
+  overflow: hidden;
+  margin-top: var(--spacing-3);
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.06);
+}
+
+.tab-progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--color-primary) 0%, var(--color-primary-light) 50%, var(--color-primary) 100%);
+  background-size: 200% 100%;
+  border-radius: var(--border-radius-full);
+  transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 2px 8px rgba(0, 102, 204, 0.4);
+  animation: shimmer 2s ease-in-out infinite;
+}
+
+@keyframes shimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+/* Enhanced Tab Content */
+.tab-content {
+  display: none;
+  animation: fadeInUp 0.4s ease-out;
+  padding: var(--spacing-6) 0;
+}
+
+.tab-content.active {
+  display: block;
+}
+
+.tab-content h2 {
+  font-size: var(--font-size-2xl);
+  font-weight: var(--font-weight-bold);
+  color: var(--text-primary);
+  margin-bottom: var(--spacing-6);
+  padding-bottom: var(--spacing-3);
+  border-bottom: 3px solid var(--color-primary);
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-3);
+}
+
+.tab-content h2::before {
+  content: '';
+  width: 4px;
+  height: 32px;
+  background: linear-gradient(180deg, var(--color-primary) 0%, var(--color-primary-light) 100%);
+  border-radius: 2px;
+}
+
+/* Enhanced Form Groups */
+.tab-content .form-group {
+  margin-bottom: var(--spacing-6);
+}
+
+.tab-content .form-label {
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-semibold);
+  color: var(--text-primary);
+  margin-bottom: var(--spacing-3);
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2);
+}
+
+.tab-content .form-label::before {
+  content: '';
+  width: 3px;
+  height: 16px;
+  background: var(--color-primary);
+  border-radius: 2px;
+  opacity: 0.6;
+}
+
+.tab-content .form-control {
+  padding: var(--spacing-4) var(--spacing-5);
+  font-size: var(--font-size-base);
+  border: 2px solid var(--border-color);
+  border-radius: var(--border-radius-md);
+  transition: all var(--transition-base);
+  background: var(--bg-primary);
+}
+
+.tab-content .form-control:focus {
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 4px rgba(0, 102, 204, 0.1);
+  transform: translateY(-1px);
+}
+
+.tab-content .form-control:hover:not(:focus) {
+  border-color: var(--color-gray-400);
+}
+
+.tab-content textarea.form-control {
+  min-height: 140px;
+  resize: vertical;
+  line-height: 1.6;
+}
+
+.tab-content select.form-control {
+  cursor: pointer;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 16 16'%3E%3Cpath fill='%230066CC' d='M8 11L3 6h10z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right var(--spacing-4) center;
+  background-size: 16px;
+  padding-right: var(--spacing-12);
+}
+
+.tab-content .form-text {
+  margin-top: var(--spacing-2);
+  font-size: var(--font-size-sm);
+  color: var(--text-secondary);
+  line-height: 1.5;
+  padding-left: var(--spacing-5);
+}
+
+/* Enhanced Tab Actions */
+.tab-actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: var(--spacing-6) 0;
+  margin-top: var(--spacing-8);
+  border-top: 2px solid var(--bg-secondary);
+  gap: var(--spacing-4);
+}
+
+.tab-actions-left,
+.tab-actions-right {
+  display: flex;
+  gap: var(--spacing-3);
+  align-items: center;
+}
+
+.tab-actions .btn {
+  padding: var(--spacing-4) var(--spacing-8);
+  font-weight: var(--font-weight-semibold);
+  border-radius: var(--border-radius-md);
+  transition: all var(--transition-base);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.tab-actions .btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.tab-actions .btn:active {
+  transform: translateY(0);
+}
+
+.tab-actions .btn-primary {
+  background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-light) 100%);
+  border: none;
+}
+
+.tab-actions .btn-primary:hover {
+  background: linear-gradient(135deg, var(--color-primary-dark) 0%, var(--color-primary) 100%);
+}
+
+.tab-actions .btn-secondary {
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+  border: 2px solid var(--border-color);
+}
+
+.tab-actions .btn-secondary:hover {
+  background: var(--bg-tertiary);
+  border-color: var(--color-gray-400);
+}
+
+/* Enhanced Project Type Selection Card */
+#projectMode {
+  padding: var(--spacing-4) var(--spacing-5);
+  font-size: var(--font-size-base);
+  border: 2px solid var(--border-color);
+  border-radius: var(--border-radius-md);
+  background: var(--bg-primary);
+  cursor: pointer;
+  transition: all var(--transition-base);
+}
+
+#projectMode:focus {
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 4px rgba(0, 102, 204, 0.1);
+}
+
+/* Enhanced Card Styling for Create Project */
+.create-project .card {
+  border-radius: var(--border-radius-lg);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  border: 1px solid rgba(0, 102, 204, 0.1);
+  transition: all var(--transition-base);
+}
+
+.create-project .card:hover {
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
+  transform: translateY(-2px);
+}
+
+.create-project .card-body {
+  padding: var(--spacing-8);
+}
+
+.create-project .card h2 {
+  font-size: var(--font-size-2xl);
+  font-weight: var(--font-weight-bold);
+  color: var(--text-primary);
+  margin-bottom: var(--spacing-6);
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-3);
+}
+
+.create-project .card h2::before {
+  content: '';
+  width: 4px;
+  height: 32px;
+  background: linear-gradient(180deg, var(--color-primary) 0%, var(--color-primary-light) 100%);
+  border-radius: 2px;
+}
+
+/* Enhanced Grid Layouts */
+.tab-content [style*="grid-template-columns"] {
+  gap: var(--spacing-6) !important;
+}
+
+/* Enhanced Sub-Project Container */
+#subProjectsContainer {
+  border: 2px solid var(--color-primary);
+  border-radius: var(--border-radius-lg);
+  background: linear-gradient(135deg, rgba(0, 102, 204, 0.03) 0%, rgba(255, 255, 255, 1) 100%);
+}
+
+#subProjectsContainer .card-body {
+  padding: var(--spacing-6);
+}
+
+#addSubProjectBtn {
+  background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-light) 100%);
+  border: none;
+  box-shadow: 0 4px 12px rgba(0, 102, 204, 0.3);
+  transition: all var(--transition-base);
+}
+
+#addSubProjectBtn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(0, 102, 204, 0.4);
+}
+
+/* Enhanced Review Tab */
+#tab-review .card {
+  background: linear-gradient(135deg, rgba(0, 102, 204, 0.02) 0%, rgba(255, 255, 255, 1) 100%);
+  border: 2px solid rgba(0, 102, 204, 0.1);
+}
+
+#projectSummary {
+  font-size: var(--font-size-base);
+  line-height: 1.8;
+}
+
+#projectSummary p {
+  margin-bottom: var(--spacing-3);
+  color: var(--text-secondary);
+}
+
+/* Responsive Enhancements */
+@media (max-width: 768px) {
+  .tab-nav {
+    gap: var(--spacing-1);
+    padding: var(--spacing-1);
+  }
+
+  .tab-nav-item {
+    padding: var(--spacing-2) var(--spacing-3);
+    font-size: var(--font-size-xs);
+  }
+
+  .tab-nav-item span {
+    display: none;
+  }
+
+  .tab-nav-item i {
+    font-size: var(--font-size-xl);
+  }
+
+  .tab-actions {
+    flex-direction: column;
+    gap: var(--spacing-3);
+  }
+
+  .tab-actions-left,
+  .tab-actions-right {
+    width: 100%;
+    justify-content: stretch;
+  }
+
+  .tab-actions .btn {
+    flex: 1;
+    width: 100%;
+  }
+
+  .tab-content h2 {
+    font-size: var(--font-size-xl);
+  }
+
+  .create-project .card-body {
+    padding: var(--spacing-5);
+  }
+}
+
+@media (max-width: 480px) {
+  .tab-progress {
+    padding: var(--spacing-3);
+  }
+
+  .tab-content {
+    padding: var(--spacing-4) 0;
+  }
+
+  .tab-content .form-control {
+    padding: var(--spacing-3) var(--spacing-4);
+  }
+}
+
