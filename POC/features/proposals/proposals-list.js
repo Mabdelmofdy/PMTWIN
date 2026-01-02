@@ -23,18 +23,53 @@
     try {
       container.innerHTML = '<p>Loading proposals...</p>';
 
-      let result;
+      let proposals = [];
+      
+      // Try ProposalService first
       if (typeof ProposalService !== 'undefined') {
-        result = await ProposalService.getProposals(currentFilters);
+        const result = await ProposalService.getProposals(currentFilters);
+        if (result.success && result.proposals) {
+          proposals = result.proposals;
+        } else {
+          container.innerHTML = `<p class="alert alert-error">${result.error || 'Failed to load proposals'}</p>`;
+          return;
+        }
+      } else if (typeof PMTwinData !== 'undefined') {
+        // Fallback to direct data access
+        const currentUser = PMTwinData.Sessions.getCurrentUser();
+        if (!currentUser) {
+          container.innerHTML = '<p class="alert alert-error">User not authenticated</p>';
+          return;
+        }
+        
+        // Get proposals based on user role and filters
+        if (currentUser.role === 'admin') {
+          proposals = PMTwinData.Proposals.getAll();
+        } else {
+          // Get proposals for user's projects or user's proposals
+          const userProjects = PMTwinData.Projects.getByCreator(currentUser.id);
+          const projectIds = userProjects.map(p => p.id);
+          proposals = PMTwinData.Proposals.getAll().filter(p => 
+            projectIds.includes(p.projectId) || p.providerId === currentUser.id
+          );
+        }
+        
+        // Apply filters
+        if (currentFilters.status) {
+          proposals = proposals.filter(p => p.status === currentFilters.status);
+        }
+        if (currentFilters.projectId) {
+          proposals = proposals.filter(p => p.projectId === currentFilters.projectId);
+        }
       } else {
-        container.innerHTML = '<p class="alert alert-error">Proposal service not available</p>';
+        container.innerHTML = '<p class="alert alert-error">Data service not available. Please refresh the page.</p>';
         return;
       }
 
-      if (result.success && result.proposals) {
-        renderProposals(container, result.proposals);
+      if (proposals.length > 0 || !currentFilters.status) {
+        renderProposals(container, proposals);
       } else {
-        container.innerHTML = `<p class="alert alert-error">${result.error || 'Failed to load proposals'}</p>`;
+        renderProposals(container, proposals);
       }
     } catch (error) {
       console.error('Error loading proposals:', error);
@@ -136,6 +171,7 @@
     
     proposals.forEach(proposal => {
       const project = PMTwinData?.Projects.getById(proposal.projectId);
+      const provider = PMTwinData?.Users.getById(proposal.providerId);
       const statusColors = {
         'approved': 'success',
         'rejected': 'error',
@@ -143,33 +179,68 @@
         'completed': 'info'
       };
       
+      // Format dates
+      const submittedDate = proposal.submittedAt ? new Date(proposal.submittedAt).toLocaleDateString() : 'N/A';
+      const commentsCount = proposal.comments ? proposal.comments.length : 0;
+      
       html += `
         <div class="card">
           <div class="card-body">
             <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 1rem;">
-              <div>
+              <div style="flex: 1;">
                 <h3 style="margin: 0 0 0.5rem 0;">${project?.title || 'Project ' + proposal.projectId}</h3>
-                <p style="margin: 0; color: var(--text-secondary);">
-                  Type: ${proposal.type || 'N/A'} • Total: ${proposal.total ? proposal.total.toLocaleString() + ' ' + (proposal.currency || 'SAR') : 'N/A'}
+                <p style="margin: 0; color: var(--text-secondary); font-size: 0.9rem;">
+                  <strong>Type:</strong> ${proposal.type || 'N/A'} • 
+                  <strong>Total:</strong> ${proposal.total ? proposal.total.toLocaleString() + ' ' + (proposal.currency || 'SAR') : 'N/A'} • 
+                  <strong>Submitted:</strong> ${submittedDate}
                 </p>
+                ${provider ? `<p style="margin: 0.25rem 0 0 0; color: var(--text-secondary); font-size: 0.85rem;">
+                  <strong>Provider:</strong> ${provider.profile?.name || provider.email || 'Unknown'}
+                </p>` : ''}
               </div>
-              <span class="badge badge-${statusColors[proposal.status] || 'secondary'}">
-                ${proposal.status || 'unknown'}
+              <span class="badge badge-${statusColors[proposal.status] || 'secondary'}" style="margin-left: 1rem;">
+                ${(proposal.status || 'unknown').replace('_', ' ').toUpperCase()}
               </span>
             </div>
             
-            <p style="margin-bottom: 1rem;">${(proposal.serviceDescription || '').substring(0, 200)}...</p>
+            <p style="margin-bottom: 1rem; color: var(--text-primary);">
+              ${(proposal.serviceDescription || 'No description available').substring(0, 200)}${(proposal.serviceDescription || '').length > 200 ? '...' : ''}
+            </p>
             
-            <div style="display: flex; gap: 1rem;">
+            ${commentsCount > 0 ? `
+              <div style="background: var(--bg-secondary, #f5f5f5); padding: 0.75rem; border-radius: var(--radius, 4px); margin-bottom: 1rem;">
+                <p style="margin: 0; font-size: 0.9rem; color: var(--text-secondary);">
+                  <i class="ph ph-chat-circle"></i> <strong>${commentsCount}</strong> comment${commentsCount !== 1 ? 's' : ''}
+                </p>
+                ${proposal.comments && proposal.comments.length > 0 ? `
+                  <div style="margin-top: 0.5rem; padding-top: 0.5rem; border-top: 1px solid var(--border-color, #e0e0e0);">
+                    <div style="font-size: 0.85rem; color: var(--text-secondary);">
+                      <strong>${proposal.comments[proposal.comments.length - 1].addedByName || 'User'}:</strong> 
+                      "${(proposal.comments[proposal.comments.length - 1].comment || '').substring(0, 100)}${(proposal.comments[proposal.comments.length - 1].comment || '').length > 100 ? '...' : ''}"
+                    </div>
+                  </div>
+                ` : ''}
+              </div>
+            ` : ''}
+            
+            ${proposal.rejectionReason ? `
+              <div style="background: #fee; padding: 0.75rem; border-radius: var(--radius, 4px); margin-bottom: 1rem; border-left: 3px solid var(--color-danger, #dc3545);">
+                <p style="margin: 0; font-size: 0.9rem; color: var(--color-danger, #dc3545);">
+                  <strong>Rejection Reason:</strong> ${proposal.rejectionReason}
+                </p>
+              </div>
+            ` : ''}
+            
+            <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
               <button onclick="proposalsListComponent.viewProposal('${proposal.id}')" class="btn btn-primary btn-sm">
-                View Details
+                <i class="ph ph-eye"></i> View Details
               </button>
-              ${proposal.status === 'in_review' ? `
+              ${proposal.status === 'in_review' && (typeof PMTwinData !== 'undefined' && PMTwinData.Sessions.getCurrentUser()?.id === project?.creatorId) ? `
                 <button onclick="proposalsListComponent.approveProposal('${proposal.id}')" class="btn btn-success btn-sm">
-                  Approve
+                  <i class="ph ph-check"></i> Approve
                 </button>
                 <button onclick="proposalsListComponent.rejectProposal('${proposal.id}')" class="btn btn-danger btn-sm">
-                  Reject
+                  <i class="ph ph-x"></i> Reject
                 </button>
               ` : ''}
             </div>

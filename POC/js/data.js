@@ -91,6 +91,9 @@
     
     // Load sample collaboration opportunities if none exist
     loadSampleCollaborationOpportunities();
+    
+    // Load sample proposals if none exist
+    loadSampleProposals();
   }
 
   // ============================================
@@ -2525,6 +2528,450 @@
   };
 
   // ============================================
+  // Load Sample Proposals
+  // ============================================
+  function loadSampleProposals(forceReload = false) {
+    const existingProposals = Proposals.getAll();
+    
+    // Only load if no proposals exist, unless forceReload is true
+    if (existingProposals.length > 0 && !forceReload) {
+      return;
+    }
+
+    // Get test users and projects
+    const users = Users.getAll();
+    const projects = Projects.getAll();
+    
+    if (projects.length === 0) {
+      console.warn('No projects found for proposals. Please load sample projects first.');
+      return;
+    }
+
+    const testProviders = users.filter(u => ['entity', 'company', 'individual', 'consultant'].includes(u.role));
+    if (testProviders.length === 0) {
+      console.warn('No test providers found for proposals');
+      return;
+    }
+
+    // Get project creators
+    const projectCreators = users.filter(u => projects.some(p => p.creatorId === u.id));
+    
+    const sampleProposals = [
+      // Proposal 1: In Review
+      {
+        projectId: projects[0]?.id || 'project-1',
+        providerId: testProviders[0]?.id || 'user-1',
+        type: 'cash',
+        serviceDescription: 'Comprehensive structural engineering services including foundation design, seismic analysis, and shop drawing review. Our team of 3 senior engineers will ensure compliance with Saudi Building Code and international standards.',
+        pricing: [
+          {
+            id: 'item_1',
+            item: 'Structural Design Services',
+            description: 'Complete structural design and calculations',
+            quantity: 1,
+            unit: 'project',
+            unitPrice: 500000,
+            total: 500000
+          },
+          {
+            id: 'item_2',
+            item: 'Shop Drawing Review',
+            description: 'Review and approval of contractor shop drawings',
+            quantity: 1,
+            unit: 'project',
+            unitPrice: 150000,
+            total: 150000
+          },
+          {
+            id: 'item_3',
+            item: 'Site Supervision',
+            description: 'Monthly site visits and quality control',
+            quantity: 12,
+            unit: 'months',
+            unitPrice: 25000,
+            total: 300000
+          }
+        ],
+        subtotal: 950000,
+        taxes: {
+          vat: 142500,
+          other: 0
+        },
+        total: 1092500,
+        currency: 'SAR',
+        timeline: {
+          startDate: '2024-03-01',
+          completionDate: '2024-08-01',
+          duration: 5,
+          milestones: [
+            { name: 'Design Phase Complete', date: '2024-05-01', paymentPercentage: 40 },
+            { name: 'Shop Drawing Review Complete', date: '2024-07-01', paymentPercentage: 40 },
+            { name: 'Final Handover', date: '2024-08-01', paymentPercentage: 20 }
+          ]
+        },
+        terms: {
+          paymentSchedule: 'Milestone-based payments as outlined above',
+          deliverables: [
+            'Complete structural designs',
+            'Shop drawing review reports',
+            'Site inspection reports'
+          ],
+          warranties: '12-month warranty on all designs',
+          penalties: '5% penalty for delays exceeding 30 days'
+        },
+        attachments: [
+          {
+            fileName: 'technical_proposal.pdf',
+            fileSize: 2048000,
+            uploadedAt: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString()
+          },
+          {
+            fileName: 'company_profile.pdf',
+            fileSize: 1536000,
+            uploadedAt: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString()
+          }
+        ],
+        status: 'in_review',
+        submittedAt: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(),
+        comments: [
+          {
+            id: 'comment_1',
+            comment: 'Thank you for your proposal. We are currently reviewing all submissions and will get back to you within 2 weeks.',
+            addedBy: projectCreators[0]?.id || 'user-1',
+            addedByName: projectCreators[0]?.profile?.name || 'Project Owner',
+            addedAt: new Date(Date.now() - 4 * 24 * 60 * 60 * 1000).toISOString()
+          },
+          {
+            id: 'comment_2',
+            comment: 'We have extensive experience with similar projects in the GCC region. Please let us know if you need any additional information.',
+            addedBy: testProviders[0]?.id || 'user-1',
+            addedByName: testProviders[0]?.profile?.name || 'Provider',
+            addedAt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString()
+          }
+        ]
+      },
+      // Proposal 2: Approved
+      {
+        projectId: projects[0]?.id || 'project-1',
+        providerId: testProviders[1]?.id || testProviders[0]?.id || 'user-1',
+        type: 'cash',
+        serviceDescription: 'Expert MEP design and engineering services with focus on energy efficiency and sustainability. Our team includes LEED-certified engineers with 15+ years of experience.',
+        pricing: [
+          {
+            id: 'item_1',
+            item: 'MEP Design Services',
+            description: 'Complete MEP design including HVAC, electrical, and plumbing',
+            quantity: 1,
+            unit: 'project',
+            unitPrice: 800000,
+            total: 800000
+          },
+          {
+            id: 'item_2',
+            item: 'Energy Analysis',
+            description: 'Energy modeling and optimization',
+            quantity: 1,
+            unit: 'project',
+            unitPrice: 200000,
+            total: 200000
+          }
+        ],
+        subtotal: 1000000,
+        taxes: {
+          vat: 150000,
+          other: 0
+        },
+        total: 1150000,
+        currency: 'SAR',
+        timeline: {
+          startDate: '2024-03-15',
+          completionDate: '2024-09-15',
+          duration: 6,
+          milestones: [
+            { name: 'Design Phase Complete', date: '2024-06-15', paymentPercentage: 50 },
+            { name: 'Final Handover', date: '2024-09-15', paymentPercentage: 50 }
+          ]
+        },
+        terms: {
+          paymentSchedule: 'Milestone-based payments',
+          deliverables: [
+            'Complete MEP designs',
+            'Energy analysis report',
+            'As-built drawings'
+          ],
+          warranties: '18-month warranty on all designs'
+        },
+        attachments: [
+          {
+            fileName: 'mep_proposal.pdf',
+            fileSize: 3072000,
+            uploadedAt: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000).toISOString()
+          }
+        ],
+        status: 'approved',
+        submittedAt: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000).toISOString(),
+        approvedAt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(),
+        comments: [
+          {
+            id: 'comment_3',
+            comment: 'Excellent proposal with strong technical approach. We appreciate the focus on energy efficiency.',
+            addedBy: projectCreators[0]?.id || 'user-1',
+            addedByName: projectCreators[0]?.profile?.name || 'Project Owner',
+            addedAt: new Date(Date.now() - 8 * 24 * 60 * 60 * 1000).toISOString()
+          },
+          {
+            id: 'comment_4',
+            comment: 'Thank you! We are excited to work on this project. We will begin preparations immediately.',
+            addedBy: testProviders[1]?.id || testProviders[0]?.id || 'user-1',
+            addedByName: testProviders[1]?.profile?.name || testProviders[0]?.profile?.name || 'Provider',
+            addedAt: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString()
+          },
+          {
+            id: 'comment_5',
+            comment: 'Proposal approved. Contract will be sent for signature within 2 business days.',
+            addedBy: projectCreators[0]?.id || 'user-1',
+            addedByName: projectCreators[0]?.profile?.name || 'Project Owner',
+            addedAt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString()
+          }
+        ]
+      },
+      // Proposal 3: Rejected
+      {
+        projectId: projects[0]?.id || 'project-1',
+        providerId: testProviders[2]?.id || testProviders[0]?.id || 'user-1',
+        type: 'cash',
+        serviceDescription: 'General construction services with focus on quality and timely delivery.',
+        pricing: [
+          {
+            id: 'item_1',
+            item: 'Construction Services',
+            description: 'Full construction services',
+            quantity: 1,
+            unit: 'project',
+            unitPrice: 5000000,
+            total: 5000000
+          }
+        ],
+        subtotal: 5000000,
+        taxes: {
+          vat: 750000,
+          other: 0
+        },
+        total: 5750000,
+        currency: 'SAR',
+        timeline: {
+          startDate: '2024-04-01',
+          completionDate: '2025-04-01',
+          duration: 12,
+          milestones: [
+            { name: 'Foundation Complete', date: '2024-07-01', paymentPercentage: 30 },
+            { name: 'Structure Complete', date: '2024-12-01', paymentPercentage: 40 },
+            { name: 'Final Handover', date: '2025-04-01', paymentPercentage: 30 }
+          ]
+        },
+        terms: {
+          paymentSchedule: 'Milestone-based payments',
+          deliverables: ['Completed construction project']
+        },
+        attachments: [
+          {
+            fileName: 'construction_proposal.pdf',
+            fileSize: 4096000,
+            uploadedAt: new Date(Date.now() - 12 * 24 * 60 * 60 * 1000).toISOString()
+          }
+        ],
+        status: 'rejected',
+        submittedAt: new Date(Date.now() - 12 * 24 * 60 * 60 * 1000).toISOString(),
+        rejectedAt: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(),
+        rejectionReason: 'Proposal does not meet the technical requirements specified in the project scope.',
+        comments: [
+          {
+            id: 'comment_6',
+            comment: 'Thank you for your interest. However, after careful review, we have decided to proceed with another proposal that better aligns with our technical requirements.',
+            addedBy: projectCreators[0]?.id || 'user-1',
+            addedByName: projectCreators[0]?.profile?.name || 'Project Owner',
+            addedAt: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString()
+          }
+        ]
+      },
+      // Proposal 4: In Review (Different Project)
+      {
+        projectId: projects[1]?.id || projects[0]?.id || 'project-1',
+        providerId: testProviders[0]?.id || 'user-1',
+        type: 'barter',
+        serviceDescription: 'We offer architectural design services in exchange for construction materials. Our team specializes in sustainable building design.',
+        barterOffer: {
+          servicesOffered: ['Architectural Design', '3D Visualization', 'Interior Design'],
+          servicesNeeded: ['Construction Materials', 'Steel Beams', 'Cement'],
+          estimatedValue: 600000,
+          currency: 'SAR'
+        },
+        timeline: {
+          startDate: '2024-04-01',
+          completionDate: '2024-10-01',
+          duration: 6,
+          milestones: [
+            { name: 'Concept Design Complete', date: '2024-06-01', paymentPercentage: 30 },
+            { name: 'Detailed Design Complete', date: '2024-08-01', paymentPercentage: 40 },
+            { name: 'Final Deliverables', date: '2024-10-01', paymentPercentage: 30 }
+          ]
+        },
+        terms: {
+          paymentSchedule: 'Barter exchange: Materials to be provided at project milestones',
+          deliverables: [
+            'Complete architectural designs',
+            '3D renderings',
+            'Construction documents'
+          ]
+        },
+        attachments: [
+          {
+            fileName: 'barter_proposal.pdf',
+            fileSize: 2560000,
+            uploadedAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString()
+          }
+        ],
+        status: 'in_review',
+        submittedAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
+        comments: [
+          {
+            id: 'comment_7',
+            comment: 'Interesting barter proposal. We need to evaluate the materials we can provide. Will get back to you soon.',
+            addedBy: projectCreators[1]?.id || projectCreators[0]?.id || 'user-1',
+            addedByName: projectCreators[1]?.profile?.name || projectCreators[0]?.profile?.name || 'Project Owner',
+            addedAt: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString()
+          }
+        ]
+      },
+      // Proposal 5: Completed
+      {
+        projectId: projects[1]?.id || projects[0]?.id || 'project-1',
+        providerId: testProviders[1]?.id || testProviders[0]?.id || 'user-1',
+        type: 'cash',
+        serviceDescription: 'Quantity surveying services including bill of quantities, cost estimation, and contract administration.',
+        pricing: [
+          {
+            id: 'item_1',
+            item: 'Bill of Quantities',
+            description: 'Detailed BOQ preparation',
+            quantity: 1,
+            unit: 'project',
+            unitPrice: 150000,
+            total: 150000
+          },
+          {
+            id: 'item_2',
+            item: 'Cost Estimation',
+            description: 'Detailed cost estimation and analysis',
+            quantity: 1,
+            unit: 'project',
+            unitPrice: 100000,
+            total: 100000
+          }
+        ],
+        subtotal: 250000,
+        taxes: {
+          vat: 37500,
+          other: 0
+        },
+        total: 287500,
+        currency: 'SAR',
+        timeline: {
+          startDate: '2024-01-01',
+          completionDate: '2024-02-15',
+          duration: 1.5,
+          milestones: [
+            { name: 'BOQ Complete', date: '2024-01-20', paymentPercentage: 60 },
+            { name: 'Final Deliverables', date: '2024-02-15', paymentPercentage: 40 }
+          ]
+        },
+        terms: {
+          paymentSchedule: 'Milestone-based payments',
+          deliverables: [
+            'Complete Bill of Quantities',
+            'Cost estimation report',
+            'Tender documentation'
+          ]
+        },
+        attachments: [
+          {
+            fileName: 'qs_proposal.pdf',
+            fileSize: 1536000,
+            uploadedAt: new Date(Date.now() - 60 * 24 * 60 * 60 * 1000).toISOString()
+          }
+        ],
+        status: 'completed',
+        submittedAt: new Date(Date.now() - 60 * 24 * 60 * 60 * 1000).toISOString(),
+        approvedAt: new Date(Date.now() - 55 * 24 * 60 * 60 * 1000).toISOString(),
+        completedAt: new Date(Date.now() - 20 * 24 * 60 * 60 * 1000).toISOString(),
+        comments: [
+          {
+            id: 'comment_8',
+            comment: 'Proposal looks good. Approved!',
+            addedBy: projectCreators[1]?.id || projectCreators[0]?.id || 'user-1',
+            addedByName: projectCreators[1]?.profile?.name || projectCreators[0]?.profile?.name || 'Project Owner',
+            addedAt: new Date(Date.now() - 55 * 24 * 60 * 60 * 1000).toISOString()
+          },
+          {
+            id: 'comment_9',
+            comment: 'Work completed successfully. All deliverables have been submitted. Thank you for the opportunity!',
+            addedBy: testProviders[1]?.id || testProviders[0]?.id || 'user-1',
+            addedByName: testProviders[1]?.profile?.name || testProviders[0]?.profile?.name || 'Provider',
+            addedAt: new Date(Date.now() - 20 * 24 * 60 * 60 * 1000).toISOString()
+          },
+          {
+            id: 'comment_10',
+            comment: 'Excellent work! All deliverables received and reviewed. Project marked as completed.',
+            addedBy: projectCreators[1]?.id || projectCreators[0]?.id || 'user-1',
+            addedByName: projectCreators[1]?.profile?.name || projectCreators[0]?.profile?.name || 'Project Owner',
+            addedAt: new Date(Date.now() - 19 * 24 * 60 * 60 * 1000).toISOString()
+          }
+        ]
+      }
+    ];
+
+    if (forceReload) {
+      // Clear existing proposals
+      set(STORAGE_KEYS.PROPOSALS, []);
+    }
+
+    let loaded = 0;
+    sampleProposals.forEach(propData => {
+      // Check if proposal already exists (by project and provider combination)
+      const existing = Proposals.getAll().find(p => 
+        p.projectId === propData.projectId && 
+        p.providerId === propData.providerId &&
+        p.type === propData.type
+      );
+      
+      if (!existing) {
+        const proposal = Proposals.create(propData);
+        if (proposal) {
+          // Update status and comments if needed (since create sets status to in_review)
+          if (propData.status && propData.status !== 'in_review') {
+            const updates = { 
+              status: propData.status,
+              comments: propData.comments || []
+            };
+            if (propData.approvedAt) updates.approvedAt = propData.approvedAt;
+            if (propData.rejectedAt) updates.rejectedAt = propData.rejectedAt;
+            if (propData.completedAt) updates.completedAt = propData.completedAt;
+            if (propData.rejectionReason) updates.rejectionReason = propData.rejectionReason;
+            Proposals.update(proposal.id, updates);
+          } else if (propData.comments) {
+            Proposals.update(proposal.id, { comments: propData.comments });
+          }
+          loaded++;
+        }
+      }
+    });
+
+    if (loaded > 0) {
+      console.log(`✅ Loaded ${loaded} sample proposals`);
+    }
+  }
+
+  // ============================================
   // Matches CRUD
   // ============================================
   const Matches = {
@@ -4055,7 +4502,8 @@
     generateOTP,
     checkFeatureAccess,
     loadSampleNotifications: () => loadSampleNotifications(true),
-    loadSampleCollaborationOpportunities: () => loadSampleCollaborationOpportunities(true)
+    loadSampleCollaborationOpportunities: () => loadSampleCollaborationOpportunities(true),
+    loadSampleProposals: () => loadSampleProposals(true)
   };
 
   // Initialize on load

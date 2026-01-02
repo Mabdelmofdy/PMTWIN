@@ -45,11 +45,11 @@
         }
         
         .settings-panel {
-            display: none;
+            display: none !important;
         }
         
         .settings-panel.active {
-            display: block;
+            display: block !important;
         }
         
         .settings-section {
@@ -846,7 +846,13 @@
                 }
                 
                 // Get current user
-                const currentUser = Auth.getCurrentUser();
+                let currentUser = null;
+                if (typeof PMTwinData !== 'undefined' && PMTwinData.Sessions) {
+                    currentUser = PMTwinData.Sessions.getCurrentUser();
+                } else if (typeof PMTwinAuth !== 'undefined' && typeof PMTwinAuth.getCurrentUser === 'function') {
+                    currentUser = PMTwinAuth.getCurrentUser();
+                }
+                
                 if (!currentUser) {
                     console.error('No current user found');
                     const container = document.getElementById('settingsContent');
@@ -872,6 +878,17 @@
                 loadActiveSessions();
                 startTimePreview();
                 setupThemeListener();
+                
+                // Debug: Verify all panels exist
+                const panelIds = ['panel-theme', 'panel-time', 'panel-display', 'panel-notifications', 'panel-account', 'panel-portal'];
+                panelIds.forEach(panelId => {
+                    const panel = document.getElementById(panelId);
+                    if (!panel) {
+                        console.error('Panel not found:', panelId);
+                    } else {
+                        console.log('Panel found:', panelId);
+                    }
+                });
             } catch (error) {
                 console.error('Error initializing settings:', error);
             }
@@ -880,21 +897,53 @@
         // Initialize tabs
         function initializeTabs() {
             const tabs = document.querySelectorAll('.settings-tab');
+            if (tabs.length === 0) {
+                console.error('No settings tabs found');
+                return;
+            }
+            
             tabs.forEach(tab => {
-                tab.addEventListener('click', () => {
+                tab.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    
                     const tabName = tab.dataset.tab;
+                    if (!tabName) {
+                        console.error('Tab missing data-tab attribute:', tab);
+                        return;
+                    }
+                    
+                    console.log('Switching to tab:', tabName);
                     
                     // Update active tab
                     tabs.forEach(t => t.classList.remove('active'));
                     tab.classList.add('active');
                     
                     // Update active panel
-                    document.querySelectorAll('.settings-panel').forEach(panel => {
+                    const panels = document.querySelectorAll('.settings-panel');
+                    panels.forEach(panel => {
                         panel.classList.remove('active');
                     });
-                    document.getElementById(`panel-${tabName}`).classList.add('active');
+                    
+                    const targetPanel = document.getElementById(`panel-${tabName}`);
+                    if (targetPanel) {
+                        targetPanel.classList.add('active');
+                        console.log('Activated panel:', `panel-${tabName}`);
+                    } else {
+                        console.error('Panel not found:', `panel-${tabName}`);
+                    }
                 });
             });
+            
+            // Ensure first tab is active on load
+            const firstTab = document.querySelector('.settings-tab.active');
+            if (firstTab) {
+                const firstTabName = firstTab.dataset.tab;
+                const firstPanel = document.getElementById(`panel-${firstTabName}`);
+                if (firstPanel) {
+                    firstPanel.classList.add('active');
+                }
+            }
         }
         
         // Populate form with current settings

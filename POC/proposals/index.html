@@ -79,11 +79,70 @@
             const isAuth = await AuthCheck.checkAuth({ requireAuth: true });
             if (!isAuth) return;
             
-            // Initialize proposals list
-            // Note: Sidebar and navbar are automatically initialized by app-init.js
-            if (window.proposals && window.proposals['proposals-list']) {
-                window.proposals['proposals-list'].init();
+            // Wait for services to load
+            let retries = 0;
+            const maxRetries = 50;
+            
+            function initializeProposals() {
+                retries++;
+                
+                // Check if ProposalService is available
+                if (typeof ProposalService !== 'undefined' && window.proposals && window.proposals['proposals-list']) {
+                    window.proposals['proposals-list'].init();
+                    return;
+                }
+                
+                // Check if servicesLoaded event was fired
+                if (window.servicesLoaded) {
+                    if (window.proposals && window.proposals['proposals-list']) {
+                        window.proposals['proposals-list'].init();
+                    }
+                    return;
+                }
+                
+                // Retry if not loaded yet
+                if (retries < maxRetries) {
+                    setTimeout(initializeProposals, 100);
+                } else {
+                    // Fallback: try to load anyway
+                    const container = document.getElementById('proposalsList');
+                    if (container && typeof PMTwinData !== 'undefined') {
+                        // Fallback to direct data access
+                        const currentUser = PMTwinData.Sessions.getCurrentUser();
+                        if (currentUser) {
+                            let proposals = [];
+                            // Try to get proposals based on user role
+                            if (currentUser.role === 'admin') {
+                                proposals = PMTwinData.Proposals.getAll();
+                            } else {
+                                // Get proposals for user's projects or user's proposals
+                                const userProjects = PMTwinData.Projects.getByCreator(currentUser.id);
+                                const projectIds = userProjects.map(p => p.id);
+                                proposals = PMTwinData.Proposals.getAll().filter(p => 
+                                    projectIds.includes(p.projectId) || p.providerId === currentUser.id
+                                );
+                            }
+                            
+                            if (window.proposals && window.proposals['proposals-list'] && window.proposals['proposals-list'].renderProposals) {
+                                window.proposals['proposals-list'].renderProposals(container, proposals);
+                            } else {
+                                container.innerHTML = '<p class="alert alert-error">Failed to initialize proposals component. Please refresh the page.</p>';
+                            }
+                        }
+                    }
+                }
             }
+            
+            // Listen for servicesLoaded event
+            window.addEventListener('servicesLoaded', function() {
+                window.servicesLoaded = true;
+                if (window.proposals && window.proposals['proposals-list']) {
+                    window.proposals['proposals-list'].init();
+                }
+            });
+            
+            // Start initialization
+            initializeProposals();
         });
     </script>
 </body>
