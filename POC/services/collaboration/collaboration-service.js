@@ -198,6 +198,44 @@
     }
   }
 
+  async function getOpportunityById(opportunityId, incrementViews = false) {
+    if (typeof PMTwinData === 'undefined') {
+      return { success: false, error: 'Data service not available' };
+    }
+    
+    try {
+      const opportunity = PMTwinData.CollaborationOpportunities.getById(opportunityId);
+      if (opportunity) {
+        // Increment views if requested
+        if (incrementViews) {
+          PMTwinData.CollaborationOpportunities.incrementViews(opportunityId);
+          // Get updated opportunity with new view count
+          const updatedOpportunity = PMTwinData.CollaborationOpportunities.getById(opportunityId);
+          return { success: true, opportunity: updatedOpportunity };
+        }
+        return { success: true, opportunity: opportunity };
+      }
+      return { success: false, error: 'Opportunity not found' };
+    } catch (error) {
+      console.error('Error getting opportunity by ID:', error);
+      return { success: false, error: 'Failed to retrieve opportunity: ' + error.message };
+    }
+  }
+
+  async function incrementOpportunityViews(opportunityId) {
+    if (typeof PMTwinData === 'undefined') {
+      return { success: false, error: 'Data service not available' };
+    }
+    
+    try {
+      PMTwinData.CollaborationOpportunities.incrementViews(opportunityId);
+      return { success: true };
+    } catch (error) {
+      console.error('Error incrementing opportunity views:', error);
+      return { success: false, error: 'Failed to increment views: ' + error.message };
+    }
+  }
+
   async function getCollaborationApplications(filters = {}) {
     if (typeof PMTwinData === 'undefined') {
       return { success: false, error: 'Data service not available' };
@@ -283,6 +321,8 @@
   window.CollaborationService = {
     createCollaborationOpportunity,
     getCollaborationOpportunities,
+    getOpportunityById,
+    incrementOpportunityViews,
     applyToCollaboration,
     getCollaborationApplications
   };

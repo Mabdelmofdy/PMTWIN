@@ -823,6 +823,12 @@
         
         // Render children (support nested groups)
         item.children.forEach(child => {
+          // Check if child is a separator
+          if (child.isSeparator) {
+            html += `<li class="sidebar-menu-separator"><hr style="margin: 0.5rem 0; border: none; border-top: 1px solid var(--border-color, #e0e0e0);"></li>`;
+            return;
+          }
+          
           // Check if child has nested children (nested group)
           if ((child.hasChildren || child.isGroup) && child.children && Array.isArray(child.children) && child.children.length > 0) {
             // Expand nested groups if they have active children, or if parent is collaboration (show all categories by default)
@@ -842,6 +848,12 @@
             
             // Render nested children
             child.children.forEach(grandchild => {
+              // Check if grandchild is a separator
+              if (grandchild.isSeparator) {
+                html += `<li class="sidebar-menu-separator"><hr style="margin: 0.5rem 0; border: none; border-top: 1px solid var(--border-color, #e0e0e0);"></li>`;
+                return;
+              }
+              
               const grandchildIsActive = activeItemId === grandchild.id;
               const grandchildIcon = grandchild.icon || child.icon || '<i class="ph ph-file-text"></i>';
               
