@@ -129,7 +129,87 @@
         o.modelId === '1.1' && (o.creatorId === currentUser.id || o.applicants?.includes(currentUser.id))
       );
       
+      // Load merchant portal statistics (service offerings)
+      let merchantStats = {};
+      let recentOfferings = [];
+      let topPerformingOfferings = [];
+      let categoryBreakdown = {};
+      let performanceMetrics = {};
+      
+      if (typeof ServiceOfferingService !== 'undefined') {
+        try {
+          const statsResult = await ServiceOfferingService.getProviderStatistics(currentUser.id);
+          if (statsResult.success && statsResult.statistics) {
+            merchantStats = statsResult.statistics;
+          }
+          
+          const offeringsResult = await ServiceOfferingService.getMyOfferings();
+          if (offeringsResult.success && offeringsResult.offerings) {
+            const allOfferings = offeringsResult.offerings;
+            
+            // Recent offerings
+            recentOfferings = allOfferings
+              .sort((a, b) => {
+                const dateA = new Date(a.updatedAt || a.createdAt || 0);
+                const dateB = new Date(b.updatedAt || b.createdAt || 0);
+                return dateB - dateA;
+              })
+              .slice(0, 5);
+            
+            // Top performing offerings (by views, inquiries, or quality score)
+            topPerformingOfferings = [...allOfferings]
+              .sort((a, b) => {
+                const scoreA = (a.views || 0) * 0.3 + (a.inquiries || 0) * 0.5 + (a.qualityScore || 0) * 0.2;
+                const scoreB = (b.views || 0) * 0.3 + (b.inquiries || 0) * 0.5 + (b.qualityScore || 0) * 0.2;
+                return scoreB - scoreA;
+              })
+              .slice(0, 3);
+            
+            // Category breakdown
+            categoryBreakdown = {};
+            allOfferings.forEach(offering => {
+              const category = offering.category || 'uncategorized';
+              if (!categoryBreakdown[category]) {
+                categoryBreakdown[category] = {
+                  count: 0,
+                  active: 0,
+                  totalViews: 0,
+                  totalInquiries: 0
+                };
+              }
+              categoryBreakdown[category].count++;
+              if (offering.status === 'Active') categoryBreakdown[category].active++;
+              categoryBreakdown[category].totalViews += (offering.views || 0);
+              categoryBreakdown[category].totalInquiries += (offering.inquiries || 0);
+            });
+            
+            // Performance metrics
+            const activeOfferings = allOfferings.filter(o => o.status === 'Active');
+            const totalViews = allOfferings.reduce((sum, o) => sum + (o.views || 0), 0);
+            const totalInquiries = allOfferings.reduce((sum, o) => sum + (o.inquiries || 0), 0);
+            const totalProposals = allOfferings.reduce((sum, o) => sum + (o.proposalsReceived || 0), 0);
+            
+            performanceMetrics = {
+              conversionRate: totalViews > 0 ? ((totalInquiries / totalViews) * 100).toFixed(1) : 0,
+              inquiryToProposalRate: totalInquiries > 0 ? ((totalProposals / totalInquiries) * 100).toFixed(1) : 0,
+              averageViewsPerOffering: activeOfferings.length > 0 ? (totalViews / activeOfferings.length).toFixed(1) : 0,
+              averageInquiriesPerOffering: activeOfferings.length > 0 ? (totalInquiries / activeOfferings.length).toFixed(1) : 0,
+              averageQualityScore: merchantStats.averageQualityScore || 0,
+              averageRating: merchantStats.averageRating || null
+            };
+          }
+        } catch (error) {
+          console.error('Error loading merchant portal data:', error);
+        }
+      }
+      
       dashboardData.stats = {
+        // Merchant portal stats (service offerings)
+        totalOfferings: merchantStats.totalOfferings || 0,
+        activeOfferings: merchantStats.activeOfferings || 0,
+        totalViews: merchantStats.totalViews || 0,
+        totalInquiries: merchantStats.totalInquiries || 0,
+        // Legacy stats
         totalProposals: userProposals.length,
         activeProposals: userProposals.filter(p => p.status === 'in_review' || p.status === 'approved').length,
         totalMatches: userMatches.length,
@@ -141,18 +221,36 @@
         ).length
       };
       
+      // Store merchant portal data for rendering
+      dashboardData.merchantPortal = {
+        recentOfferings: recentOfferings,
+        topPerformingOfferings: topPerformingOfferings,
+        categoryBreakdown: categoryBreakdown,
+        performanceMetrics: performanceMetrics,
+        statistics: merchantStats
+      };
+      
       dashboardData.recentActivity = [
-        ...taskEngagements.slice(0, 5).map(o => ({
+        ...recentOfferings.slice(0, 3).map(o => ({
+          type: 'offering',
+          title: o.title || 'Service Offering',
+          details: `Status: ${o.status || 'Draft'}`,
+          date: o.updatedAt || o.createdAt,
+          icon: '<i class="ph ph-package"></i>'
+        })),
+        ...taskEngagements.slice(0, 3).map(o => ({
           type: 'collaboration',
           title: o.title || o.modelName,
-          date: o.createdAt
+          date: o.createdAt,
+          icon: '<i class="ph ph-handshake"></i>'
         })),
-        ...userProposals.slice(0, 5).map(p => ({
+        ...userProposals.slice(0, 4).map(p => ({
           type: 'proposal',
           title: `Proposal for ${PMTwinData.Projects.getById(p.projectId)?.title || 'Project'}`,
-          date: p.submittedAt
+          date: p.submittedAt,
+          icon: '<i class="ph ph-file-text"></i>'
         }))
-      ].sort((a, b) => new Date(b.date) - new Date(a.date)).slice(0, 10);
+      ].sort((a, b) => new Date(b.date || 0) - new Date(a.date || 0)).slice(0, 10);
     } else if (roleId === 'supplier') {
       const bulkPurchasing = PMTwinData.CollaborationOpportunities.getAll().filter(o => 
         o.modelId === '3.1' && (o.creatorId === currentUser.id || o.participants?.includes(currentUser.id))

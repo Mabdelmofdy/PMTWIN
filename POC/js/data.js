@@ -3492,6 +3492,8 @@
     // This ensures we have enough test data for all models (65 opportunities total)
     if (existingOpportunities.length >= expectedCount && !forceReload) {
       console.log(`[Data] ${existingOpportunities.length} opportunities already exist (expected ${expectedCount}). Use forceReload=true to reload test data.`);
+      // Update existing opportunities with test data if they don't have views/applications
+      updateOpportunitiesWithTestData();
       return;
     }
     
@@ -5827,9 +5829,36 @@
       set(STORAGE_KEYS.COLLABORATION_OPPORTUNITIES, []);
     }
 
+    // Helper function to generate random views and applications
+    function generateTestMetrics(index) {
+      // Generate varied but realistic numbers
+      const baseViews = 10 + (index % 50); // 10-60 base views
+      const views = baseViews + Math.floor(Math.random() * 100); // Add random 0-100
+      
+      const baseApplications = Math.floor(views * 0.15); // ~15% of views become applications
+      const applicationsReceived = baseApplications + Math.floor(Math.random() * 10);
+      const applicationsApproved = Math.floor(applicationsReceived * (0.2 + Math.random() * 0.3)); // 20-50% approval rate
+      
+      return {
+        views: views,
+        matchesGenerated: Math.floor(views * 0.3), // ~30% of views generate matches
+        applicationsReceived: applicationsReceived,
+        applicationsApproved: applicationsApproved
+      };
+    }
+
     let loaded = 0;
     let skipped = 0;
-    sampleOpportunities.forEach(oppData => {
+    sampleOpportunities.forEach((oppData, index) => {
+      // Ensure all opportunities have views and applications
+      if (!oppData.views && oppData.views !== 0) {
+        const metrics = generateTestMetrics(index);
+        oppData.views = metrics.views;
+        oppData.matchesGenerated = metrics.matchesGenerated;
+        oppData.applicationsReceived = metrics.applicationsReceived;
+        oppData.applicationsApproved = metrics.applicationsApproved;
+      }
+      
       // Skip duplicate check if forceReload is true (we already cleared the data)
       if (!forceReload) {
         // Check if opportunity already exists (more strict check to avoid false duplicates)
@@ -5893,6 +5922,67 @@
       console.log(`✅ Loaded ${loaded} sample collaboration opportunities${skipped > 0 ? ` (${skipped} skipped as duplicates)` : ''}`);
     } else if (skipped > 0) {
       console.log(`ℹ️ All ${skipped} opportunities already exist. Use forceReload=true to reload.`);
+    }
+    
+    // Update all opportunities with views and applications test data
+    updateOpportunitiesWithTestData();
+  }
+  
+  // ============================================
+  // Update All Opportunities with Views and Applications Test Data
+  // ============================================
+  function updateOpportunitiesWithTestData() {
+    const opportunities = CollaborationOpportunities.getAll();
+    if (opportunities.length === 0) {
+      console.log('No opportunities found to update');
+      return;
+    }
+    
+    let updated = 0;
+    opportunities.forEach(opportunity => {
+      let needsUpdate = false;
+      const updates = {};
+      
+      // Generate realistic test data based on opportunity status and type
+      const isActive = opportunity.status === 'active';
+      const baseViews = isActive ? Math.floor(Math.random() * 100) + 20 : Math.floor(Math.random() * 30) + 5;
+      const baseApplications = isActive ? Math.floor(Math.random() * 15) + 3 : Math.floor(Math.random() * 5);
+      
+      // Update views (if 0 or missing)
+      if (!opportunity.views || opportunity.views === 0) {
+        updates.views = baseViews;
+        needsUpdate = true;
+      }
+      
+      // Update applications (if 0 or missing)
+      if (!opportunity.applicationsReceived || opportunity.applicationsReceived === 0) {
+        updates.applicationsReceived = baseApplications;
+        needsUpdate = true;
+        
+        // Set approved applications (typically 20-40% of received)
+        if (!opportunity.applicationsApproved || opportunity.applicationsApproved === 0) {
+          updates.applicationsApproved = Math.floor(baseApplications * (0.2 + Math.random() * 0.2));
+        }
+      }
+      
+      // Update matches generated (typically 50-80% of views)
+      if (!opportunity.matchesGenerated || opportunity.matchesGenerated === 0) {
+        const currentViews = updates.views || opportunity.views || baseViews;
+        updates.matchesGenerated = Math.floor(currentViews * (0.5 + Math.random() * 0.3));
+        needsUpdate = true;
+      }
+      
+      // Save updated opportunity if needed
+      if (needsUpdate) {
+        CollaborationOpportunities.update(opportunity.id, updates);
+        updated++;
+      }
+    });
+    
+    if (updated > 0) {
+      console.log(`✅ Updated ${updated} opportunities with views and applications test data`);
+    } else {
+      console.log(`ℹ️ All opportunities already have views and applications data`);
     }
   }
 
@@ -6526,6 +6616,7 @@
     loadSampleCollaborationOpportunities: () => loadSampleCollaborationOpportunities(true),
     loadSampleCollaborationApplications: () => loadSampleCollaborationApplications(true),
     loadSampleProposals: () => loadSampleProposals(true),
+    updateOpportunitiesWithTestData: updateOpportunitiesWithTestData,
     
     // Test Data Helper Functions
     getCollaborationTestDataStats() {

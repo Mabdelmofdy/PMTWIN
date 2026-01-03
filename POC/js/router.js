@@ -15,6 +15,7 @@
     'login': 'login/',
     'signup': 'signup/',
     'dashboard': 'dashboard/',
+    'merchant-portal': 'merchant-portal/',
     'projects': 'projects/',
     'create-project': 'create-project/',
     'project': 'project/',
