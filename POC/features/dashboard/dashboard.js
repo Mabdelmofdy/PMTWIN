@@ -16,10 +16,26 @@
       let dashboardData = null;
       
       if (typeof DashboardService !== 'undefined') {
+        try {
+          console.log('[Dashboard] Calling DashboardService.getDashboardData()');
         const result = await DashboardService.getDashboardData();
-        if (result.success) {
+          console.log('[Dashboard] DashboardService result:', result);
+          if (result && result.success) {
           dashboardData = result.data;
+            console.log('[Dashboard] Loaded dashboard data:', {
+              hasUser: !!dashboardData?.user,
+              hasStats: !!dashboardData?.stats,
+              hasAnalytics: !!dashboardData?.analytics,
+              role: dashboardData?.role
+            });
+          } else {
+            console.error('[Dashboard] Failed to load dashboard data:', result?.error || 'Unknown error');
+          }
+        } catch (serviceError) {
+          console.error('[Dashboard] Error calling DashboardService:', serviceError);
         }
+      } else {
+        console.warn('[Dashboard] DashboardService not available');
       }
 
       // Also try to get dashboardData from window if available
@@ -28,23 +44,48 @@
           user: PMTwinData?.Sessions?.getCurrentUser() || {},
           stats: window.dashboardData.userDashboard || {},
           recentActivity: window.dashboardData.recentActivities || [],
-          notifications: []
+          notifications: [],
+          analytics: { overview: {}, breakdown: {}, trends: {} }
         };
       }
 
-      if (dashboardData) {
+      // Always render dashboard, even with minimal data
+      if (!dashboardData) {
+        // Create minimal dashboard data from current user
+        const currentUser = PMTwinData?.Sessions?.getCurrentUser() || {};
+        dashboardData = {
+          user: currentUser,
+          role: currentUser.role || 'guest',
+          features: [],
+          stats: {},
+          analytics: { overview: {}, breakdown: {}, trends: {} },
+          recentActivity: [],
+          notifications: []
+        };
+        console.warn('[Dashboard] Using minimal dashboard data');
+      }
+
+      console.log('[Dashboard] Rendering dashboard with data:', {
+        hasUser: !!dashboardData.user,
+        hasStats: !!dashboardData.stats && Object.keys(dashboardData.stats).length > 0,
+        hasAnalytics: !!dashboardData.analytics && Object.keys(dashboardData.analytics.overview || {}).length > 0,
+        role: dashboardData.role
+      });
+      
+      try {
         renderDashboard(container, dashboardData);
-      } else {
-        // Fallback: render empty dashboard with message
+        console.log('[Dashboard] Dashboard rendered successfully');
+      } catch (renderError) {
+        console.error('[Dashboard] Error rendering dashboard:', renderError);
+        console.error('[Dashboard] Error stack:', renderError.stack);
         container.innerHTML = `
           <div class="card">
             <div class="card-body">
-              <h2>Welcome to PMTwin Dashboard</h2>
-              <p>Your dashboard is being set up. Start by creating a project or browsing opportunities.</p>
-              <div style="margin-top: 2rem;">
-                <a href="../create-project/" class="btn btn-primary" style="margin-right: 1rem;">Create Project</a>
-                <a href="../opportunities/" class="btn btn-outline">Browse Opportunities</a>
-              </div>
+              <h2>Error Loading Dashboard</h2>
+              <p class="alert alert-error">An error occurred while loading the dashboard. Please check the console for details.</p>
+              <p style="color: var(--text-secondary); font-size: var(--font-size-sm); margin-top: 1rem;">
+                Error: ${renderError.message || 'Unknown error'}
+              </p>
             </div>
           </div>
         `;
@@ -104,6 +145,24 @@
     if (isServiceProvider) {
       dashboardTitle = 'Merchant Portal';
       dashboardSubtitle = 'Manage your service offerings and track performance';
+    } else if (role === 'supplier') {
+      dashboardTitle = 'Supplier Dashboard';
+      dashboardSubtitle = 'Manage bulk purchasing, inventory listings, and strategic alliances';
+    } else if (role === 'project_lead' || role === 'entity') {
+      dashboardTitle = 'Project Lead Dashboard';
+      dashboardSubtitle = 'Manage your projects, proposals, and collaborations';
+    } else if (role === 'platform_admin' || role === 'admin') {
+      dashboardTitle = 'Admin Dashboard';
+      dashboardSubtitle = 'Platform overview and management';
+    } else if (role === 'professional' || role === 'individual' || role === 'consultant') {
+      dashboardTitle = 'Professional Dashboard';
+      dashboardSubtitle = 'Track your proposals, matches, and opportunities';
+    } else if (role === 'mentor') {
+      dashboardTitle = 'Mentor Dashboard';
+      dashboardSubtitle = 'Manage your mentorship programs and mentees';
+    } else if (role === 'auditor') {
+      dashboardTitle = 'Auditor Dashboard';
+      dashboardSubtitle = 'Platform audit and reporting';
     }
 
     let html = `
@@ -120,7 +179,157 @@
           ` : ''}
         </div>
       </div>
-      
+    `;
+
+    // Account Analytics Overview Section
+    const analytics = data.analytics || {};
+    const analyticsOverview = analytics.overview || {};
+    
+    console.log('[Dashboard] Analytics data:', {
+      hasAnalytics: !!analytics,
+      hasOverview: !!analyticsOverview,
+      overviewKeys: analyticsOverview ? Object.keys(analyticsOverview) : [],
+      overviewCount: analyticsOverview ? Object.keys(analyticsOverview).length : 0,
+      role: data.role
+    });
+    
+    // Show analytics overview if we have data (even if values are 0, we still want to show the structure)
+    // This ensures role-specific analytics are always visible
+    if (analyticsOverview && Object.keys(analyticsOverview).length > 0) {
+      console.log('[Dashboard] Rendering analytics overview with', Object.keys(analyticsOverview).length, 'metrics');
+      html += `
+        <div class="card" style="margin-bottom: 2rem; background: linear-gradient(135deg, var(--color-primary)05 0%, var(--bg-primary) 100%); border: 1px solid var(--border-color);">
+          <div class="card-body">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+              <h2 style="margin: 0;">Account Analytics Overview</h2>
+              <span style="font-size: var(--font-size-sm); color: var(--text-secondary);">All Time</span>
+            </div>
+            
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.5rem;">
+      `;
+
+      // Render overview metrics
+      Object.entries(analyticsOverview).forEach(([key, metric]) => {
+        const displayValue = typeof metric.value === 'string' ? metric.value : formatNumber(metric.value);
+        const hasBreakdown = metric.breakdown && Object.keys(metric.breakdown).length > 0;
+        
+        html += `
+          <div style="padding: 1.5rem; background: white; border-radius: var(--radius); box-shadow: 0 2px 8px rgba(0,0,0,0.08); border-left: 4px solid ${metric.color || 'var(--color-primary)'};">
+            <div style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 1rem;">
+              <div style="font-size: 1.5rem; color: ${metric.color || 'var(--color-primary)'};">
+                ${metric.icon || '<i class="ph ph-circle"></i>'}
+              </div>
+              <div style="flex: 1;">
+                <div style="font-size: var(--font-size-sm); color: var(--text-secondary); margin-bottom: 0.25rem;">${metric.label || key}</div>
+                <div style="font-size: 2rem; font-weight: 700; color: ${metric.color || 'var(--color-primary)'}; line-height: 1;">
+                  ${displayValue}
+                  ${metric.currency ? ` <span style="font-size: var(--font-size-sm); font-weight: 400;">${metric.currency}</span>` : ''}
+                  ${metric.maxValue ? ` <span style="font-size: var(--font-size-sm); font-weight: 400; color: var(--text-secondary);">/ ${metric.maxValue}</span>` : ''}
+                </div>
+                ${metric.subValue ? `
+                  <div style="font-size: var(--font-size-xs); color: var(--text-secondary); margin-top: 0.5rem;">
+                    ${metric.subValue}
+                  </div>
+                ` : ''}
+              </div>
+            </div>
+            ${hasBreakdown ? `
+              <div style="padding-top: 1rem; border-top: 1px solid var(--border-color);">
+                <div style="display: grid; grid-template-columns: repeat(${Object.keys(metric.breakdown).length}, 1fr); gap: 0.5rem;">
+            ` : ''}
+        `;
+
+        if (hasBreakdown) {
+          Object.entries(metric.breakdown).forEach(([breakdownKey, breakdownValue]) => {
+            const breakdownLabel = breakdownKey.charAt(0).toUpperCase() + breakdownKey.slice(1).replace(/([A-Z])/g, ' $1');
+            html += `
+              <div style="text-align: center;">
+                <div style="font-size: var(--font-size-lg); font-weight: 600; color: ${metric.color || 'var(--color-primary)'};">
+                  ${formatNumber(breakdownValue)}
+                </div>
+                <div style="font-size: var(--font-size-xs); color: var(--text-secondary); margin-top: 0.25rem;">
+                  ${breakdownLabel}
+                </div>
+              </div>
+            `;
+          });
+        }
+
+        if (hasBreakdown) {
+          html += `
+                </div>
+              </div>
+          `;
+        }
+
+        html += `
+          </div>
+        `;
+      });
+
+      html += `
+            </div>
+          </div>
+        </div>
+      `;
+
+      // Detailed Breakdown Section
+      const breakdown = analytics.breakdown || {};
+      if (Object.keys(breakdown).length > 0) {
+        html += `
+          <div class="card" style="margin-bottom: 2rem;">
+            <div class="card-body">
+              <h2 style="margin: 0 0 1.5rem 0;">Detailed Breakdown</h2>
+              <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1.5rem;">
+        `;
+
+        Object.entries(breakdown).forEach(([key, data]) => {
+          const sectionTitle = key.charAt(0).toUpperCase() + key.slice(1).replace(/([A-Z])/g, ' $1').replace(/_/g, ' ');
+          
+          html += `
+            <div style="padding: 1.5rem; background: var(--bg-secondary); border-radius: var(--radius);">
+              <h3 style="margin: 0 0 1rem 0; font-size: var(--font-size-lg);">${sectionTitle}</h3>
+              <div style="display: grid; gap: 0.75rem;">
+          `;
+
+          if (typeof data === 'object' && data !== null && !Array.isArray(data)) {
+            Object.entries(data).forEach(([itemKey, itemValue]) => {
+              const itemLabel = itemKey.charAt(0).toUpperCase() + itemKey.slice(1).replace(/([A-Z])/g, ' $1');
+              const total = Object.values(data).reduce((sum, val) => sum + (typeof val === 'number' ? val : 0), 0);
+              const percentage = total > 0 ? ((itemValue / total) * 100).toFixed(1) : 0;
+              
+              html += `
+                <div>
+                  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.25rem;">
+                    <span style="font-size: var(--font-size-sm); font-weight: var(--font-weight-medium);">${itemLabel}</span>
+                    <span style="font-size: var(--font-size-sm); font-weight: 600; color: var(--color-primary);">
+                      ${formatNumber(itemValue)} <span style="color: var(--text-secondary); font-weight: 400;">(${percentage}%)</span>
+                    </span>
+                  </div>
+                  <div style="height: 6px; background: var(--bg-primary); border-radius: 3px; overflow: hidden;">
+                    <div style="height: 100%; width: ${percentage}%; background: var(--color-primary); transition: width 0.3s;"></div>
+                  </div>
+                </div>
+              `;
+            });
+          }
+
+          html += `
+              </div>
+            </div>
+          `;
+        });
+
+        html += `
+              </div>
+            </div>
+          </div>
+        `;
+      }
+    }
+
+    // Original stats cards section (for backward compatibility)
+    html += `
       <div class="dashboard-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1.5rem; margin-bottom: 2rem;">
     `;
 

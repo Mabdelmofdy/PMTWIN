@@ -33,6 +33,11 @@
       role: roleId,
       features: availableFeatures,
       stats: {},
+      analytics: {
+        overview: {},
+        breakdown: {},
+        trends: {}
+      },
       recentActivity: [],
       notifications: []
     };
@@ -252,35 +257,85 @@
         }))
       ].sort((a, b) => new Date(b.date || 0) - new Date(a.date || 0)).slice(0, 10);
     } else if (roleId === 'supplier') {
+      // Bulk Purchasing (Model 3.1)
       const bulkPurchasing = PMTwinData.CollaborationOpportunities.getAll().filter(o => 
         o.modelId === '3.1' && (o.creatorId === currentUser.id || o.participants?.includes(currentUser.id))
       );
+      
+      // Inventory Listings (Model 3.3 - Surplus Materials)
       const inventoryListings = PMTwinData.CollaborationOpportunities.getAll().filter(o => 
         o.modelId === '3.3' && o.creatorId === currentUser.id
       );
       
+      // Strategic Alliances (Model 2.2)
+      const strategicAlliances = PMTwinData.CollaborationOpportunities.getAll().filter(o => 
+        o.modelId === '2.2' && (o.creatorId === currentUser.id || o.participants?.includes(currentUser.id))
+      );
+      
+      // Resource Sharing (Model 3.2)
+      const resourceSharing = PMTwinData.CollaborationOpportunities.getAll().filter(o => 
+        o.modelId === '3.2' && (o.creatorId === currentUser.id || o.participants?.includes(currentUser.id))
+      );
+      
+      // General stats (suppliers can also participate in projects, proposals, matches)
+      const userProjects = PMTwinData.Projects.getByCreator(currentUser.id);
+      const userProposals = PMTwinData.Proposals.getByProvider(currentUser.id);
+      const userMatches = PMTwinData.Matches.getByProvider(currentUser.id);
+      const userApplications = PMTwinData.CollaborationApplications.getByApplicant(currentUser.id);
+      
       dashboardData.stats = {
+        // Supplier-specific metrics
         activeBulkPurchasing: bulkPurchasing.filter(o => o.status === 'active').length,
         totalBulkPurchasing: bulkPurchasing.length,
         inventoryListings: inventoryListings.length,
         activeListings: inventoryListings.filter(o => o.status === 'active').length,
-        strategicAlliances: PMTwinData.CollaborationOpportunities.getAll().filter(o => 
-          o.modelId === '2.2' && (o.creatorId === currentUser.id || o.participants?.includes(currentUser.id))
-        ).length
+        strategicAlliances: strategicAlliances.length,
+        activeAlliances: strategicAlliances.filter(o => o.status === 'active').length,
+        resourceSharing: resourceSharing.length,
+        activeResourceSharing: resourceSharing.filter(o => o.status === 'active').length,
+        // General metrics
+        totalProjects: userProjects.length,
+        activeProjects: userProjects.filter(p => p.status === 'active').length,
+        totalProposals: userProposals.length,
+        activeProposals: userProposals.filter(p => p.status === 'in_review' || p.status === 'approved').length,
+        totalMatches: userMatches.length,
+        highMatches: userMatches.filter(m => m.score >= 80).length,
+        totalApplications: userApplications.length,
+        pendingApplications: userApplications.filter(a => a.status === 'pending').length
       };
       
       dashboardData.recentActivity = [
         ...bulkPurchasing.slice(0, 5).map(o => ({
           type: 'bulk_purchase',
           title: o.title || 'Bulk Purchasing',
-          date: o.createdAt
+          date: o.createdAt,
+          icon: '<i class="ph ph-shopping-cart"></i>'
         })),
         ...inventoryListings.slice(0, 5).map(o => ({
           type: 'inventory',
           title: o.title || 'Inventory Listing',
-          date: o.createdAt
+          date: o.createdAt,
+          icon: '<i class="ph ph-package"></i>'
+        })),
+        ...strategicAlliances.slice(0, 5).map(o => ({
+          type: 'alliance',
+          title: o.title || 'Strategic Alliance',
+          date: o.createdAt,
+          icon: '<i class="ph ph-handshake"></i>'
+        })),
+        ...userProjects.slice(0, 3).map(p => ({
+          type: 'project',
+          title: p.title,
+          date: p.updatedAt || p.createdAt,
+          icon: '<i class="ph ph-folder"></i>'
+        })),
+        ...userProposals.slice(0, 3).map(p => ({
+          type: 'proposal',
+          title: `Proposal for ${PMTwinData.Projects.getById(p.projectId)?.title || 'Project'}`,
+          date: p.submittedAt,
+          icon: '<i class="ph ph-file-text"></i>'
         }))
-      ].sort((a, b) => new Date(b.date) - new Date(a.date)).slice(0, 10);
+      ].sort((a, b) => new Date(b.date || 0) - new Date(a.date || 0)).slice(0, 10);
     } else if (roleId === 'mentor') {
     const mentorshipPrograms = PMTwinData.CollaborationOpportunities.getAll().filter(o => 
         o.modelId === '2.3' && o.creatorId === currentUser.id
@@ -313,9 +368,535 @@
     }
     
     // Get notifications
-    dashboardData.notifications = PMTwinData.Notifications.getUnread(currentUser.id);
+    try {
+      dashboardData.notifications = PMTwinData.Notifications.getUnread(currentUser.id);
+    } catch (error) {
+      console.warn('[DashboardService] Error loading notifications:', error);
+      dashboardData.notifications = [];
+    }
+    
+    // Calculate comprehensive analytics for all roles
+    try {
+      dashboardData.analytics = calculateAccountAnalytics(dashboardData, roleId, currentUser);
+      console.log('[DashboardService] Analytics calculated for role:', roleId, dashboardData.analytics);
+    } catch (analyticsError) {
+      console.error('[DashboardService] Error calculating analytics:', analyticsError);
+      dashboardData.analytics = { overview: {}, breakdown: {}, trends: {} };
+    }
+    
+    // Ensure we always have some stats even if empty
+    if (!dashboardData.stats || Object.keys(dashboardData.stats).length === 0) {
+      console.warn('[DashboardService] No stats found, using defaults');
+      dashboardData.stats = {
+        totalItems: 0,
+        activeItems: 0
+      };
+    }
+    
+    console.log('[DashboardService] Returning dashboard data:', {
+      role: roleId,
+      hasStats: Object.keys(dashboardData.stats).length > 0,
+      hasAnalytics: Object.keys(dashboardData.analytics.overview).length > 0,
+      hasActivity: dashboardData.recentActivity.length > 0
+    });
     
     return { success: true, data: dashboardData };
+  }
+
+  // ============================================
+  // Calculate Account Analytics
+  // ============================================
+  function calculateAccountAnalytics(dashboardData, roleId, currentUser) {
+    if (!dashboardData || !roleId || !currentUser) {
+      console.warn('[DashboardService] Invalid parameters for calculateAccountAnalytics');
+      return { overview: {}, breakdown: {}, trends: {} };
+    }
+
+    const analytics = {
+      overview: {},
+      breakdown: {},
+      trends: {}
+    };
+
+    // Helper to format numbers with thousand separators
+    function formatNumber(num) {
+      if (typeof num !== 'number' || isNaN(num)) return '0';
+      return num.toLocaleString('en-US');
+    }
+
+    // Helper to calculate percentage change
+    function calculateChange(current, previous) {
+      if (!previous || previous === 0) return current > 0 ? 100 : 0;
+      return ((current - previous) / previous * 100).toFixed(1);
+    }
+
+    try {
+      // Role-specific analytics
+      if (roleId === 'service_provider') {
+      const stats = dashboardData.stats || {};
+      const merchantPortal = dashboardData.merchantPortal || {};
+      const performanceMetrics = merchantPortal.performanceMetrics || {};
+      
+      analytics.overview = {
+        totalOfferings: {
+          value: stats.totalOfferings || 0,
+          label: 'Total Offerings',
+          icon: '<i class="ph ph-package"></i>',
+          color: 'var(--color-primary)',
+          breakdown: {
+            active: stats.activeOfferings || 0,
+            paused: merchantPortal.statistics?.pausedOfferings || 0,
+            draft: merchantPortal.statistics?.draftOfferings || 0
+          }
+        },
+        totalViews: {
+          value: stats.totalViews || 0,
+          label: 'Total Views',
+          icon: '<i class="ph ph-eye"></i>',
+          color: 'var(--color-primary)',
+          subValue: `Avg: ${performanceMetrics.averageViewsPerOffering || 0} per offering`
+        },
+        totalInquiries: {
+          value: stats.totalInquiries || 0,
+          label: 'Total Inquiries',
+          icon: '<i class="ph ph-envelope"></i>',
+          color: 'var(--color-success)',
+          subValue: `${performanceMetrics.conversionRate || 0}% conversion rate`
+        },
+        totalProposals: {
+          value: stats.totalProposals || 0,
+          label: 'Proposals Sent',
+          icon: '<i class="ph ph-file-text"></i>',
+          color: 'var(--color-primary)',
+          breakdown: {
+            approved: dashboardData.merchantPortal?.proposalBreakdown?.byStatus?.approved || 0,
+            pending: dashboardData.merchantPortal?.proposalBreakdown?.byStatus?.pending || 0,
+            rejected: dashboardData.merchantPortal?.proposalBreakdown?.byStatus?.rejected || 0
+          }
+        },
+        totalEngagements: {
+          value: stats.totalEngagements || 0,
+          label: 'Engagements',
+          icon: '<i class="ph ph-handshake"></i>',
+          color: 'var(--color-primary)',
+          breakdown: {
+            active: stats.activeServices || 0,
+            completed: merchantPortal.statistics?.completedEngagements || 0
+          }
+        },
+        totalMatches: {
+          value: stats.totalMatches || 0,
+          label: 'Matches',
+          icon: '<i class="ph ph-link"></i>',
+          color: 'var(--color-primary)',
+          subValue: `${stats.highMatches || 0} high score (≥80%)`
+        },
+        averageQuality: {
+          value: Math.round(performanceMetrics.averageQualityScore || 0),
+          label: 'Avg Quality Score',
+          icon: '<i class="ph ph-star"></i>',
+          color: performanceMetrics.averageQualityScore >= 80 ? 'var(--color-success)' : 
+                 performanceMetrics.averageQualityScore >= 50 ? 'var(--color-warning)' : 'var(--color-danger)',
+          maxValue: 100
+        }
+      };
+
+      analytics.breakdown = {
+        categoryPerformance: merchantPortal.categoryBreakdown || {},
+        proposalStatus: dashboardData.merchantPortal?.proposalBreakdown?.byStatus || {},
+        engagementStatus: {
+          active: stats.activeServices || 0,
+          completed: merchantPortal.statistics?.completedEngagements || 0,
+          pending: dashboardData.merchantPortal?.engagementDetails?.pending || 0
+        }
+      };
+
+    } else if (roleId === 'project_lead' || roleId === 'entity') {
+      const stats = dashboardData.stats || {};
+      const userProjects = PMTwinData.Projects.getByCreator(currentUser.id);
+      const userProposals = PMTwinData.Proposals.getAll().filter(p => {
+        const project = PMTwinData.Projects.getById(p.projectId);
+        return project && project.creatorId === currentUser.id;
+      });
+      const totalProjectValue = userProjects.reduce((sum, p) => sum + (parseFloat(p.budget?.max || p.budget?.total || 0)), 0);
+
+      analytics.overview = {
+        totalProjects: {
+          value: stats.totalProjects || 0,
+          label: 'Total Projects',
+          icon: '<i class="ph ph-buildings"></i>',
+          color: 'var(--color-primary)',
+          breakdown: {
+            active: stats.activeProjects || 0,
+            completed: userProjects.filter(p => p.status === 'completed').length,
+            draft: userProjects.filter(p => p.status === 'draft').length
+          }
+        },
+        totalProposalsReceived: {
+          value: stats.totalProposals || 0,
+          label: 'Proposals Received',
+          icon: '<i class="ph ph-file-text"></i>',
+          color: 'var(--color-primary)',
+          breakdown: {
+            pending: stats.pendingProposals || 0,
+            approved: userProposals.filter(p => p.status === 'approved' || p.status === 'accepted').length,
+            rejected: userProposals.filter(p => p.status === 'rejected' || p.status === 'declined').length
+          }
+        },
+        totalCollaborations: {
+          value: stats.totalCollaborations || 0,
+          label: 'Collaborations',
+          icon: '<i class="ph ph-handshake"></i>',
+          color: 'var(--color-primary)',
+          breakdown: {
+            active: stats.activeCollaborations || 0,
+            taskBased: stats.totalTaskEngagements || 0,
+            consortia: stats.totalConsortia || 0,
+            spvs: stats.totalSPVs || 0
+          }
+        },
+        totalProjectValue: {
+          value: formatNumber(totalProjectValue),
+          label: 'Total Project Value',
+          icon: '<i class="ph ph-currency-circle-dollar"></i>',
+          color: 'var(--color-success)',
+          currency: 'SAR'
+        }
+      };
+
+      analytics.breakdown = {
+        projectStatus: {
+          active: stats.activeProjects || 0,
+          completed: userProjects.filter(p => p.status === 'completed').length,
+          draft: userProjects.filter(p => p.status === 'draft').length
+        },
+        proposalStatus: {
+          pending: stats.pendingProposals || 0,
+          approved: userProposals.filter(p => p.status === 'approved' || p.status === 'accepted').length,
+          rejected: userProposals.filter(p => p.status === 'rejected' || p.status === 'declined').length
+        },
+        collaborationTypes: {
+          taskBased: stats.totalTaskEngagements || 0,
+          consortia: stats.totalConsortia || 0,
+          spvs: stats.totalSPVs || 0
+        }
+      };
+
+    } else if (roleId === 'professional' || roleId === 'individual' || roleId === 'consultant') {
+      const stats = dashboardData.stats || {};
+      const userProposals = PMTwinData.Proposals.getByProvider(currentUser.id);
+      const userMatches = PMTwinData.Matches.getByProvider(currentUser.id);
+      const userApplications = PMTwinData.CollaborationApplications.getByApplicant(currentUser.id);
+      const userProfile = PMTwinData.Users.getById(currentUser.id);
+      const endorsements = userProfile?.profile?.endorsements || [];
+
+      analytics.overview = {
+        totalProposals: {
+          value: stats.totalProposals || 0,
+          label: 'Proposals Sent',
+          icon: '<i class="ph ph-file-text"></i>',
+          color: 'var(--color-primary)',
+          breakdown: {
+            active: stats.activeProposals || 0,
+            approved: userProposals.filter(p => p.status === 'approved' || p.status === 'accepted').length,
+            rejected: userProposals.filter(p => p.status === 'rejected' || p.status === 'declined').length
+          }
+        },
+        totalMatches: {
+          value: stats.totalMatches || 0,
+          label: 'Matches Received',
+          icon: '<i class="ph ph-link"></i>',
+          color: 'var(--color-primary)',
+          breakdown: {
+            highScore: stats.highMatches || 0,
+            mediumScore: userMatches.filter(m => m.score >= 50 && m.score < 80).length,
+            lowScore: userMatches.filter(m => m.score < 50).length
+          }
+        },
+        totalApplications: {
+          value: stats.totalApplications || 0,
+          label: 'Applications',
+          icon: '<i class="ph ph-clipboard-text"></i>',
+          color: 'var(--color-primary)',
+          breakdown: {
+            pending: stats.pendingApplications || 0,
+            approved: userApplications.filter(a => a.status === 'approved').length,
+            rejected: userApplications.filter(a => a.status === 'rejected').length
+          }
+        },
+        totalEndorsements: {
+          value: endorsements.length,
+          label: 'Endorsements',
+          icon: '<i class="ph ph-star"></i>',
+          color: 'var(--color-success)'
+        }
+      };
+
+      analytics.breakdown = {
+        proposalStatus: {
+          active: stats.activeProposals || 0,
+          approved: userProposals.filter(p => p.status === 'approved' || p.status === 'accepted').length,
+          rejected: userProposals.filter(p => p.status === 'rejected' || p.status === 'declined').length
+        },
+        matchScores: {
+          high: stats.highMatches || 0,
+          medium: userMatches.filter(m => m.score >= 50 && m.score < 80).length,
+          low: userMatches.filter(m => m.score < 50).length
+        },
+        applicationStatus: {
+          pending: stats.pendingApplications || 0,
+          approved: userApplications.filter(a => a.status === 'approved').length,
+          rejected: userApplications.filter(a => a.status === 'rejected').length
+        }
+      };
+
+    } else if (roleId === 'supplier') {
+      const stats = dashboardData.stats || {};
+
+      analytics.overview = {
+        totalBulkPurchasing: {
+          value: stats.totalBulkPurchasing || 0,
+          label: 'Bulk Purchasing Groups',
+          icon: '<i class="ph ph-shopping-cart"></i>',
+          color: 'var(--color-primary)',
+          breakdown: {
+            active: stats.activeBulkPurchasing || 0,
+            total: stats.totalBulkPurchasing || 0
+          }
+        },
+        totalListings: {
+          value: stats.inventoryListings || 0,
+          label: 'Inventory Listings',
+          icon: '<i class="ph ph-package"></i>',
+          color: 'var(--color-primary)',
+          breakdown: {
+            active: stats.activeListings || 0,
+            total: stats.inventoryListings || 0
+          }
+        },
+        totalAlliances: {
+          value: stats.strategicAlliances || 0,
+          label: 'Strategic Alliances',
+          icon: '<i class="ph ph-handshake"></i>',
+          color: 'var(--color-primary)',
+          breakdown: {
+            active: stats.activeAlliances || 0,
+            total: stats.strategicAlliances || 0
+          }
+        },
+        totalProjects: {
+          value: stats.totalProjects || 0,
+          label: 'Projects',
+          icon: '<i class="ph ph-folder"></i>',
+          color: 'var(--color-primary)',
+          breakdown: {
+            active: stats.activeProjects || 0,
+            total: stats.totalProjects || 0
+          }
+        },
+        totalProposals: {
+          value: stats.totalProposals || 0,
+          label: 'Proposals',
+          icon: '<i class="ph ph-file-text"></i>',
+          color: 'var(--color-primary)',
+          breakdown: {
+            active: stats.activeProposals || 0,
+            total: stats.totalProposals || 0
+          }
+        },
+        totalMatches: {
+          value: stats.totalMatches || 0,
+          label: 'Matches',
+          icon: '<i class="ph ph-link"></i>',
+          color: 'var(--color-primary)',
+          breakdown: {
+            high: stats.highMatches || 0,
+            total: stats.totalMatches || 0
+          }
+        }
+      };
+
+      analytics.breakdown = {
+        bulkPurchasingStatus: {
+          active: stats.activeBulkPurchasing || 0,
+          inactive: (stats.totalBulkPurchasing || 0) - (stats.activeBulkPurchasing || 0),
+          total: stats.totalBulkPurchasing || 0
+        },
+        listingStatus: {
+          active: stats.activeListings || 0,
+          inactive: (stats.inventoryListings || 0) - (stats.activeListings || 0),
+          total: stats.inventoryListings || 0
+        },
+        allianceStatus: {
+          active: stats.activeAlliances || 0,
+          inactive: (stats.strategicAlliances || 0) - (stats.activeAlliances || 0),
+          total: stats.strategicAlliances || 0
+        },
+        proposalStatus: {
+          active: stats.activeProposals || 0,
+          pending: (stats.totalProposals || 0) - (stats.activeProposals || 0),
+          total: stats.totalProposals || 0
+        },
+        matchQuality: {
+          high: stats.highMatches || 0,
+          medium: (stats.totalMatches || 0) - (stats.highMatches || 0),
+          total: stats.totalMatches || 0
+        }
+      };
+
+    } else if (roleId === 'mentor') {
+      const stats = dashboardData.stats || {};
+      const mentorshipPrograms = PMTwinData.CollaborationOpportunities.getAll().filter(o => 
+        o.modelId === '2.3' && o.creatorId === currentUser.id
+      );
+      const mentees = mentorshipPrograms.reduce((acc, program) => {
+        const applications = PMTwinData.CollaborationApplications.getByOpportunity(program.id);
+        return acc + applications.filter(a => a.status === 'approved').length;
+      }, 0);
+
+      analytics.overview = {
+        totalPrograms: {
+          value: stats.totalPrograms || 0,
+          label: 'Mentorship Programs',
+          icon: '<i class="ph ph-graduation-cap"></i>',
+          color: 'var(--color-primary)',
+          breakdown: {
+            active: stats.activePrograms || 0
+          }
+        },
+        totalMentees: {
+          value: stats.totalMentees || 0,
+          label: 'Total Mentees',
+          icon: '<i class="ph ph-users"></i>',
+          color: 'var(--color-success)',
+          breakdown: {
+            active: stats.activeMentees || 0
+          }
+        }
+      };
+
+      analytics.breakdown = {
+        programStatus: {
+          active: stats.activePrograms || 0,
+          total: stats.totalPrograms || 0
+        }
+      };
+
+    } else if (roleId === 'auditor') {
+      const stats = dashboardData.stats || {};
+
+      analytics.overview = {
+        totalUsers: {
+          value: stats.totalUsers || 0,
+          label: 'Total Users',
+          icon: '<i class="ph ph-users"></i>',
+          color: 'var(--color-primary)'
+        },
+        totalProjects: {
+          value: stats.totalProjects || 0,
+          label: 'Total Projects',
+          icon: '<i class="ph ph-buildings"></i>',
+          color: 'var(--color-primary)'
+        },
+        totalProposals: {
+          value: stats.totalProposals || 0,
+          label: 'Total Proposals',
+          icon: '<i class="ph ph-file-text"></i>',
+          color: 'var(--color-primary)'
+        },
+        totalCollaborations: {
+          value: stats.totalCollaborations || 0,
+          label: 'Total Collaborations',
+          icon: '<i class="ph ph-handshake"></i>',
+          color: 'var(--color-primary)'
+        }
+      };
+
+      analytics.breakdown = {
+        platformOverview: {
+          users: stats.totalUsers || 0,
+          projects: stats.totalProjects || 0,
+          proposals: stats.totalProposals || 0,
+          collaborations: stats.totalCollaborations || 0
+        }
+      };
+
+    } else if (roleId === 'platform_admin' || roleId === 'admin') {
+      const stats = dashboardData.stats || {};
+      const allUsers = PMTwinData.Users.getAll();
+      const allProjects = PMTwinData.Projects.getAll();
+      const allProposals = PMTwinData.Proposals.getAll();
+
+      analytics.overview = {
+        totalUsers: {
+          value: stats.totalUsers || 0,
+          label: 'Total Users',
+          icon: '<i class="ph ph-users"></i>',
+          color: 'var(--color-primary)',
+          breakdown: {
+            approved: stats.approvedUsers || 0,
+            pending: stats.pendingUsers || 0,
+            suspended: stats.suspendedUsers || 0
+          }
+        },
+        totalProjects: {
+          value: stats.totalProjects || 0,
+          label: 'Total Projects',
+          icon: '<i class="ph ph-buildings"></i>',
+          color: 'var(--color-primary)',
+          breakdown: {
+            active: stats.activeProjects || 0
+          }
+        },
+        totalProposals: {
+          value: stats.totalProposals || 0,
+          label: 'Total Proposals',
+          icon: '<i class="ph ph-file-text"></i>',
+          color: 'var(--color-primary)',
+          breakdown: {
+            pending: stats.pendingProposals || 0
+          }
+        },
+        totalCollaborations: {
+          value: stats.totalCollaborations || 0,
+          label: 'Total Collaborations',
+          icon: '<i class="ph ph-handshake"></i>',
+          color: 'var(--color-primary)',
+          breakdown: {
+            active: stats.activeCollaborations || 0,
+            taskBased: stats.totalTaskEngagements || 0,
+            consortia: stats.totalConsortia || 0,
+            spvs: stats.totalSPVs || 0
+          }
+        }
+      };
+
+      analytics.breakdown = {
+        userStatus: {
+          approved: stats.approvedUsers || 0,
+          pending: stats.pendingUsers || 0,
+          suspended: stats.suspendedUsers || 0
+        },
+        projectStatus: {
+          active: stats.activeProjects || 0,
+          total: stats.totalProjects || 0
+        },
+        collaborationTypes: {
+          taskBased: stats.totalTaskEngagements || 0,
+          consortia: stats.totalConsortia || 0,
+          spvs: stats.totalSPVs || 0
+        }
+      };
+    }
+
+      // Default case: if role doesn't match, return empty analytics
+      // This ensures the function always returns a valid object
+    } catch (error) {
+      console.error('[DashboardService] Error calculating analytics for role', roleId, ':', error);
+      return { overview: {}, breakdown: {}, trends: {} };
+    }
+    
+    return analytics;
   }
 
   // ============================================

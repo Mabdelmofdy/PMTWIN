@@ -8,6 +8,9 @@
   let currentFilters = {};
 
   async function init(params) {
+    // Wait for services to be ready
+    await waitForNotificationService();
+    
     // Wait a bit for data to be ready, then try to load sample notifications if none exist
     if (typeof PMTwinData !== 'undefined') {
       const existingNotifications = PMTwinData.Notifications.getAll();
@@ -29,6 +32,46 @@
   // HTML Triggers for NotificationService Functions
   // ============================================
 
+  // Wait for NotificationService to be available
+  async function waitForNotificationService(maxWait = 10000) {
+    if (typeof NotificationService !== 'undefined') {
+      return true;
+    }
+
+    // Wait for servicesLoaded event
+    return new Promise((resolve) => {
+      const startTime = Date.now();
+      const checkInterval = 100; // Check every 100ms
+
+      const checkService = () => {
+        if (typeof NotificationService !== 'undefined') {
+          resolve(true);
+          return;
+        }
+
+        if (Date.now() - startTime >= maxWait) {
+          resolve(false);
+          return;
+        }
+
+        setTimeout(checkService, checkInterval);
+      };
+
+      // Listen for servicesLoaded event
+      const eventHandler = () => {
+        if (typeof NotificationService !== 'undefined') {
+          window.removeEventListener('servicesLoaded', eventHandler);
+          resolve(true);
+        } else {
+          checkService();
+        }
+      };
+
+      window.addEventListener('servicesLoaded', eventHandler, { once: true });
+      checkService();
+    });
+  }
+
   // Trigger: getNotifications(filters) - Load notifications
   async function loadNotifications() {
     const container = document.getElementById('notificationsList');
@@ -37,13 +80,16 @@
     try {
       container.innerHTML = '<p>Loading notifications...</p>';
 
-      let result;
-      if (typeof NotificationService !== 'undefined') {
-        result = await NotificationService.getNotifications(currentFilters);
-      } else {
-        container.innerHTML = '<p class="alert alert-error">Notification service not available</p>';
+      // Wait for NotificationService to be available
+      const serviceAvailable = await waitForNotificationService();
+      
+      if (!serviceAvailable) {
+        container.innerHTML = '<p class="alert alert-error">Notification service not available. Please refresh the page.</p>';
+        console.error('[Notifications] NotificationService not available after waiting');
         return;
       }
+
+      const result = await NotificationService.getNotifications(currentFilters);
 
       if (result.success && result.notifications) {
         renderNotifications(container, result.notifications);
@@ -81,8 +127,9 @@
   // Trigger: markAsRead(notificationId) - Mark notification as read
   async function markAsRead(notificationId) {
     try {
-      if (typeof NotificationService === 'undefined') {
-        alert('Notification service not available');
+      const serviceAvailable = await waitForNotificationService();
+      if (!serviceAvailable) {
+        alert('Notification service not available. Please refresh the page.');
         return;
       }
 
@@ -106,8 +153,9 @@
     }
 
     try {
-      if (typeof NotificationService === 'undefined') {
-        alert('Notification service not available');
+      const serviceAvailable = await waitForNotificationService();
+      if (!serviceAvailable) {
+        alert('Notification service not available. Please refresh the page.');
         return;
       }
 

@@ -68,10 +68,24 @@
       // Save current step data
       saveStepData();
       
+      // Reset progress bar to 0% before moving to next step
+      const progressBar = document.getElementById('progressBar');
+      const progressPercentage = document.getElementById('progressPercentage');
+      if (progressBar) {
+        progressBar.style.width = '0%';
+      }
+      if (progressPercentage) {
+        progressPercentage.textContent = '0%';
+      }
+      
       // Move to next step
       currentStep++;
       showStep(currentStep);
-      updateProgressIndicator();
+      
+      // Update progress indicator with animation after a brief delay
+      setTimeout(() => {
+        updateProgressIndicator();
+      }, 50);
 
       // Special handling for step 3 (Review & Submit)
       if (currentStep === 3) {
