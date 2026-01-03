@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Collaboration Opportunities - PMTwin</title>
+    <link rel="stylesheet" href="../../css/main.css">
+</head>
+<body>
+    <!-- Main Content - Sidebar and Navbar are automatically added by layout system -->
+    <main>
+        <div id="collaborationOpportunitiesContent">
+            <!-- Content will be loaded by collaboration-opportunities component -->
+            <div class="loading">
+                <div class="spinner"></div>
+                <p>Loading opportunities...</p>
+            </div>
+        </div>
+    </main>
+
+    <!-- Configuration (must load first) -->
+    <script src="../../js/config.js"></script>
+    
+    <!-- API Layer -->
+    <script src="../../js/api/api-client.js"></script>
+    <script src="../../js/api/api-service.js"></script>
+    
+    <!-- Core Scripts -->
+    <script src="../../js/data.js"></script>
+    <script src="../../js/auth.js"></script>
+    <script src="../../js/auth-check.js"></script>
+    <script src="../../js/demo-credentials.js"></script>
+    <script src="../../services/services-loader.js"></script>
+    <script src="../../data/data-loader.js"></script>
+    
+    <!-- Layout System -->
+    <script src="../../js/layout.js"></script>
+    <script src="../../js/navigation.js"></script>
+    <script src="../../js/app-init.js"></script>
+    
+    <!-- Collaboration Features -->
+    <script src="../../features/collaboration/collaboration-opportunities.js"></script>
+    
+    <!-- Page Script -->
+    <script>
+        document.addEventListener('DOMContentLoaded', async function() {
+            try {
+                const isAuth = await AuthCheck.checkAuth({ requireAuth: true });
+                if (!isAuth) {
+                    window.location.href = '../../login/';
+                    return;
+                }
+
+                // Load the collaboration opportunities component
+                const container = document.getElementById('collaborationOpportunitiesContent');
+                if (!container) return;
+
+                // Load the HTML template
+                try {
+                    const response = await fetch('../../features/collaboration/collaboration-opportunities.html');
+                    const html = await response.text();
+                    container.innerHTML = html;
+
+                    // Initialize the component
+                    if (window.collaboration && window.collaboration['collaboration-opportunities']) {
+                        window.collaboration['collaboration-opportunities'].init();
+                    } else {
+                        // Fallback: render directly
+                        setTimeout(() => {
+                            if (window.collaboration && window.collaboration['collaboration-opportunities']) {
+                                window.collaboration['collaboration-opportunities'].init();
+                            } else {
+                                container.innerHTML = '<div class="alert alert-error">Collaboration opportunities feature not available. Please refresh the page.</div>';
+                            }
+                        }, 500);
+                    }
+                } catch (error) {
+                    console.error('Error loading opportunities page:', error);
+                    container.innerHTML = `
+                        <div class="container" style="padding: 2rem 0;">
+                            <div class="alert alert-error">
+                                <p>Error loading collaboration opportunities page.</p>
+                                <a href="../../collaboration/" class="btn btn-primary" style="margin-top: 1rem;">Back to Collaboration</a>
+                            </div>
+                        </div>
+                    `;
+                }
+            } catch (error) {
+                console.error('Error initializing page:', error);
+            }
+        });
+    </script>
+</body>
+</html>
+

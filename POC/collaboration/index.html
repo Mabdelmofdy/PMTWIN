@@ -10,10 +10,22 @@
     <!-- Main Content - Sidebar and Navbar are automatically added by layout system -->
     <main>
         <div class="container" style="padding: 2rem 0;">
-            <h1 style="margin-bottom: var(--spacing-6);">Collaboration Models</h1>
-            <p style="margin-bottom: 2rem; color: var(--text-secondary);">
-                Explore different collaboration models to find the best fit for your project
-            </p>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+                <div>
+                    <h1 style="margin-bottom: 0.5rem;">Collaboration Models</h1>
+                    <p style="color: var(--text-secondary); margin: 0;">
+                        Explore different collaboration models to find the best fit for your project
+                    </p>
+                </div>
+                <div style="display: flex; gap: 0.5rem;">
+                    <a href="my-collaborations/" class="btn btn-secondary">
+                        <i class="ph ph-folder"></i> My Collaborations
+                    </a>
+                    <a href="opportunities/" class="btn btn-primary">
+                        <i class="ph ph-sparkle"></i> Browse Opportunities
+                    </a>
+                </div>
+            </div>
 
             <!-- Collaboration Models Content -->
             <div id="collaborationModelsContent">
@@ -138,13 +150,29 @@
                         window.CollaborationModelsUI.init(currentUser);
                         console.log('[Collaboration] UI initialized, rendering models...');
                         
-                        // Render model selection by default
-                        if (typeof window.CollaborationModelsUI.renderModelSelection === 'function') {
-                            window.CollaborationModelsUI.renderModelSelection();
-                            console.log('[Collaboration] Models rendered successfully');
+                        // Check for category filter in URL
+                        const urlParams = new URLSearchParams(window.location.search);
+                        const categoryId = urlParams.get('category');
+                        
+                        if (categoryId) {
+                            // Show specific category
+                            if (typeof window.CollaborationModelsUI.viewCategory === 'function') {
+                                document.getElementById('collaborationModelsContent').style.display = 'none';
+                                document.getElementById('collaborationCategoryContent').style.display = 'block';
+                                window.CollaborationModelsUI.viewCategory(categoryId);
+                                console.log('[Collaboration] Category view rendered:', categoryId);
+                            } else {
+                                window.CollaborationModelsUI.renderModelSelection();
+                            }
                         } else {
-                            console.error('[Collaboration] renderModelSelection function not found');
-                            showError('Collaboration models rendering function not available.');
+                            // Render model selection by default
+                            if (typeof window.CollaborationModelsUI.renderModelSelection === 'function') {
+                                window.CollaborationModelsUI.renderModelSelection();
+                                console.log('[Collaboration] Models rendered successfully');
+                            } else {
+                                console.error('[Collaboration] renderModelSelection function not found');
+                                showError('Collaboration models rendering function not available.');
+                            }
                         }
                     } catch (error) {
                         console.error('[Collaboration] Error initializing:', error);

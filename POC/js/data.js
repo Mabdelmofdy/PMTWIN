@@ -92,6 +92,11 @@
     // Load sample collaboration opportunities if none exist
     loadSampleCollaborationOpportunities();
     
+    // Load sample collaboration applications if none exist (after opportunities are loaded)
+    setTimeout(() => {
+      loadSampleCollaborationApplications();
+    }, 100);
+    
     // Load sample proposals if none exist
     loadSampleProposals();
   }
@@ -3956,6 +3961,469 @@
         matchesGenerated: 35,
         applicationsReceived: 22,
         applicationsApproved: 3
+      },
+      // Additional Test Data - Model 1.1: Task-Based Engagement (More Examples)
+      {
+        modelId: '1.1',
+        modelType: '1.1',
+        modelName: 'Task-Based Engagement',
+        category: 'Project-Based Collaboration',
+        relationshipType: 'B2P',
+        creatorId: testUsers[1]?.id || testUsers[0]?.id || 'user-1',
+        status: 'active',
+        attributes: {
+          taskTitle: 'BIM Modeling for Residential Complex',
+          taskType: 'Design',
+          detailedScope: 'Create comprehensive BIM models for 200-unit residential complex including architectural, structural, and MEP models.',
+          duration: 60,
+          budgetRange: { min: 120000, max: 180000, currency: 'SAR' },
+          budgetType: 'Fixed Price',
+          requiredSkills: ['BIM', 'Revit', 'Navisworks', 'Architecture'],
+          experienceLevel: 'Senior',
+          locationRequirement: 'Remote',
+          startDate: '2024-04-01',
+          deliverableFormat: 'Revit Files, PDF Drawings, Clash Reports',
+          paymentTerms: '50% Advance, 50% on Completion',
+          exchangeType: 'Cash',
+          barterOffer: ''
+        },
+        views: 67,
+        matchesGenerated: 12,
+        applicationsReceived: 8,
+        applicationsApproved: 3
+      },
+      // Additional Test Data - Model 1.2: Consortium (More Examples)
+      {
+        modelId: '1.2',
+        modelType: '1.2',
+        modelName: 'Consortium',
+        category: 'Project-Based Collaboration',
+        relationshipType: 'B2B',
+        creatorId: testUsers[1]?.id || testUsers[0]?.id || 'user-1',
+        status: 'active',
+        attributes: {
+          projectTitle: 'Red Sea Project - Luxury Resort Development',
+          projectType: 'Hospitality',
+          projectValue: 1200000000,
+          projectDuration: 48,
+          projectLocation: 'Red Sea, Saudi Arabia',
+          leadMember: true,
+          requiredMembers: 5,
+          memberRoles: [
+            { role: 'Architecture & Design', scope: 'Master planning and architectural design' },
+            { role: 'Construction', scope: 'Main construction works' },
+            { role: 'MEP & Utilities', scope: 'All MEP systems and utilities' },
+            { role: 'Landscaping', scope: 'Landscape design and implementation' },
+            { role: 'Interior Design', scope: 'Interior design and fit-out' }
+          ],
+          scopeDivision: 'By Trade',
+          liabilityStructure: 'Joint & Several',
+          clientType: 'Private',
+          tenderDeadline: '2024-05-01',
+          prequalificationRequired: true,
+          minimumRequirements: [
+            { requirement: 'Financial Capacity', value: 'Minimum 200M SAR annual revenue' },
+            { requirement: 'Experience', value: 'At least 5 luxury hospitality projects' }
+          ],
+          consortiumAgreement: true,
+          paymentDistribution: 'Per Scope'
+        },
+        views: 145,
+        matchesGenerated: 22,
+        applicationsReceived: 12,
+        applicationsApproved: 5
+      },
+      // Model 1.3: Project-Specific Joint Venture (Additional Example)
+      {
+        modelId: '1.3',
+        modelType: '1.3',
+        modelName: 'Project-Specific Joint Venture',
+        category: 'Project-Based Collaboration',
+        relationshipType: 'B2B',
+        creatorId: testUsers[1]?.id || testUsers[0]?.id || 'user-1',
+        status: 'draft',
+        attributes: {
+          projectTitle: 'Jeddah Waterfront Development Phase 2',
+          projectType: 'Infrastructure',
+          projectValue: 180000000,
+          projectDuration: 24,
+          projectLocation: 'Jeddah, Saudi Arabia',
+          jvStructure: 'Unincorporated Partnership',
+          equitySplit: [60, 40],
+          capitalContribution: 36000000,
+          partnerRoles: [
+            { partner: 'Local Partner', contribution: 'Market Access, Permits, Local Expertise' },
+            { partner: 'International Partner', contribution: 'Technology, Capital, Design' }
+          ],
+          managementStructure: 'Joint Management',
+          profitDistribution: 'Proportional to Equity',
+          riskAllocation: 'Local partner handles regulatory and market risks, international partner handles technical and financial risks.',
+          exitStrategy: 'Project Completion',
+          governance: 'Management committee with equal representation, major decisions require unanimous consent.',
+          disputeResolution: 'Mediation then Arbitration',
+          partnerRequirements: [
+            { requirement: 'Financial Capacity', value: 'Minimum 30M SAR net worth' },
+            { requirement: 'Experience', value: 'Completed at least 1 waterfront project' }
+          ]
+        },
+        views: 23,
+        matchesGenerated: 5,
+        applicationsReceived: 2,
+        applicationsApproved: 0
+      },
+      // Model 1.4: Special Purpose Vehicle (Additional Example)
+      {
+        modelId: '1.4',
+        modelType: '1.4',
+        modelName: 'Special Purpose Vehicle (SPV)',
+        category: 'Project-Based Collaboration',
+        relationshipType: 'B2B',
+        creatorId: testUsers[1]?.id || testUsers[0]?.id || 'user-1',
+        status: 'pending',
+        attributes: {
+          projectTitle: 'Solar Power Plant - Qassim Region',
+          projectType: 'Energy',
+          projectValue: 1200000000,
+          projectDuration: 180,
+          projectLocation: 'Qassim, Saudi Arabia',
+          spvLegalForm: 'LLC',
+          sponsors: [
+            { name: 'Renewable Energy Fund', equity: 50 },
+            { name: 'Local Developer', equity: 30 },
+            { name: 'Technology Provider', equity: 20 }
+          ],
+          equityStructure: [
+            { sponsor: 'Renewable Energy Fund', percentage: 50 },
+            { sponsor: 'Local Developer', percentage: 30 },
+            { sponsor: 'Technology Provider', percentage: 20 }
+          ],
+          debtFinancing: 840000000,
+          debtType: 'Limited Recourse',
+          lenders: ['Saudi Development Bank', 'Green Energy Fund'],
+          projectPhase: 'Development',
+          revenueModel: 'Power Purchase Agreement',
+          riskAllocation: 'Technology risks to technology provider, operational risks to operator, market risks shared.',
+          governanceStructure: 'Board of 5 directors, independent chairman, professional management.',
+          regulatoryApprovals: ['Ministry of Energy', 'SAMA', 'Ministry of Commerce'],
+          exitStrategy: 'Refinancing or Sale',
+          professionalServicesNeeded: ['Legal', 'Financial', 'Technical', 'Environmental', 'Regulatory']
+        },
+        views: 45,
+        matchesGenerated: 8,
+        applicationsReceived: 3,
+        applicationsApproved: 1
+      },
+      // Model 2.1: Strategic Joint Venture (Additional Example)
+      {
+        modelId: '2.1',
+        modelType: '2.1',
+        modelName: 'Strategic Joint Venture',
+        category: 'Strategic Partnerships',
+        relationshipType: 'B2B',
+        creatorId: testUsers[1]?.id || testUsers[0]?.id || 'user-1',
+        status: 'active',
+        attributes: {
+          jvName: 'GCC Construction Technology JV',
+          strategicObjective: 'Establish leading construction technology solutions provider across GCC, combining regional expertise with global innovation.',
+          businessScope: 'Develop and deploy construction technology platforms, digital transformation services, and smart construction solutions.',
+          targetSectors: ['Construction', 'Real Estate', 'Infrastructure'],
+          geographicScope: ['Saudi Arabia', 'UAE', 'Qatar', 'Kuwait', 'Bahrain', 'Oman'],
+          duration: '10-15 years',
+          jvStructure: 'Incorporated LLC',
+          equitySplit: [55, 45],
+          initialCapital: 15000000,
+          ongoingFunding: 'Equity and Revenue',
+          partnerContributions: [
+            { partner: 'Regional Partner', contribution: 'Market Access, Regional Network, Local Expertise' },
+            { partner: 'Technology Partner', contribution: 'Technology Platform, R&D, Innovation' }
+          ],
+          managementStructure: 'Co-CEOs',
+          governance: 'Board of 6 directors (3 from each partner), strategic decisions require board approval.',
+          profitDistribution: 'Proportional to Equity',
+          exitOptions: ['Buyout', 'IPO', 'Strategic Sale'],
+          nonCompete: true,
+          technologyTransfer: true,
+          partnerRequirements: [
+            { requirement: 'Financial Capacity', value: 'Minimum 80M SAR annual revenue' },
+            { requirement: 'Market Presence', value: 'Active in at least 3 GCC countries' },
+            { requirement: 'Technology', value: 'Proven construction technology solutions' }
+          ]
+        },
+        views: 98,
+        matchesGenerated: 14,
+        applicationsReceived: 6,
+        applicationsApproved: 2
+      },
+      // Model 2.2: Long-Term Strategic Alliance (Additional Example)
+      {
+        modelId: '2.2',
+        modelType: '2.2',
+        modelName: 'Long-Term Strategic Alliance',
+        category: 'Strategic Partnerships',
+        relationshipType: 'B2B',
+        creatorId: testUsers[1]?.id || testUsers[0]?.id || 'user-1',
+        status: 'closed',
+        attributes: {
+          allianceTitle: 'Equipment Rental Partnership',
+          allianceType: 'Service Partnership',
+          strategicObjective: 'Establish preferred equipment rental partnership with priority access and discounted rates for long-term projects.',
+          scopeOfCollaboration: 'Exclusive equipment rental services for all construction projects. Joint maintenance and equipment optimization programs.',
+          duration: 3,
+          exclusivity: true,
+          geographicScope: ['Saudi Arabia'],
+          financialTerms: 'Monthly retainer of 50K SAR plus usage-based pricing at 15% discount. Minimum commitment: 500K SAR annually.',
+          performanceMetrics: [
+            { metric: 'Equipment Availability', target: '95% uptime' },
+            { metric: 'Response Time', target: 'Within 24 hours' },
+            { metric: 'Customer Satisfaction', target: '4.5/5 rating' }
+          ],
+          governance: 'Monthly operational reviews, quarterly strategic reviews, joint steering committee.',
+          terminationConditions: 'Termination with 60 days notice. Immediate termination for material breach or non-payment.',
+          partnerRequirements: [
+            { requirement: 'Fleet Size', value: 'Minimum 100 units' },
+            { requirement: 'Service Coverage', value: 'Nationwide service capability' },
+            { requirement: 'Quality Standards', value: 'ISO 9001 certified operations' }
+          ]
+        },
+        views: 34,
+        matchesGenerated: 6,
+        applicationsReceived: 3,
+        applicationsApproved: 1
+      },
+      // Model 2.3: Mentorship Program (Additional Example)
+      {
+        modelId: '2.3',
+        modelType: '2.3',
+        modelName: 'Mentorship Program',
+        category: 'Strategic Partnerships',
+        relationshipType: 'P2P',
+        creatorId: testUsers.find(u => u.role === 'individual')?.id || testUsers[1]?.id || 'user-1',
+        status: 'active',
+        attributes: {
+          mentorshipTitle: 'Construction Project Management Mentorship',
+          mentorshipType: 'Project Management',
+          experienceLevel: 'Mid-Level',
+          targetSkills: ['Cost Management', 'Schedule Control', 'Quality Assurance', 'Team Leadership'],
+          duration: 18,
+          frequency: 'Weekly',
+          format: 'On-Site',
+          compensation: 'Unpaid',
+          barterOffer: '',
+          mentorRequirements: [
+            { requirement: 'Experience', value: 'Minimum 20 years in construction project management' },
+            { requirement: 'Certifications', value: 'PMP, PMI-ACP certified' },
+            { requirement: 'Industry', value: 'Large-scale construction project experience' }
+          ],
+          menteeBackground: 'Mid-level project manager with 5 years experience seeking advanced skills in mega-project management.',
+          successMetrics: ['Skill Certification', 'Project Success Rate', 'Career Progression']
+        },
+        views: 28,
+        matchesGenerated: 4,
+        applicationsReceived: 3,
+        applicationsApproved: 1
+      },
+      // Model 3.1: Bulk Purchasing (Additional Example)
+      {
+        modelId: '3.1',
+        modelType: '3.1',
+        modelName: 'Bulk Purchasing',
+        category: 'Resource Pooling & Sharing',
+        relationshipType: 'B2B',
+        creatorId: testUsers[1]?.id || testUsers[0]?.id || 'user-1',
+        status: 'active',
+        attributes: {
+          productService: 'Reinforcement Steel Bars Grade 60',
+          category: 'Materials',
+          quantityNeeded: 8000,
+          unitOfMeasure: 'Tons',
+          targetPrice: 3200,
+          currentMarketPrice: 3600,
+          expectedSavings: 11.1,
+          deliveryTimeline: { start: '2024-04-01', end: '2024-05-15' },
+          deliveryLocation: 'Multiple Sites - Riyadh, Jeddah, Dammam',
+          paymentStructure: 'Upfront Collection',
+          participantsNeeded: 8,
+          minimumOrder: 500,
+          leadOrganizer: true,
+          supplier: 'SABIC Steel',
+          distributionMethod: 'Direct to Site'
+        },
+        views: 112,
+        matchesGenerated: 18,
+        applicationsReceived: 12,
+        applicationsApproved: 7
+      },
+      // Model 3.2: Co-Ownership Pooling (Additional Example)
+      {
+        modelId: '3.2',
+        modelType: '3.2',
+        modelName: 'Co-Ownership Pooling',
+        category: 'Resource Pooling & Sharing',
+        relationshipType: 'B2B',
+        creatorId: testUsers[1]?.id || testUsers[0]?.id || 'user-1',
+        status: 'active',
+        attributes: {
+          assetDescription: 'Concrete Batching Plant 120 m³/h',
+          assetType: 'Heavy Equipment',
+          purchasePrice: 3500000,
+          ownershipStructure: 'Proportional Shares',
+          numberCoOwners: 4,
+          equityPerOwner: 25,
+          initialInvestment: 875000,
+          ongoingCosts: [
+            { cost: 'Maintenance', amount: 80000, frequency: 'Annual' },
+            { cost: 'Insurance', amount: 50000, frequency: 'Annual' },
+            { cost: 'Utilities', amount: 60000, frequency: 'Annual' }
+          ],
+          costSharing: 'Proportional to Ownership',
+          usageSchedule: 'Priority Booking System',
+          assetLocation: 'Dammam Industrial Area',
+          maintenanceResponsibility: 'Shared with Rotation',
+          insurance: true,
+          exitStrategy: 'Right of First Refusal',
+          disputeResolution: 'Arbitration'
+        },
+        views: 78,
+        matchesGenerated: 11,
+        applicationsReceived: 6,
+        applicationsApproved: 3
+      },
+      // Model 3.3: Resource Sharing & Exchange (Additional Example)
+      {
+        modelId: '3.3',
+        modelType: '3.3',
+        modelName: 'Resource Sharing & Exchange',
+        category: 'Resource Pooling & Sharing',
+        relationshipType: 'B2B',
+        creatorId: testUsers[1]?.id || testUsers[0]?.id || 'user-1',
+        status: 'active',
+        attributes: {
+          resourceTitle: 'Excess Concrete Formwork - Various Sizes',
+          resourceType: 'Equipment',
+          transactionType: 'Rent',
+          detailedDescription: 'High-quality steel formwork system available for rent. Includes wall forms, column forms, and beam forms. Total 500 sqm. Excellent condition, recently used on high-rise project.',
+          quantity: 500,
+          unitOfMeasure: 'Square Meters',
+          condition: 'Excellent',
+          location: 'Riyadh, Saudi Arabia',
+          availability: { start: '2024-03-20', end: '2024-06-30' },
+          price: 25,
+          barterOffer: '',
+          barterPreferences: ['Construction Services', 'Materials'],
+          delivery: 'Renter Pickup',
+          paymentTerms: 'Monthly in Advance',
+          urgency: 'Within 2 Months'
+        },
+        views: 89,
+        matchesGenerated: 12,
+        applicationsReceived: 7,
+        applicationsApproved: 2
+      },
+      // Model 4.1: Professional Hiring (Additional Example)
+      {
+        modelId: '4.1',
+        modelType: '4.1',
+        modelName: 'Professional Hiring',
+        category: 'Hiring a Resource',
+        relationshipType: 'B2P',
+        creatorId: testUsers[1]?.id || testUsers[0]?.id || 'user-1',
+        status: 'active',
+        attributes: {
+          jobTitle: 'BIM Manager',
+          jobCategory: 'Technology',
+          employmentType: 'Full-Time',
+          contractDuration: null,
+          jobDescription: 'Lead BIM implementation across all projects. Manage BIM team, develop standards, coordinate with design teams, and ensure quality deliverables.',
+          requiredQualifications: ['Bachelor in Engineering or Architecture', 'BIM Certification', 'Project Management Certification'],
+          requiredExperience: 6,
+          requiredSkills: ['Revit', 'Navisworks', 'BIM 360', 'Team Management', 'Standards Development'],
+          preferredSkills: ['Dynamo', 'Python', 'BIM Execution Planning'],
+          location: 'Riyadh, Saudi Arabia',
+          workMode: 'Hybrid',
+          salaryRange: { min: 18000, max: 25000, currency: 'SAR' },
+          benefits: ['Health Insurance', 'Housing Allowance', 'Transportation', 'Annual Leave', 'Training Budget'],
+          startDate: '2024-05-01',
+          reportingTo: 'Technical Director',
+          teamSize: 8,
+          applicationDeadline: '2024-04-20'
+        },
+        views: 189,
+        matchesGenerated: 24,
+        applicationsReceived: 15,
+        applicationsApproved: 4
+      },
+      // Model 4.2: Consultant Hiring (Additional Example)
+      {
+        modelId: '4.2',
+        modelType: '4.2',
+        modelName: 'Consultant Hiring',
+        category: 'Hiring a Resource',
+        relationshipType: 'B2P',
+        creatorId: testUsers[1]?.id || testUsers[0]?.id || 'user-1',
+        status: 'active',
+        attributes: {
+          consultationTitle: 'Project Controls and Scheduling Consultant',
+          consultationType: 'Project Management',
+          scopeOfWork: 'Develop comprehensive project controls system including scheduling, cost control, risk management, and reporting. Train team on system usage.',
+          deliverables: ['Project Controls System', 'Schedule Baseline', 'Cost Baseline', 'Risk Register', 'Training Materials', 'Monthly Reports'],
+          duration: 120,
+          requiredExpertise: ['Project Controls', 'Primavera P6', 'Cost Management', 'Risk Management', 'Earned Value Management'],
+          requiredCertifications: ['PMP', 'PMI-SP'],
+          experienceLevel: 'Expert',
+          locationRequirement: 'Hybrid',
+          budget: { min: 150000, max: 200000, currency: 'SAR' },
+          paymentTerms: 'Milestone-Based',
+          startDate: '2024-04-15',
+          exchangeType: 'Cash',
+          barterOffer: ''
+        },
+        views: 134,
+        matchesGenerated: 18,
+        applicationsReceived: 9,
+        applicationsApproved: 2
+      },
+      // Model 5.1: Competition/RFP (Additional Example)
+      {
+        modelId: '5.1',
+        modelType: '5.1',
+        modelName: 'Competition/RFP',
+        category: 'Call for Competition',
+        relationshipType: 'B2B',
+        creatorId: testUsers[1]?.id || testUsers[0]?.id || 'user-1',
+        status: 'active',
+        attributes: {
+          competitionTitle: 'Innovative Bridge Design Competition - King Fahd Causeway',
+          competitionType: 'Design Competition',
+          competitionScope: 'Design an innovative, sustainable bridge solution for King Fahd Causeway expansion. Must incorporate advanced materials, smart monitoring systems, and environmental considerations.',
+          participantType: 'Both',
+          competitionFormat: 'Invited Only',
+          eligibilityCriteria: [
+            { criterion: 'Experience', value: 'Minimum 10 years in bridge design' },
+            { criterion: 'Certifications', value: 'Professional Engineering License' },
+            { criterion: 'Financial Capacity', value: 'Able to execute 500M+ SAR project' },
+            { criterion: 'Track Record', value: 'Completed at least 3 major bridge projects' }
+          ],
+          submissionRequirements: ['Design Proposal', 'Technical Drawings', 'Structural Analysis', 'Environmental Impact Assessment', 'Cost Estimate', 'Construction Methodology', 'Timeline'],
+          evaluationCriteria: [
+            { criterion: 'Technical Excellence', weight: 35 },
+            { criterion: 'Innovation', weight: 25 },
+            { criterion: 'Sustainability', weight: 20 },
+            { criterion: 'Cost Efficiency', weight: 15 },
+            { criterion: 'Feasibility', weight: 5 }
+          ],
+          evaluationWeights: [35, 25, 20, 15, 5],
+          prizeContractValue: 8000000,
+          numberWinners: 2,
+          submissionDeadline: '2024-06-30',
+          announcementDate: '2024-07-15',
+          competitionRules: 'All submissions become property of client. Winners must execute project within 30 months. Non-winners retain IP but grant client usage rights for 5 years.',
+          intellectualProperty: 'Winner Transfers',
+          submissionFee: 5000
+        },
+        views: 156,
+        matchesGenerated: 22,
+        applicationsReceived: 14,
+        applicationsApproved: 2
       }
     ];
 
@@ -3984,6 +4452,118 @@
 
     if (loaded > 0) {
       console.log(`✅ Loaded ${loaded} sample collaboration opportunities`);
+    }
+  }
+
+  // ============================================
+  // Load Sample Collaboration Applications
+  // ============================================
+  function loadSampleCollaborationApplications(forceReload = false) {
+    const existingApplications = CollaborationApplications.getAll();
+    
+    // Only load if no applications exist, unless forceReload is true
+    if (existingApplications.length > 0 && !forceReload) {
+      return;
+    }
+
+    // Get test users for applicants
+    const users = Users.getAll();
+    const testUsers = users.filter(u => ['entity', 'company', 'individual', 'admin'].includes(u.role));
+    if (testUsers.length === 0) {
+      console.warn('No test users found for collaboration applications');
+      return;
+    }
+
+    // Get existing opportunities to link applications to
+    const opportunities = CollaborationOpportunities.getAll();
+    if (opportunities.length === 0) {
+      console.warn('No opportunities found. Please load opportunities first.');
+      return;
+    }
+
+    // Create sample applications for various opportunities
+    const sampleApplications = [];
+    const statuses = ['pending', 'reviewing', 'approved', 'rejected', 'withdrawn'];
+    const applicationNotes = [
+      'We have extensive experience in similar projects and believe we can deliver excellent results.',
+      'Our team has the required skills and certifications. We are excited about this opportunity.',
+      'We have successfully completed multiple projects of this nature and can provide references.',
+      'We are interested in this collaboration and can start immediately upon approval.',
+      'Our company has a strong track record and we are confident in our ability to meet all requirements.',
+      'We have the necessary resources and expertise to contribute effectively to this project.',
+      'This opportunity aligns perfectly with our capabilities and strategic goals.',
+      'We are committed to delivering high-quality results and meeting all project objectives.'
+    ];
+
+    // Create applications for at least 50% of opportunities
+    const opportunitiesToUse = opportunities.slice(0, Math.ceil(opportunities.length * 0.6));
+    
+    opportunitiesToUse.forEach((opportunity, oppIndex) => {
+      // Create 2-4 applications per opportunity
+      const numApplications = Math.floor(Math.random() * 3) + 2;
+      
+      for (let i = 0; i < numApplications; i++) {
+        const applicantIndex = (oppIndex + i) % testUsers.length;
+        const applicant = testUsers[applicantIndex];
+        
+        // Don't create application if applicant is the creator
+        if (applicant.id === opportunity.creatorId) {
+          continue;
+        }
+
+        // Distribute statuses: more pending/reviewing, fewer approved/rejected
+        let status;
+        const rand = Math.random();
+        if (rand < 0.4) {
+          status = 'pending';
+        } else if (rand < 0.7) {
+          status = 'reviewing';
+        } else if (rand < 0.85) {
+          status = 'approved';
+        } else if (rand < 0.95) {
+          status = 'rejected';
+        } else {
+          status = 'withdrawn';
+        }
+
+        // Create submission date (within last 30 days)
+        const daysAgo = Math.floor(Math.random() * 30);
+        const submittedDate = new Date();
+        submittedDate.setDate(submittedDate.getDate() - daysAgo);
+
+        sampleApplications.push({
+          opportunityId: opportunity.id,
+          applicantId: applicant.id,
+          status: status === 'reviewing' ? 'in_review' : status, // Map reviewing to in_review for compatibility
+          notes: applicationNotes[Math.floor(Math.random() * applicationNotes.length)],
+          submittedAt: submittedDate.toISOString()
+        });
+      }
+    });
+
+    if (forceReload) {
+      // Clear existing applications
+      set(STORAGE_KEYS.COLLABORATION_APPLICATIONS, []);
+    }
+
+    let loaded = 0;
+    sampleApplications.forEach(appData => {
+      // Check if application already exists
+      const existing = CollaborationApplications.getAll().find(a => 
+        a.opportunityId === appData.opportunityId && 
+        a.applicantId === appData.applicantId
+      );
+      
+      if (!existing) {
+        const application = CollaborationApplications.create(appData);
+        if (application) {
+          loaded++;
+        }
+      }
+    });
+
+    if (loaded > 0) {
+      console.log(`✅ Loaded ${loaded} sample collaboration applications`);
     }
   }
 
@@ -4503,7 +5083,111 @@
     checkFeatureAccess,
     loadSampleNotifications: () => loadSampleNotifications(true),
     loadSampleCollaborationOpportunities: () => loadSampleCollaborationOpportunities(true),
-    loadSampleProposals: () => loadSampleProposals(true)
+    loadSampleCollaborationApplications: () => loadSampleCollaborationApplications(true),
+    loadSampleProposals: () => loadSampleProposals(true),
+    
+    // Test Data Helper Functions
+    getCollaborationTestDataStats() {
+      const opportunities = CollaborationOpportunities.getAll();
+      const applications = CollaborationApplications.getAll();
+      
+      const modelCounts = {};
+      opportunities.forEach(opp => {
+        const model = opp.modelType || opp.modelId || 'unknown';
+        modelCounts[model] = (modelCounts[model] || 0) + 1;
+      });
+      
+      const statusCounts = {
+        opportunities: {},
+        applications: {}
+      };
+      
+      opportunities.forEach(opp => {
+        const status = opp.status || 'unknown';
+        statusCounts.opportunities[status] = (statusCounts.opportunities[status] || 0) + 1;
+      });
+      
+      applications.forEach(app => {
+        const status = app.status || 'unknown';
+        statusCounts.applications[status] = (statusCounts.applications[status] || 0) + 1;
+      });
+      
+      return {
+        opportunities: {
+          total: opportunities.length,
+          byModel: modelCounts,
+          byStatus: statusCounts.opportunities
+        },
+        applications: {
+          total: applications.length,
+          byStatus: statusCounts.applications
+        },
+        coverage: {
+          modelsWithData: Object.keys(modelCounts).length,
+          totalModels: 13,
+          opportunitiesWithApplications: new Set(applications.map(a => a.opportunityId)).size
+        }
+      };
+    },
+    
+    resetCollaborationTestData() {
+      set(STORAGE_KEYS.COLLABORATION_OPPORTUNITIES, []);
+      set(STORAGE_KEYS.COLLABORATION_APPLICATIONS, []);
+      loadSampleCollaborationOpportunities(true);
+      setTimeout(() => {
+        loadSampleCollaborationApplications(true);
+      }, 100);
+      return { success: true, message: 'Collaboration test data reset successfully' };
+    },
+    
+    validateCollaborationTestData() {
+      const opportunities = CollaborationOpportunities.getAll();
+      const applications = CollaborationApplications.getAll();
+      const errors = [];
+      const warnings = [];
+      
+      // Validate opportunities
+      opportunities.forEach((opp, index) => {
+        if (!opp.id) errors.push(`Opportunity ${index}: Missing ID`);
+        if (!opp.modelType && !opp.modelId) errors.push(`Opportunity ${index}: Missing model type`);
+        if (!opp.creatorId) errors.push(`Opportunity ${index}: Missing creator ID`);
+        if (!opp.status) warnings.push(`Opportunity ${index}: Missing status`);
+      });
+      
+      // Validate applications
+      applications.forEach((app, index) => {
+        if (!app.id) errors.push(`Application ${index}: Missing ID`);
+        if (!app.opportunityId) errors.push(`Application ${index}: Missing opportunity ID`);
+        if (!app.applicantId) errors.push(`Application ${index}: Missing applicant ID`);
+        
+        // Check if opportunity exists
+        const opportunity = CollaborationOpportunities.getById(app.opportunityId);
+        if (!opportunity) {
+          errors.push(`Application ${index}: Linked opportunity ${app.opportunityId} does not exist`);
+        }
+      });
+      
+      // Check model coverage
+      const modelIds = ['1.1', '1.2', '1.3', '1.4', '2.1', '2.2', '2.3', '3.1', '3.2', '3.3', '4.1', '4.2', '5.1'];
+      const coveredModels = new Set(opportunities.map(o => o.modelType || o.modelId));
+      modelIds.forEach(modelId => {
+        if (!coveredModels.has(modelId)) {
+          warnings.push(`Model ${modelId} has no test opportunities`);
+        }
+      });
+      
+      return {
+        valid: errors.length === 0,
+        errors: errors,
+        warnings: warnings,
+        summary: {
+          opportunities: opportunities.length,
+          applications: applications.length,
+          modelsCovered: coveredModels.size,
+          totalModels: modelIds.length
+        }
+      };
+    }
   };
 
   // Initialize on load

@@ -83,58 +83,67 @@
         hasChildren: true,
         isGroup: true,
         children: [
-          // Category 1: Project-Based Collaboration (with sub-items)
-          {
-            id: 'collab-project-based',
-            label: 'Project-Based Collaboration',
-            route: `${basePath}collaboration/`,
-            icon: '<i class="ph ph-buildings"></i>',
+          // Main Features
+          { id: 'collab-my-collaborations', label: 'My Collaborations', route: `${basePath}collaboration/my-collaborations/`, icon: '<i class="ph ph-folder"></i>', roles: ['admin', 'entity', 'individual'] },
+          { id: 'collab-opportunities', label: 'Browse Opportunities', route: `${basePath}collaboration/opportunities/`, icon: '<i class="ph ph-sparkle"></i>', roles: ['admin', 'entity', 'individual'] },
+          { id: 'collab-applications', label: 'My Applications', route: `${basePath}collaboration/applications/`, icon: '<i class="ph ph-file-text"></i>', roles: ['admin', 'entity', 'individual'] },
+          { id: 'collab-separator', label: '---', route: '#', icon: '', isSeparator: true, roles: ['admin', 'entity', 'individual'] },
+          // Simplified Model Categories with Sub-Features
+          { 
+            id: 'collab-models', 
+            label: 'Collaboration Models', 
+            route: `${basePath}collaboration/`, 
+            icon: '<i class="ph ph-clipboard-text"></i>', 
+            roles: ['admin', 'entity', 'individual'] 
+          },
+          { 
+            id: 'collab-project-based', 
+            label: 'Project-Based', 
+            route: `${basePath}collaboration/?category=1`, 
+            icon: '<i class="ph ph-buildings"></i>', 
             roles: ['admin', 'entity', 'individual'],
             hasChildren: true,
             isGroup: true,
             children: [
               { id: 'collab-task-based', label: 'Task-Based Engagement', route: `${basePath}collaboration/task-based/`, icon: '<i class="ph ph-file-text"></i>', roles: ['admin', 'entity', 'individual'] },
               { id: 'collab-consortium', label: 'Consortium', route: `${basePath}collaboration/consortium/`, icon: '<i class="ph ph-users-three"></i>', roles: ['admin', 'entity', 'individual'] },
-              { id: 'collab-jv', label: 'Project-Specific Joint Venture', route: `${basePath}collaboration/joint-venture/`, icon: '<i class="ph ph-handshake"></i>', roles: ['admin', 'entity', 'individual'] },
-              { id: 'collab-spv', label: 'Special Purpose Vehicle (SPV)', route: `${basePath}collaboration/spv/`, icon: '<i class="ph ph-building-office"></i>', roles: ['admin', 'entity', 'individual'] }
+              { id: 'collab-jv', label: 'Project-Specific JV', route: `${basePath}collaboration/joint-venture/`, icon: '<i class="ph ph-handshake"></i>', roles: ['admin', 'entity', 'individual'] },
+              { id: 'collab-spv', label: 'Special Purpose Vehicle', route: `${basePath}collaboration/spv/`, icon: '<i class="ph ph-building-office"></i>', roles: ['admin', 'entity', 'individual'] }
             ]
           },
-          // Category 2: Strategic Partnerships (with sub-items)
-          {
-            id: 'collab-strategic',
-            label: 'Strategic Partnerships',
-            route: `${basePath}collaboration/`,
-            icon: '<i class="ph ph-handshake"></i>',
+          { 
+            id: 'collab-strategic', 
+            label: 'Strategic Partnerships', 
+            route: `${basePath}collaboration/?category=2`, 
+            icon: '<i class="ph ph-handshake"></i>', 
             roles: ['admin', 'entity', 'individual'],
             hasChildren: true,
             isGroup: true,
             children: [
               { id: 'collab-strategic-jv', label: 'Strategic Joint Venture', route: `${basePath}collaboration/strategic-jv/`, icon: '<i class="ph ph-handshake"></i>', roles: ['admin', 'entity', 'individual'] },
-              { id: 'collab-strategic-alliance', label: 'Long-Term Strategic Alliance', route: `${basePath}collaboration/strategic-alliance/`, icon: '<i class="ph ph-link"></i>', roles: ['admin', 'entity', 'individual'] },
+              { id: 'collab-strategic-alliance', label: 'Strategic Alliance', route: `${basePath}collaboration/strategic-alliance/`, icon: '<i class="ph ph-link"></i>', roles: ['admin', 'entity', 'individual'] },
               { id: 'collab-mentorship', label: 'Mentorship Program', route: `${basePath}collaboration/mentorship/`, icon: '<i class="ph ph-graduation-cap"></i>', roles: ['admin', 'entity', 'individual'] }
             ]
           },
-          // Category 3: Resource Pooling & Sharing (with sub-items)
-          {
-            id: 'collab-resource-pooling',
-            label: 'Resource Pooling & Sharing',
-            route: `${basePath}collaboration/`,
-            icon: '<i class="ph ph-package"></i>',
+          { 
+            id: 'collab-resources', 
+            label: 'Resource Pooling', 
+            route: `${basePath}collaboration/?category=3`, 
+            icon: '<i class="ph ph-package"></i>', 
             roles: ['admin', 'entity', 'individual'],
             hasChildren: true,
             isGroup: true,
             children: [
               { id: 'collab-bulk-purchasing', label: 'Bulk Purchasing', route: `${basePath}collaboration/bulk-purchasing/`, icon: '<i class="ph ph-shopping-cart"></i>', roles: ['admin', 'entity', 'individual'] },
               { id: 'collab-co-ownership', label: 'Co-Ownership Pooling', route: `${basePath}collaboration/co-ownership/`, icon: '<i class="ph ph-users"></i>', roles: ['admin', 'entity', 'individual'] },
-              { id: 'collab-resource-exchange', label: 'Resource Sharing & Exchange', route: `${basePath}collaboration/resource-exchange/`, icon: '<i class="ph ph-arrows-clockwise"></i>', roles: ['admin', 'entity', 'individual'] }
+              { id: 'collab-resource-exchange', label: 'Resource Exchange', route: `${basePath}collaboration/resource-exchange/`, icon: '<i class="ph ph-arrows-clockwise"></i>', roles: ['admin', 'entity', 'individual'] }
             ]
           },
-          // Category 4: Hiring a Resource (with sub-items)
-          {
-            id: 'collab-hiring',
-            label: 'Hiring a Resource',
-            route: `${basePath}collaboration/`,
-            icon: '<i class="ph ph-briefcase"></i>',
+          { 
+            id: 'collab-hiring', 
+            label: 'Hiring Resources', 
+            route: `${basePath}collaboration/?category=4`, 
+            icon: '<i class="ph ph-briefcase"></i>', 
             roles: ['admin', 'entity', 'individual'],
             hasChildren: true,
             isGroup: true,
@@ -143,8 +152,13 @@
               { id: 'collab-consultant-hiring', label: 'Consultant Hiring', route: `${basePath}collaboration/consultant-hiring/`, icon: '<i class="ph ph-user-circle"></i>', roles: ['admin', 'entity', 'individual'] }
             ]
           },
-          // Category 5: Call for Competition
-          { id: 'collab-competition', label: 'Call for Competition', route: `${basePath}collaboration/competition/`, icon: '<i class="ph ph-trophy"></i>', roles: ['admin', 'entity', 'individual'] }
+          { 
+            id: 'collab-competition', 
+            label: 'Call for Competition', 
+            route: `${basePath}collaboration/?category=5`, 
+            icon: '<i class="ph ph-trophy"></i>', 
+            roles: ['admin', 'entity', 'individual'] 
+          }
         ]
       },
       { id: 'profile', label: 'Profile', route: `${basePath}profile/`, icon: '<i class="ph ph-user"></i>', roles: ['admin', 'entity', 'individual'] },

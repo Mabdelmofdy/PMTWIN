@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Collaborations - PMTwin</title>
+    <link rel="stylesheet" href="../../css/main.css">
+    <style>
+        .collaborations-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 1.5rem;
+            margin-top: 2rem;
+        }
+        .collaboration-card {
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 1.5rem;
+            transition: all 0.2s;
+        }
+        .collaboration-card:hover {
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            transform: translateY(-2px);
+        }
+        .status-badge {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            border-radius: 12px;
+            font-size: 0.875rem;
+            font-weight: 500;
+        }
+        .status-active { background: #d4edda; color: #155724; }
+        .status-draft { background: #fff3cd; color: #856404; }
+        .status-closed { background: #f8d7da; color: #721c24; }
+        .status-pending { background: #d1ecf1; color: #0c5460; }
+    </style>
+</head>
+<body>
+    <!-- Main Content - Sidebar and Navbar are automatically added by layout system -->
+    <main>
+        <div class="container" style="padding: 2rem 0;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+                <div>
+                    <h1 style="margin-bottom: 0.5rem;">My Collaborations</h1>
+                    <p style="color: var(--text-secondary); margin: 0;">Manage your collaboration opportunities and applications</p>
+                </div>
+                <a href="../../collaboration/" class="btn btn-primary">
+                    <i class="ph ph-plus"></i> Create New Collaboration
+                </a>
+            </div>
+
+            <!-- Filters -->
+            <div class="card" style="margin-bottom: 2rem;">
+                <div class="card-body">
+                    <form id="filterForm" onsubmit="return false;" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">
+                        <div class="form-group">
+                            <label for="statusFilter">Status</label>
+                            <select id="statusFilter" class="form-control">
+                                <option value="">All Status</option>
+                                <option value="active">Active</option>
+                                <option value="draft">Draft</option>
+                                <option value="closed">Closed</option>
+                                <option value="pending">Pending</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="modelFilter">Model Type</label>
+                            <select id="modelFilter" class="form-control">
+                                <option value="">All Models</option>
+                                <option value="1.1">Task-Based Engagement</option>
+                                <option value="1.2">Consortium</option>
+                                <option value="1.3">Project-Specific JV</option>
+                                <option value="1.4">SPV</option>
+                                <option value="2.1">Strategic JV</option>
+                                <option value="2.2">Strategic Alliance</option>
+                                <option value="2.3">Mentorship</option>
+                                <option value="3.1">Bulk Purchasing</option>
+                                <option value="3.2">Co-Ownership</option>
+                                <option value="3.3">Resource Exchange</option>
+                                <option value="4.1">Professional Hiring</option>
+                                <option value="4.2">Consultant Hiring</option>
+                                <option value="5.1">Call for Competition</option>
+                            </select>
+                        </div>
+                        <div class="form-group" style="display: flex; align-items: flex-end;">
+                            <button type="button" class="btn btn-primary" onclick="applyFilters()" style="margin-right: 0.5rem;">Apply Filters</button>
+                            <button type="button" class="btn btn-secondary" onclick="clearFilters()">Clear</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Collaborations List -->
+            <div id="collaborationsList">
+                <div class="loading">
+                    <div class="spinner"></div>
+                    <p>Loading your collaborations...</p>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Configuration (must load first) -->
+    <script src="../../js/config.js"></script>
+    
+    <!-- API Layer -->
+    <script src="../../js/api/api-client.js"></script>
+    <script src="../../js/api/api-service.js"></script>
+    
+    <!-- Core Scripts -->
+    <script src="../../js/data.js"></script>
+    <script src="../../js/auth.js"></script>
+    <script src="../../js/auth-check.js"></script>
+    <script src="../../js/demo-credentials.js"></script>
+    <script src="../../services/services-loader.js"></script>
+    <script src="../../data/data-loader.js"></script>
+    
+    <!-- Layout System -->
+    <script src="../../js/layout.js"></script>
+    <script src="../../js/navigation.js"></script>
+    <script src="../../js/app-init.js"></script>
+    
+    <!-- Page Script -->
+    <script>
+        let currentFilters = {};
+
+        async function loadCollaborations() {
+            const container = document.getElementById('collaborationsList');
+            if (!container) return;
+
+            try {
+                container.innerHTML = '<div class="loading"><div class="spinner"></div><p>Loading...</p></div>';
+
+                // Get current user
+                let currentUser = null;
+                if (typeof PMTwinData !== 'undefined' && PMTwinData.Sessions) {
+                    currentUser = PMTwinData.Sessions.getCurrentUser();
+                }
+
+                if (!currentUser) {
+                    container.innerHTML = '<div class="alert alert-error">Please log in to view your collaborations.</div>';
+                    return;
+                }
+
+                // Get collaborations created by user
+                const opportunities = PMTwinData.CollaborationOpportunities.getByCreator(currentUser.id);
+
+                // Apply filters
+                let filtered = opportunities;
+                if (currentFilters.status) {
+                    filtered = filtered.filter(o => o.status === currentFilters.status);
+                }
+                if (currentFilters.modelType) {
+                    filtered = filtered.filter(o => o.modelType === currentFilters.modelType);
+                }
+
+                if (filtered.length === 0) {
+                    container.innerHTML = `
+                        <div class="card">
+                            <div class="card-body" style="text-align: center; padding: 3rem;">
+                                <i class="ph ph-folder-open" style="font-size: 3rem; color: var(--text-secondary); margin-bottom: 1rem;"></i>
+                                <h3>No collaborations found</h3>
+                                <p style="color: var(--text-secondary);">You haven't created any collaboration opportunities yet.</p>
+                                <a href="../../collaboration/" class="btn btn-primary" style="margin-top: 1rem;">
+                                    <i class="ph ph-plus"></i> Create Your First Collaboration
+                                </a>
+                            </div>
+                        </div>
+                    `;
+                    return;
+                }
+
+                // Calculate statistics
+                const stats = {
+                    total: filtered.length,
+                    active: filtered.filter(o => o.status === 'active').length,
+                    draft: filtered.filter(o => o.status === 'draft').length,
+                    closed: filtered.filter(o => o.status === 'closed').length,
+                    totalViews: filtered.reduce((sum, o) => sum + (o.views || 0), 0),
+                    totalApplications: filtered.reduce((sum, o) => sum + (o.applicationsReceived || 0), 0)
+                };
+
+                // Render statistics
+                let html = `
+                    <div class="card enhanced-card" style="margin-bottom: 2rem;">
+                        <div class="card-body">
+                            <h3 style="margin-bottom: 1rem;">My Collaboration Statistics</h3>
+                            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 1rem;">
+                                <div>
+                                    <div style="font-size: 2rem; font-weight: bold; color: var(--color-primary);">${stats.total}</div>
+                                    <div style="color: var(--text-secondary); font-size: 0.875rem;">Total</div>
+                                </div>
+                                <div>
+                                    <div style="font-size: 2rem; font-weight: bold; color: var(--color-success);">${stats.active}</div>
+                                    <div style="color: var(--text-secondary); font-size: 0.875rem;">Active</div>
+                                </div>
+                                <div>
+                                    <div style="font-size: 2rem; font-weight: bold; color: var(--text-secondary);">${stats.totalViews}</div>
+                                    <div style="color: var(--text-secondary); font-size: 0.875rem;">Total Views</div>
+                                </div>
+                                <div>
+                                    <div style="font-size: 2rem; font-weight: bold; color: var(--color-info);">${stats.totalApplications}</div>
+                                    <div style="color: var(--text-secondary); font-size: 0.875rem;">Applications</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="collaborations-grid">
+                `;
+
+                // Render collaborations
+                filtered.forEach(opp => {
+                    const statusClass = `status-${opp.status || 'draft'}`;
+                    const statusText = (opp.status || 'draft').charAt(0).toUpperCase() + (opp.status || 'draft').slice(1);
+                    const createdDate = new Date(opp.createdAt || Date.now()).toLocaleDateString();
+                    const description = opp.attributes?.taskTitle || 
+                                       opp.attributes?.projectTitle || 
+                                       opp.attributes?.competitionTitle || 
+                                       'No description available';
+                    
+                    html += `
+                        <div class="collaboration-card enhanced-card">
+                            <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 1rem;">
+                                <div style="flex: 1;">
+                                    <h3 style="margin: 0 0 0.5rem 0; font-size: 1.25rem; color: var(--text-primary);">
+                                        ${opp.modelName || 'Untitled Collaboration'}
+                                    </h3>
+                                    <p style="margin: 0; color: var(--text-secondary); font-size: 0.875rem;">
+                                        <strong>Model:</strong> ${opp.modelType || 'N/A'} • 
+                                        <strong>Category:</strong> ${opp.category || 'N/A'}
+                                    </p>
+                                </div>
+                                <span class="status-badge ${statusClass}">${statusText}</span>
+                            </div>
+                            <p style="color: var(--text-secondary); margin-bottom: 1rem; font-size: 0.875rem; line-height: 1.5;">
+                                ${description.length > 100 ? description.substring(0, 100) + '...' : description}
+                            </p>
+                            <p style="color: var(--text-secondary); margin-bottom: 1rem; font-size: 0.875rem;">
+                                <strong>Created:</strong> ${createdDate}
+                            </p>
+                            <div class="opportunity-meta" style="margin-bottom: 1rem;">
+                                <span class="badge" style="background: var(--bg-secondary); color: var(--text-primary);">
+                                    <i class="ph ph-eye"></i> ${opp.views || 0} views
+                                </span>
+                                <span class="badge" style="background: var(--bg-secondary); color: var(--text-primary);">
+                                    <i class="ph ph-file-text"></i> ${opp.applicationsReceived || 0} applications
+                                </span>
+                                ${opp.applicationsApproved ? `
+                                    <span class="badge" style="background: var(--color-success); color: white;">
+                                        <i class="ph ph-check"></i> ${opp.applicationsApproved} approved
+                                    </span>
+                                ` : ''}
+                            </div>
+                            <div class="quick-actions">
+                                <a href="../../collaboration/view/${opp.id}/" class="btn btn-primary btn-sm" style="flex: 1;">
+                                    <i class="ph ph-eye"></i> View Details
+                                </a>
+                                <button onclick="editCollaboration('${opp.id}')" class="btn btn-secondary btn-sm">
+                                    <i class="ph ph-pencil"></i> Edit
+                                </button>
+                            </div>
+                        </div>
+                    `;
+                });
+                html += '</div>';
+                container.innerHTML = html;
+
+            } catch (error) {
+                console.error('Error loading collaborations:', error);
+                container.innerHTML = '<div class="alert alert-error">Error loading collaborations. Please try again.</div>';
+            }
+        }
+
+        function applyFilters() {
+            currentFilters = {
+                status: document.getElementById('statusFilter')?.value || '',
+                modelType: document.getElementById('modelFilter')?.value || ''
+            };
+            loadCollaborations();
+        }
+
+        function clearFilters() {
+            currentFilters = {};
+            if (document.getElementById('statusFilter')) document.getElementById('statusFilter').value = '';
+            if (document.getElementById('modelFilter')) document.getElementById('modelFilter').value = '';
+            loadCollaborations();
+        }
+
+        function editCollaboration(id) {
+            window.location.href = `../../collaboration/edit/${id}/`;
+        }
+
+        // Initialize on page load
+        document.addEventListener('DOMContentLoaded', async function() {
+            try {
+                const isAuth = await AuthCheck.checkAuth({ requireAuth: true });
+                if (!isAuth) {
+                    window.location.href = '../../login/';
+                    return;
+                }
+                loadCollaborations();
+            } catch (error) {
+                console.error('Error initializing page:', error);
+            }
+        });
+    </script>
+</body>
+</html>
+

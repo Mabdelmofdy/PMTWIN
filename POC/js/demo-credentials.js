@@ -18,6 +18,16 @@
   };
 
   // ============================================
+  // Helper: Get Base Path for Data Files
+  // ============================================
+  function getDataBasePath() {
+    const currentPath = window.location.pathname;
+    const segments = currentPath.split('/').filter(p => p && !p.endsWith('.html') && p !== 'POC' && p !== '');
+    const depth = segments.length;
+    return depth > 0 ? '../'.repeat(depth) : '';
+  }
+
+  // ============================================
   // Load Demo Users
   // ============================================
   async function loadDemoUsers() {
@@ -40,7 +50,8 @@
     isLoading = true;
 
     try {
-      const response = await fetch('../data/demo-users.json');
+      const basePath = getDataBasePath();
+      const response = await fetch(basePath + 'data/demo-users.json');
       if (!response.ok) {
         throw new Error(`Failed to load demo users: ${response.status}`);
       }

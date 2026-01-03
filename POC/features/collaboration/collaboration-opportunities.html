@@ -7,32 +7,70 @@
     </div>
 
     <!-- Filter Section - Trigger getCollaborationOpportunities with filters -->
-    <div class="card" style="margin-bottom: 2rem;">
+    <div class="card enhanced-card" style="margin-bottom: 2rem;">
         <div class="card-body">
-            <h3>Filter Opportunities</h3>
-            <form id="opportunityFiltersForm" onsubmit="return collaborationComponent.applyFilters(event)">
+            <h3 style="margin-bottom: 1rem;">Filter Opportunities</h3>
+            <form id="opportunityFiltersForm" onsubmit="return collaborationComponent.applyFilters(event)" class="simplified-form">
                 <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">
-                    <div class="form-group">
-                        <label for="modelTypeFilter" class="form-label">Model Type</label>
-                        <select id="modelTypeFilter" class="form-control">
+                    <div class="simplified-form-group">
+                        <label for="modelTypeFilter" class="simplified-form-label">Model Type</label>
+                        <select id="modelTypeFilter" class="simplified-form-input">
                             <option value="">All Types</option>
-                            <option value="spv">SPV</option>
-                            <option value="joint_venture">Joint Venture</option>
-                            <option value="barter">Barter</option>
+                            <option value="1.1">Task-Based Engagement</option>
+                            <option value="1.2">Consortium</option>
+                            <option value="1.3">Project-Specific JV</option>
+                            <option value="1.4">Special Purpose Vehicle</option>
+                            <option value="2.1">Strategic Joint Venture</option>
+                            <option value="2.2">Strategic Alliance</option>
+                            <option value="2.3">Mentorship Program</option>
+                            <option value="3.1">Bulk Purchasing</option>
+                            <option value="3.2">Co-Ownership Pooling</option>
+                            <option value="3.3">Resource Exchange</option>
+                            <option value="4.1">Professional Hiring</option>
+                            <option value="4.2">Consultant Hiring</option>
+                            <option value="5.1">Call for Competition</option>
                         </select>
                     </div>
-                    <div class="form-group">
-                        <label for="opportunityStatusFilter" class="form-label">Status</label>
-                        <select id="opportunityStatusFilter" class="form-control">
+                    <div class="simplified-form-group">
+                        <label for="opportunityStatusFilter" class="simplified-form-label">Status</label>
+                        <select id="opportunityStatusFilter" class="simplified-form-input">
                             <option value="">All Statuses</option>
                             <option value="active">Active</option>
                             <option value="draft">Draft</option>
-                            <option value="completed">Completed</option>
+                            <option value="pending">Pending</option>
+                            <option value="closed">Closed</option>
+                        </select>
+                    </div>
+                    <div class="simplified-form-group">
+                        <label for="categoryFilter" class="simplified-form-label">Category</label>
+                        <select id="categoryFilter" class="simplified-form-input">
+                            <option value="">All Categories</option>
+                            <option value="Project-Based Collaboration">Project-Based</option>
+                            <option value="Strategic Partnerships">Strategic Partnerships</option>
+                            <option value="Resource Pooling & Sharing">Resource Pooling</option>
+                            <option value="Hiring a Resource">Hiring Resources</option>
+                            <option value="Call for Competition">Competition</option>
+                        </select>
+                    </div>
+                    <div class="simplified-form-group">
+                        <label for="relationshipTypeFilter" class="simplified-form-label">Relationship Type</label>
+                        <select id="relationshipTypeFilter" class="simplified-form-input">
+                            <option value="">All Types</option>
+                            <option value="B2B">Business to Business</option>
+                            <option value="B2P">Business to Person</option>
+                            <option value="P2B">Person to Business</option>
+                            <option value="P2P">Person to Person</option>
                         </select>
                     </div>
                 </div>
-                <button type="submit" class="btn btn-primary" style="margin-top: 1rem;">Apply Filters</button>
-                <button type="button" onclick="collaborationComponent.clearFilters()" class="btn btn-secondary" style="margin-top: 1rem; margin-left: 0.5rem;">Clear</button>
+                <div class="quick-actions" style="margin-top: 1rem;">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="ph ph-funnel"></i> Apply Filters
+                    </button>
+                    <button type="button" onclick="collaborationComponent.clearFilters()" class="btn btn-secondary">
+                        <i class="ph ph-x"></i> Clear Filters
+                    </button>
+                </div>
             </form>
         </div>
     </div>

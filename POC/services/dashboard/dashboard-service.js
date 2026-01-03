@@ -354,54 +354,106 @@
       { id: 'reports', label: 'Reports', route: `${basePath}admin-reports/`, feature: 'reports', icon: '<i class="ph ph-chart-bar"></i>' }
     ];
     
-    // Get available collaboration models for current user
-    const availableModels = getAvailableCollaborationModels(currentUser.id);
-    console.log('[DashboardService] Available collaboration models:', availableModels.length, availableModels);
-    
-    // Create Collaboration menu item with dropdown submenus for all model categories
-    const collaborationChildren = [];
-    
-    // Check if CollaborationModels is available
-    if (typeof CollaborationModels === 'undefined') {
-      console.warn('[DashboardService] CollaborationModels not loaded yet');
-    } else if (availableModels.length > 0) {
-      try {
-      const categories = CollaborationModels.getAllCategories();
-        console.log('[DashboardService] Collaboration categories:', categories.length);
-      const categoryIcons = {
-        '1': '<i class="ph ph-buildings"></i>',
-        '2': '<i class="ph ph-handshake"></i>',
-        '3': '<i class="ph ph-briefcase"></i>',
-        '4': '<i class="ph ph-users"></i>',
-        '5': '<i class="ph ph-trophy"></i>'
-      };
-      
-        // Build children array with all category models
-      categories.forEach(category => {
-        const categoryModels = availableModels.filter(model => 
-          model.category === category.name || model.id.startsWith(category.id + '.')
-        );
-        
-        if (categoryModels.length > 0) {
-            // Add each sub-model as a child
-          categoryModels.forEach(model => {
-              collaborationChildren.push({
-              id: `collab-model-${model.id}`,
-              label: model.name,
-              route: `#/collaboration?model=${model.id}`,
-              feature: 'collaboration_opportunities',
-                icon: categoryIcons[category.id] || '<i class="ph ph-clipboard"></i>'
-              });
-          });
-        }
-      });
-        console.log('[DashboardService] Collaboration children built:', collaborationChildren.length);
-      } catch (error) {
-        console.error('[DashboardService] Error building collaboration children:', error);
+    // Create simplified Collaboration menu item with main features
+    const collaborationChildren = [
+      // Main Features
+      { 
+        id: 'collab-my-collaborations', 
+        label: 'My Collaborations', 
+        route: `${basePath}collaboration/my-collaborations/`, 
+        feature: 'collaboration_opportunities',
+        icon: '<i class="ph ph-folder"></i>' 
+      },
+      { 
+        id: 'collab-opportunities', 
+        label: 'Browse Opportunities', 
+        route: `${basePath}collaboration/opportunities/`, 
+        feature: 'collaboration_opportunities',
+        icon: '<i class="ph ph-sparkle"></i>' 
+      },
+      { 
+        id: 'collab-applications', 
+        label: 'My Applications', 
+        route: `${basePath}collaboration/applications/`, 
+        feature: 'collaboration_applications',
+        icon: '<i class="ph ph-file-text"></i>' 
+      },
+      { 
+        id: 'collab-separator', 
+        label: '---', 
+        route: '#', 
+        feature: null, 
+        icon: '', 
+        isSeparator: true 
+      },
+      // Simplified Model Categories with Sub-Features
+      { 
+        id: 'collab-models', 
+        label: 'Collaboration Models', 
+        route: `${basePath}collaboration/`, 
+        feature: 'collaboration_opportunities',
+        icon: '<i class="ph ph-clipboard-text"></i>' 
+      },
+      { 
+        id: 'collab-project-based', 
+        label: 'Project-Based', 
+        route: `${basePath}collaboration/?category=1`, 
+        feature: 'collaboration_opportunities',
+        icon: '<i class="ph ph-buildings"></i>',
+        hasChildren: true,
+        children: [
+          { id: 'collab-task-based', label: 'Task-Based Engagement', route: `${basePath}collaboration/task-based/`, feature: 'collaboration_opportunities', icon: '<i class="ph ph-file-text"></i>' },
+          { id: 'collab-consortium', label: 'Consortium', route: `${basePath}collaboration/consortium/`, feature: 'collaboration_opportunities', icon: '<i class="ph ph-users-three"></i>' },
+          { id: 'collab-jv', label: 'Project-Specific JV', route: `${basePath}collaboration/joint-venture/`, feature: 'collaboration_opportunities', icon: '<i class="ph ph-handshake"></i>' },
+          { id: 'collab-spv', label: 'Special Purpose Vehicle', route: `${basePath}collaboration/spv/`, feature: 'collaboration_opportunities', icon: '<i class="ph ph-building-office"></i>' }
+        ]
+      },
+      { 
+        id: 'collab-strategic', 
+        label: 'Strategic Partnerships', 
+        route: `${basePath}collaboration/?category=2`, 
+        feature: 'collaboration_opportunities',
+        icon: '<i class="ph ph-handshake"></i>',
+        hasChildren: true,
+        children: [
+          { id: 'collab-strategic-jv', label: 'Strategic Joint Venture', route: `${basePath}collaboration/strategic-jv/`, feature: 'collaboration_opportunities', icon: '<i class="ph ph-handshake"></i>' },
+          { id: 'collab-strategic-alliance', label: 'Strategic Alliance', route: `${basePath}collaboration/strategic-alliance/`, feature: 'collaboration_opportunities', icon: '<i class="ph ph-link"></i>' },
+          { id: 'collab-mentorship', label: 'Mentorship Program', route: `${basePath}collaboration/mentorship/`, feature: 'collaboration_opportunities', icon: '<i class="ph ph-graduation-cap"></i>' }
+        ]
+      },
+      { 
+        id: 'collab-resources', 
+        label: 'Resource Pooling', 
+        route: `${basePath}collaboration/?category=3`, 
+        feature: 'collaboration_opportunities',
+        icon: '<i class="ph ph-package"></i>',
+        hasChildren: true,
+        children: [
+          { id: 'collab-bulk-purchasing', label: 'Bulk Purchasing', route: `${basePath}collaboration/bulk-purchasing/`, feature: 'collaboration_opportunities', icon: '<i class="ph ph-shopping-cart"></i>' },
+          { id: 'collab-co-ownership', label: 'Co-Ownership Pooling', route: `${basePath}collaboration/co-ownership/`, feature: 'collaboration_opportunities', icon: '<i class="ph ph-users"></i>' },
+          { id: 'collab-resource-exchange', label: 'Resource Exchange', route: `${basePath}collaboration/resource-exchange/`, feature: 'collaboration_opportunities', icon: '<i class="ph ph-arrows-clockwise"></i>' }
+        ]
+      },
+      { 
+        id: 'collab-hiring', 
+        label: 'Hiring Resources', 
+        route: `${basePath}collaboration/?category=4`, 
+        feature: 'collaboration_opportunities',
+        icon: '<i class="ph ph-briefcase"></i>',
+        hasChildren: true,
+        children: [
+          { id: 'collab-professional-hiring', label: 'Professional Hiring', route: `${basePath}collaboration/professional-hiring/`, feature: 'collaboration_opportunities', icon: '<i class="ph ph-user"></i>' },
+          { id: 'collab-consultant-hiring', label: 'Consultant Hiring', route: `${basePath}collaboration/consultant-hiring/`, feature: 'collaboration_opportunities', icon: '<i class="ph ph-user-circle"></i>' }
+        ]
+      },
+      { 
+        id: 'collab-competition', 
+        label: 'Call for Competition', 
+        route: `${basePath}collaboration/?category=5`, 
+        feature: 'collaboration_opportunities',
+        icon: '<i class="ph ph-trophy"></i>' 
       }
-    } else {
-      console.warn('[DashboardService] No available collaboration models for user');
-    }
+    ];
     
     // Insert Collaboration menu item with dropdown before Profile
     const collaborationItem = {
@@ -411,8 +463,8 @@
       feature: 'collaboration_opportunities',
       icon: '<i class="ph ph-handshake"></i>',
       alternativeFeatures: ['collaboration_applications'],
-      hasChildren: collaborationChildren.length > 0,
-      children: collaborationChildren.length > 0 ? collaborationChildren : [],
+      hasChildren: true,
+      children: collaborationChildren,
       isExpanded: false // Default collapsed
     };
     

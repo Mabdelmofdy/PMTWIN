@@ -30,22 +30,48 @@
         <div class="container" style="max-width: 700px; padding: 2rem 0;">
             <h1 style="margin-bottom: var(--spacing-4); text-align: center;">Sign Up - PMTwin</h1>
             
-            <!-- Progress Indicator -->
-            <div class="onboarding-progress" id="onboardingProgress" style="margin-bottom: 2rem;">
-                <div class="progress-steps">
-                    <div class="progress-step active" data-step="1">
-                        <div class="step-number">1</div>
-                        <div class="step-label">Account Setup</div>
+            <!-- Enhanced Tab Navigation -->
+            <div class="tab-container" style="margin-bottom: 2rem;">
+                <div class="tab-nav" id="signupTabs" style="display: flex; gap: 0.75rem; justify-content: center; flex-wrap: nowrap; overflow-x: auto;">
+                    <button type="button" class="tab-nav-item active" data-step="1" onclick="signupComponent.switchToStep(1)" style="position: relative; flex: 1; min-width: 0; max-width: 100%; padding: var(--spacing-3) var(--spacing-2);">
+                        <div style="display: flex; align-items: center; gap: 0.5rem; justify-content: center; width: 100%;">
+                            <div class="tab-step-number" style="display: flex; align-items: center; justify-content: center; width: 28px; height: 28px; border-radius: 50%; background: rgba(255, 255, 255, 0.2); font-weight: 600; font-size: 0.85rem; flex-shrink: 0;">1</div>
+                            <i class="ph ph-user-circle" style="font-size: 1.1rem; flex-shrink: 0;"></i>
+                            <span style="font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: 0.9rem;">Account Setup</span>
+                        </div>
+                        <div class="tab-completion-indicator" style="display: none; position: absolute; right: 0.5rem; top: 50%; transform: translateY(-50%);">
+                            <i class="ph ph-check" style="font-size: 1rem;"></i>
+                        </div>
+                    </button>
+                    <button type="button" class="tab-nav-item" data-step="2" onclick="signupComponent.switchToStep(2)" style="position: relative; flex: 1; min-width: 0; max-width: 100%; padding: var(--spacing-3) var(--spacing-2);">
+                        <div style="display: flex; align-items: center; gap: 0.5rem; justify-content: center; width: 100%;">
+                            <div class="tab-step-number" style="display: flex; align-items: center; justify-content: center; width: 28px; height: 28px; border-radius: 50%; background: rgba(0, 0, 0, 0.05); font-weight: 600; font-size: 0.85rem; color: var(--color-gray-600); flex-shrink: 0;">2</div>
+                            <i class="ph ph-file-text" style="font-size: 1.1rem; flex-shrink: 0;"></i>
+                            <span style="font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: 0.9rem;">Documents & Terms</span>
+                        </div>
+                        <div class="tab-completion-indicator" style="display: none; position: absolute; right: 0.5rem; top: 50%; transform: translateY(-50%);">
+                            <i class="ph ph-check" style="font-size: 1rem;"></i>
+                        </div>
+                    </button>
+                    <button type="button" class="tab-nav-item" data-step="3" onclick="signupComponent.switchToStep(3)" style="position: relative; flex: 1; min-width: 0; max-width: 100%; padding: var(--spacing-3) var(--spacing-2);">
+                        <div style="display: flex; align-items: center; gap: 0.5rem; justify-content: center; width: 100%;">
+                            <div class="tab-step-number" style="display: flex; align-items: center; justify-content: center; width: 28px; height: 28px; border-radius: 50%; background: rgba(0, 0, 0, 0.05); font-weight: 600; font-size: 0.85rem; color: var(--color-gray-600); flex-shrink: 0;">3</div>
+                            <i class="ph ph-check-circle" style="font-size: 1.1rem; flex-shrink: 0;"></i>
+                            <span style="font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: 0.9rem;">Review & Submit</span>
+                        </div>
+                        <div class="tab-completion-indicator" style="display: none; position: absolute; right: 0.5rem; top: 50%; transform: translateY(-50%);">
+                            <i class="ph ph-check" style="font-size: 1rem;"></i>
+                        </div>
+                    </button>
+                </div>
+                <!-- Progress Bar -->
+                <div style="margin-top: 1rem; padding: 0 1rem;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+                        <span id="progressText" style="font-size: 0.875rem; color: var(--color-gray-600); font-weight: 500;">Step 1 of 3</span>
+                        <span id="progressPercentage" style="font-size: 0.875rem; color: var(--color-primary); font-weight: 600;">33%</span>
                     </div>
-                    <div class="progress-line"></div>
-                    <div class="progress-step" data-step="2">
-                        <div class="step-number">2</div>
-                        <div class="step-label">Documents & Terms</div>
-                    </div>
-                    <div class="progress-line"></div>
-                    <div class="progress-step" data-step="3">
-                        <div class="step-number">3</div>
-                        <div class="step-label">Review & Submit</div>
+                    <div style="width: 100%; height: 6px; background: var(--color-gray-200); border-radius: 10px; overflow: hidden;">
+                        <div id="progressBar" style="height: 100%; width: 33.33%; background: linear-gradient(90deg, var(--color-primary) 0%, var(--color-primary-light) 100%); border-radius: 10px; transition: width 0.4s ease;"></div>
                     </div>
                 </div>
             </div>
@@ -76,6 +102,18 @@
                                     </label>
                                 </div>
                             </div>
+                            
+                            <!-- Sub-Type Selection -->
+                            <div id="subTypeContainer" style="margin-bottom: 2rem; display: none;">
+                                <div class="form-group">
+                                    <label for="signupSubType" class="form-label">Sub-Type *</label>
+                                    <select id="signupSubType" class="form-control" required>
+                                        <option value="">Select Sub-Type</option>
+                                    </select>
+                                    <small class="form-help">Please select the sub-type that best describes you</small>
+                                </div>
+                            </div>
+                            
                             <h2 style="margin-bottom: var(--spacing-4); text-align: center;">Basic Information</h2>
                             
                             <!-- Individual Fields -->

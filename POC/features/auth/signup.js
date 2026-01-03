@@ -16,13 +16,43 @@
   };
   let registrationResult = null;
 
+  // Sub-types for each user type
+  const subTypes = {
+    individual: [
+      { value: 'consultant', label: 'Consultant' },
+      { value: 'engineer', label: 'Engineer' },
+      { value: 'project_manager', label: 'Project Manager' },
+      { value: 'architect', label: 'Architect' },
+      { value: 'contractor', label: 'Contractor' },
+      { value: 'specialist', label: 'Specialist' },
+      { value: 'other', label: 'Other Professional' }
+    ],
+    entity: [
+      { value: 'contractor', label: 'Contractor' },
+      { value: 'supplier', label: 'Supplier' },
+      { value: 'consulting_firm', label: 'Consulting Firm' },
+      { value: 'construction_company', label: 'Construction Company' },
+      { value: 'engineering_firm', label: 'Engineering Firm' },
+      { value: 'architectural_firm', label: 'Architectural Firm' },
+      { value: 'joint_venture', label: 'Joint Venture' },
+      { value: 'consortium', label: 'Consortium' },
+      { value: 'other', label: 'Other Entity' }
+    ]
+  };
+
   function init(params) {
     // Initialize step 1
     updateProgressIndicator();
     setupUserTypeSelection();
+    setupSubTypeSelection();
     setupFileUploads();
     setupPasswordStrength();
     initializeLocationDropdowns();
+    
+    // Initialize tab states
+    setTimeout(() => {
+      updateProgressIndicator();
+    }, 100);
   }
 
   // ============================================
@@ -57,6 +87,32 @@
       showStep(currentStep);
       updateProgressIndicator();
     }
+  }
+
+  function switchToStep(step) {
+    // Only allow switching to previous steps or if current step is validated
+    if (step < currentStep) {
+      // Allow going back without validation
+      currentStep = step;
+      showStep(currentStep);
+      updateProgressIndicator();
+    } else if (step === currentStep) {
+      // Already on this step
+      return;
+    } else if (step === currentStep + 1) {
+      // Moving forward - validate first
+      if (validateCurrentStep()) {
+        saveStepData();
+        currentStep = step;
+        showStep(currentStep);
+        updateProgressIndicator();
+      }
+    } else {
+      // Can't skip steps
+      showMessage('Please complete the current step before proceeding', 'error');
+      return false;
+    }
+    return true;
   }
 
   function showStep(step) {
@@ -261,18 +317,69 @@
   }
 
   function updateProgressIndicator() {
-    document.querySelectorAll('.progress-step').forEach((stepEl, index) => {
-      const stepNum = index + 1;
-      if (stepNum < currentStep) {
-        stepEl.classList.add('completed');
-        stepEl.classList.remove('active');
-      } else if (stepNum === currentStep) {
-        stepEl.classList.add('active');
-        stepEl.classList.remove('completed');
+    // Update tab navigation
+    document.querySelectorAll('.tab-nav-item').forEach((tabEl) => {
+      const tabStep = parseInt(tabEl.getAttribute('data-step'));
+      const stepNumber = tabEl.querySelector('.tab-step-number');
+      const completionIndicator = tabEl.querySelector('.tab-completion-indicator');
+      
+      if (tabStep === currentStep) {
+        // Active step
+        tabEl.classList.add('active');
+        tabEl.classList.remove('completed', 'disabled');
+        if (stepNumber) {
+          stepNumber.style.background = 'rgba(255, 255, 255, 0.2)';
+          stepNumber.style.color = 'white';
+        }
+        if (completionIndicator) {
+          completionIndicator.style.display = 'none';
+        }
+      } else if (tabStep < currentStep) {
+        // Completed step
+        tabEl.classList.remove('active', 'disabled');
+        tabEl.classList.add('completed');
+        if (stepNumber) {
+          stepNumber.style.background = 'var(--color-success)';
+          stepNumber.style.color = 'white';
+          stepNumber.innerHTML = '<i class="ph ph-check" style="font-size: 0.9rem;"></i>';
+        }
+        if (completionIndicator) {
+          completionIndicator.style.display = 'block';
+          completionIndicator.innerHTML = '<i class="ph ph-check" style="font-size: 1.1rem; color: var(--color-success);"></i>';
+        }
       } else {
-        stepEl.classList.remove('active', 'completed');
+        // Future step
+        tabEl.classList.remove('active', 'completed');
+        tabEl.classList.add('disabled');
+        if (stepNumber) {
+          stepNumber.style.background = 'rgba(0, 0, 0, 0.05)';
+          stepNumber.style.color = 'var(--color-gray-600)';
+          stepNumber.innerHTML = tabStep.toString();
+        }
+        if (completionIndicator) {
+          completionIndicator.style.display = 'none';
+        }
       }
     });
+    
+    // Update progress bar and text
+    const progressBar = document.getElementById('progressBar');
+    const progressText = document.getElementById('progressText');
+    const progressPercentage = document.getElementById('progressPercentage');
+    
+    const percentage = (currentStep / totalSteps) * 100;
+    
+    if (progressBar) {
+      progressBar.style.width = percentage + '%';
+    }
+    
+    if (progressText) {
+      progressText.textContent = `Step ${currentStep} of ${totalSteps}`;
+    }
+    
+    if (progressPercentage) {
+      progressPercentage.textContent = Math.round(percentage) + '%';
+    }
   }
 
   // ============================================
@@ -298,6 +405,17 @@
       showMessage('Please select a user type', 'error');
       return false;
     }
+    
+    // Validate sub-type selection
+    const subTypeSelect = document.getElementById('signupSubType');
+    if (subTypeSelect && subTypeSelect.offsetParent !== null) { // Check if visible
+      const subType = subTypeSelect.value;
+      if (!subType) {
+        showMessage('Please select a sub-type', 'error');
+        return false;
+      }
+    }
+    
     return true;
   }
 
@@ -437,6 +555,12 @@
       formData.userType = userType;
       updateFormFieldsVisibility();
       
+      // Save sub-type
+      const subTypeSelect = document.getElementById('signupSubType');
+      if (subTypeSelect) {
+        formData.subType = subTypeSelect.value;
+      }
+      
       // Save basic info from Step 1 (now includes user type + basic info)
       if (userType === 'individual') {
         formData.name = document.getElementById('signupName')?.value.trim();
@@ -540,6 +664,9 @@
       if (entityDocuments) entityDocuments.style.display = 'block';
       if (mobileRequired) mobileRequired.style.display = 'inline';
     }
+    
+    // Update sub-type dropdown
+    updateSubTypeDropdown(userType);
   }
 
   // ============================================
@@ -569,11 +696,69 @@
       });
     });
 
+    // Also listen to radio button changes directly
+    document.querySelectorAll('input[name="userType"]').forEach(radio => {
+      radio.addEventListener('change', function() {
+        updateFormFieldsVisibility();
+      });
+    });
+
     // Initialize
     const checkedCard = document.querySelector('.user-type-card input[type="radio"]:checked')?.closest('.user-type-card');
     if (checkedCard) {
       checkedCard.style.borderColor = 'var(--color-primary)';
       checkedCard.style.backgroundColor = 'rgba(0, 123, 255, 0.05)';
+    }
+    
+    // Initialize sub-type dropdown
+    const initialUserType = document.querySelector('input[name="userType"]:checked')?.value;
+    if (initialUserType) {
+      updateSubTypeDropdown(initialUserType);
+    }
+  }
+
+  // ============================================
+  // Sub-Type Selection
+  // ============================================
+
+  function setupSubTypeSelection() {
+    const subTypeSelect = document.getElementById('signupSubType');
+    if (subTypeSelect) {
+      subTypeSelect.addEventListener('change', function() {
+        formData.subType = this.value;
+      });
+    }
+  }
+
+  function updateSubTypeDropdown(userType) {
+    const subTypeContainer = document.getElementById('subTypeContainer');
+    const subTypeSelect = document.getElementById('signupSubType');
+    
+    if (!subTypeContainer || !subTypeSelect) return;
+    
+    if (userType && subTypes[userType]) {
+      // Show sub-type container
+      subTypeContainer.style.display = 'block';
+      
+      // Clear existing options
+      subTypeSelect.innerHTML = '<option value="">Select Sub-Type</option>';
+      
+      // Populate with sub-types for selected user type
+      subTypes[userType].forEach(subType => {
+        const option = document.createElement('option');
+        option.value = subType.value;
+        option.textContent = subType.label;
+        subTypeSelect.appendChild(option);
+      });
+      
+      // Reset selection
+      subTypeSelect.value = '';
+      formData.subType = '';
+    } else {
+      // Hide sub-type container if no user type selected
+      subTypeContainer.style.display = 'none';
+      subTypeSelect.value = '';
+      formData.subType = '';
     }
   }
 
@@ -750,6 +935,7 @@
         const updates = {
           password: encodePassword(formData.password),
           mobile: formData.mobile || user.mobile,
+          subType: formData.subType || user.subType || null,
           profile: {
             ...user.profile,
             name: userType === 'individual' ? formData.name : formData.companyName,
@@ -758,7 +944,8 @@
             ...(userType === 'individual' && formData.professionalTitle ? { professionalTitle: formData.professionalTitle } : {}),
             ...(userType === 'entity' && formData.website ? { website: formData.website } : {}),
             ...(userType === 'entity' && formData.companyName ? { companyName: formData.companyName } : {}),
-            ...(userType === 'individual' && formData.portfolioLink ? { portfolioLink: formData.portfolioLink } : {})
+            ...(userType === 'individual' && formData.portfolioLink ? { portfolioLink: formData.portfolioLink } : {}),
+            ...(formData.subType ? { subType: formData.subType } : {})
           },
           documents: formData.documents,
           emailVerified: formData.emailVerified || user.emailVerified,
@@ -789,6 +976,7 @@
       password: formData.password,
       role: role,
       userType: userType,
+      subType: formData.subType || null,
       emailVerified: formData.emailVerified || false,
       mobileVerified: formData.mobileVerified || false,
       profile: {
@@ -800,7 +988,8 @@
         ...(userType === 'individual' && formData.professionalTitle ? { professionalTitle: formData.professionalTitle } : {}),
         ...(userType === 'entity' && formData.website ? { website: formData.website } : {}),
         ...(userType === 'entity' && formData.companyName ? { companyName: formData.companyName } : {}),
-        ...(userType === 'individual' && formData.portfolioLink ? { portfolioLink: formData.portfolioLink } : {})
+        ...(userType === 'individual' && formData.portfolioLink ? { portfolioLink: formData.portfolioLink } : {}),
+        ...(formData.subType ? { subType: formData.subType } : {})
       },
       documents: formData.documents
     };
@@ -1020,19 +1209,24 @@
           const role = roleMapping[userType] || 'individual';
 
           // Create temporary user with minimal data
+          const subTypeSelect = document.getElementById('signupSubType');
+          const subType = subTypeSelect ? subTypeSelect.value : null;
+          
           const tempUser = PMTwinData.Users.create({
             email: email,
             mobile: document.getElementById('signupMobile')?.value.trim() || null,
             password: 'temp_password_' + Date.now(), // Temporary password, will be updated later
             role: role,
             userType: userType,
+            subType: subType,
             emailVerified: false,
             mobileVerified: false,
             onboardingStage: 'registered',
             profile: {
               name: email.split('@')[0], // Temporary name
               status: 'pending',
-              createdAt: new Date().toISOString()
+              createdAt: new Date().toISOString(),
+              ...(subType ? { subType: subType } : {})
             }
           });
 
@@ -1270,6 +1464,7 @@
     init,
     nextStep,
     prevStep,
+    switchToStep,
     verifyOTP,
     handleSubmit,
     onCountryChange,

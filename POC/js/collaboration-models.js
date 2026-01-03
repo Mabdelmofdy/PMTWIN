@@ -10,6 +10,30 @@
   let currentModel = null;
   let formMode = 'inline'; // 'inline' or 'wizard'
 
+  // ============================================
+  // Utility: Escape HTML
+  // ============================================
+  function escapeHtml(text) {
+    if (!text) return '';
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+  }
+
+  // ============================================
+  // Utility: Escape JSON for HTML Attributes
+  // ============================================
+  function escapeJsonForAttribute(jsonString) {
+    if (!jsonString) return '';
+    // Escape quotes and other special characters for HTML attributes
+    return jsonString
+      .replace(/&/g, '&amp;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;');
+  }
+
   // Check dependencies helper
   function checkDependencies() {
     if (typeof window.CollaborationModels === 'undefined') {
@@ -27,7 +51,10 @@
   // Model Selection UI
   // ============================================
   function renderModelSelection() {
+    console.log('[CollaborationModelsUI] renderModelSelection called');
+    
     if (!checkDependencies()) {
+      console.error('[CollaborationModelsUI] Dependencies check failed');
       const container = document.getElementById('collaborationModelsContent');
       if (container) {
         container.innerHTML = '<p class="alert alert-error">Collaboration models feature is not available. Please refresh the page.</p>';
@@ -37,12 +64,25 @@
 
     const container = document.getElementById('collaborationModelsContent');
     if (!container) {
-      console.error('collaborationModelsContent container not found');
+      console.error('[CollaborationModelsUI] collaborationModelsContent container not found');
       return;
     }
 
     try {
+      console.log('[CollaborationModelsUI] Getting categories...');
       const categories = window.CollaborationModels.getAllCategories();
+      console.log('[CollaborationModelsUI] Found categories:', categories);
+      
+      if (!categories || categories.length === 0) {
+        console.warn('[CollaborationModelsUI] No categories found');
+        container.innerHTML = `
+          <div class="alert alert-warning">
+            <p>No collaboration model categories available.</p>
+            <button class="btn btn-primary" onclick="window.location.reload()">Refresh</button>
+          </div>
+        `;
+        return;
+      }
       
       // Category icons mapping
       const categoryIcons = {
@@ -56,9 +96,14 @@
       let html = '<div class="collaboration-models-grid">';
 
       categories.forEach((category, categoryIndex) => {
+        if (!category || !category.id) {
+          console.warn('[CollaborationModelsUI] Invalid category at index', categoryIndex, category);
+          return;
+        }
+        
         const subModels = window.CollaborationModels.getModelsByCategory(category.id);
         const icon = categoryIcons[category.id] || '<i class="ph ph-clipboard-text"></i>';
-        const subModelCount = subModels.length;
+        const subModelCount = subModels ? subModels.length : 0;
         
         html += `
           <div class="model-category-card clickable-category-card" 
@@ -69,9 +114,9 @@
                onkeypress="if(event.key === 'Enter' && window.CollaborationModelsUI && CollaborationModelsUI.viewCategory) { CollaborationModelsUI.viewCategory('${category.id}'); }">
             <h3>
               <span style="font-size: 1.5em; margin-right: var(--spacing-2); display: inline-block;">${icon}</span>
-              ${category.name}
+              ${category.name || 'Unnamed Category'}
             </h3>
-            <p class="category-description">${category.description}</p>
+            <p class="category-description">${category.description || 'No description available'}</p>
             <div class="category-footer">
               <div class="category-meta">
                 <span class="sub-model-count">${subModelCount} ${subModelCount === 1 ? 'Model' : 'Models'}</span>
@@ -87,14 +132,20 @@
 
       html += '</div>';
       container.innerHTML = html;
+      console.log('[CollaborationModelsUI] Models rendered successfully');
     } catch (error) {
-      console.error('Error rendering model selection:', error);
-      container.innerHTML = `
-        <div class="alert alert-error">
-          <p>Error loading collaboration models. Please refresh the page.</p>
-          <button class="btn btn-primary" onclick="window.location.reload()">Refresh</button>
-        </div>
-      `;
+      console.error('[CollaborationModelsUI] Error rendering model selection:', error);
+      console.error('[CollaborationModelsUI] Error stack:', error.stack);
+      const container = document.getElementById('collaborationModelsContent');
+      if (container) {
+        container.innerHTML = `
+          <div class="alert alert-error">
+            <p>Error loading collaboration models: ${error.message}</p>
+            <p style="font-size: 0.875rem; color: var(--text-secondary); margin-top: 0.5rem;">Check the browser console for more details.</p>
+            <button class="btn btn-primary" onclick="window.location.reload()" style="margin-top: 1rem;">Refresh</button>
+          </div>
+        `;
+      }
     }
   }
 
@@ -222,7 +273,7 @@
                  placeholder="${attribute.placeholder || ''}"
                  value="${value}"
                  ${attribute.required ? 'required' : ''}
-                 ${attribute.conditional ? `data-conditional="${JSON.stringify(attribute.conditional)}"` : ''}>
+                 ${attribute.conditional ? `data-conditional="${escapeJsonForAttribute(JSON.stringify(attribute.conditional))}"` : ''}>
         `;
         break;
 
@@ -235,7 +286,7 @@
                     maxlength="${attribute.maxLength || ''}"
                     placeholder="${attribute.placeholder || ''}"
                     ${attribute.required ? 'required' : ''}
-                    ${attribute.conditional ? `data-conditional="${JSON.stringify(attribute.conditional)}"` : ''}>${value}</textarea>
+                    ${attribute.conditional ? `data-conditional="${escapeJsonForAttribute(JSON.stringify(attribute.conditional))}"` : ''}>${value}</textarea>
         `;
         break;
 
@@ -249,7 +300,7 @@
                  placeholder="${attribute.placeholder || ''}"
                  value="${value}"
                  ${attribute.required ? 'required' : ''}
-                 ${attribute.conditional ? `data-conditional="${JSON.stringify(attribute.conditional)}"` : ''}>
+                 ${attribute.conditional ? `data-conditional="${escapeJsonForAttribute(JSON.stringify(attribute.conditional))}"` : ''}>
         `;
         break;
 
@@ -266,7 +317,7 @@
                    placeholder="${attribute.placeholder || ''}"
                    value="${value}"
                    ${attribute.required ? 'required' : ''}
-                   ${attribute.conditional ? `data-conditional="${JSON.stringify(attribute.conditional)}"` : ''}>
+                   ${attribute.conditional ? `data-conditional="${escapeJsonForAttribute(JSON.stringify(attribute.conditional))}"` : ''}>
           </div>
         `;
         break;
@@ -320,7 +371,7 @@
                  placeholder="${attribute.placeholder || ''}"
                  value="${value}"
                  ${attribute.required ? 'required' : ''}
-                 ${attribute.conditional ? `data-conditional="${JSON.stringify(attribute.conditional)}"` : ''}>
+                 ${attribute.conditional ? `data-conditional="${escapeJsonForAttribute(JSON.stringify(attribute.conditional))}"` : ''}>
         `;
         break;
 
@@ -337,7 +388,7 @@
                    placeholder="${attribute.placeholder || ''}"
                    value="${value}"
                    ${attribute.required ? 'required' : ''}
-                   ${attribute.conditional ? `data-conditional="${JSON.stringify(attribute.conditional)}"` : ''}>
+                   ${attribute.conditional ? `data-conditional="${escapeJsonForAttribute(JSON.stringify(attribute.conditional))}"` : ''}>
             <span class="input-group-text">%</span>
           </div>
         `;
@@ -351,7 +402,7 @@
                  class="form-control" 
                  value="${value}"
                  ${attribute.required ? 'required' : ''}
-                 ${attribute.conditional ? `data-conditional="${JSON.stringify(attribute.conditional)}"` : ''}>
+                 ${attribute.conditional ? `data-conditional="${escapeJsonForAttribute(JSON.stringify(attribute.conditional))}"` : ''}>
         `;
         break;
 
@@ -386,7 +437,7 @@
                   name="${attribute.name}" 
                   class="form-control"
                   ${attribute.required ? 'required' : ''}
-                  ${attribute.conditional ? `data-conditional="${JSON.stringify(attribute.conditional)}"` : ''}>
+                  ${attribute.conditional ? `data-conditional="${escapeJsonForAttribute(JSON.stringify(attribute.conditional))}"` : ''}>
             <option value="">${attribute.placeholder || 'Select...'}</option>
             ${(attribute.options || []).map(opt => 
               `<option value="${opt}" ${value === opt ? 'selected' : ''}>${opt}</option>`
@@ -405,7 +456,7 @@
                    value="true"
                    ${value === true || value === 'true' ? 'checked' : ''}
                    ${attribute.required ? 'required' : ''}
-                   ${attribute.conditional ? `data-conditional="${JSON.stringify(attribute.conditional)}"` : ''}>
+                   ${attribute.conditional ? `data-conditional="${escapeJsonForAttribute(JSON.stringify(attribute.conditional))}"` : ''}>
             <label class="form-check-label" for="${fieldId}">Yes</label>
           </div>
         `;
@@ -748,7 +799,38 @@
   // ============================================
   function setupConditionalFields() {
     document.querySelectorAll('[data-conditional]').forEach(field => {
-      const conditional = JSON.parse(field.getAttribute('data-conditional'));
+      const conditionalAttr = field.getAttribute('data-conditional');
+      if (!conditionalAttr || conditionalAttr.trim() === '') {
+        console.warn('[CollaborationModels] Empty or missing data-conditional attribute on field:', field);
+        return;
+      }
+
+      let conditional;
+      try {
+        // Browser should automatically decode HTML entities, but try parsing directly first
+        conditional = JSON.parse(conditionalAttr);
+      } catch (error) {
+        // If parsing fails, try decoding HTML entities manually as fallback
+        try {
+          const decoded = conditionalAttr
+            .replace(/&quot;/g, '"')
+            .replace(/&#39;/g, "'")
+            .replace(/&amp;/g, '&')
+            .replace(/&lt;/g, '<')
+            .replace(/&gt;/g, '>');
+          conditional = JSON.parse(decoded);
+        } catch (fallbackError) {
+          console.error('[CollaborationModels] Error parsing data-conditional attribute:', error, 'Value:', conditionalAttr);
+          console.error('[CollaborationModels] Field element:', field);
+          return;
+        }
+      }
+
+      if (!conditional || !conditional.field) {
+        console.warn('[CollaborationModels] Invalid conditional configuration:', conditional);
+        return;
+      }
+
       const triggerField = document.querySelector(`[name="${conditional.field}"]`);
       
       if (triggerField) {
@@ -849,9 +931,12 @@
         return;
       }
 
-      // Render form - check for both container IDs for flexibility
-      const container = document.getElementById('createCollaborationContent') || 
-                        document.getElementById('collaborationFormContainer');
+      // Render form - prefer collaborationFormContainer (where loading spinner is) over createCollaborationContent
+      const loadingContainer = document.getElementById('collaborationFormContainer');
+      const formContainer = document.getElementById('createCollaborationContent');
+      // Use the visible container (where loading spinner is) first
+      const container = loadingContainer || formContainer;
+      
       if (container) {
         // Get base path for cancel button
         const currentPath = window.location.pathname;
@@ -882,6 +967,11 @@
             </div>
           </div>
         `;
+
+        // If formContainer exists separately and is hidden, hide it to avoid confusion
+        if (formContainer && formContainer !== container && formContainer.style.display === 'none') {
+          // Keep it hidden, we're using the loading container instead
+        }
 
         // Setup conditional fields
         setTimeout(setupConditionalFields, 100);
