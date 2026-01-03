@@ -55,13 +55,21 @@
             }
             
             // Extract opportunity ID from URL
-            // URL format: /POC/collaboration/view/collab_1767456720866_sej5b4vqi/
-            const pathParts = window.location.pathname.split('/').filter(p => p);
-            const viewIndex = pathParts.indexOf('view');
+            // Try query parameter first: /collaboration/view/?id=collab_xxx
+            // Fallback to path segment: /collaboration/view/collab_xxx/
             let opportunityId = null;
             
-            if (viewIndex !== -1 && pathParts[viewIndex + 1]) {
-                opportunityId = pathParts[viewIndex + 1];
+            // Check query parameter
+            const urlParams = new URLSearchParams(window.location.search);
+            opportunityId = urlParams.get('id');
+            
+            // If not in query, try path segment
+            if (!opportunityId) {
+                const pathParts = window.location.pathname.split('/').filter(p => p);
+                const viewIndex = pathParts.indexOf('view');
+                if (viewIndex !== -1 && pathParts[viewIndex + 1]) {
+                    opportunityId = pathParts[viewIndex + 1];
+                }
             }
             
             if (!opportunityId) {

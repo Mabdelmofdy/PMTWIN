@@ -62,13 +62,21 @@
             }
             
             // Extract opportunity ID from URL
-            // URL format: /POC/collaboration/edit/collab_1767456720866_sej5b4vqi/
-            const pathParts = window.location.pathname.split('/').filter(p => p);
-            const editIndex = pathParts.indexOf('edit');
+            // Try query parameter first: /collaboration/edit/?id=collab_xxx
+            // Fallback to path segment: /collaboration/edit/collab_xxx/
             let opportunityId = null;
             
-            if (editIndex !== -1 && pathParts[editIndex + 1]) {
-                opportunityId = pathParts[editIndex + 1];
+            // Check query parameter
+            const urlParams = new URLSearchParams(window.location.search);
+            opportunityId = urlParams.get('id');
+            
+            // If not in query, try path segment
+            if (!opportunityId) {
+                const pathParts = window.location.pathname.split('/').filter(p => p);
+                const editIndex = pathParts.indexOf('edit');
+                if (editIndex !== -1 && pathParts[editIndex + 1]) {
+                    opportunityId = pathParts[editIndex + 1];
+                }
             }
             
             if (!opportunityId) {
@@ -136,7 +144,7 @@
                     container.innerHTML = `
                         <div class="alert alert-error">
                             <p>You don't have permission to edit this collaboration opportunity.</p>
-                            <a href="../../collaboration/view/${opportunityId}/" class="btn btn-primary">View Details</a>
+                            <a href="../../collaboration/view/?id=${opportunityId}" class="btn btn-primary">View Details</a>
                             <a href="../../collaboration/my-collaborations/" class="btn btn-secondary">Back to My Collaborations</a>
                         </div>
                     `;
@@ -186,7 +194,7 @@
                                 </div>
                                 
                                 <div style="margin-top: 2rem; display: flex; gap: 1rem; justify-content: flex-end;">
-                                    <a href="../../collaboration/view/${opportunityId}/" class="btn btn-secondary">
+                                    <a href="../../collaboration/view/?id=${opportunityId}" class="btn btn-secondary">
                                         <i class="ph ph-x"></i> Cancel
                                     </a>
                                     <button type="submit" class="btn btn-primary">
@@ -381,7 +389,7 @@
                 if (result.success) {
                     alert('Collaboration opportunity updated successfully!');
                     // Redirect to view page
-                    window.location.href = `../../collaboration/view/${currentOpportunityId}/`;
+                    window.location.href = `../../collaboration/view/?id=${currentOpportunityId}`;
                     return true;
                 } else {
                     alert(`Error updating opportunity: ${result.error || 'Unknown error'}`);
