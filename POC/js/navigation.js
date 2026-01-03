@@ -813,7 +813,7 @@
         
         html += `
           <li class="sidebar-menu-group ${isExpanded ? 'active' : ''}">
-            <button type="button" class="sidebar-group-toggle" onclick="Navigation.toggleMenuGroup(this, '${groupId}', event)" id="${groupId}-toggle">
+            <button type="button" class="sidebar-group-toggle" onclick="Navigation.toggleMenuGroup(this, '${groupId}', event)" id="${groupId}-toggle" title="${item.label}">
               <span class="sidebar-icon">${item.icon || '<i class="ph ph-folder"></i>'}</span>
               <span class="sidebar-label">${item.label}</span>
               <span class="sidebar-chevron"><i class="ph ph-caret-down"></i></span>
@@ -838,7 +838,7 @@
             
             html += `
               <li class="sidebar-menu-group ${childIsExpanded ? 'active' : ''}">
-                <button type="button" class="sidebar-group-toggle" onclick="Navigation.toggleMenuGroup(this, '${childGroupId}', event)" style="padding-left: 2rem;">
+                <button type="button" class="sidebar-group-toggle" onclick="Navigation.toggleMenuGroup(this, '${childGroupId}', event)" style="padding-left: 2rem;" title="${child.label}">
                   <span class="sidebar-icon">${child.icon || '<i class="ph ph-folder"></i>'}</span>
                   <span class="sidebar-label">${child.label}</span>
                   <span class="sidebar-chevron"><i class="ph ph-caret-down"></i></span>
@@ -859,7 +859,7 @@
               
               html += `
                 <li class="sidebar-menu-item ${grandchildIsActive ? 'active' : ''}">
-                  <a href="${grandchild.route}" class="sidebar-link" style="padding-left: 2rem;">
+                  <a href="${grandchild.route}" class="sidebar-link" style="padding-left: 2rem;" title="${grandchild.label}">
                     <span class="sidebar-icon">${grandchildIcon}</span>
                     <span class="sidebar-label">${grandchild.label}</span>
                   </a>
@@ -878,7 +878,7 @@
             
             html += `
               <li class="sidebar-menu-item ${childIsActive ? 'active' : ''}">
-                <a href="${child.route}" class="sidebar-link" style="padding-left: 2rem;">
+                <a href="${child.route}" class="sidebar-link" style="padding-left: 2rem;" title="${child.label}">
                   <span class="sidebar-icon">${childIcon}</span>
                   <span class="sidebar-label">${child.label}</span>
                 </a>
@@ -902,7 +902,7 @@
       
       html += `
         <li class="sidebar-menu-item ${isActive ? 'active' : ''} ${itemClass}">
-          <a href="${item.route}" class="sidebar-link" style="${indentStyle}">
+          <a href="${item.route}" class="sidebar-link" style="${indentStyle}" title="${item.label}">
             <span class="sidebar-icon">${itemIcon}</span>
             <span class="sidebar-label">${item.label}</span>
           </a>

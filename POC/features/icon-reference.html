@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PMTwin - Icon Reference</title>
+    <link rel="stylesheet" href="../css/main.css">
+    <link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.0.3/src/regular/style.css">
+    <style>
+        .icon-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: var(--spacing-4);
+            margin-top: var(--spacing-6);
+        }
+        .icon-card {
+            background: var(--bg-primary);
+            border: 1px solid var(--border-color);
+            border-radius: var(--border-radius-md);
+            padding: var(--spacing-5);
+            transition: all 0.3s ease;
+        }
+        .icon-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+            border-color: var(--color-primary);
+        }
+        .icon-display {
+            font-size: 2.5rem;
+            color: var(--color-primary);
+            margin-bottom: var(--spacing-3);
+            display: block;
+        }
+        .icon-name {
+            font-weight: var(--font-weight-semibold);
+            margin-bottom: var(--spacing-2);
+            color: var(--text-primary);
+        }
+        .icon-description {
+            font-size: var(--font-size-sm);
+            color: var(--text-secondary);
+        }
+        .section-header {
+            margin-top: var(--spacing-8);
+            margin-bottom: var(--spacing-4);
+            padding-bottom: var(--spacing-3);
+            border-bottom: 2px solid var(--border-color);
+        }
+        .status-badge {
+            display: inline-block;
+            padding: var(--spacing-1) var(--spacing-3);
+            border-radius: var(--border-radius-full);
+            font-size: var(--font-size-xs);
+            font-weight: var(--font-weight-medium);
+            margin-left: var(--spacing-2);
+        }
+        .status-ok {
+            background: var(--color-success-light);
+            color: var(--color-success-dark);
+        }
+        .status-missing {
+            background: var(--color-error-light);
+            color: var(--color-error-dark);
+        }
+    </style>
+</head>
+<body>
+    <div class="container" style="max-width: 1400px; padding: var(--spacing-6);">
+        <div class="page-header">
+            <h1>PMTwin Icon Reference</h1>
+            <p>Complete list of all features and their icons</p>
+        </div>
+
+        <!-- Main Navigation -->
+        <h2 class="section-header">Main Navigation</h2>
+        <div class="icon-grid" id="mainNavIcons"></div>
+
+        <!-- Collaboration Features -->
+        <h2 class="section-header">Collaboration Features</h2>
+        <div class="icon-grid" id="collaborationIcons"></div>
+
+        <!-- Admin Features -->
+        <h2 class="section-header">Admin Features</h2>
+        <div class="icon-grid" id="adminIcons"></div>
+
+        <!-- All Icons Summary -->
+        <h2 class="section-header">Icon Status Summary</h2>
+        <div class="card">
+            <div class="card-body">
+                <div id="iconSummary"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const iconReference = {
+            main: [
+                { id: 'dashboard', label: 'Dashboard', icon: 'ph-gauge', description: 'Main dashboard overview' },
+                { id: 'projects', label: 'My Projects', icon: 'ph-buildings', description: 'View and manage projects' },
+                { id: 'create-project', label: 'Create Project', icon: 'ph-plus-circle', description: 'Create a new project' },
+                { id: 'proposals', label: 'Proposals', icon: 'ph-file-text', description: 'View and manage proposals' },
+                { id: 'matches', label: 'Matches', icon: 'ph-link', description: 'View project matches' },
+                { id: 'opportunities', label: 'Opportunities', icon: 'ph-sparkle', description: 'Browse opportunities' },
+                { id: 'pipeline', label: 'Pipeline', icon: 'ph-trend-up', description: 'View project pipeline' },
+                { id: 'profile', label: 'Profile', icon: 'ph-user', description: 'User profile settings' },
+                { id: 'notifications', label: 'Notifications', icon: 'ph-bell', description: 'View notifications' }
+            ],
+            collaboration: {
+                main: [
+                    { id: 'collaboration', label: 'Collaboration', icon: 'ph-handshake', description: 'Main collaboration hub' },
+                    { id: 'my-collaborations', label: 'My Collaborations', icon: 'ph-folder', description: 'View my collaborations' },
+                    { id: 'browse-opportunities', label: 'Browse Opportunities', icon: 'ph-sparkle', description: 'Browse collaboration opportunities' },
+                    { id: 'my-applications', label: 'My Applications', icon: 'ph-file-text', description: 'View my applications' },
+                    { id: 'collaboration-models', label: 'Collaboration Models', icon: 'ph-clipboard-text', description: 'View all collaboration models' }
+                ],
+                projectBased: [
+                    { id: 'task-based', label: 'Task-Based Engagement', icon: 'ph-file-text', description: 'Task-based collaboration' },
+                    { id: 'consortium', label: 'Consortium', icon: 'ph-users-three', description: 'Consortium collaboration' },
+                    { id: 'project-jv', label: 'Project-Specific JV', icon: 'ph-handshake', description: 'Joint venture for projects' },
+                    { id: 'spv', label: 'Special Purpose Vehicle', icon: 'ph-building-office', description: 'SPV collaboration' }
+                ],
+                strategic: [
+                    { id: 'strategic-jv', label: 'Strategic Joint Venture', icon: 'ph-handshake', description: 'Strategic joint venture' },
+                    { id: 'strategic-alliance', label: 'Strategic Alliance', icon: 'ph-link', description: 'Strategic alliance' },
+                    { id: 'mentorship', label: 'Mentorship Program', icon: 'ph-graduation-cap', description: 'Mentorship programs' }
+                ],
+                resources: [
+                    { id: 'bulk-purchasing', label: 'Bulk Purchasing', icon: 'ph-shopping-cart', description: 'Bulk purchasing collaboration' },
+                    { id: 'co-ownership', label: 'Co-Ownership Pooling', icon: 'ph-users', description: 'Co-ownership pooling' },
+                    { id: 'resource-exchange', label: 'Resource Exchange', icon: 'ph-arrows-clockwise', description: 'Resource exchange' }
+                ],
+                hiring: [
+                    { id: 'professional-hiring', label: 'Professional Hiring', icon: 'ph-user', description: 'Hire professionals' },
+                    { id: 'consultant-hiring', label: 'Consultant Hiring', icon: 'ph-user-circle', description: 'Hire consultants' }
+                ],
+                other: [
+                    { id: 'competition', label: 'Call for Competition', icon: 'ph-trophy', description: 'Competition opportunities' }
+                ]
+            },
+            admin: [
+                { id: 'admin-dashboard', label: 'Admin Dashboard', icon: 'ph-gear', description: 'Admin control panel' },
+                { id: 'user-vetting', label: 'User Vetting', icon: 'ph-check-circle', description: 'Vet and approve users' },
+                { id: 'user-management', label: 'User Management', icon: 'ph-users', description: 'Manage users' },
+                { id: 'models-management', label: 'Models Management', icon: 'ph-handshake', description: 'Manage collaboration models' },
+                { id: 'moderation', label: 'Moderation', icon: 'ph-shield-check', description: 'Content moderation' },
+                { id: 'analytics', label: 'Analytics', icon: 'ph-chart-line', description: 'View analytics' },
+                { id: 'audit', label: 'Audit Trail', icon: 'ph-clipboard', description: 'View audit logs' },
+                { id: 'reports', label: 'Reports', icon: 'ph-chart-bar', description: 'Generate reports' },
+                { id: 'settings', label: 'Settings', icon: 'ph-gear', description: 'System settings' }
+            ]
+        };
+
+        function renderIconCard(item) {
+            const iconClass = `ph ${item.icon}`;
+            const hasIcon = item.icon && item.icon !== '';
+            
+            return `
+                <div class="icon-card">
+                    <i class="${iconClass} icon-display"></i>
+                    <div class="icon-name">
+                        ${item.label}
+                        ${hasIcon ? '<span class="status-badge status-ok">✓ Icon</span>' : '<span class="status-badge status-missing">✗ Missing</span>'}
+                    </div>
+                    <div class="icon-description">${item.description || 'No description'}</div>
+                    <div style="margin-top: var(--spacing-2); font-size: var(--font-size-xs); color: var(--text-secondary);">
+                        <code>${iconClass}</code>
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderSection(containerId, items) {
+            const container = document.getElementById(containerId);
+            if (!container) return;
+            
+            let html = '';
+            items.forEach(item => {
+                html += renderIconCard(item);
+            });
+            container.innerHTML = html;
+        }
+
+        function renderNestedSection(containerId, sections) {
+            const container = document.getElementById(containerId);
+            if (!container) return;
+            
+            let html = '';
+            Object.keys(sections).forEach(sectionKey => {
+                const sectionItems = sections[sectionKey];
+                if (sectionItems && sectionItems.length > 0) {
+                    sectionItems.forEach(item => {
+                        html += renderIconCard(item);
+                    });
+                }
+            });
+            container.innerHTML = html;
+        }
+
+        function generateSummary() {
+            let total = 0;
+            let withIcons = 0;
+            let withoutIcons = 0;
+
+            // Count main
+            iconReference.main.forEach(item => {
+                total++;
+                if (item.icon && item.icon !== '') withIcons++;
+                else withoutIcons++;
+            });
+
+            // Count collaboration
+            Object.keys(iconReference.collaboration).forEach(key => {
+                const items = iconReference.collaboration[key];
+                if (Array.isArray(items)) {
+                    items.forEach(item => {
+                        total++;
+                        if (item.icon && item.icon !== '') withIcons++;
+                        else withoutIcons++;
+                    });
+                }
+            });
+
+            // Count admin
+            iconReference.admin.forEach(item => {
+                total++;
+                if (item.icon && item.icon !== '') withIcons++;
+                else withoutIcons++;
+            });
+
+            const percentage = total > 0 ? Math.round((withIcons / total) * 100) : 0;
+
+            document.getElementById('iconSummary').innerHTML = `
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: var(--spacing-4);">
+                    <div>
+                        <div style="font-size: var(--font-size-2xl); font-weight: var(--font-weight-bold); color: var(--color-primary);">${total}</div>
+                        <div style="color: var(--text-secondary);">Total Features</div>
+                    </div>
+                    <div>
+                        <div style="font-size: var(--font-size-2xl); font-weight: var(--font-weight-bold); color: var(--color-success);">${withIcons}</div>
+                        <div style="color: var(--text-secondary);">With Icons</div>
+                    </div>
+                    <div>
+                        <div style="font-size: var(--font-size-2xl); font-weight: var(--font-weight-bold); color: var(--color-error);">${withoutIcons}</div>
+                        <div style="color: var(--text-secondary);">Missing Icons</div>
+                    </div>
+                    <div>
+                        <div style="font-size: var(--font-size-2xl); font-weight: var(--font-weight-bold); color: var(--color-primary);">${percentage}%</div>
+                        <div style="color: var(--text-secondary);">Coverage</div>
+                    </div>
+                </div>
+                ${withoutIcons === 0 ? 
+                    '<div style="margin-top: var(--spacing-4); padding: var(--spacing-4); background: var(--color-success-light); border-radius: var(--border-radius-md); color: var(--color-success-dark);"><strong>✓ All features have icons!</strong></div>' :
+                    `<div style="margin-top: var(--spacing-4); padding: var(--spacing-4); background: var(--color-error-light); border-radius: var(--border-radius-md); color: var(--color-error-dark);"><strong>⚠ ${withoutIcons} feature(s) missing icons</strong></div>`
+                }
+            `;
+        }
+
+        // Render all sections
+        document.addEventListener('DOMContentLoaded', function() {
+            renderSection('mainNavIcons', iconReference.main);
+            renderNestedSection('collaborationIcons', iconReference.collaboration);
+            renderSection('adminIcons', iconReference.admin);
+            generateSummary();
+        });
+    </script>
+</body>
+</html>
+

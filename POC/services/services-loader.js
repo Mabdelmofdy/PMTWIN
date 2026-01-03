@@ -38,6 +38,7 @@
     'services/collaboration/collaboration-service.js',
     'services/service-providers/service-provider-service.js',
     'services/service-offerings/service-offering-service.js',
+    'services/service-evaluations/service-evaluation-service.js',
     'services/notifications/notification-service.js',
     'services/admin/admin-service.js'
   ];
@@ -65,6 +66,9 @@
       console.log('[ServicesLoader] PMTwinRBAC available:', typeof PMTwinRBAC !== 'undefined');
       console.log('[ServicesLoader] MatchingService available:', typeof MatchingService !== 'undefined');
       console.log('[ServicesLoader] CollaborationService available:', typeof CollaborationService !== 'undefined');
+      console.log('[ServicesLoader] ServiceOfferingService available:', typeof ServiceOfferingService !== 'undefined');
+      console.log('[ServicesLoader] ServiceProviderService available:', typeof ServiceProviderService !== 'undefined');
+      console.log('[ServicesLoader] ServiceEvaluationService available:', typeof ServiceEvaluationService !== 'undefined');
       
       // Initialize role assignments for existing users
       if (typeof PMTwinData !== 'undefined' && typeof PMTwinRBAC !== 'undefined') {
@@ -76,7 +80,10 @@
         window.dispatchEvent(new CustomEvent('servicesLoaded', { 
           detail: { 
             dashboardService: typeof DashboardService !== 'undefined',
-            rbac: typeof PMTwinRBAC !== 'undefined'
+            rbac: typeof PMTwinRBAC !== 'undefined',
+            serviceOfferingService: typeof ServiceOfferingService !== 'undefined',
+            serviceProviderService: typeof ServiceProviderService !== 'undefined',
+            serviceEvaluationService: typeof ServiceEvaluationService !== 'undefined'
           } 
         }));
       }

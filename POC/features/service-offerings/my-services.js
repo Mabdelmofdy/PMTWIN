@@ -17,14 +17,52 @@
   async function init() {
     if (typeof PMTwinData === 'undefined') {
       console.error('PMTwinData not available');
+      const container = document.getElementById('offeringsList');
+      if (container) {
+        container.innerHTML = '<p class="alert alert-error">PMTwinData not available. Please refresh the page.</p>';
+      }
       return;
     }
 
     currentUser = PMTwinData.Sessions.getCurrentUser();
     if (!currentUser) {
-      document.getElementById('offeringsList').innerHTML = 
-        '<p class="alert alert-error">Please log in to view your service offerings.</p>';
+      const container = document.getElementById('offeringsList');
+      if (container) {
+        container.innerHTML = '<p class="alert alert-error">Please log in to view your service offerings.</p>';
+      }
       return;
+    }
+
+    // Wait for ServiceOfferingService to be available
+    if (typeof ServiceOfferingService === 'undefined') {
+      const container = document.getElementById('offeringsList');
+      if (container) {
+        container.innerHTML = '<p class="alert alert-warning">Loading services... Please wait.</p>';
+      }
+      
+      // Wait for services to load
+      await new Promise((resolve) => {
+        const checkService = setInterval(() => {
+          if (typeof ServiceOfferingService !== 'undefined') {
+            clearInterval(checkService);
+            resolve();
+          }
+        }, 100);
+        
+        // Timeout after 5 seconds
+        setTimeout(() => {
+          clearInterval(checkService);
+          resolve();
+        }, 5000);
+      });
+      
+      if (typeof ServiceOfferingService === 'undefined') {
+        const container = document.getElementById('offeringsList');
+        if (container) {
+          container.innerHTML = '<p class="alert alert-error">Service offering service not available. Please refresh the page.</p>';
+        }
+        return;
+      }
     }
 
     // Load service categories
@@ -273,8 +311,8 @@
                 <p style="margin: 0; color: var(--text-secondary); font-size: 0.9rem;">
                   <span class="badge badge-info">${categoryName}</span> • 
                   ${offering.delivery_mode || 'Hybrid'} • 
-                  ${offering.exchange_type || 'Cash'} • 
-                  ${priceDisplay}
+                  ${offering.exchange_type || 'Cash'}${offering.exchange_type === 'Barter' ? ' <span class="badge badge-info">Barter</span>' : ''} • 
+                  ${offering.exchange_type === 'Barter' ? 'Barter Exchange' : priceDisplay}
                 </p>
               </div>
               <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 0.5rem;">
@@ -791,7 +829,9 @@
     toggleStatus,
     deleteOffering,
     loadOfferings,
-    loadStatistics
+    loadStatistics,
+    applyFilters,
+    clearFilters
   };
 
   // Global reference for onclick handlers

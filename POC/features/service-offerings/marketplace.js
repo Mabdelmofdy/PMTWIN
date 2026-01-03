@@ -16,10 +16,46 @@
   async function init() {
     if (typeof PMTwinData === 'undefined') {
       console.error('PMTwinData not available');
+      const container = document.getElementById('marketplaceOfferingsList');
+      if (container) {
+        container.innerHTML = '<p class="alert alert-error">PMTwinData not available. Please refresh the page.</p>';
+      }
       return;
     }
 
     currentUser = PMTwinData.Sessions.getCurrentUser();
+
+    // Wait for ServiceOfferingService to be available
+    if (typeof ServiceOfferingService === 'undefined') {
+      const container = document.getElementById('marketplaceOfferingsList');
+      if (container) {
+        container.innerHTML = '<p class="alert alert-warning">Loading services... Please wait.</p>';
+      }
+      
+      // Wait for services to load
+      await new Promise((resolve) => {
+        const checkService = setInterval(() => {
+          if (typeof ServiceOfferingService !== 'undefined') {
+            clearInterval(checkService);
+            resolve();
+          }
+        }, 100);
+        
+        // Timeout after 5 seconds
+        setTimeout(() => {
+          clearInterval(checkService);
+          resolve();
+        }, 5000);
+      });
+      
+      if (typeof ServiceOfferingService === 'undefined') {
+        const container = document.getElementById('marketplaceOfferingsList');
+        if (container) {
+          container.innerHTML = '<p class="alert alert-error">Service offering service not available. Please refresh the page.</p>';
+        }
+        return;
+      }
+    }
 
     // Load service categories
     if (typeof ServiceProviderService !== 'undefined') {
@@ -99,6 +135,9 @@
       
       // Enhanced statistics
       const views = offering.views || 0;
+      const inquiries = offering.inquiries || 0;
+      const matches = offering.matchesGenerated || 0;
+      const proposals = offering.proposalsReceived || 0;
       const rating = offering.averageRating ? offering.averageRating.toFixed(1) : null;
       const qualityScore = offering.qualityScore || 0;
       const qualityColor = qualityScore >= 80 ? 'success' : qualityScore >= 50 ? 'warning' : 'secondary';
@@ -187,15 +226,51 @@
                 </div>
                 <div>
                   <strong>Exchange:</strong> ${offering.exchange_type || 'Cash'}
+                  ${offering.exchange_type === 'Barter' ? ' <span class="badge badge-info">Barter</span>' : ''}
                 </div>
                 <div>
                   <strong>Location:</strong> ${offering.location?.city || 'N/A'}, ${offering.location?.country || ''}
                 </div>
                 <div>
-                  <strong>Price:</strong> ${priceDisplay}
+                  <strong>Price:</strong> ${offering.exchange_type === 'Barter' ? 'Barter Exchange' : priceDisplay}
                 </div>
               </div>
+              ${offering.exchange_type === 'Barter' && offering.barter_details ? `
+                <div style="margin-top: 0.75rem; padding-top: 0.75rem; border-top: 1px solid var(--border-color);">
+                  <div style="font-size: var(--font-size-sm);">
+                    <div style="margin-bottom: 0.5rem;">
+                      <strong>Accepts:</strong> ${offering.barter_details.accepts?.join(', ') || 'N/A'}
+                    </div>
+                    <div>
+                      <strong>Offers:</strong> ${offering.barter_details.offers?.join(', ') || 'N/A'}
+                    </div>
+                  </div>
+                </div>
+              ` : ''}
             </div>
+            
+            ${(views > 0 || inquiries > 0 || matches > 0 || proposals > 0) ? `
+              <div style="margin-bottom: 1rem; padding: 0.75rem; background: var(--bg-primary); border-radius: var(--radius);">
+                <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 0.5rem; text-align: center;">
+                  <div>
+                    <div style="font-size: 1.25rem; font-weight: 600; color: var(--color-primary);">${views}</div>
+                    <div style="font-size: 0.7rem; color: var(--text-secondary);">Views</div>
+                  </div>
+                  <div>
+                    <div style="font-size: 1.25rem; font-weight: 600; color: var(--color-primary);">${inquiries}</div>
+                    <div style="font-size: 0.7rem; color: var(--text-secondary);">Inquiries</div>
+                  </div>
+                  <div>
+                    <div style="font-size: 1.25rem; font-weight: 600; color: var(--color-primary);">${matches}</div>
+                    <div style="font-size: 0.7rem; color: var(--text-secondary);">Matches</div>
+                  </div>
+                  <div>
+                    <div style="font-size: 1.25rem; font-weight: 600; color: var(--color-primary);">${proposals}</div>
+                    <div style="font-size: 0.7rem; color: var(--text-secondary);">Proposals</div>
+                  </div>
+                </div>
+              </div>
+            ` : ''}
             
             <div style="display: flex; gap: 0.5rem;">
               <button onclick="marketplaceComponent.viewOffering('${offering.id}')" class="btn btn-primary btn-sm" style="flex: 1;">
@@ -294,13 +369,33 @@
     }
 
     const modal = document.createElement('div');
+    modal.className = 'marketplace-offering-modal';
     modal.style.cssText = 'position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 1000; display: flex; align-items: center; justify-content: center; padding: 2rem;';
+    
+    // Escape key handler
+    let escapeHandler;
+    
+    // Function to close modal
+    const closeModal = () => {
+      modal.remove();
+      if (escapeHandler) {
+        document.removeEventListener('keydown', escapeHandler);
+      }
+    };
+    
+    // Escape key handler
+    escapeHandler = (e) => {
+      if (e.key === 'Escape') {
+        closeModal();
+      }
+    };
+    
     modal.innerHTML = `
       <div class="card" style="max-width: 600px; width: 100%; max-height: 90vh; overflow-y: auto;">
         <div class="card-body">
           <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 1rem;">
             <h2 style="margin: 0;">${offering.title}</h2>
-            <button onclick="this.closest('[style*=\"position: fixed\"]').remove()" class="btn btn-secondary btn-sm">
+            <button onclick="this.closest('.marketplace-offering-modal').remove()" class="btn btn-secondary btn-sm">
               <i class="ph ph-x"></i>
             </button>
           </div>
@@ -378,12 +473,13 @@
             </div>
             <div>
               <strong>Exchange Type:</strong> ${offering.exchange_type || 'Cash'}
+              ${offering.exchange_type === 'Barter' ? ' <span class="badge badge-info">Barter</span>' : ''}
             </div>
             <div>
               <strong>Pricing Type:</strong> ${offering.pricing_type || 'Fixed'}
             </div>
             <div>
-              <strong>Price Range:</strong> ${formatPrice(offering)}
+              <strong>Price Range:</strong> ${offering.exchange_type === 'Barter' ? 'Barter Exchange' : formatPrice(offering)}
             </div>
             <div>
               <strong>Location:</strong> ${offering.location?.city || 'N/A'}, ${offering.location?.country || ''}
@@ -394,6 +490,25 @@
               </div>
             ` : ''}
           </div>
+          
+          ${offering.exchange_type === 'Barter' && offering.barter_details ? `
+            <div style="margin-bottom: 1rem; padding: 0.75rem; background: var(--bg-primary); border: 1px solid var(--color-info); border-radius: var(--radius);">
+              <strong style="color: var(--color-info);">Barter Exchange Details:</strong>
+              <div style="margin-top: 0.5rem;">
+                <div style="margin-bottom: 0.5rem;">
+                  <strong>Accepts:</strong> ${offering.barter_details.accepts?.join(', ') || 'N/A'}
+                </div>
+                <div style="margin-bottom: 0.5rem;">
+                  <strong>Offers:</strong> ${offering.barter_details.offers?.join(', ') || 'N/A'}
+                </div>
+                ${offering.barter_details.valuation_method ? `
+                  <div>
+                    <strong>Valuation Method:</strong> ${offering.barter_details.valuation_method}
+                  </div>
+                ` : ''}
+              </div>
+            </div>
+          ` : ''}
           
           ${offering.availability ? `
             <div style="margin-bottom: 1rem; padding: 0.75rem; background: var(--bg-secondary); border-radius: var(--radius);">
@@ -406,17 +521,28 @@
           
           <div style="display: flex; gap: 0.5rem; margin-top: 1rem;">
             ${currentUser ? `
-              <button onclick="marketplaceComponent.inviteToProposal('${offering.id}'); this.closest('[style*=\"position: fixed\"]').remove();" class="btn btn-success" style="flex: 1;">
+              <button onclick="marketplaceComponent.inviteToProposal('${offering.id}'); this.closest('.marketplace-offering-modal').remove();" class="btn btn-success" style="flex: 1;">
                 <i class="ph ph-envelope"></i> Invite to Proposal
               </button>
             ` : ''}
-            <button onclick="this.closest('[style*=\"position: fixed\"]').remove()" class="btn btn-secondary">
+            <button onclick="this.closest('.marketplace-offering-modal').remove()" class="btn btn-secondary">
               Close
             </button>
           </div>
         </div>
       </div>
     `;
+    
+    // Add click-outside-to-close functionality
+    modal.addEventListener('click', function(e) {
+      if (e.target === modal) {
+        closeModal();
+      }
+    });
+    
+    // Add escape key listener
+    document.addEventListener('keydown', escapeHandler);
+    
     document.body.appendChild(modal);
   }
 
@@ -433,6 +559,9 @@
       alert('Service offering service not available');
       return;
     }
+
+    // Increment inquiry count when viewing details
+    await ServiceOfferingService.incrementInquiries(offeringId);
 
     const result = await ServiceOfferingService.getOfferingById(offeringId);
     if (!result.success) {

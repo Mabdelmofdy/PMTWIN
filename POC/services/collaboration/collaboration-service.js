@@ -318,13 +318,73 @@
     }
   }
 
+  async function updateCollaborationOpportunity(opportunityId, updateData) {
+    if (typeof PMTwinData === 'undefined') {
+      return { success: false, error: 'Data service not available' };
+    }
+    
+    try {
+      const currentUser = PMTwinData.Sessions.getCurrentUser();
+      if (!currentUser) {
+        return { success: false, error: 'User not authenticated' };
+      }
+      
+      // Get existing opportunity
+      const opportunity = PMTwinData.CollaborationOpportunities.getById(opportunityId);
+      if (!opportunity) {
+        return { success: false, error: 'Collaboration opportunity not found' };
+      }
+      
+      // Check permission - user must be the creator
+      if (opportunity.creatorId !== currentUser.id) {
+        // Check RBAC permission if available
+        if (typeof PMTwinRBAC !== 'undefined') {
+          const hasPermission = await PMTwinRBAC.canCurrentUserAccess('edit_all_collaboration_opportunities');
+          if (!hasPermission) {
+            return { success: false, error: 'You do not have permission to edit this collaboration opportunity' };
+          }
+        } else {
+          return { success: false, error: 'You do not have permission to edit this collaboration opportunity' };
+        }
+      }
+      
+      // Check RBAC permission for editing
+      if (typeof PMTwinRBAC !== 'undefined') {
+        const canEditOwn = await PMTwinRBAC.canCurrentUserAccess('manage_own_collaboration_opportunities');
+        const canEditAll = await PMTwinRBAC.canCurrentUserAccess('edit_all_collaboration_opportunities');
+        if (!canEditOwn && !canEditAll) {
+          return { success: false, error: 'You do not have permission to edit collaboration opportunities' };
+        }
+      }
+      
+      // Prepare update data
+      const updates = {
+        ...updateData,
+        updatedAt: new Date().toISOString()
+      };
+      
+      // Update opportunity
+      const updated = PMTwinData.CollaborationOpportunities.update(opportunityId, updates);
+      
+      if (updated) {
+        return { success: true, opportunity: updated, message: 'Collaboration opportunity updated successfully' };
+      }
+      
+      return { success: false, error: 'Failed to update collaboration opportunity' };
+    } catch (error) {
+      console.error('Error updating collaboration opportunity:', error);
+      return { success: false, error: 'Failed to update collaboration opportunity: ' + error.message };
+    }
+  }
+
   window.CollaborationService = {
     createCollaborationOpportunity,
     getCollaborationOpportunities,
     getOpportunityById,
     incrementOpportunityViews,
     applyToCollaboration,
-    getCollaborationApplications
+    getCollaborationApplications,
+    updateCollaborationOpportunity
   };
 
 })();

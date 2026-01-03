@@ -1017,6 +1017,11 @@
       { id: 'proposals', label: 'Proposals', route: `${basePath}proposals/`, feature: 'proposal_management', icon: '<i class="ph ph-file-text"></i>', alternativeFeatures: ['proposal_creation', 'proposal_review'] },
       { id: 'pipeline', label: 'Pipeline', route: `${basePath}pipeline/`, feature: 'pipeline_management', icon: '<i class="ph ph-trend-up"></i>' },
       
+      // Services Section
+      { id: 'my-services', label: 'My Services', route: `${basePath}my-services/`, feature: 'service_portfolio', icon: '<i class="ph ph-briefcase"></i>', alternativeFeatures: ['service_providers'] },
+      { id: 'services-marketplace', label: 'Service Marketplace', route: `${basePath}services-marketplace/`, feature: 'service_providers', icon: '<i class="ph ph-storefront"></i>' },
+      { id: 'service-evaluations', label: 'Service Evaluations', route: `${basePath}service-providers/`, feature: 'service_evaluations', icon: '<i class="ph ph-star"></i>', alternativeFeatures: ['service_providers'] },
+      
       // Profile & Settings
       { id: 'profile', label: 'Profile', route: `${basePath}profile/`, feature: 'profile_management', icon: '<i class="ph ph-user"></i>' },
       { id: 'settings', label: 'Settings', route: `${basePath}settings/`, feature: 'profile_management', icon: '<i class="ph ph-gear"></i>' },

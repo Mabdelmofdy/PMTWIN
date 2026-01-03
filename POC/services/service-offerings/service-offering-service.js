@@ -335,6 +335,11 @@
     data.serviceOfferings.push(offering);
     saveServiceProvidersData(data);
     
+    // Update index
+    if (typeof PMTwinData !== 'undefined' && PMTwinData.IndexManager) {
+      PMTwinData.IndexManager.updateOfferingIndex(offering.id);
+    }
+    
     // Log audit trail if available
     if (typeof PMTwinData !== 'undefined' && PMTwinData.Audit) {
       PMTwinData.Audit.log({
@@ -481,6 +486,11 @@
     // Save to localStorage
     saveServiceProvidersData(data);
     
+    // Update index
+    if (typeof PMTwinData !== 'undefined' && PMTwinData.IndexManager) {
+      PMTwinData.IndexManager.updateOfferingIndex(offeringId);
+    }
+    
     // Log audit trail
     if (typeof PMTwinData !== 'undefined' && PMTwinData.Audit) {
       PMTwinData.Audit.log({
@@ -537,6 +547,11 @@
     // Delete offering
     data.serviceOfferings.splice(offeringIndex, 1);
     saveServiceProvidersData(data);
+    
+    // Remove from index
+    if (typeof PMTwinData !== 'undefined' && PMTwinData.IndexManager) {
+      PMTwinData.IndexManager.removeFromIndex(offeringId, 'offering');
+    }
     
     return { success: true };
   }
@@ -739,6 +754,84 @@
     
     return { success: true };
   }
+
+  // ============================================
+  // Increment Inquiry Count
+  // ============================================
+  async function incrementInquiries(offeringId) {
+    const data = await loadServiceProvidersData();
+    const offering = data.serviceOfferings.find(o => o.id === offeringId);
+    
+    if (offering) {
+      offering.inquiries = (offering.inquiries || 0) + 1;
+      saveServiceProvidersData(data);
+    }
+    
+    return { success: true };
+  }
+
+  // ============================================
+  // Increment Matches Generated
+  // ============================================
+  async function incrementMatches(offeringId) {
+    const data = await loadServiceProvidersData();
+    const offering = data.serviceOfferings.find(o => o.id === offeringId);
+    
+    if (offering) {
+      offering.matchesGenerated = (offering.matchesGenerated || 0) + 1;
+      saveServiceProvidersData(data);
+    }
+    
+    return { success: true };
+  }
+
+  // ============================================
+  // Increment Proposals Received
+  // ============================================
+  async function incrementProposals(offeringId) {
+    const data = await loadServiceProvidersData();
+    const offering = data.serviceOfferings.find(o => o.id === offeringId);
+    
+    if (offering) {
+      offering.proposalsReceived = (offering.proposalsReceived || 0) + 1;
+      saveServiceProvidersData(data);
+    }
+    
+    return { success: true };
+  }
+
+  // ============================================
+  // Get Provider Statistics
+  // ============================================
+  async function getProviderStatistics(userId) {
+    const data = await loadServiceProvidersData();
+    const offerings = (data.serviceOfferings || []).filter(o => o.provider_user_id === userId);
+    
+    const statistics = {
+      totalOfferings: offerings.length,
+      activeOfferings: offerings.filter(o => o.status === 'Active').length,
+      totalViews: offerings.reduce((sum, o) => sum + (o.views || 0), 0),
+      totalInquiries: offerings.reduce((sum, o) => sum + (o.inquiries || 0), 0),
+      totalMatches: offerings.reduce((sum, o) => sum + (o.matchesGenerated || 0), 0),
+      totalProposals: offerings.reduce((sum, o) => sum + (o.proposalsReceived || 0), 0),
+      averageRating: null,
+      averageQualityScore: 0
+    };
+    
+    // Calculate average rating
+    const ratedOfferings = offerings.filter(o => o.averageRating && o.averageRating > 0);
+    if (ratedOfferings.length > 0) {
+      statistics.averageRating = ratedOfferings.reduce((sum, o) => sum + o.averageRating, 0) / ratedOfferings.length;
+    }
+    
+    // Calculate average quality score
+    const scoredOfferings = offerings.filter(o => o.qualityScore && o.qualityScore > 0);
+    if (scoredOfferings.length > 0) {
+      statistics.averageQualityScore = scoredOfferings.reduce((sum, o) => sum + o.qualityScore, 0) / scoredOfferings.length;
+    }
+    
+    return { success: true, statistics: statistics };
+  }
   
   // ============================================
   // Get Offerings by Collaboration Model
@@ -821,6 +914,9 @@
     toggleStatus,
     publishOffering,
     incrementViews,
+    incrementInquiries,
+    incrementMatches,
+    incrementProposals,
     getOfferingsByCollaborationModel,
     getProviderStatistics,
     validateOfferingData,

@@ -18,10 +18,14 @@
     COLLABORATION_OPPORTUNITIES: 'pmtwin_collaboration_opportunities',
     COLLABORATION_APPLICATIONS: 'pmtwin_collaboration_applications',
     SYSTEM_SETTINGS: 'pmtwin_system_settings',
+    SERVICE_PROVIDERS_INDEX: 'pmtwin_service_providers_index',
+    BENEFICIARIES_INDEX: 'pmtwin_beneficiaries_index',
+    SERVICE_EVALUATIONS: 'pmtwin_service_evaluations',
+    SERVICE_OFFERINGS_INDEX: 'pmtwin_service_offerings_index',
     VERSION: 'pmtwin_data_version'
   };
 
-  const DATA_VERSION = '2.1.0'; // Updated for progressive onboarding system
+  const DATA_VERSION = '2.2.0'; // Updated for service index re-optimization
 
   // ============================================
   // User Type & Role Mapping
@@ -99,6 +103,12 @@
     
     // Load sample proposals if none exist
     loadSampleProposals();
+    
+    // Initialize service index
+    migrateServiceIndex();
+    
+    // Load test data for new models
+    loadServiceIndexTestData();
   }
 
   // ============================================
@@ -184,6 +194,554 @@
 
     if (migrated > 0) {
       console.log(`✅ Migrated ${migrated} user(s) to enhanced onboarding model`);
+    }
+  }
+
+  // ============================================
+  // Load Test Data for Service Index Models
+  // ============================================
+  function loadServiceIndexTestData() {
+    // Only load if no data exists
+    const existingProviders = ServiceProviders.getAll();
+    const existingBeneficiaries = Beneficiaries.getAll();
+    const existingEvaluations = ServiceEvaluations.getAll();
+    
+    if (existingProviders.length > 0 && existingBeneficiaries.length > 0) {
+      // Data already exists, just rebuild index
+      IndexManager.rebuildIndex();
+      return;
+    }
+
+    // Get demo users
+    const users = Users.getAll();
+    const demoUsers = users.filter(u => u.email && u.email.includes('@pmtwin.com'));
+    
+    if (demoUsers.length === 0) {
+      console.warn('No demo users found for test data');
+      return;
+    }
+
+    let createdProviders = 0;
+    let createdBeneficiaries = 0;
+    let createdEvaluations = 0;
+
+    // Create test service providers
+    const testProviders = [
+      {
+        userId: demoUsers.find(u => u.role === 'service_provider' || u.role === 'consultant')?.id || demoUsers[0].id,
+        providerType: 'company',
+        name: 'Legal & Logistics Services',
+        companyName: 'Legal & Logistics Services',
+        description: 'Comprehensive B2B services specializing in legal consultation and logistics management for construction projects in the MENA region.',
+        categories: ['legal', 'logistics'],
+        skills: ['Contract Review', 'Legal Consultation', 'Supply Chain Management', 'Procurement'],
+        location: { city: 'Riyadh', region: 'Riyadh Province', country: 'Saudi Arabia' },
+        serviceAreas: ['Riyadh', 'Jeddah', 'Dammam', 'Dubai'],
+        availability: 'available',
+        responseTime: '24 hours',
+        profileScore: 85,
+        certifications: ['ISO 9001', 'Legal Practice License'],
+        establishedYear: 2015,
+        contact: { email: 'service@pmtwin.com', phone: '+966 11 123 4567' },
+        status: 'active'
+      },
+      {
+        userId: demoUsers.find(u => u.role === 'consultant')?.id || demoUsers[1]?.id || demoUsers[0].id,
+        providerType: 'consultant',
+        name: 'Ahmed Al-Saud',
+        companyName: null,
+        description: 'Senior Civil Engineer with 10+ years of experience in mega-projects and infrastructure development.',
+        categories: ['engineering', 'design'],
+        skills: ['Project Management', 'Civil Engineering', 'Construction Planning', 'Quality Control'],
+        location: { city: 'Riyadh', region: 'Riyadh Province', country: 'Saudi Arabia' },
+        serviceAreas: ['Riyadh', 'NEOM', 'Qiddiya'],
+        availability: 'available',
+        responseTime: '48 hours',
+        profileScore: 92,
+        certifications: ['PMP Certification', 'Saudi Council of Engineers'],
+        establishedYear: null,
+        contact: { email: 'ahmed@pmtwin.com', phone: '+966 50 123 4567' },
+        status: 'active'
+      }
+    ];
+
+    testProviders.forEach(providerData => {
+      const provider = ServiceProviders.create(providerData);
+      if (provider) createdProviders++;
+    });
+
+    // Create test beneficiaries (project leads/entities)
+    const projectLeads = demoUsers.filter(u => ['project_lead', 'entity', 'company'].includes(u.role) || u.userType === 'company');
+    const projects = Projects.getAll();
+    
+    projectLeads.forEach(user => {
+      const userProjects = projects.filter(p => p.creatorId === user.id);
+      if (userProjects.length > 0) {
+        const beneficiary = Beneficiaries.create({
+          userId: user.id,
+          name: user.profile?.name || user.email,
+          companyName: user.profile?.companyName || null,
+          location: user.profile?.location || { city: 'Riyadh', country: 'Saudi Arabia' },
+          requiredServices: ['legal', 'engineering', 'logistics'],
+          requiredSkills: ['Project Management', 'Contract Review', 'Engineering'],
+          budgetRange: { min: 100000, max: 5000000, currency: 'SAR' },
+          projectIds: userProjects.map(p => p.id),
+          preferences: {
+            deliveryMode: ['On-site', 'Hybrid'],
+            paymentTerms: ['30_days', 'milestone_based'],
+            exchangeType: ['Cash', 'Mixed']
+          },
+          status: 'active'
+        });
+        if (beneficiary) createdBeneficiaries++;
+      }
+    });
+
+    // Create test evaluations (if we have offerings and beneficiaries)
+    const offerings = [];
+    try {
+      const storedData = localStorage.getItem('pmtwin_service_providers');
+      if (storedData) {
+        const data = JSON.parse(storedData);
+        offerings.push(...(data.serviceOfferings || []));
+      }
+    } catch (e) {
+      console.warn('Error loading offerings for test evaluations:', e);
+    }
+
+    if (offerings.length > 0) {
+      const beneficiaries = Beneficiaries.getAll();
+      if (beneficiaries.length > 0) {
+        const firstBeneficiary = beneficiaries[0];
+        const firstOffering = offerings[0];
+        
+        if (firstOffering && firstBeneficiary) {
+          const evaluation = ServiceEvaluations.create({
+            serviceOfferingId: firstOffering.id,
+            providerId: firstOffering.provider_user_id,
+            beneficiaryId: firstBeneficiary.userId,
+            projectId: firstBeneficiary.projectIds?.[0] || null,
+            rating: 4.5,
+            review: 'Excellent service! Very professional and delivered on time. Highly recommended.',
+            performanceMetrics: {
+              onTimeDelivery: true,
+              qualityScore: 4.5,
+              communicationScore: 4.0,
+              valueScore: 4.5
+            }
+          });
+          if (evaluation) createdEvaluations++;
+        }
+      }
+    }
+
+    // Rebuild index
+    IndexManager.rebuildIndex();
+
+    if (createdProviders > 0 || createdBeneficiaries > 0 || createdEvaluations > 0) {
+      console.log(`✅ Created test data: ${createdProviders} providers, ${createdBeneficiaries} beneficiaries, ${createdEvaluations} evaluations`);
+    }
+    
+    // Add test statistics to service offerings
+    addTestStatisticsToOfferings();
+  }
+
+  // ============================================
+  // Migration: Service Index
+  // ============================================
+  function migrateServiceIndex() {
+    // Check if migration is needed
+    const existingProviders = ServiceProviders.getAll();
+    const existingBeneficiaries = Beneficiaries.getAll();
+    
+    // If we already have data, skip migration
+    if (existingProviders.length > 0 || existingBeneficiaries.length > 0) {
+      // Rebuild index to ensure it's up to date
+      IndexManager.rebuildIndex();
+      return;
+    }
+
+    // Migrate service providers from service-providers.json structure
+    try {
+      const storedData = localStorage.getItem('pmtwin_service_providers');
+      if (storedData) {
+        const data = JSON.parse(storedData);
+        let migratedProviders = 0;
+        let migratedBeneficiaries = 0;
+
+        // Migrate service providers
+        (data.serviceProviders || []).forEach(sp => {
+          const provider = ServiceProviders.create({
+            id: sp.id,
+            userId: sp.userId,
+            providerType: sp.providerType || 'company', // Default to company for existing providers
+            name: sp.companyName || sp.name || '',
+            companyName: sp.companyName || null,
+            description: sp.description || '',
+            categories: sp.categories || [],
+            skills: [], // Will be populated from offerings
+            location: sp.location || {},
+            serviceAreas: sp.serviceAreas || [],
+            availability: sp.availability || 'available',
+            responseTime: sp.responseTime || null,
+            profileScore: sp.profileScore || 0,
+            certifications: sp.certifications || [],
+            establishedYear: sp.establishedYear || null,
+            contact: sp.contact || {},
+            status: 'active',
+            createdAt: sp.createdAt || new Date().toISOString()
+          });
+          if (provider) migratedProviders++;
+        });
+
+        // Migrate users to beneficiaries (project leads and entities needing services)
+        const users = Users.getAll();
+        users.forEach(user => {
+          const userType = user.userType || mapRoleToUserType(user.role);
+          // Project leads, suppliers, and entities are beneficiaries
+          if (['project_lead', 'supplier', 'entity'].includes(user.role) || userType === 'company') {
+            // Check if user has projects
+            const userProjects = Projects.getAll().filter(p => p.creatorId === user.id);
+            if (userProjects.length > 0) {
+              const beneficiary = Beneficiaries.create({
+                userId: user.id,
+                name: user.profile?.name || user.email,
+                companyName: user.profile?.companyName || null,
+                location: user.profile?.location || {},
+                requiredServices: [], // Will be populated from projects
+                requiredSkills: [], // Will be populated from projects
+                budgetRange: { min: 0, max: 0, currency: 'SAR' },
+                projectIds: userProjects.map(p => p.id),
+                preferences: {
+                  deliveryMode: [],
+                  paymentTerms: [],
+                  exchangeType: []
+                },
+                status: 'active',
+                createdAt: user.createdAt || new Date().toISOString()
+              });
+              if (beneficiary) migratedBeneficiaries++;
+            }
+          }
+        });
+
+        if (migratedProviders > 0 || migratedBeneficiaries > 0) {
+          console.log(`✅ Migrated ${migratedProviders} service provider(s) and ${migratedBeneficiaries} beneficiary(ies) to indexed structure`);
+        }
+
+        // Rebuild index
+        IndexManager.rebuildIndex();
+      }
+    } catch (error) {
+      console.error('Error migrating service index:', error);
+      // Initialize empty index structure
+      IndexManager.initializeIndex();
+    }
+    
+    // Load additional test data if needed
+    loadServiceIndexTestData();
+  }
+
+  // ============================================
+  // Load Test Data for Service Index Models
+  // ============================================
+  function loadServiceIndexTestData() {
+    // Only load if no data exists (migration already created some)
+    const existingProviders = ServiceProviders.getAll();
+    const existingBeneficiaries = Beneficiaries.getAll();
+    const existingEvaluations = ServiceEvaluations.getAll();
+    
+    // If we already have enough data, skip
+    if (existingProviders.length >= 2 && existingBeneficiaries.length >= 1) {
+      return;
+    }
+
+    // Get demo users
+    const users = Users.getAll();
+    const demoUsers = users.filter(u => u.email && u.email.includes('@pmtwin.com'));
+    
+    if (demoUsers.length === 0) {
+      return;
+    }
+
+    let createdProviders = 0;
+    let createdBeneficiaries = 0;
+    let createdEvaluations = 0;
+
+    // Create additional test service providers if needed
+    if (existingProviders.length < 2) {
+      const testProviders = [
+        {
+          userId: demoUsers.find(u => u.role === 'consultant' || u.role === 'professional')?.id || demoUsers[0].id,
+          providerType: 'individual',
+          name: 'Sarah Al-Mansouri',
+          companyName: null,
+          description: 'Freelance project management consultant specializing in construction project planning and execution.',
+          categories: ['consulting', 'project_management'],
+          skills: ['Project Planning', 'Risk Management', 'Stakeholder Management', 'Agile Methodology'],
+          location: { city: 'Jeddah', region: 'Makkah Province', country: 'Saudi Arabia' },
+          serviceAreas: ['Jeddah', 'Makkah', 'Riyadh'],
+          availability: 'available',
+          responseTime: '24 hours',
+          profileScore: 88,
+          certifications: ['PMP', 'PRINCE2'],
+          establishedYear: null,
+          contact: { email: 'sarah@pmtwin.com', phone: '+966 50 987 6543' },
+          status: 'active'
+        }
+      ];
+
+      testProviders.forEach(providerData => {
+        // Check if provider already exists
+        const existing = ServiceProviders.getByUserId(providerData.userId);
+        if (!existing) {
+          const provider = ServiceProviders.create(providerData);
+          if (provider) createdProviders++;
+        }
+      });
+    }
+
+    // Create additional test beneficiaries if needed
+    if (existingBeneficiaries.length < 1) {
+      const projectLeads = demoUsers.filter(u => ['project_lead', 'entity', 'company'].includes(u.role) || u.userType === 'company');
+      const projects = Projects.getAll();
+      
+      projectLeads.forEach(user => {
+        const existing = Beneficiaries.getByUserId(user.id);
+        if (!existing) {
+          const userProjects = projects.filter(p => p.creatorId === user.id);
+          if (userProjects.length > 0) {
+            const beneficiary = Beneficiaries.create({
+              userId: user.id,
+              name: user.profile?.name || user.email,
+              companyName: user.profile?.companyName || null,
+              location: user.profile?.location || { city: 'Riyadh', country: 'Saudi Arabia' },
+              requiredServices: ['legal', 'engineering', 'logistics'],
+              requiredSkills: ['Project Management', 'Contract Review', 'Engineering'],
+              budgetRange: { min: 100000, max: 5000000, currency: 'SAR' },
+              projectIds: userProjects.map(p => p.id),
+              preferences: {
+                deliveryMode: ['On-site', 'Hybrid'],
+                paymentTerms: ['30_days', 'milestone_based'],
+                exchangeType: ['Cash', 'Mixed']
+              },
+              status: 'active'
+            });
+            if (beneficiary) createdBeneficiaries++;
+          }
+        }
+      });
+    }
+
+    // Create test evaluations if we have offerings and beneficiaries
+    if (existingEvaluations.length === 0) {
+      const offerings = [];
+      try {
+        const storedData = localStorage.getItem('pmtwin_service_providers');
+        if (storedData) {
+          const data = JSON.parse(storedData);
+          offerings.push(...(data.serviceOfferings || []));
+        }
+      } catch (e) {
+        console.warn('Error loading offerings for test evaluations:', e);
+      }
+
+      if (offerings.length > 0) {
+        const beneficiaries = Beneficiaries.getAll();
+        if (beneficiaries.length > 0) {
+          const firstBeneficiary = beneficiaries[0];
+          const firstOffering = offerings[0];
+          
+          if (firstOffering && firstBeneficiary) {
+            const evaluation = ServiceEvaluations.create({
+              serviceOfferingId: firstOffering.id,
+              providerId: firstOffering.provider_user_id,
+              beneficiaryId: firstBeneficiary.userId,
+              projectId: firstBeneficiary.projectIds?.[0] || null,
+              rating: 4.5,
+              review: 'Excellent service! Very professional and delivered on time. Highly recommended.',
+              performanceMetrics: {
+                onTimeDelivery: true,
+                qualityScore: 4.5,
+                communicationScore: 4.0,
+                valueScore: 4.5
+              }
+            });
+            if (evaluation) createdEvaluations++;
+          }
+        }
+      }
+    }
+
+    // Rebuild index if we created new data
+    if (createdProviders > 0 || createdBeneficiaries > 0 || createdEvaluations > 0) {
+      IndexManager.rebuildIndex();
+      console.log(`✅ Created test data: ${createdProviders} providers, ${createdBeneficiaries} beneficiaries, ${createdEvaluations} evaluations`);
+    }
+    
+    // Add test statistics to service offerings
+    addTestStatisticsToOfferings();
+    
+    // Ensure Barter exchange type offerings exist
+    ensureBarterOfferingsExist();
+  }
+
+  // ============================================
+  // Add Test Statistics to Service Offerings
+  // ============================================
+  function addTestStatisticsToOfferings() {
+    try {
+      const storedData = localStorage.getItem('pmtwin_service_providers');
+      if (!storedData) return;
+      
+      const data = JSON.parse(storedData);
+      const offerings = data.serviceOfferings || [];
+      
+      if (offerings.length === 0) return;
+      
+      let updated = 0;
+      
+      offerings.forEach(offering => {
+        // Only add test data if statistics are missing or zero
+        if (!offering.views && !offering.inquiries && !offering.matchesGenerated && !offering.proposalsReceived) {
+          // Generate random but realistic test data
+          const baseViews = Math.floor(Math.random() * 500) + 50; // 50-550 views
+          const views = baseViews;
+          const inquiries = Math.floor(views * (0.1 + Math.random() * 0.2)); // 10-30% of views
+          const matches = Math.floor(inquiries * (0.3 + Math.random() * 0.4)); // 30-70% of inquiries
+          const proposals = Math.floor(matches * (0.2 + Math.random() * 0.3)); // 20-50% of matches
+          
+          offering.views = views;
+          offering.inquiries = inquiries || 0;
+          offering.matchesGenerated = matches || 0;
+          offering.proposalsReceived = proposals || 0;
+          
+          // Add average rating if offering is active and has some proposals
+          if (offering.status === 'Active' && proposals > 0) {
+            offering.averageRating = 3.5 + Math.random() * 1.5; // 3.5-5.0 rating
+            offering.totalRatings = proposals;
+          }
+          
+          updated++;
+        }
+      });
+      
+      if (updated > 0) {
+        localStorage.setItem('pmtwin_service_providers', JSON.stringify(data));
+        console.log(`✅ Added test statistics to ${updated} service offering(s)`);
+      }
+    } catch (error) {
+      console.error('Error adding test statistics to offerings:', error);
+    }
+  }
+
+  // ============================================
+  // Ensure Barter Exchange Type Offerings Exist
+  // ============================================
+  function ensureBarterOfferingsExist() {
+    try {
+      const storedData = localStorage.getItem('pmtwin_service_providers');
+      if (!storedData) return;
+      
+      const data = JSON.parse(storedData);
+      const offerings = data.serviceOfferings || [];
+      
+      // Check if we already have Barter offerings
+      const hasBarterOfferings = offerings.some(o => o.exchange_type === 'Barter');
+      if (hasBarterOfferings) {
+        return; // Already have Barter offerings
+      }
+      
+      // Get demo users for providers
+      const users = Users.getAll();
+      const demoUsers = users.filter(u => u.email && u.email.includes('@pmtwin.com'));
+      if (demoUsers.length === 0) return;
+      
+      // Get existing providers
+      const providers = data.serviceProviders || [];
+      if (providers.length === 0) return;
+      
+      let created = 0;
+      
+      // Create Barter offerings if they don't exist
+      const barterOfferings = [
+        {
+          id: 'so_barter_001',
+          provider_user_id: providers[0]?.userId || demoUsers[0]?.id,
+          providerId: providers[0]?.id || 'sp_001',
+          title: 'Construction Materials Trading - Barter Exchange',
+          category: 'logistics',
+          skills: ['Material Trading', 'Barter Exchange', 'Supply Chain', 'Material Sourcing'],
+          description: 'Barter-based construction materials trading service. Exchange your materials or services for construction supplies.',
+          delivery_mode: 'Onsite',
+          location: { city: 'Riyadh', country: 'Saudi Arabia', radius: 200 },
+          pricing_type: 'Barter',
+          price_min: 0,
+          price_max: 0,
+          currency: 'SAR',
+          exchange_type: 'Barter',
+          barter_details: {
+            accepts: ['Construction Materials', 'Equipment Rental', 'Labor Services'],
+            offers: ['Steel', 'Cement', 'Electrical Supplies'],
+            valuation_method: 'Market Value'
+          },
+          availability: { start_date: new Date().toISOString().split('T')[0], capacity: 10, lead_time: '1-2 weeks' },
+          portfolio_links: [],
+          attachments: [],
+          status: 'Active',
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString()
+        },
+        {
+          id: 'so_barter_002',
+          provider_user_id: providers[1]?.userId || demoUsers[1]?.id || demoUsers[0]?.id,
+          providerId: providers[1]?.id || 'sp_002',
+          title: 'Design Services for Equipment/Resources',
+          category: 'design',
+          skills: ['Architectural Design', '3D Visualization', 'Barter Exchange'],
+          description: 'Offering architectural and design services in exchange for construction equipment or office space.',
+          delivery_mode: 'Hybrid',
+          location: { city: 'Riyadh', country: 'Saudi Arabia', radius: 300 },
+          pricing_type: 'Barter',
+          price_min: 0,
+          price_max: 0,
+          currency: 'SAR',
+          exchange_type: 'Barter',
+          barter_details: {
+            accepts: ['Construction Equipment', 'Office Space', 'Marketing Services'],
+            offers: ['Architectural Design', '3D Modeling', 'Interior Design'],
+            valuation_method: 'Hourly Rate Equivalent'
+          },
+          availability: { start_date: new Date().toISOString().split('T')[0], capacity: 3, lead_time: '2-3 weeks' },
+          portfolio_links: [],
+          attachments: [],
+          status: 'Active',
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString()
+        }
+      ];
+      
+      barterOfferings.forEach(offering => {
+        // Check if offering with same ID already exists
+        const exists = offerings.find(o => o.id === offering.id);
+        if (!exists) {
+          offerings.push(offering);
+          created++;
+        }
+      });
+      
+      if (created > 0) {
+        data.serviceOfferings = offerings;
+        localStorage.setItem('pmtwin_service_providers', JSON.stringify(data));
+        console.log(`✅ Created ${created} Barter exchange type service offering(s)`);
+        
+        // Rebuild index
+        if (typeof IndexManager !== 'undefined') {
+          IndexManager.rebuildIndex();
+        }
+      }
+    } catch (error) {
+      console.error('Error ensuring Barter offerings exist:', error);
     }
   }
 
@@ -2442,6 +3000,7 @@
       const proposal = {
         id: generateId('proposal'),
         ...proposalData,
+        serviceOfferingId: proposalData.serviceOfferingId || null, // Link to service offering
         status: 'in_review',
         submittedAt: new Date().toISOString()
       };
@@ -6584,6 +7143,743 @@
   };
 
   // ============================================
+  // Service Providers CRUD
+  // ============================================
+  const ServiceProviders = {
+    getAll() {
+      return get(STORAGE_KEYS.SERVICE_PROVIDERS_INDEX);
+    },
+
+    getById(id) {
+      const providers = this.getAll();
+      return providers.find(p => p.id === id) || null;
+    },
+
+    getByUserId(userId) {
+      const providers = this.getAll();
+      return providers.find(p => p.userId === userId) || null;
+    },
+
+    getByType(providerType) {
+      const providers = this.getAll();
+      return providers.filter(p => p.providerType === providerType);
+    },
+
+    getByCategory(category) {
+      const providers = this.getAll();
+      return providers.filter(p => (p.categories || []).includes(category));
+    },
+
+    create(providerData) {
+      const providers = this.getAll();
+      const provider = {
+        id: providerData.id || generateId('sp'),
+        userId: providerData.userId,
+        providerType: providerData.providerType || 'consultant', // individual, consultant, company
+        name: providerData.name || '',
+        companyName: providerData.companyName || null,
+        description: providerData.description || '',
+        categories: providerData.categories || [],
+        skills: providerData.skills || [],
+        location: providerData.location || {},
+        serviceAreas: providerData.serviceAreas || [],
+        availability: providerData.availability || 'available',
+        responseTime: providerData.responseTime || null,
+        profileScore: providerData.profileScore || 0,
+        certifications: providerData.certifications || [],
+        establishedYear: providerData.establishedYear || null,
+        contact: providerData.contact || {},
+        status: providerData.status || 'active',
+        createdAt: providerData.createdAt || new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      };
+      providers.push(provider);
+      if (set(STORAGE_KEYS.SERVICE_PROVIDERS_INDEX, providers)) {
+        // Update index
+        IndexManager.updateProviderIndex(provider.id);
+        return provider;
+      }
+      return null;
+    },
+
+    update(id, updates) {
+      const providers = this.getAll();
+      const index = providers.findIndex(p => p.id === id);
+      if (index === -1) return null;
+
+      providers[index] = {
+        ...providers[index],
+        ...updates,
+        updatedAt: new Date().toISOString()
+      };
+
+      if (set(STORAGE_KEYS.SERVICE_PROVIDERS_INDEX, providers)) {
+        // Update index
+        IndexManager.updateProviderIndex(id);
+        return providers[index];
+      }
+      return null;
+    },
+
+    delete(id) {
+      const providers = this.getAll();
+      const filtered = providers.filter(p => p.id !== id);
+      if (set(STORAGE_KEYS.SERVICE_PROVIDERS_INDEX, filtered)) {
+        // Remove from index
+        IndexManager.removeFromIndex(id, 'provider');
+        return true;
+      }
+      return false;
+    }
+  };
+
+  // ============================================
+  // Beneficiaries CRUD
+  // ============================================
+  const Beneficiaries = {
+    getAll() {
+      return get(STORAGE_KEYS.BENEFICIARIES_INDEX);
+    },
+
+    getById(id) {
+      const beneficiaries = this.getAll();
+      return beneficiaries.find(b => b.id === id) || null;
+    },
+
+    getByUserId(userId) {
+      const beneficiaries = this.getAll();
+      return beneficiaries.find(b => b.userId === userId) || null;
+    },
+
+    getByProject(projectId) {
+      const beneficiaries = this.getAll();
+      return beneficiaries.filter(b => (b.projectIds || []).includes(projectId));
+    },
+
+    create(beneficiaryData) {
+      const beneficiaries = this.getAll();
+      const beneficiary = {
+        id: beneficiaryData.id || generateId('ben'),
+        userId: beneficiaryData.userId,
+        name: beneficiaryData.name || '',
+        companyName: beneficiaryData.companyName || null,
+        location: beneficiaryData.location || {},
+        requiredServices: beneficiaryData.requiredServices || [],
+        requiredSkills: beneficiaryData.requiredSkills || [],
+        budgetRange: beneficiaryData.budgetRange || { min: 0, max: 0, currency: 'SAR' },
+        projectIds: beneficiaryData.projectIds || [],
+        preferences: beneficiaryData.preferences || {
+          deliveryMode: [], // On-site, Remote, Hybrid
+          paymentTerms: [],
+          exchangeType: [] // Cash, Barter, Mixed
+        },
+        status: beneficiaryData.status || 'active',
+        createdAt: beneficiaryData.createdAt || new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      };
+      beneficiaries.push(beneficiary);
+      if (set(STORAGE_KEYS.BENEFICIARIES_INDEX, beneficiaries)) {
+        // Update index
+        IndexManager.updateBeneficiaryIndex(beneficiary.id);
+        return beneficiary;
+      }
+      return null;
+    },
+
+    update(id, updates) {
+      const beneficiaries = this.getAll();
+      const index = beneficiaries.findIndex(b => b.id === id);
+      if (index === -1) return null;
+
+      beneficiaries[index] = {
+        ...beneficiaries[index],
+        ...updates,
+        updatedAt: new Date().toISOString()
+      };
+
+      if (set(STORAGE_KEYS.BENEFICIARIES_INDEX, beneficiaries)) {
+        // Update index
+        IndexManager.updateBeneficiaryIndex(id);
+        return beneficiaries[index];
+      }
+      return null;
+    },
+
+    delete(id) {
+      const beneficiaries = this.getAll();
+      const filtered = beneficiaries.filter(b => b.id !== id);
+      if (set(STORAGE_KEYS.BENEFICIARIES_INDEX, filtered)) {
+        // Remove from index
+        IndexManager.removeFromIndex(id, 'beneficiary');
+        return true;
+      }
+      return false;
+    }
+  };
+
+  // ============================================
+  // Service Evaluations CRUD
+  // ============================================
+  const ServiceEvaluations = {
+    getAll() {
+      return get(STORAGE_KEYS.SERVICE_EVALUATIONS);
+    },
+
+    getById(id) {
+      const evaluations = this.getAll();
+      return evaluations.find(e => e.id === id) || null;
+    },
+
+    getByProvider(providerId) {
+      const evaluations = this.getAll();
+      return evaluations.filter(e => e.providerId === providerId);
+    },
+
+    getByOffering(offeringId) {
+      const evaluations = this.getAll();
+      return evaluations.filter(e => e.serviceOfferingId === offeringId);
+    },
+
+    getByBeneficiary(beneficiaryId) {
+      const evaluations = this.getAll();
+      return evaluations.filter(e => e.beneficiaryId === beneficiaryId);
+    },
+
+    getByProject(projectId) {
+      const evaluations = this.getAll();
+      return evaluations.filter(e => e.projectId === projectId);
+    },
+
+    create(evaluationData) {
+      const evaluations = this.getAll();
+      const evaluation = {
+        id: evaluationData.id || generateId('eval'),
+        serviceOfferingId: evaluationData.serviceOfferingId,
+        providerId: evaluationData.providerId,
+        beneficiaryId: evaluationData.beneficiaryId,
+        projectId: evaluationData.projectId || null,
+        rating: evaluationData.rating, // 1-5
+        review: evaluationData.review || '',
+        performanceMetrics: evaluationData.performanceMetrics || {
+          onTimeDelivery: null,
+          qualityScore: null, // 1-5
+          communicationScore: null, // 1-5
+          valueScore: null // 1-5
+        },
+        createdAt: evaluationData.createdAt || new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      };
+      evaluations.push(evaluation);
+      if (set(STORAGE_KEYS.SERVICE_EVALUATIONS, evaluations)) {
+        return evaluation;
+      }
+      return null;
+    },
+
+    update(id, updates) {
+      const evaluations = this.getAll();
+      const index = evaluations.findIndex(e => e.id === id);
+      if (index === -1) return null;
+
+      evaluations[index] = {
+        ...evaluations[index],
+        ...updates,
+        updatedAt: new Date().toISOString()
+      };
+
+      if (set(STORAGE_KEYS.SERVICE_EVALUATIONS, evaluations)) {
+        return evaluations[index];
+      }
+      return null;
+    },
+
+    delete(id) {
+      const evaluations = this.getAll();
+      const filtered = evaluations.filter(e => e.id !== id);
+      return set(STORAGE_KEYS.SERVICE_EVALUATIONS, filtered);
+    },
+
+    getAggregateRating(providerId) {
+      const evaluations = this.getByProvider(providerId);
+      if (evaluations.length === 0) {
+        return { averageRating: 0, totalReviews: 0, performanceMetrics: null };
+      }
+
+      const ratings = evaluations.map(e => e.rating).filter(r => r != null);
+      const averageRating = ratings.length > 0 
+        ? ratings.reduce((sum, r) => sum + r, 0) / ratings.length 
+        : 0;
+
+      // Aggregate performance metrics
+      const metrics = evaluations
+        .map(e => e.performanceMetrics)
+        .filter(m => m != null);
+      
+      const aggregateMetrics = metrics.length > 0 ? {
+        onTimeDelivery: metrics.filter(m => m.onTimeDelivery === true).length / metrics.length,
+        averageQualityScore: metrics
+          .map(m => m.qualityScore)
+          .filter(s => s != null)
+          .reduce((sum, s, _, arr) => sum + s / arr.length, 0) || 0,
+        averageCommunicationScore: metrics
+          .map(m => m.communicationScore)
+          .filter(s => s != null)
+          .reduce((sum, s, _, arr) => sum + s / arr.length, 0) || 0,
+        averageValueScore: metrics
+          .map(m => m.valueScore)
+          .filter(s => s != null)
+          .reduce((sum, s, _, arr) => sum + s / arr.length, 0) || 0
+      } : null;
+
+      return {
+        averageRating: Math.round(averageRating * 10) / 10,
+        totalReviews: evaluations.length,
+        performanceMetrics: aggregateMetrics
+      };
+    },
+
+    getAggregateRatingByOffering(offeringId) {
+      const evaluations = this.getByOffering(offeringId);
+      if (evaluations.length === 0) {
+        return { averageRating: 0, totalReviews: 0, performanceMetrics: null };
+      }
+
+      const ratings = evaluations.map(e => e.rating).filter(r => r != null);
+      const averageRating = ratings.length > 0 
+        ? ratings.reduce((sum, r) => sum + r, 0) / ratings.length 
+        : 0;
+
+      const metrics = evaluations
+        .map(e => e.performanceMetrics)
+        .filter(m => m != null);
+      
+      const aggregateMetrics = metrics.length > 0 ? {
+        onTimeDelivery: metrics.filter(m => m.onTimeDelivery === true).length / metrics.length,
+        averageQualityScore: metrics
+          .map(m => m.qualityScore)
+          .filter(s => s != null)
+          .reduce((sum, s, _, arr) => sum + s / arr.length, 0) || 0,
+        averageCommunicationScore: metrics
+          .map(m => m.communicationScore)
+          .filter(s => s != null)
+          .reduce((sum, s, _, arr) => sum + s / arr.length, 0) || 0,
+        averageValueScore: metrics
+          .map(m => m.valueScore)
+          .filter(s => s != null)
+          .reduce((sum, s, _, arr) => sum + s / arr.length, 0) || 0
+      } : null;
+
+      return {
+        averageRating: Math.round(averageRating * 10) / 10,
+        totalReviews: evaluations.length,
+        performanceMetrics: aggregateMetrics
+      };
+    }
+  };
+
+  // ============================================
+  // Index Manager
+  // ============================================
+  const IndexManager = {
+    // Get or initialize index structure
+    getIndex() {
+      const stored = localStorage.getItem('pmtwin_service_index');
+      if (stored) {
+        try {
+          return JSON.parse(stored);
+        } catch (e) {
+          console.warn('Error parsing service index:', e);
+        }
+      }
+      return this.initializeIndex();
+    },
+
+    // Initialize empty index structure
+    initializeIndex() {
+      const index = {
+        byCategory: {},
+        bySkills: {},
+        byLocation: {},
+        byAvailability: {},
+        byProviderType: {},
+        offeringsByCategory: {},
+        offeringsBySkills: {},
+        offeringsByLocation: {},
+        beneficiariesByRequiredServices: {},
+        beneficiariesByLocation: {},
+        lastUpdated: new Date().toISOString()
+      };
+      localStorage.setItem('pmtwin_service_index', JSON.stringify(index));
+      return index;
+    },
+
+    // Rebuild entire index from current data
+    rebuildIndex() {
+      const index = this.initializeIndex();
+      
+      // Index service providers
+      const providers = ServiceProviders.getAll();
+      providers.forEach(provider => {
+        this._indexProvider(provider, index);
+      });
+
+      // Index service offerings (from service-providers.json structure)
+      if (typeof ServiceOfferingService !== 'undefined') {
+        // Will be updated when service offering service is available
+        // For now, we'll index from localStorage if available
+        const storedOfferings = localStorage.getItem('pmtwin_service_providers');
+        if (storedOfferings) {
+          try {
+            const data = JSON.parse(storedOfferings);
+            (data.serviceOfferings || []).forEach(offering => {
+              this._indexOffering(offering, index);
+            });
+          } catch (e) {
+            console.warn('Error parsing service offerings for index:', e);
+          }
+        }
+      }
+
+      // Index beneficiaries
+      const beneficiaries = Beneficiaries.getAll();
+      beneficiaries.forEach(beneficiary => {
+        this._indexBeneficiary(beneficiary, index);
+      });
+
+      index.lastUpdated = new Date().toISOString();
+      localStorage.setItem('pmtwin_service_index', JSON.stringify(index));
+      return index;
+    },
+
+    // Index a single provider
+    _indexProvider(provider, index) {
+      if (!provider || !provider.id) return;
+
+      // Index by category
+      (provider.categories || []).forEach(category => {
+        if (!index.byCategory[category]) {
+          index.byCategory[category] = [];
+        }
+        if (!index.byCategory[category].includes(provider.id)) {
+          index.byCategory[category].push(provider.id);
+        }
+      });
+
+      // Index by skills
+      (provider.skills || []).forEach(skill => {
+        const skillKey = skill.toLowerCase();
+        if (!index.bySkills[skillKey]) {
+          index.bySkills[skillKey] = [];
+        }
+        if (!index.bySkills[skillKey].includes(provider.id)) {
+          index.bySkills[skillKey].push(provider.id);
+        }
+      });
+
+      // Index by location
+      if (provider.location) {
+        const city = (provider.location.city || '').toLowerCase();
+        if (city) {
+          if (!index.byLocation[city]) {
+            index.byLocation[city] = [];
+          }
+          if (!index.byLocation[city].includes(provider.id)) {
+            index.byLocation[city].push(provider.id);
+          }
+        }
+      }
+
+      // Index by availability
+      const availability = provider.availability || 'unknown';
+      if (!index.byAvailability[availability]) {
+        index.byAvailability[availability] = [];
+      }
+      if (!index.byAvailability[availability].includes(provider.id)) {
+        index.byAvailability[availability].push(provider.id);
+      }
+
+      // Index by provider type
+      const providerType = provider.providerType || 'consultant';
+      if (!index.byProviderType[providerType]) {
+        index.byProviderType[providerType] = [];
+      }
+      if (!index.byProviderType[providerType].includes(provider.id)) {
+        index.byProviderType[providerType].push(provider.id);
+      }
+    },
+
+    // Index a single offering
+    _indexOffering(offering, index) {
+      if (!offering || !offering.id) return;
+
+      // Index by category
+      if (offering.category) {
+        const categoryKey = offering.category.toLowerCase();
+        if (!index.offeringsByCategory[categoryKey]) {
+          index.offeringsByCategory[categoryKey] = [];
+        }
+        if (!index.offeringsByCategory[categoryKey].includes(offering.id)) {
+          index.offeringsByCategory[categoryKey].push(offering.id);
+        }
+      }
+
+      // Index by skills
+      (offering.skills || []).forEach(skill => {
+        const skillKey = skill.toLowerCase();
+        if (!index.offeringsBySkills[skillKey]) {
+          index.offeringsBySkills[skillKey] = [];
+        }
+        if (!index.offeringsBySkills[skillKey].includes(offering.id)) {
+          index.offeringsBySkills[skillKey].push(offering.id);
+        }
+      });
+
+      // Index by location
+      if (offering.location && offering.location.city) {
+        const city = offering.location.city.toLowerCase();
+        if (!index.offeringsByLocation[city]) {
+          index.offeringsByLocation[city] = [];
+        }
+        if (!index.offeringsByLocation[city].includes(offering.id)) {
+          index.offeringsByLocation[city].push(offering.id);
+        }
+      }
+    },
+
+    // Index a single beneficiary
+    _indexBeneficiary(beneficiary, index) {
+      if (!beneficiary || !beneficiary.id) return;
+
+      // Index by required services
+      (beneficiary.requiredServices || []).forEach(service => {
+        const serviceKey = service.toLowerCase();
+        if (!index.beneficiariesByRequiredServices[serviceKey]) {
+          index.beneficiariesByRequiredServices[serviceKey] = [];
+        }
+        if (!index.beneficiariesByRequiredServices[serviceKey].includes(beneficiary.id)) {
+          index.beneficiariesByRequiredServices[serviceKey].push(beneficiary.id);
+        }
+      });
+
+      // Index by location
+      if (beneficiary.location && beneficiary.location.city) {
+        const city = beneficiary.location.city.toLowerCase();
+        if (!index.beneficiariesByLocation[city]) {
+          index.beneficiariesByLocation[city] = [];
+        }
+        if (!index.beneficiariesByLocation[city].includes(beneficiary.id)) {
+          index.beneficiariesByLocation[city].push(beneficiary.id);
+        }
+      }
+    },
+
+    // Update provider in index
+    updateProviderIndex(providerId) {
+      const provider = ServiceProviders.getById(providerId);
+      if (!provider) {
+        this.removeFromIndex(providerId, 'provider');
+        return;
+      }
+
+      const index = this.getIndex();
+      // Remove old entries
+      this.removeFromIndex(providerId, 'provider');
+      // Add new entries
+      this._indexProvider(provider, index);
+      index.lastUpdated = new Date().toISOString();
+      localStorage.setItem('pmtwin_service_index', JSON.stringify(index));
+    },
+
+    // Update offering in index
+    updateOfferingIndex(offeringId) {
+      // Get offering from service offering service or localStorage
+      let offering = null;
+      if (typeof ServiceOfferingService !== 'undefined') {
+        // Will be handled by service offering service
+        return;
+      }
+      
+      const storedOfferings = localStorage.getItem('pmtwin_service_providers');
+      if (storedOfferings) {
+        try {
+          const data = JSON.parse(storedOfferings);
+          offering = (data.serviceOfferings || []).find(o => o.id === offeringId);
+        } catch (e) {
+          console.warn('Error parsing service offerings:', e);
+        }
+      }
+
+      if (!offering) {
+        this.removeFromIndex(offeringId, 'offering');
+        return;
+      }
+
+      const index = this.getIndex();
+      // Remove old entries
+      this.removeFromIndex(offeringId, 'offering');
+      // Add new entries
+      this._indexOffering(offering, index);
+      index.lastUpdated = new Date().toISOString();
+      localStorage.setItem('pmtwin_service_index', JSON.stringify(index));
+    },
+
+    // Update beneficiary in index
+    updateBeneficiaryIndex(beneficiaryId) {
+      const beneficiary = Beneficiaries.getById(beneficiaryId);
+      if (!beneficiary) {
+        this.removeFromIndex(beneficiaryId, 'beneficiary');
+        return;
+      }
+
+      const index = this.getIndex();
+      // Remove old entries
+      this.removeFromIndex(beneficiaryId, 'beneficiary');
+      // Add new entries
+      this._indexBeneficiary(beneficiary, index);
+      index.lastUpdated = new Date().toISOString();
+      localStorage.setItem('pmtwin_service_index', JSON.stringify(index));
+    },
+
+    // Remove from index
+    removeFromIndex(id, type) {
+      const index = this.getIndex();
+      let removed = false;
+
+      if (type === 'provider') {
+        // Remove from all provider indexes
+        Object.keys(index.byCategory).forEach(key => {
+          index.byCategory[key] = index.byCategory[key].filter(pid => pid !== id);
+          if (index.byCategory[key].length === 0) delete index.byCategory[key];
+        });
+        Object.keys(index.bySkills).forEach(key => {
+          index.bySkills[key] = index.bySkills[key].filter(pid => pid !== id);
+          if (index.bySkills[key].length === 0) delete index.bySkills[key];
+        });
+        Object.keys(index.byLocation).forEach(key => {
+          index.byLocation[key] = index.byLocation[key].filter(pid => pid !== id);
+          if (index.byLocation[key].length === 0) delete index.byLocation[key];
+        });
+        Object.keys(index.byAvailability).forEach(key => {
+          index.byAvailability[key] = index.byAvailability[key].filter(pid => pid !== id);
+          if (index.byAvailability[key].length === 0) delete index.byAvailability[key];
+        });
+        Object.keys(index.byProviderType).forEach(key => {
+          index.byProviderType[key] = index.byProviderType[key].filter(pid => pid !== id);
+          if (index.byProviderType[key].length === 0) delete index.byProviderType[key];
+        });
+        removed = true;
+      } else if (type === 'offering') {
+        // Remove from all offering indexes
+        Object.keys(index.offeringsByCategory).forEach(key => {
+          index.offeringsByCategory[key] = index.offeringsByCategory[key].filter(oid => oid !== id);
+          if (index.offeringsByCategory[key].length === 0) delete index.offeringsByCategory[key];
+        });
+        Object.keys(index.offeringsBySkills).forEach(key => {
+          index.offeringsBySkills[key] = index.offeringsBySkills[key].filter(oid => oid !== id);
+          if (index.offeringsBySkills[key].length === 0) delete index.offeringsBySkills[key];
+        });
+        Object.keys(index.offeringsByLocation).forEach(key => {
+          index.offeringsByLocation[key] = index.offeringsByLocation[key].filter(oid => oid !== id);
+          if (index.offeringsByLocation[key].length === 0) delete index.offeringsByLocation[key];
+        });
+        removed = true;
+      } else if (type === 'beneficiary') {
+        // Remove from all beneficiary indexes
+        Object.keys(index.beneficiariesByRequiredServices).forEach(key => {
+          index.beneficiariesByRequiredServices[key] = index.beneficiariesByRequiredServices[key].filter(bid => bid !== id);
+          if (index.beneficiariesByRequiredServices[key].length === 0) delete index.beneficiariesByRequiredServices[key];
+        });
+        Object.keys(index.beneficiariesByLocation).forEach(key => {
+          index.beneficiariesByLocation[key] = index.beneficiariesByLocation[key].filter(bid => bid !== id);
+          if (index.beneficiariesByLocation[key].length === 0) delete index.beneficiariesByLocation[key];
+        });
+        removed = true;
+      }
+
+      if (removed) {
+        index.lastUpdated = new Date().toISOString();
+        localStorage.setItem('pmtwin_service_index', JSON.stringify(index));
+      }
+    },
+
+    // Query index for providers matching criteria
+    queryProviders(criteria) {
+      const index = this.getIndex();
+      let providerIds = new Set();
+
+      // Start with all providers if no criteria
+      if (!criteria || Object.keys(criteria).length === 0) {
+        const providers = ServiceProviders.getAll();
+        return providers.map(p => p.id);
+      }
+
+      // Filter by category
+      if (criteria.category) {
+        const categoryKey = criteria.category.toLowerCase();
+        const ids = index.byCategory[categoryKey] || [];
+        if (providerIds.size === 0) {
+          ids.forEach(id => providerIds.add(id));
+        } else {
+          providerIds = new Set([...providerIds].filter(id => ids.includes(id)));
+        }
+      }
+
+      // Filter by skills
+      if (criteria.skills && criteria.skills.length > 0) {
+        const skillIds = new Set();
+        criteria.skills.forEach(skill => {
+          const skillKey = skill.toLowerCase();
+          (index.bySkills[skillKey] || []).forEach(id => skillIds.add(id));
+        });
+        if (providerIds.size === 0) {
+          skillIds.forEach(id => providerIds.add(id));
+        } else {
+          providerIds = new Set([...providerIds].filter(id => skillIds.has(id)));
+        }
+      }
+
+      // Filter by location
+      if (criteria.location) {
+        const locationKey = criteria.location.toLowerCase();
+        const ids = index.byLocation[locationKey] || [];
+        if (providerIds.size === 0) {
+          ids.forEach(id => providerIds.add(id));
+        } else {
+          providerIds = new Set([...providerIds].filter(id => ids.includes(id)));
+        }
+      }
+
+      // Filter by availability
+      if (criteria.availability) {
+        const ids = index.byAvailability[criteria.availability] || [];
+        if (providerIds.size === 0) {
+          ids.forEach(id => providerIds.add(id));
+        } else {
+          providerIds = new Set([...providerIds].filter(id => ids.includes(id)));
+        }
+      }
+
+      // Filter by provider type
+      if (criteria.providerType) {
+        const ids = index.byProviderType[criteria.providerType] || [];
+        if (providerIds.size === 0) {
+          ids.forEach(id => providerIds.add(id));
+        } else {
+          providerIds = new Set([...providerIds].filter(id => ids.includes(id)));
+        }
+      }
+
+      // If no filters matched, return all
+      if (providerIds.size === 0) {
+        const providers = ServiceProviders.getAll();
+        return providers.map(p => p.id);
+      }
+
+      return Array.from(providerIds);
+    }
+  };
+
+  // ============================================
   // Public API
   // ============================================
   window.PMTwinData = {
@@ -6598,6 +7894,10 @@
     CollaborationOpportunities,
     CollaborationApplications,
     SystemSettings,
+    ServiceProviders,
+    Beneficiaries,
+    ServiceEvaluations,
+    IndexManager,
     generateId,
     generateDeviceFingerprint,
     verifyAndCreateAccounts,
@@ -6616,6 +7916,7 @@
     loadSampleCollaborationOpportunities: () => loadSampleCollaborationOpportunities(true),
     loadSampleCollaborationApplications: () => loadSampleCollaborationApplications(true),
     loadSampleProposals: () => loadSampleProposals(true),
+    loadServiceIndexTestData: () => loadServiceIndexTestData(),
     updateOpportunitiesWithTestData: updateOpportunitiesWithTestData,
     
     // Test Data Helper Functions

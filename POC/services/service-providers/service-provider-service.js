@@ -82,33 +82,31 @@
       return { success: false, error: 'Data service not available' };
     }
     
-    const data = await loadServiceProvidersData();
-    let providers = [...(data.serviceProviders || [])];
-    
-    // Apply filters
-    if (filters.category) {
-      providers = providers.filter(p => 
-        p.categories && p.categories.includes(filters.category)
-      );
-    }
-    
-    if (filters.location) {
-      const locationLower = filters.location.toLowerCase();
-      providers = providers.filter(p => {
-        const city = p.location?.city?.toLowerCase() || '';
-        const region = p.location?.region?.toLowerCase() || '';
-        return city.includes(locationLower) || region.includes(locationLower);
+    // Use index for faster queries if available
+    let providerIds = null;
+    if (PMTwinData.IndexManager && (filters.category || filters.location || filters.availability || filters.providerType || filters.skills)) {
+      providerIds = PMTwinData.IndexManager.queryProviders({
+        category: filters.category,
+        location: filters.location,
+        availability: filters.availability,
+        providerType: filters.providerType,
+        skills: filters.skills
       });
     }
     
-    if (filters.availability) {
-      providers = providers.filter(p => p.availability === filters.availability);
+    // Get providers from indexed structure
+    let providers = [];
+    if (providerIds && providerIds.length > 0) {
+      providers = providerIds.map(id => PMTwinData.ServiceProviders.getById(id)).filter(p => p != null);
+    } else {
+      providers = PMTwinData.ServiceProviders.getAll();
     }
     
+    // Apply additional filters that can't be indexed
     if (filters.search) {
       const searchLower = filters.search.toLowerCase();
       providers = providers.filter(p => {
-        const name = (p.companyName || '').toLowerCase();
+        const name = (p.companyName || p.name || '').toLowerCase();
         const desc = (p.description || '').toLowerCase();
         return name.includes(searchLower) || desc.includes(searchLower);
       });
@@ -118,7 +116,7 @@
     if (filters.sortBy) {
       switch (filters.sortBy) {
         case 'name':
-          providers.sort((a, b) => (a.companyName || '').localeCompare(b.companyName || ''));
+          providers.sort((a, b) => (a.companyName || a.name || '').localeCompare(b.companyName || b.name || ''));
           break;
         case 'profileScore':
           providers.sort((a, b) => (b.profileScore || 0) - (a.profileScore || 0));
@@ -137,8 +135,11 @@
   }
 
   async function getServiceProviderById(providerId) {
-    const data = await loadServiceProvidersData();
-    const provider = data.serviceProviders.find(p => p.id === providerId);
+    if (typeof PMTwinData === 'undefined') {
+      return { success: false, error: 'Data service not available' };
+    }
+    
+    const provider = PMTwinData.ServiceProviders.getById(providerId);
     
     if (!provider) {
       return { success: false, error: 'Service provider not found' };
@@ -148,8 +149,11 @@
   }
 
   async function getServiceProviderByUserId(userId) {
-    const data = await loadServiceProvidersData();
-    const provider = data.serviceProviders.find(p => p.userId === userId);
+    if (typeof PMTwinData === 'undefined') {
+      return { success: false, error: 'Data service not available' };
+    }
+    
+    const provider = PMTwinData.ServiceProviders.getByUserId(userId);
     
     if (!provider) {
       return { success: false, error: 'Service provider not found' };
@@ -208,6 +212,76 @@
   }
 
   // ============================================
+  // Create/Update Service Provider
+  // ============================================
+  async function createServiceProvider(providerData) {
+    if (typeof PMTwinData === 'undefined') {
+      return { success: false, error: 'Data service not available' };
+    }
+    
+    const currentUser = PMTwinData.Sessions.getCurrentUser();
+    if (!currentUser) {
+      return { success: false, error: 'User not authenticated' };
+    }
+
+    // Check permission
+    if (typeof PMTwinRBAC !== 'undefined') {
+      const hasPermission = await PMTwinRBAC.canCurrentUserAccess('create_service_provider');
+      if (!hasPermission) {
+        return { success: false, error: 'You do not have permission to create service provider profile' };
+      }
+    }
+
+    // Set userId from current user
+    providerData.userId = currentUser.id;
+
+    const provider = PMTwinData.ServiceProviders.create(providerData);
+    
+    if (provider) {
+      return { success: true, provider: provider };
+    }
+    
+    return { success: false, error: 'Failed to create service provider' };
+  }
+
+  async function updateServiceProvider(providerId, providerData) {
+    if (typeof PMTwinData === 'undefined') {
+      return { success: false, error: 'Data service not available' };
+    }
+    
+    const currentUser = PMTwinData.Sessions.getCurrentUser();
+    if (!currentUser) {
+      return { success: false, error: 'User not authenticated' };
+    }
+
+    const provider = PMTwinData.ServiceProviders.getById(providerId);
+    if (!provider) {
+      return { success: false, error: 'Service provider not found' };
+    }
+
+    // Verify ownership
+    if (provider.userId !== currentUser.id) {
+      // Check admin permission
+      if (typeof PMTwinRBAC !== 'undefined') {
+        const hasPermission = await PMTwinRBAC.canCurrentUserAccess('manage_service_providers');
+        if (!hasPermission) {
+          return { success: false, error: 'You do not have permission to update this service provider' };
+        }
+      } else {
+        return { success: false, error: 'You do not have permission to update this service provider' };
+      }
+    }
+
+    const updated = PMTwinData.ServiceProviders.update(providerId, providerData);
+    
+    if (updated) {
+      return { success: true, provider: updated };
+    }
+    
+    return { success: false, error: 'Failed to update service provider' };
+  }
+
+  // ============================================
   // Service Offering CRUD Operations
   // ============================================
   async function createServiceOffering(offeringData) {
@@ -261,6 +335,11 @@
     
     serviceProvidersData = data;
     
+    // Update index
+    if (PMTwinData && PMTwinData.IndexManager) {
+      PMTwinData.IndexManager.updateOfferingIndex(offering.id);
+    }
+    
     return { success: true, offering };
   }
 
@@ -312,6 +391,11 @@
     
     serviceProvidersData = data;
     
+    // Update index
+    if (PMTwinData && PMTwinData.IndexManager) {
+      PMTwinData.IndexManager.updateOfferingIndex(offeringId);
+    }
+    
     return { success: true, offering };
   }
 
@@ -358,6 +442,11 @@
     
     serviceProvidersData = data;
     
+    // Remove from index
+    if (PMTwinData && PMTwinData.IndexManager) {
+      PMTwinData.IndexManager.removeFromIndex(offeringId, 'offering');
+    }
+    
     return { success: true };
   }
 
@@ -388,6 +477,8 @@
     getServiceProviders,
     getServiceProviderById,
     getServiceProviderByUserId,
+    createServiceProvider,
+    updateServiceProvider,
     searchServiceProviders,
     
     // Service Offerings

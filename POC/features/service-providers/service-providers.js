@@ -210,7 +210,9 @@
               <span><i class="ph ph-star"></i> Score: ${provider.profileScore || 0}%</span>
             </div>
             
-            <a href="?id=${provider.id}" class="btn btn-primary btn-sm" style="width: 100%;">View Details</a>
+            <button onclick="serviceProvidersComponent.viewProviderDetails('${provider.id}')" class="btn btn-primary btn-sm" style="width: 100%;">
+              <i class="ph ph-eye"></i> View Details
+            </button>
           </div>
         </div>
       `;
@@ -253,7 +255,9 @@
               ).join('')}
             </div>
             
-            <a href="?id=${provider.id}" class="btn btn-primary btn-sm">View Details</a>
+            <button onclick="serviceProvidersComponent.viewProviderDetails('${provider.id}')" class="btn btn-primary btn-sm">
+              <i class="ph ph-eye"></i> View Details
+            </button>
           </div>
         </div>
       `;
@@ -261,6 +265,167 @@
     
     html += '</div>';
     container.innerHTML = html;
+  }
+
+  async function viewProviderDetails(providerId) {
+    if (typeof ServiceProviderService === 'undefined') {
+      alert('Service provider service not available');
+      return;
+    }
+
+    try {
+      const result = await ServiceProviderService.getServiceProviderById(providerId);
+      if (!result.success) {
+        alert(`Error: ${result.error || 'Failed to load provider details'}`);
+        return;
+      }
+
+      const provider = result.provider;
+      
+      // Get provider user info
+      let providerUser = null;
+      let providerEmail = '';
+      if (typeof PMTwinData !== 'undefined' && provider.userId) {
+        providerUser = PMTwinData.Users.getById(provider.userId);
+        if (providerUser) {
+          providerEmail = providerUser.email || '';
+        }
+      }
+
+      // Get provider offerings
+      let offerings = [];
+      if (typeof ServiceProviderService !== 'undefined') {
+        const offeringsResult = await ServiceProviderService.getServiceOfferings(providerId);
+        if (offeringsResult.success && offeringsResult.offerings) {
+          offerings = offeringsResult.offerings;
+        }
+      }
+
+      const modal = document.createElement('div');
+      modal.style.cssText = 'position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 1000; display: flex; align-items: center; justify-content: center; padding: 2rem;';
+      modal.innerHTML = `
+        <div class="card" style="max-width: 700px; width: 100%; max-height: 90vh; overflow-y: auto;">
+          <div class="card-body">
+            <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 1rem;">
+              <h2 style="margin: 0;">${provider.companyName || provider.name || 'Service Provider'}</h2>
+              <button onclick="this.closest('[style*=\"position: fixed\"]').remove()" class="btn btn-secondary btn-sm">
+                <i class="ph ph-x"></i>
+              </button>
+            </div>
+            
+            <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 1rem; padding: 1rem; background: var(--bg-secondary); border-radius: var(--radius);">
+              <div>
+                <p style="margin: 0 0 0.5rem 0;"><strong>Provider Type:</strong> ${provider.providerType || 'Company'}</p>
+                ${providerEmail ? `<p style="margin: 0 0 0.5rem 0;"><strong>Email:</strong> ${providerEmail}</p>` : ''}
+                ${provider.contact?.phone ? `<p style="margin: 0 0 0.5rem 0;"><strong>Phone:</strong> ${provider.contact.phone}</p>` : ''}
+                ${provider.contact?.website ? `<p style="margin: 0;"><strong>Website:</strong> <a href="${provider.contact.website}" target="_blank">${provider.contact.website}</a></p>` : ''}
+              </div>
+              <div style="text-align: right;">
+                <span class="badge badge-${provider.availability === 'available' ? 'success' : provider.availability === 'busy' ? 'warning' : 'secondary'}">
+                  ${provider.availability === 'available' ? 'Available' : provider.availability === 'busy' ? 'Busy' : 'Unavailable'}
+                </span>
+                ${provider.profileScore ? `
+                  <div style="margin-top: 0.5rem;">
+                    <span class="badge badge-info">
+                      <i class="ph ph-star"></i> ${provider.profileScore}% Profile Score
+                    </span>
+                  </div>
+                ` : ''}
+              </div>
+            </div>
+            
+            <div style="margin-bottom: 1rem;">
+              <p style="margin-bottom: 0.5rem;"><strong>Description:</strong></p>
+              <p style="white-space: pre-wrap;">${provider.description || 'No description provided'}</p>
+            </div>
+            
+            ${provider.categories && provider.categories.length > 0 ? `
+              <div style="margin-bottom: 1rem;">
+                <p style="margin-bottom: 0.5rem;"><strong>Categories:</strong></p>
+                <div style="display: flex; flex-wrap: wrap; gap: 0.5rem;">
+                  ${provider.categories.map(cat => `<span class="badge badge-info">${cat}</span>`).join('')}
+                </div>
+              </div>
+            ` : ''}
+            
+            ${provider.skills && provider.skills.length > 0 ? `
+              <div style="margin-bottom: 1rem;">
+                <p style="margin-bottom: 0.5rem;"><strong>Skills:</strong></p>
+                <div style="display: flex; flex-wrap: wrap; gap: 0.5rem;">
+                  ${provider.skills.map(skill => `<span class="badge badge-secondary">${skill}</span>`).join('')}
+                </div>
+              </div>
+            ` : ''}
+            
+            <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 1rem; margin-bottom: 1rem;">
+              <div>
+                <strong>Location:</strong> ${provider.location?.city || 'N/A'}, ${provider.location?.region || ''}, ${provider.location?.country || ''}
+              </div>
+              <div>
+                <strong>Response Time:</strong> ${provider.responseTime || 'N/A'}
+              </div>
+              ${provider.serviceAreas && provider.serviceAreas.length > 0 ? `
+                <div style="grid-column: 1 / -1;">
+                  <strong>Service Areas:</strong> ${provider.serviceAreas.join(', ')}
+                </div>
+              ` : ''}
+              ${provider.establishedYear ? `
+                <div>
+                  <strong>Established:</strong> ${provider.establishedYear}
+                </div>
+              ` : ''}
+              ${provider.certifications && provider.certifications.length > 0 ? `
+                <div>
+                  <strong>Certifications:</strong> ${provider.certifications.join(', ')}
+                </div>
+              ` : ''}
+            </div>
+            
+            ${offerings.length > 0 ? `
+              <div style="margin-bottom: 1rem; padding: 0.75rem; background: var(--bg-secondary); border-radius: var(--radius);">
+                <strong style="margin-bottom: 0.5rem; display: block;">Service Offerings (${offerings.length}):</strong>
+                <div style="display: grid; gap: 0.5rem;">
+                  ${offerings.slice(0, 5).map(offering => `
+                    <div style="padding: 0.5rem; background: var(--bg-primary); border-radius: var(--radius);">
+                      <strong>${offering.title || 'Untitled Offering'}</strong>
+                      <div style="font-size: 0.85rem; color: var(--text-secondary); margin-top: 0.25rem;">
+                        ${offering.category || 'N/A'} • ${offering.status || 'Active'}
+                      </div>
+                    </div>
+                  `).join('')}
+                  ${offerings.length > 5 ? `<p style="margin: 0.5rem 0 0 0; font-size: 0.85rem; color: var(--text-secondary);">+${offerings.length - 5} more offerings</p>` : ''}
+                </div>
+              </div>
+            ` : ''}
+            
+            <div style="display: flex; gap: 0.5rem; margin-top: 1rem;">
+              ${currentUser ? `
+                <button onclick="serviceProvidersComponent.contactProvider('${provider.id}'); this.closest('[style*=\"position: fixed\"]').remove();" class="btn btn-success" style="flex: 1;">
+                  <i class="ph ph-envelope"></i> Contact Provider
+                </button>
+              ` : ''}
+              <button onclick="this.closest('[style*=\"position: fixed\"]').remove()" class="btn btn-secondary">
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      `;
+      document.body.appendChild(modal);
+    } catch (error) {
+      console.error('Error viewing provider details:', error);
+      alert('Error loading provider details. Please try again.');
+    }
+  }
+
+  async function contactProvider(providerId) {
+    if (!currentUser) {
+      alert('Please log in to contact providers');
+      return;
+    }
+    
+    // Navigate to proposals or messaging
+    alert('Contact functionality coming soon. Provider ID: ' + providerId);
   }
 
   async function renderManagementView(container) {
@@ -579,6 +744,8 @@
     clearFilters,
     toggleViewMode,
     switchView,
+    viewProviderDetails,
+    contactProvider,
     showCreateOfferingForm,
     submitOfferingForm,
     cancelCreateOffering,

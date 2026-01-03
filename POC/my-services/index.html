@@ -96,10 +96,27 @@
             const isAuth = await AuthCheck.checkAuth({ requireAuth: true });
             if (!isAuth) return;
             
+            // Wait for services to load
+            function waitForServices() {
+                return new Promise((resolve) => {
+                    if (typeof ServiceOfferingService !== 'undefined') {
+                        resolve();
+                    } else {
+                        window.addEventListener('servicesLoaded', resolve, { once: true });
+                        // Fallback timeout
+                        setTimeout(resolve, 2000);
+                    }
+                });
+            }
+            
+            await waitForServices();
+            
             // Initialize my services component
             // Note: Sidebar and navbar are automatically initialized by app-init.js
             if (typeof myServicesComponent !== 'undefined') {
                 myServicesComponent.init();
+            } else {
+                console.error('myServicesComponent not found');
             }
         });
     </script>

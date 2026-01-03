@@ -272,12 +272,29 @@
   }
 
   // ============================================
-  // Find Matches for a Project (using service offerings)
+  // Find Matches for a Project (using service offerings and index)
   // ============================================
   async function findMatchesForProject(projectId) {
     const project = PMTwinData.Projects.getById(projectId);
     if (!project || project.status !== 'active') {
       return [];
+    }
+
+    // Use index for faster lookups
+    let candidateProviderIds = [];
+    if (PMTwinData.IndexManager) {
+      // Extract project requirements
+      const projectCategory = project.category;
+      const projectSkills = project.scope?.skillRequirements || [];
+      const projectLocation = project.location?.city || '';
+      
+      // Query index for matching providers
+      candidateProviderIds = PMTwinData.IndexManager.queryProviders({
+        category: projectCategory ? mapProjectCategoryToServiceCategory(projectCategory) : null,
+        skills: projectSkills,
+        location: projectLocation,
+        availability: 'available'
+      });
     }
 
     // Get all active service offerings (strict mode - require offerings)
@@ -298,7 +315,15 @@
     const matches = [];
     const processedProviders = new Set(); // Track providers we've already matched
 
-    for (const offering of activeOfferings) {
+    // If we have candidate provider IDs from index, filter offerings
+    let offeringsToCheck = activeOfferings;
+    if (candidateProviderIds.length > 0) {
+      offeringsToCheck = activeOfferings.filter(o => 
+        candidateProviderIds.includes(o.provider_user_id)
+      );
+    }
+
+    for (const offering of offeringsToCheck) {
       // Skip if we've already matched this provider
       if (processedProviders.has(offering.provider_user_id)) {
         continue;
@@ -315,10 +340,25 @@
         continue;
       }
 
+      // Get provider evaluation score
+      let evaluationScore = 0;
+      if (PMTwinData.ServiceEvaluations) {
+        const aggregate = PMTwinData.ServiceEvaluations.getAggregateRating(offering.provider_user_id);
+        if (aggregate && aggregate.averageRating > 0) {
+          // Convert 1-5 rating to 0-100 score for matching
+          evaluationScore = (aggregate.averageRating / 5) * 100;
+        }
+      }
+
       // Calculate match score
       const matchResult = calculateMatchScore(project, offering, provider);
       
-      if (matchResult.meetsThreshold) {
+      // Include evaluation score in final calculation (10% weight)
+      const finalScore = Math.round(
+        (matchResult.finalScore * 0.9) + (evaluationScore * 0.1)
+      );
+      
+      if (finalScore >= MATCH_THRESHOLD) {
         // Check if match already exists
         const existing = PMTwinData.Matches.getAll().find(
           m => m.projectId === projectId && m.providerId === provider.id
@@ -329,9 +369,15 @@
             projectId: projectId,
             providerId: provider.id,
             offeringId: offering.id,  // Store best offering ID
-            score: matchResult.finalScore,
-            criteria: matchResult.criteria,
-            weights: matchResult.weights,
+            score: finalScore,
+            criteria: {
+              ...matchResult.criteria,
+              evaluationScore: evaluationScore
+            },
+            weights: {
+              ...matchResult.weights,
+              evaluation: 0.1
+            },
             best_offering_id: matchResult.best_offering_id,
             explain: matchResult.explain
           });
@@ -345,7 +391,7 @@
               userId: provider.id,
               type: 'match_found',
               title: 'New Match Found!',
-              message: `You have a ${matchResult.finalScore}% match for "${project.title}"`,
+              message: `You have a ${finalScore}% match for "${project.title}"`,
               relatedEntityType: 'match',
               relatedEntityId: match.id,
               actionUrl: `#/user-portal/matches/${match.id}`,
@@ -362,6 +408,17 @@
     }
 
     return matches;
+  }
+
+  // Helper function to map project categories to service categories
+  function mapProjectCategoryToServiceCategory(projectCategory) {
+    const categoryMapping = {
+      'Infrastructure': 'engineering',
+      'Residential': 'design',
+      'Commercial': 'design',
+      'Industrial': 'engineering'
+    };
+    return categoryMapping[projectCategory] || null;
   }
 
   // ============================================

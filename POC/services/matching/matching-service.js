@@ -206,6 +206,27 @@
       matches = matches.filter(m => m.notified === filters.notified);
     }
     
+    // Add evaluation scores if available
+    if (PMTwinData.ServiceEvaluations && filters.includeEvaluations !== false) {
+      matches = matches.map(match => {
+        if (match.providerId) {
+          const aggregate = PMTwinData.ServiceEvaluations.getAggregateRating(match.providerId);
+          return {
+            ...match,
+            evaluation: aggregate
+          };
+        }
+        return match;
+      });
+      
+      // Filter by minimum evaluation rating if specified
+      if (filters.minRating) {
+        matches = matches.filter(m => 
+          !m.evaluation || m.evaluation.averageRating >= filters.minRating
+        );
+      }
+    }
+    
     // Sort by score descending
     matches.sort((a, b) => b.score - a.score);
     
