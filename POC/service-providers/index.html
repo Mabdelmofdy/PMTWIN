@@ -3,13 +3,32 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Service Providers - PMTwin</title>
+    <title>Service Providers Directory - PMTwin</title>
     <link rel="stylesheet" href="../css/main.css">
 </head>
 <body>
-    <!-- Main Content - Sidebar and Navbar are automatically added by layout system -->
-    <main>
-        <div class="container" style="padding: 2rem 0;">
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="container">
+            <div class="navbar-content">
+                <a href="../home/" class="navbar-brand">PMTwin</a>
+                <button class="navbar-toggle" id="navbarToggle" aria-label="Toggle navigation"><i class="ph ph-list"></i></button>
+                <ul class="navbar-nav" id="navbarNav">
+                    <li><a href="../home/" class="navbar-link">Home</a></li>
+                    <li><a href="../discovery/" class="navbar-link">Discover Projects</a></li>
+                    <li><a href="../wizard/" class="navbar-link">PMTwin Wizard</a></li>
+                    <li><a href="../knowledge/" class="navbar-link">Knowledge Hub</a></li>
+                    <li><a href="../service-providers/" class="navbar-link active">Service Providers Directory</a></li>
+                    <li><a href="../signup/" class="navbar-link">Sign Up</a></li>
+                    <li><a href="../login/" class="navbar-link">Login</a></li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="page-wrapper">
+        <div class="container">
             <!-- Tabs for Directory and Management (if service provider) -->
             <div id="serviceProvidersTabs" style="margin-bottom: 2rem; display: none;">
                 <div style="display: flex; gap: 0.5rem; border-bottom: 2px solid var(--border-color);">
@@ -52,19 +71,23 @@
     <!-- Service Provider Service -->
     <script src="../services/service-providers/service-provider-service.js"></script>
     
-    <!-- Layout System (automatically includes sidebar and navbar) -->
-    <script src="../js/layout.js"></script>
-    <script src="../js/navigation.js"></script>
-    <script src="../js/app-init.js"></script>
-    
-    <!-- Load renderer -->
-    <script src="../js/renderer.js"></script>
-    
     <!-- Component Scripts -->
     <script src="../features/service-providers/service-providers.js"></script>
     
     <!-- Initialize Component -->
     <script>
+        // Mobile navigation toggle
+        document.addEventListener('DOMContentLoaded', function() {
+            const toggle = document.getElementById('navbarToggle');
+            const nav = document.getElementById('navbarNav');
+            if (toggle && nav) {
+                toggle.onclick = function() {
+                    nav.classList.toggle('show');
+                };
+            }
+        });
+
+        // Initialize Component
         document.addEventListener('DOMContentLoaded', async function() {
             // Check authentication (optional for directory view)
             const isAuth = await AuthCheck.checkAuth({ requireAuth: false });

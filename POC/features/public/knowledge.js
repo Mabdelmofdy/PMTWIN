@@ -112,11 +112,14 @@
     let html = '';
     categories.forEach(category => {
       html += `
-        <div class="card" style="cursor: pointer;" onclick="knowledgeComponent.filterByCategory('${category.id}')">
-          <div class="card-body" style="text-align: center;">
-            <div style="font-size: 3rem; margin-bottom: 1rem;">${category.icon}</div>
-            <h3 style="margin: 0 0 0.5rem 0;">${category.title}</h3>
-            <p style="margin: 0; color: var(--text-secondary); font-size: 0.9rem;">${category.description}</p>
+        <div class="card enhanced-card" style="cursor: pointer; transition: transform 0.2s, box-shadow 0.2s;" 
+             onmouseover="this.style.transform='translateY(-4px)'; this.style.boxShadow='0 8px 16px rgba(0,0,0,0.1)';" 
+             onmouseout="this.style.transform=''; this.style.boxShadow='';"
+             onclick="knowledgeComponent.filterByCategory('${category.id}')">
+          <div class="card-body" style="text-align: center; padding: var(--spacing-6);">
+            <div style="font-size: 3rem; margin-bottom: var(--spacing-4); color: var(--color-primary);">${category.icon}</div>
+            <h3 style="margin: 0 0 var(--spacing-3) 0; font-size: var(--font-size-lg); font-weight: var(--font-weight-semibold);">${category.title}</h3>
+            <p style="margin: 0; color: var(--text-secondary); font-size: var(--font-size-sm); line-height: 1.5;">${category.description}</p>
           </div>
         </div>
       `;
@@ -174,31 +177,43 @@
   function renderArticlesList(container, articlesList) {
     if (articlesList.length === 0) {
       container.innerHTML = `
-        <div class="card">
-          <div class="card-body" style="text-align: center; padding: 3rem;">
-            <p>No articles found.</p>
-            <button onclick="knowledgeComponent.clearFilters()" class="btn btn-primary" style="margin-top: 1rem;">Show All Articles</button>
+        <div class="card enhanced-card">
+          <div class="card-body" style="text-align: center; padding: var(--spacing-8);">
+            <i class="ph ph-magnifying-glass" style="font-size: 3rem; color: var(--text-secondary); margin-bottom: var(--spacing-4);"></i>
+            <p style="font-size: var(--font-size-lg); color: var(--text-secondary); margin-bottom: var(--spacing-4);">No articles found.</p>
+            <button onclick="knowledgeComponent.clearFilters()" class="btn btn-primary">Show All Articles</button>
           </div>
         </div>
       `;
       return;
     }
 
-    let html = '<div style="display: grid; gap: 1.5rem;">';
+    // Add section title if filtered
+    let sectionTitle = '';
+    if (currentCategory) {
+      const category = categories.find(c => c.id === currentCategory);
+      sectionTitle = `<h2 class="section-title spacing-section">${category?.title || 'Articles'}</h2>`;
+    } else if (searchQuery) {
+      sectionTitle = `<h2 class="section-title spacing-section">Search Results for "${searchQuery}"</h2>`;
+    } else {
+      sectionTitle = `<h2 class="section-title spacing-section">All Articles</h2>`;
+    }
+
+    let html = sectionTitle + '<div style="display: grid; gap: var(--spacing-5);">';
     
     articlesList.forEach(article => {
       const category = categories.find(c => c.id === article.category);
       html += `
-        <div class="card">
+        <div class="card enhanced-card">
           <div class="card-body">
-            <div style="display: flex; align-items: start; gap: 1rem;">
-              <div style="font-size: 2rem;">${category?.icon || '<i class="ph ph-file-text"></i>'}</div>
+            <div style="display: flex; align-items: start; gap: var(--spacing-5);">
+              <div style="font-size: 2.5rem; color: var(--color-primary); flex-shrink: 0;">${category?.icon || '<i class="ph ph-file-text"></i>'}</div>
               <div style="flex: 1;">
-                <h3 style="margin: 0 0 0.5rem 0;">${article.title}</h3>
-                <p style="margin: 0 0 1rem 0; color: var(--text-secondary);">${article.content}</p>
-                <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+                <h3 style="margin: 0 0 var(--spacing-3) 0; font-size: var(--font-size-lg); font-weight: var(--font-weight-semibold); color: var(--text-primary);">${article.title}</h3>
+                <p style="margin: 0 0 var(--spacing-4) 0; color: var(--text-secondary); line-height: 1.6;">${article.content}</p>
+                <div style="display: flex; gap: var(--spacing-2); flex-wrap: wrap;">
                   ${article.tags.map(tag => `
-                    <span class="badge badge-secondary" style="font-size: 0.85rem;">${tag}</span>
+                    <span class="badge badge-secondary" style="font-size: var(--font-size-sm);">${tag}</span>
                   `).join('')}
                 </div>
               </div>

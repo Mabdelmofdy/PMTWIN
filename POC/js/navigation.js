@@ -226,6 +226,16 @@
       `;
     });
 
+    // Service Providers Directory link
+    const isServiceProvidersActive = currentPath.includes('service-providers');
+    html += `
+      <li>
+        <a href="${basePath}service-providers/" class="navbar-link ${isServiceProvidersActive ? 'active' : ''}" onclick="Navigation.handleNavClick(event, '${basePath}service-providers/');">
+          <i class="ph ph-buildings"></i> Service Providers Directory
+        </a>
+      </li>
+    `;
+
     // Search bar
     html += `
             <li style="margin-left: auto; margin-right: 1rem;">
@@ -348,6 +358,7 @@
             <li><a href="${basePath}discovery/" class="navbar-link">Discover Projects</a></li>
             <li><a href="${basePath}wizard/" class="navbar-link">PMTwin Wizard</a></li>
             <li><a href="${basePath}knowledge/" class="navbar-link">Knowledge Hub</a></li>
+            <li><a href="${basePath}service-providers/" class="navbar-link">Service Providers Directory</a></li>
             <li><a href="${basePath}signup/" class="navbar-link">Sign Up</a></li>
             <li><a href="${basePath}login/" class="navbar-link">Login</a></li>
           </ul>

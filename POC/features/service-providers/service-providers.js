@@ -45,20 +45,22 @@
 
   async function renderDirectoryView(container) {
     container.innerHTML = `
-      <div class="card" style="margin-bottom: 2rem;">
-        <div class="card-body">
-          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; flex-wrap: wrap; gap: 1rem;">
-            <h2 style="margin: 0;">Service Providers Directory</h2>
-            <div style="display: flex; gap: 0.5rem;">
-              <button onclick="serviceProvidersComponent.toggleViewMode()" class="btn btn-secondary btn-sm">
-                <i class="ph ph-${viewMode === 'grid' ? 'list' : 'grid-four'}"></i> ${viewMode === 'grid' ? 'List' : 'Grid'}
-              </button>
-            </div>
+      <!-- Page Header -->
+      <div class="page-header">
+        <div class="page-header-content">
+          <div>
+            <h1>Service Providers Directory</h1>
+            <p>Browse service providers and find professionals that match your project needs</p>
           </div>
-          
-          <!-- Search and Filters -->
-          <form id="serviceProvidersFiltersForm" onsubmit="return serviceProvidersComponent.applyFilters(event)">
-            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 1rem;">
+        </div>
+      </div>
+
+      <!-- Filter Section -->
+      <div class="content-section">
+        <div class="card filters-section">
+          <div class="card-body">
+            <h3 class="section-title">Filter Providers</h3>
+            <form id="serviceProvidersFiltersForm" onsubmit="return serviceProvidersComponent.applyFilters(event)" class="filter-row">
               <div class="form-group">
                 <label for="spSearch" class="form-label">Search</label>
                 <input type="text" id="spSearch" class="form-control" placeholder="Search providers...">
@@ -82,17 +84,20 @@
                   <option value="unavailable">Unavailable</option>
                 </select>
               </div>
-            </div>
-            <div style="display: flex; gap: 0.5rem;">
-              <button type="submit" class="btn btn-primary">Apply Filters</button>
-              <button type="button" onclick="serviceProvidersComponent.clearFilters()" class="btn btn-secondary">Clear</button>
-            </div>
-          </form>
+              <div class="form-group" style="display: flex; gap: var(--spacing-3); align-items: flex-end;">
+                <button type="submit" class="btn btn-primary">Apply Filters</button>
+                <button type="button" onclick="serviceProvidersComponent.clearFilters()" class="btn btn-secondary">Clear</button>
+              </div>
+            </form>
+          </div>
         </div>
       </div>
 
-      <div id="serviceProvidersList">
-        <p>Loading service providers...</p>
+      <!-- Providers Grid -->
+      <div class="content-section">
+        <div id="serviceProvidersList">
+          <p>Loading service providers...</p>
+        </div>
       </div>
     `;
 
@@ -268,6 +273,50 @@
   }
 
   async function viewProviderDetails(providerId) {
+    // REQUIRED: User must be logged in to view details
+    // Check authentication first - do not proceed if not authenticated
+    
+    let isAuthenticated = false;
+    let currentUser = null;
+    
+    // Check with PMTwinAuth first (primary auth system)
+    if (typeof PMTwinAuth !== 'undefined' && typeof PMTwinAuth.isAuthenticated === 'function') {
+      isAuthenticated = PMTwinAuth.isAuthenticated();
+      if (isAuthenticated && typeof PMTwinAuth.getCurrentUser === 'function') {
+        currentUser = PMTwinAuth.getCurrentUser();
+      }
+    }
+    
+    // Fallback: Check with PMTwinData Sessions
+    if (!isAuthenticated && typeof PMTwinData !== 'undefined' && PMTwinData.Sessions) {
+      currentUser = PMTwinData.Sessions.getCurrentUser();
+      if (currentUser) {
+        isAuthenticated = true;
+      }
+    }
+    
+    // If not authenticated, redirect to login and STOP - do not show any details
+    if (!isAuthenticated || !currentUser) {
+      // Store the intended destination for redirect after login
+      const currentPath = window.location.pathname;
+      const redirectPath = currentPath + (window.location.search ? window.location.search : '');
+      if (redirectPath && !redirectPath.includes('login')) {
+        sessionStorage.setItem('loginRedirect', redirectPath);
+      }
+      
+      // Show alert and redirect to login
+      alert('Please log in to view service provider details.');
+      
+      // Determine login path
+      const basePath = currentPath.includes('/service-providers/') ? '../' : '';
+      window.location.href = basePath + 'login/';
+      
+      // Stop execution immediately - do not proceed to show details
+      return;
+    }
+    
+    // Only proceed if user is authenticated
+
     if (typeof ServiceProviderService === 'undefined') {
       alert('Service provider service not available');
       return;
