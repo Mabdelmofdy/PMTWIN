@@ -130,7 +130,7 @@
               <button onclick="marketplaceComponent.clearFilters()" class="btn btn-primary">
                 <i class="ph ph-funnel-simple"></i> Clear Filters
               </button>
-              <button onclick="window.location.href='/POC/settings/index.html#profile'" class="btn btn-secondary">
+              <button onclick="window.location.href='../profile/'" class="btn btn-secondary">
                 <i class="ph ph-user"></i> Edit Profile Skills
               </button>
             </div>
