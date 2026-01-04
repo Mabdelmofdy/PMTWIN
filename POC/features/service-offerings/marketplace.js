@@ -119,8 +119,21 @@
       container.innerHTML = `
         <div class="card">
           <div class="card-body" style="text-align: center; padding: 3rem;">
-            <p>No service offerings found matching your criteria.</p>
-            <button onclick="marketplaceComponent.clearFilters()" class="btn btn-primary" style="margin-top: 1rem;">Clear Filters</button>
+            <div style="margin-bottom: 1.5rem;">
+              <i class="ph ph-magnifying-glass" style="font-size: 3rem; color: var(--color-secondary); margin-bottom: 1rem;"></i>
+              <h3 style="margin-bottom: 0.5rem;">No service offerings found matching your criteria</h3>
+              <p style="color: var(--text-secondary); margin-bottom: 1rem;">
+                Try adjusting your filters or edit your skills in your profile to align with available services.
+              </p>
+            </div>
+            <div style="display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap;">
+              <button onclick="marketplaceComponent.clearFilters()" class="btn btn-primary">
+                <i class="ph ph-funnel-simple"></i> Clear Filters
+              </button>
+              <button onclick="window.location.href='/POC/settings/index.html#profile'" class="btn btn-secondary">
+                <i class="ph ph-user"></i> Edit Profile Skills
+              </button>
+            </div>
           </div>
         </div>
       `;
@@ -198,6 +211,18 @@
             <p style="margin-bottom: 1rem; color: var(--text-secondary);">
               ${offering.shortDescription || (offering.description || '').substring(0, 150)}${offering.description && offering.description.length > 150 && !offering.shortDescription ? '...' : ''}
             </p>
+            
+            ${offering.needs && offering.needs.length > 0 ? `
+              <div style="margin-bottom: 1rem; padding: 0.5rem; background: var(--bg-primary); border-left: 3px solid var(--color-warning); border-radius: var(--radius);">
+                <strong style="color: var(--color-warning); font-size: 0.85rem; margin-bottom: 0.25rem; display: block;">
+                  <i class="ph ph-handshake"></i> Looking For:
+                </strong>
+                <div style="display: flex; flex-wrap: wrap; gap: 0.25rem;">
+                  ${offering.needs.slice(0, 3).map(need => `<span class="badge badge-warning" style="font-size: 0.7rem;">${need}</span>`).join('')}
+                  ${offering.needs.length > 3 ? `<span class="badge badge-secondary" style="font-size: 0.7rem;">+${offering.needs.length - 3}</span>` : ''}
+                </div>
+              </div>
+            ` : ''}
             
             ${collaborationModels.length > 0 ? `
               <div style="margin-bottom: 1rem;">
@@ -442,6 +467,18 @@
           
           <p style="margin-bottom: 1rem;"><strong>Description:</strong></p>
           <p style="margin-bottom: 1rem; white-space: pre-wrap;">${offering.description || 'No description provided'}</p>
+          
+          ${offering.needs && offering.needs.length > 0 ? `
+            <div style="margin-bottom: 1rem; padding: 0.75rem; background: var(--bg-primary); border-left: 3px solid var(--color-warning); border-radius: var(--radius);">
+              <strong style="color: var(--color-warning); margin-bottom: 0.5rem; display: block;">
+                <i class="ph ph-handshake"></i> What I Need (Services, Skills, or Resources):
+              </strong>
+              <div style="display: flex; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 0.5rem;">
+                ${offering.needs.map(need => `<span class="badge badge-warning">${need}</span>`).join('')}
+              </div>
+              <small style="color: var(--text-secondary);">Services, skills, or resources this provider is looking for from others</small>
+            </div>
+          ` : ''}
           
           ${offering.skills && offering.skills.length > 0 ? `
             <p style="margin-bottom: 0.5rem;"><strong>Skills:</strong></p>

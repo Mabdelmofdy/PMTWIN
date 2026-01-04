@@ -469,7 +469,14 @@
     let createdEvaluations = 0;
 
     // Create additional test service providers if needed
-    if (existingProviders.length < 2) {
+    if (existingProviders.length < 3) {
+      // Find Individual users
+      const individualUsers = demoUsers.filter(u => 
+        u.userType === 'individual' || 
+        u.role === 'individual' ||
+        (u.profile && u.profile.userType === 'individual')
+      );
+      
       const testProviders = [
         {
           userId: demoUsers.find(u => u.role === 'consultant' || u.role === 'professional')?.id || demoUsers[0].id,
@@ -490,6 +497,33 @@
           status: 'active'
         }
       ];
+      
+      // Add Individual users as providers if they don't exist
+      if (individualUsers.length > 0) {
+        individualUsers.slice(0, 2).forEach((user, index) => {
+          const existing = ServiceProviders.getByUserId(user.id);
+          if (!existing) {
+            testProviders.push({
+              userId: user.id,
+              providerType: 'individual',
+              name: user.profile?.name || user.email?.split('@')[0] || `Individual User ${index + 1}`,
+              companyName: null,
+              description: `Individual service provider offering various professional services.`,
+              categories: ['consulting', 'design'],
+              skills: user.profile?.skills || ['Consultation', 'Design', 'Writing'],
+              location: user.profile?.location || { city: 'Riyadh', region: 'Riyadh Province', country: 'Saudi Arabia' },
+              serviceAreas: [user.profile?.location?.city || 'Riyadh'],
+              availability: 'available',
+              responseTime: '48 hours',
+              profileScore: 75,
+              certifications: [],
+              establishedYear: null,
+              contact: { email: user.email, phone: user.profile?.phone || '' },
+              status: 'active'
+            });
+          }
+        });
+      }
 
       testProviders.forEach(providerData => {
         // Check if provider already exists
@@ -579,11 +613,342 @@
       console.log(`✅ Created test data: ${createdProviders} providers, ${createdBeneficiaries} beneficiaries, ${createdEvaluations} evaluations`);
     }
     
+    // Create test service offerings if they don't exist
+    createTestServiceOfferings();
+    
+    // Create test service offerings if they don't exist
+    createTestServiceOfferings();
+    
     // Add test statistics to service offerings
     addTestStatisticsToOfferings();
     
     // Ensure Barter exchange type offerings exist
     ensureBarterOfferingsExist();
+    
+    console.log('✅ Service index test data loaded successfully');
+  }
+
+  // ============================================
+  // Create Test Service Offerings
+  // ============================================
+  function createTestServiceOfferings() {
+    try {
+      let storedData = localStorage.getItem('pmtwin_service_providers');
+      let data;
+      
+      if (!storedData) {
+        // Initialize data structure if it doesn't exist
+        data = {
+          serviceProviders: [],
+          serviceOfferings: [],
+          beneficiaries: []
+        };
+      } else {
+        data = JSON.parse(storedData);
+      }
+      
+      const offerings = data.serviceOfferings || [];
+      
+      // Check if we already have enough offerings (at least 5)
+      if (offerings.length >= 5) {
+        return; // Already have enough offerings
+      }
+      
+      // Get demo users and providers
+      const users = Users.getAll();
+      const demoUsers = users.filter(u => u.email && u.email.includes('@pmtwin.com'));
+      if (demoUsers.length === 0) return;
+      
+      const providers = data.serviceProviders || [];
+      if (providers.length === 0) return;
+      
+      // Get categories
+      const categories = ['engineering', 'design', 'legal', 'logistics', 'consulting', 'construction'];
+      
+      let created = 0;
+      
+      // Create diverse test offerings
+      const testOfferings = [
+        {
+          id: 'so_test_001',
+          provider_user_id: providers[0]?.userId || demoUsers[0]?.id,
+          providerId: providers[0]?.id || 'sp_001',
+          title: 'Architectural Design Services',
+          category: 'design',
+          skills: ['Architectural Design', '3D Visualization', 'Project Planning', 'CAD Design'],
+          description: 'Professional architectural design services for residential and commercial projects. Specialized in modern and sustainable design solutions.',
+          delivery_mode: 'Hybrid',
+          location: { city: 'Riyadh', country: 'Saudi Arabia', radius: 500 },
+          pricing_type: 'Fixed',
+          price_min: 50000,
+          price_max: 500000,
+          currency: 'SAR',
+          exchange_type: 'Cash',
+          experienceLevel: 'expert',
+          supportedCollaborationModels: ['1.1', '2.2'],
+          taskBasedEngagement: { supported: true, taskTypes: ['Design', 'Consultation'] },
+          strategicAlliance: { supported: true, allianceTypes: [], targetSectors: [] },
+          availability: { start_date: new Date().toISOString().split('T')[0], capacity: 5, lead_time: '2-3 weeks' },
+          portfolio_links: [],
+          attachments: [],
+          status: 'Active',
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString()
+        },
+        {
+          id: 'so_test_002',
+          provider_user_id: providers[1]?.userId || demoUsers[1]?.id || demoUsers[0]?.id,
+          providerId: providers[1]?.id || 'sp_002',
+          title: 'Civil Engineering Consultation',
+          category: 'engineering',
+          skills: ['Civil Engineering', 'Project Management', 'Quality Control', 'Construction Planning'],
+          description: 'Expert civil engineering consultation for infrastructure and construction projects. Over 10 years of experience in mega-projects.',
+          delivery_mode: 'Onsite',
+          location: { city: 'Riyadh', country: 'Saudi Arabia', radius: 300 },
+          pricing_type: 'Hourly',
+          price_min: 500,
+          price_max: 1500,
+          currency: 'SAR',
+          exchange_type: 'Cash',
+          experienceLevel: 'expert',
+          supportedCollaborationModels: ['1.1'],
+          taskBasedEngagement: { supported: true, taskTypes: ['Engineering', 'Consultation'] },
+          strategicAlliance: { supported: false, allianceTypes: [], targetSectors: [] },
+          availability: { start_date: new Date().toISOString().split('T')[0], capacity: 3, lead_time: '1-2 weeks' },
+          portfolio_links: [],
+          attachments: [],
+          status: 'Active',
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString()
+        },
+        {
+          id: 'so_test_003',
+          provider_user_id: providers[0]?.userId || demoUsers[0]?.id,
+          providerId: providers[0]?.id || 'sp_001',
+          title: 'Legal Consultation Services',
+          category: 'legal',
+          skills: ['Contract Review', 'Legal Consultation', 'Compliance', 'Risk Assessment'],
+          description: 'Comprehensive legal consultation services for construction and business contracts. Specialized in MENA region regulations.',
+          delivery_mode: 'Remote',
+          location: { city: 'Riyadh', country: 'Saudi Arabia', radius: 1000 },
+          pricing_type: 'Fixed',
+          price_min: 10000,
+          price_max: 100000,
+          currency: 'SAR',
+          exchange_type: 'Cash',
+          experienceLevel: 'expert',
+          supportedCollaborationModels: ['1.1', '2.2'],
+          taskBasedEngagement: { supported: true, taskTypes: ['Consultation'] },
+          strategicAlliance: { supported: true, allianceTypes: [], targetSectors: [] },
+          availability: { start_date: new Date().toISOString().split('T')[0], capacity: 10, lead_time: '3-5 days' },
+          portfolio_links: [],
+          attachments: [],
+          status: 'Active',
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString()
+        },
+        {
+          id: 'so_test_004',
+          provider_user_id: providers[1]?.userId || demoUsers[1]?.id || demoUsers[0]?.id,
+          providerId: providers[1]?.id || 'sp_002',
+          title: 'Project Management Services',
+          category: 'consulting',
+          skills: ['Project Management', 'Agile Methodology', 'Risk Management', 'Stakeholder Management'],
+          description: 'Professional project management services for construction and infrastructure projects. PMP certified with extensive experience.',
+          delivery_mode: 'Hybrid',
+          location: { city: 'Jeddah', country: 'Saudi Arabia', radius: 400 },
+          pricing_type: 'Daily',
+          price_min: 2000,
+          price_max: 5000,
+          currency: 'SAR',
+          exchange_type: 'Cash',
+          experienceLevel: 'advanced',
+          supportedCollaborationModels: ['1.1'],
+          taskBasedEngagement: { supported: true, taskTypes: ['Project Management'] },
+          strategicAlliance: { supported: false, allianceTypes: [], targetSectors: [] },
+          availability: { start_date: new Date().toISOString().split('T')[0], capacity: 2, lead_time: '1 week' },
+          portfolio_links: [],
+          attachments: [],
+          status: 'Active',
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString()
+        },
+        {
+          id: 'so_test_005',
+          provider_user_id: providers[0]?.userId || demoUsers[0]?.id,
+          providerId: providers[0]?.id || 'sp_001',
+          title: 'Supply Chain & Logistics Management',
+          category: 'logistics',
+          skills: ['Supply Chain Management', 'Procurement', 'Logistics Planning', 'Inventory Management'],
+          description: 'End-to-end supply chain and logistics management services for construction projects. Optimized for MENA region operations.',
+          delivery_mode: 'Onsite',
+          location: { city: 'Dammam', country: 'Saudi Arabia', radius: 600 },
+          pricing_type: 'Milestone',
+          price_min: 50000,
+          price_max: 300000,
+          currency: 'SAR',
+          exchange_type: 'Cash',
+          experienceLevel: 'advanced',
+          supportedCollaborationModels: ['2.2'],
+          taskBasedEngagement: { supported: false, taskTypes: [] },
+          strategicAlliance: { supported: true, allianceTypes: [], targetSectors: [] },
+          availability: { start_date: new Date().toISOString().split('T')[0], capacity: 4, lead_time: '2-4 weeks' },
+          portfolio_links: [],
+          attachments: [],
+          status: 'Active',
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString()
+        },
+        {
+          id: 'so_test_006',
+          provider_user_id: providers[1]?.userId || demoUsers[1]?.id || demoUsers[0]?.id,
+          providerId: providers[1]?.id || 'sp_002',
+          title: 'Construction Quality Control Services',
+          category: 'construction',
+          skills: ['Quality Control', 'Inspection', 'Compliance', 'Safety Management'],
+          description: 'Professional quality control and inspection services for construction projects. Ensuring compliance with international standards.',
+          delivery_mode: 'Onsite',
+          location: { city: 'Riyadh', country: 'Saudi Arabia', radius: 400 },
+          pricing_type: 'Fixed',
+          price_min: 25000,
+          price_max: 150000,
+          currency: 'SAR',
+          exchange_type: 'Cash',
+          experienceLevel: 'intermediate',
+          supportedCollaborationModels: ['1.1'],
+          taskBasedEngagement: { supported: true, taskTypes: ['Inspection', 'Quality Control'] },
+          strategicAlliance: { supported: false, allianceTypes: [], targetSectors: [] },
+          availability: { start_date: new Date().toISOString().split('T')[0], capacity: 6, lead_time: '1-2 weeks' },
+          portfolio_links: [],
+          attachments: [],
+          status: 'Active',
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString()
+        }
+      ];
+      
+      testOfferings.forEach(offering => {
+        // Check if offering with same ID already exists
+        const exists = offerings.find(o => o.id === offering.id);
+        if (!exists) {
+          offerings.push(offering);
+          created++;
+        }
+      });
+      
+      // Create additional offerings for Individual users
+      const individualUsers = demoUsers.filter(u => 
+        u.userType === 'individual' || 
+        u.role === 'individual' || 
+        (u.profile && u.profile.userType === 'individual')
+      );
+      
+      if (individualUsers.length > 0 && providers.length > 0) {
+        const individualOfferings = [
+          {
+            id: 'so_individual_001',
+            provider_user_id: individualUsers[0]?.id || demoUsers.find(u => u.role === 'individual')?.id || demoUsers[0]?.id,
+            providerId: providers[0]?.id || 'sp_001',
+            title: 'Freelance Graphic Design Services',
+            category: 'design',
+            skills: ['Graphic Design', 'Brand Identity', 'Logo Design', 'Digital Marketing'],
+            description: 'Creative graphic design services for businesses and individuals. Specialized in brand identity, logo design, and digital marketing materials.',
+            delivery_mode: 'Remote',
+            location: { city: 'Riyadh', country: 'Saudi Arabia', radius: 1000 },
+            pricing_type: 'Fixed',
+            price_min: 5000,
+            price_max: 50000,
+            currency: 'SAR',
+            exchange_type: 'Cash',
+            experienceLevel: 'intermediate',
+            supportedCollaborationModels: ['1.1'],
+            taskBasedEngagement: { supported: true, taskTypes: ['Design'] },
+            strategicAlliance: { supported: false, allianceTypes: [], targetSectors: [] },
+            availability: { start_date: new Date().toISOString().split('T')[0], capacity: 8, lead_time: '1 week' },
+            portfolio_links: [],
+            attachments: [],
+            status: 'Active',
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString()
+          },
+          {
+            id: 'so_individual_002',
+            provider_user_id: individualUsers[1]?.id || individualUsers[0]?.id || demoUsers.find(u => u.role === 'individual')?.id || demoUsers[0]?.id,
+            providerId: providers[1]?.id || providers[0]?.id || 'sp_002',
+            title: 'Content Writing & Translation Services',
+            category: 'consulting',
+            skills: ['Content Writing', 'Translation', 'Copywriting', 'Technical Writing'],
+            description: 'Professional content writing and translation services in Arabic and English. Specialized in technical documentation and marketing content.',
+            delivery_mode: 'Remote',
+            location: { city: 'Jeddah', country: 'Saudi Arabia', radius: 1000 },
+            pricing_type: 'Hourly',
+            price_min: 100,
+            price_max: 300,
+            currency: 'SAR',
+            exchange_type: 'Cash',
+            experienceLevel: 'intermediate',
+            supportedCollaborationModels: ['1.1'],
+            taskBasedEngagement: { supported: true, taskTypes: ['Writing', 'Translation'] },
+            strategicAlliance: { supported: false, allianceTypes: [], targetSectors: [] },
+            availability: { start_date: new Date().toISOString().split('T')[0], capacity: 10, lead_time: '2-3 days' },
+            portfolio_links: [],
+            attachments: [],
+            status: 'Active',
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString()
+          },
+          {
+            id: 'so_individual_003',
+            provider_user_id: individualUsers[0]?.id || demoUsers.find(u => u.role === 'individual')?.id || demoUsers[0]?.id,
+            providerId: providers[0]?.id || 'sp_001',
+            title: 'Photography & Videography Services',
+            category: 'consulting',
+            skills: ['Photography', 'Videography', 'Event Coverage', 'Product Photography'],
+            description: 'Professional photography and videography services for events, products, and corporate needs. High-quality visual content creation.',
+            delivery_mode: 'Onsite',
+            location: { city: 'Riyadh', country: 'Saudi Arabia', radius: 200 },
+            pricing_type: 'Fixed',
+            price_min: 2000,
+            price_max: 15000,
+            currency: 'SAR',
+            exchange_type: 'Cash',
+            experienceLevel: 'intermediate',
+            supportedCollaborationModels: ['1.1'],
+            taskBasedEngagement: { supported: true, taskTypes: ['Photography', 'Videography'] },
+            strategicAlliance: { supported: false, allianceTypes: [], targetSectors: [] },
+            availability: { start_date: new Date().toISOString().split('T')[0], capacity: 5, lead_time: '3-5 days' },
+            portfolio_links: [],
+            attachments: [],
+            status: 'Active',
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString()
+          }
+        ];
+        
+        individualOfferings.forEach(offering => {
+          const exists = offerings.find(o => o.id === offering.id);
+          if (!exists) {
+            offerings.push(offering);
+            created++;
+          }
+        });
+      }
+      
+      // Always save the data structure, even if no new offerings were created
+      data.serviceOfferings = offerings;
+      localStorage.setItem('pmtwin_service_providers', JSON.stringify(data));
+      
+      if (created > 0) {
+        console.log(`✅ Created ${created} test service offering(s) for marketplace (including Individual users)`);
+        
+        // Rebuild index
+        if (typeof IndexManager !== 'undefined') {
+          IndexManager.rebuildIndex();
+        }
+      }
+    } catch (error) {
+      console.error('Error creating test service offerings:', error);
+    }
   }
 
   // ============================================
@@ -7918,6 +8283,40 @@
     loadSampleProposals: () => loadSampleProposals(true),
     loadServiceIndexTestData: () => loadServiceIndexTestData(),
     updateOpportunitiesWithTestData: updateOpportunitiesWithTestData,
+    
+    // Test Data Helpers
+    getServiceTestDataStats() {
+      const providers = ServiceProviders.getAll();
+      const beneficiaries = Beneficiaries.getAll();
+      const evaluations = ServiceEvaluations.getAll();
+      
+      let offerings = [];
+      try {
+        const storedData = localStorage.getItem('pmtwin_service_providers');
+        if (storedData) {
+          const data = JSON.parse(storedData);
+          offerings = data.serviceOfferings || [];
+        }
+      } catch (e) {
+        console.warn('Error loading offerings:', e);
+      }
+      
+      const activeOfferings = offerings.filter(o => o.status === 'Active');
+      const barterOfferings = offerings.filter(o => o.exchange_type === 'Barter' || o.exchange_type === 'Mixed');
+      
+      return {
+        providers: providers.length,
+        beneficiaries: beneficiaries.length,
+        offerings: offerings.length,
+        activeOfferings: activeOfferings.length,
+        barterOfferings: barterOfferings.length,
+        evaluations: evaluations.length,
+        details: {
+          providers: providers.map(p => ({ id: p.id, name: p.name || p.companyName, type: p.providerType })),
+          offerings: offerings.map(o => ({ id: o.id, title: o.title, status: o.status, exchangeType: o.exchange_type }))
+        }
+      };
+    },
     
     // Test Data Helper Functions
     getCollaborationTestDataStats() {

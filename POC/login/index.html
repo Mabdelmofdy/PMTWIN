@@ -27,37 +27,39 @@
 
     <!-- Main Content -->
     <main>
-        <div class="container container-sm container-padded">
-            <h1 style="margin-bottom: var(--spacing-6); text-align: center;">
-                Login
-                <button 
-                    class="demo-info-button" 
-                    id="demoCredentialsBtn"
-                    type="button"
-                    title="View demo user credentials"
-                    aria-label="View demo user credentials"
-                >!</button>
-            </h1>
-            <div class="card">
-                <div class="card-body">
-                    <form id="loginForm">
-                        <div class="form-group">
-                            <label for="loginEmail" class="form-label">Email</label>
-                            <input type="email" id="loginEmail" class="form-control" required>
-                        </div>
-                        <div class="form-group">
-                            <label for="loginPassword" class="form-label">Password</label>
-                            <input type="password" id="loginPassword" class="form-control" required>
-                        </div>
-                        <div id="loginError" class="alert alert-error" style="display: none;"></div>
-                        <button type="submit" class="btn btn-primary btn-block">Login</button>
-                    </form>
-                    <p style="text-align: center; margin-top: var(--spacing-4);">
-                        Don't have an account? <a href="../signup/">Sign up here</a>
-                    </p>
-                    <p style="text-align: center; margin-top: var(--spacing-2);">
-                        <a href="../home/">Back to Home</a>
-                    </p>
+        <div style="display: flex; align-items: center; justify-content: center; min-height: calc(100vh - 80px); width: 100%;">
+            <div style="width: 100%; max-width: 450px; padding: var(--spacing-4);">
+                <h1 style="margin-bottom: var(--spacing-6); text-align: center;">
+                    Login
+                    <button 
+                        class="demo-info-button" 
+                        id="demoCredentialsBtn"
+                        type="button"
+                        title="View demo user credentials"
+                        aria-label="View demo user credentials"
+                    >!</button>
+                </h1>
+                <div class="card">
+                    <div class="card-body">
+                        <form id="loginForm">
+                            <div class="form-group">
+                                <label for="loginEmail" class="form-label">Email</label>
+                                <input type="email" id="loginEmail" class="form-control" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="loginPassword" class="form-label">Password</label>
+                                <input type="password" id="loginPassword" class="form-control" required>
+                            </div>
+                            <div id="loginError" class="alert alert-error" style="display: none;"></div>
+                            <button type="submit" class="btn btn-primary btn-block">Login</button>
+                        </form>
+                        <p style="text-align: center; margin-top: var(--spacing-4);">
+                            Don't have an account? <a href="../signup/">Sign up here</a>
+                        </p>
+                        <p style="text-align: center; margin-top: var(--spacing-2);">
+                            <a href="../home/">Back to Home</a>
+                        </p>
+                    </div>
                 </div>
             </div>
         </div>

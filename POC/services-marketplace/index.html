@@ -130,6 +130,14 @@
             
             await waitForServices();
             
+            // Ensure test data is loaded (this will create test offerings if they don't exist)
+            if (typeof PMTwinData !== 'undefined' && PMTwinData.loadServiceIndexTestData) {
+                PMTwinData.loadServiceIndexTestData();
+            }
+            
+            // Small delay to ensure data is saved to localStorage
+            await new Promise(resolve => setTimeout(resolve, 100));
+            
             // Initialize marketplace component
             // Note: Sidebar and navbar are automatically initialized by app-init.js
             if (typeof marketplaceComponent !== 'undefined') {

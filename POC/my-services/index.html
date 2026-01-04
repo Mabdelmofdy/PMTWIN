@@ -22,7 +22,7 @@
                         </div>
                         <div class="page-actions">
                             <button id="createOfferingBtn" class="btn btn-primary">
-                                <i class="ph ph-plus"></i> Create New Service Offering
+                                <i class="ph ph-plus"></i> Create New Service
                             </button>
                         </div>
                     </div>
@@ -127,12 +127,42 @@
             
             await waitForServices();
             
+            // Wait for component to be available
+            // The component should be available immediately after script loads, but check for it
+            function waitForComponent() {
+                return new Promise((resolve) => {
+                    if (typeof myServicesComponent !== 'undefined') {
+                        resolve();
+                    } else {
+                        // Check if script loaded but component not exported
+                        let attempts = 0;
+                        const checkInterval = setInterval(() => {
+                            if (typeof myServicesComponent !== 'undefined') {
+                                clearInterval(checkInterval);
+                                resolve();
+                            } else if (attempts >= 20) {
+                                clearInterval(checkInterval);
+                                console.error('myServicesComponent not found after 2 seconds');
+                                resolve(); // Resolve anyway to continue
+                            }
+                            attempts++;
+                        }, 100);
+                    }
+                });
+            }
+            
+            await waitForComponent();
+            
             // Initialize my services component
             // Note: Sidebar and navbar are automatically initialized by app-init.js
             if (typeof myServicesComponent !== 'undefined') {
                 myServicesComponent.init();
             } else {
-                console.error('myServicesComponent not found');
+                console.error('myServicesComponent not found. Check browser console for JavaScript errors.');
+                const container = document.getElementById('offeringsList');
+                if (container) {
+                    container.innerHTML = '<p class="alert alert-error">Failed to load My Services component. Please refresh the page.</p>';
+                }
             }
         });
     </script>

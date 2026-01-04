@@ -250,6 +250,8 @@
       exchange_type: offeringData.exchange_type || 'Cash', // Cash | Barter | Mixed
       paymentTerms: offeringData.paymentTerms || '30_days', // 30_days | 60_days | milestone_based | upfront
       barterPreferences: offeringData.barterPreferences || [], // What they accept in barter
+      barter_details: offeringData.barter_details || null, // Barter exchange details
+      needs: offeringData.needs || [], // Service needs/requirements (materials, resources, etc.)
       
       // Availability & Capacity
       availability: {
