@@ -222,7 +222,7 @@
         <div class="modal-header" style="display: flex; align-items: center; gap: var(--spacing-4);">
           ${service.icon ? `<img src="${service.icon}" alt="${service.title || ''}" style="width: 60px; height: 60px; border-radius: var(--radius);">` : ''}
           <h2 class="modal-title" style="flex: 1; margin: 0;">${service.title || 'Service Details'}</h2>
-          <button class="modal-close" onclick="this.closest('.service-details-modal-backdrop').remove()" style="background: none; border: none; font-size: 1.5rem; cursor: pointer; color: var(--text-secondary);">&times;</button>
+          <button class="modal-close" style="background: none; border: none; font-size: 1.5rem; cursor: pointer; color: var(--text-secondary);">&times;</button>
         </div>
         <div class="modal-body" style="padding: var(--spacing-6);">
           ${details.overview ? `
@@ -241,8 +241,8 @@
           ` : ''}
         </div>
         <div class="modal-footer" style="display: flex; justify-content: space-between; align-items: center; padding: var(--spacing-4) var(--spacing-6); border-top: 1px solid var(--border-color);">
-          <button class="btn btn-outline" onclick="this.closest('.service-details-modal-backdrop').remove()">Close</button>
-          ${service.link ? `<a href="${service.link}" class="btn btn-primary" onclick="this.closest('.service-details-modal-backdrop').remove()">Get Started</a>` : ''}
+          <button class="btn btn-outline">Close</button>
+          ${service.link ? `<a href="${service.link}" class="btn btn-primary">Get Started</a>` : ''}
         </div>
       </div>
     `;
@@ -252,11 +252,49 @@
     // Prevent body scroll when modal is open
     document.body.style.overflow = 'hidden';
     
-    // Restore body scroll when modal is closed
+    // Function to close modal and restore scrolling
     const closeModal = () => {
+      if (modalBackdrop && modalBackdrop.parentNode) {
+        modalBackdrop.remove();
+      }
+      // Restore body scroll
       document.body.style.overflow = '';
     };
     
+    // Set up close button handlers after modal is added to DOM
+    setTimeout(() => {
+      // Close button (X)
+      const closeBtn = modalBackdrop.querySelector('.modal-close');
+      if (closeBtn) {
+        closeBtn.addEventListener('click', function(e) {
+          e.preventDefault();
+          e.stopPropagation();
+          closeModal();
+        });
+      }
+      
+      // Close button in footer
+      const footerCloseBtn = modalBackdrop.querySelector('.modal-footer .btn-outline');
+      if (footerCloseBtn) {
+        footerCloseBtn.addEventListener('click', function(e) {
+          e.preventDefault();
+          e.stopPropagation();
+          closeModal();
+        });
+      }
+      
+      // Get Started button (if exists)
+      const getStartedBtn = modalBackdrop.querySelector('.modal-footer .btn-primary');
+      if (getStartedBtn) {
+        getStartedBtn.addEventListener('click', function(e) {
+          // Allow navigation but close modal first
+          closeModal();
+          // Navigation will proceed normally
+        });
+      }
+    }, 0);
+    
+    // Close when clicking outside modal
     modalBackdrop.addEventListener('click', function(e) {
       if (e.target === modalBackdrop) {
         closeModal();
@@ -266,7 +304,6 @@
     // Close on escape key
     const handleEscape = (e) => {
       if (e.key === 'Escape') {
-        modalBackdrop.remove();
         closeModal();
         document.removeEventListener('keydown', handleEscape);
       }
