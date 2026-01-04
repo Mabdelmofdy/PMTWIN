@@ -102,7 +102,17 @@
 
   function init(params) {
     renderCategories();
-    renderAllArticles();
+    // Don't show articles initially - wait for category selection
+    const container = document.getElementById('knowledgeArticles');
+    if (container) {
+      container.innerHTML = `
+        <div style="text-align: center; padding: var(--spacing-8); color: var(--text-secondary);">
+          <i class="ph ph-hand-pointing" style="font-size: 3rem; margin-bottom: var(--spacing-4); color: var(--color-primary);"></i>
+          <p style="font-size: var(--font-size-lg); margin-bottom: var(--spacing-2);">Select a category above to view articles</p>
+          <p style="font-size: var(--font-size-sm);">Choose from SPV, Barter Systems, Collaboration Models, or FAQs</p>
+        </div>
+      `;
+    }
   }
 
   function renderCategories() {
@@ -111,15 +121,19 @@
 
     let html = '';
     categories.forEach(category => {
+      const isSelected = currentCategory === category.id;
       html += `
-        <div class="card enhanced-card" style="cursor: pointer; transition: transform 0.2s, box-shadow 0.2s;" 
-             onmouseover="this.style.transform='translateY(-4px)'; this.style.boxShadow='0 8px 16px rgba(0,0,0,0.1)';" 
-             onmouseout="this.style.transform=''; this.style.boxShadow='';"
+        <div class="card enhanced-card" 
+             data-category-id="${category.id}"
+             style="cursor: pointer; transition: all 0.3s ease; ${isSelected ? 'border: 2px solid var(--color-primary); background: var(--color-primary-light, #e3f2fd);' : ''}" 
+             onmouseover="if (!this.classList.contains('selected')) { this.style.transform='translateY(-4px)'; this.style.boxShadow='0 8px 16px rgba(0,0,0,0.1)'; }" 
+             onmouseout="if (!this.classList.contains('selected')) { this.style.transform=''; this.style.boxShadow=''; }"
              onclick="knowledgeComponent.filterByCategory('${category.id}')">
           <div class="card-body" style="text-align: center; padding: var(--spacing-6);">
-            <div style="font-size: 3rem; margin-bottom: var(--spacing-4); color: var(--color-primary);">${category.icon}</div>
+            <div style="font-size: 3rem; margin-bottom: var(--spacing-4); color: ${isSelected ? 'var(--color-primary)' : 'var(--color-primary)'};">${category.icon}</div>
             <h3 style="margin: 0 0 var(--spacing-3) 0; font-size: var(--font-size-lg); font-weight: var(--font-weight-semibold);">${category.title}</h3>
             <p style="margin: 0; color: var(--text-secondary); font-size: var(--font-size-sm); line-height: 1.5;">${category.description}</p>
+            ${isSelected ? '<div style="margin-top: var(--spacing-3);"><span class="badge badge-primary">Selected</span></div>' : ''}
           </div>
         </div>
       `;
@@ -143,18 +157,59 @@
   }
 
   function filterByCategory(categoryId) {
+    // Toggle: if same category clicked, clear selection
+    if (currentCategory === categoryId) {
+      currentCategory = null;
+      renderCategories();
+      const container = document.getElementById('knowledgeArticles');
+      if (container) {
+        container.innerHTML = `
+          <div style="text-align: center; padding: var(--spacing-8); color: var(--text-secondary);">
+            <i class="ph ph-hand-pointing" style="font-size: 3rem; margin-bottom: var(--spacing-4); color: var(--color-primary);"></i>
+            <p style="font-size: var(--font-size-lg); margin-bottom: var(--spacing-2);">Select a category above to view articles</p>
+            <p style="font-size: var(--font-size-sm);">Choose from SPV, Barter Systems, Collaboration Models, or FAQs</p>
+          </div>
+        `;
+      }
+      return;
+    }
+
     currentCategory = categoryId;
+    searchQuery = ''; // Clear search when filtering by category
+    const searchInput = document.getElementById('knowledgeSearch');
+    if (searchInput) {
+      searchInput.value = '';
+    }
+
+    // Update category visual state
+    renderCategories();
+
+    // Get articles for selected category
     const container = document.getElementById('knowledgeArticles');
     if (!container) return;
 
     const categoryArticles = articles[categoryId] || [];
     renderArticlesList(container, categoryArticles.map(a => ({ ...a, category: categoryId })));
+
+    // Scroll to articles section smoothly
+    setTimeout(() => {
+      const articlesSection = document.getElementById('knowledgeArticles');
+      if (articlesSection) {
+        articlesSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    }, 100);
   }
 
   function search(event) {
     event.preventDefault();
     const query = document.getElementById('knowledgeSearch')?.value.toLowerCase() || '';
     searchQuery = query;
+    
+    // Clear category filter when searching
+    if (query && currentCategory) {
+      currentCategory = null;
+      renderCategories();
+    }
 
     const container = document.getElementById('knowledgeArticles');
     if (!container) return;
@@ -172,6 +227,14 @@
     });
 
     renderArticlesList(container, allArticles);
+    
+    // Scroll to articles section
+    setTimeout(() => {
+      const articlesSection = document.getElementById('knowledgeArticles');
+      if (articlesSection) {
+        articlesSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    }, 100);
   }
 
   function renderArticlesList(container, articlesList) {
@@ -188,13 +251,27 @@
       return;
     }
 
-    // Add section title if filtered
+    // Add section title with clear filter option if filtered
     let sectionTitle = '';
     if (currentCategory) {
       const category = categories.find(c => c.id === currentCategory);
-      sectionTitle = `<h2 class="section-title spacing-section">${category?.title || 'Articles'}</h2>`;
+      sectionTitle = `
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--spacing-6);">
+          <h2 class="section-title" style="margin: 0;">${category?.title || 'Articles'}</h2>
+          <button onclick="knowledgeComponent.clearFilters()" class="btn btn-secondary btn-sm">
+            <i class="ph ph-x"></i> Clear Filter
+          </button>
+        </div>
+      `;
     } else if (searchQuery) {
-      sectionTitle = `<h2 class="section-title spacing-section">Search Results for "${searchQuery}"</h2>`;
+      sectionTitle = `
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--spacing-6);">
+          <h2 class="section-title" style="margin: 0;">Search Results for "${searchQuery}"</h2>
+          <button onclick="knowledgeComponent.clearFilters()" class="btn btn-secondary btn-sm">
+            <i class="ph ph-x"></i> Clear Search
+          </button>
+        </div>
+      `;
     } else {
       sectionTitle = `<h2 class="section-title spacing-section">All Articles</h2>`;
     }
@@ -230,8 +307,23 @@
   function clearFilters() {
     currentCategory = null;
     searchQuery = '';
-    document.getElementById('knowledgeSearchForm')?.reset();
-    renderAllArticles();
+    const searchForm = document.getElementById('knowledgeSearchForm');
+    if (searchForm) {
+      searchForm.reset();
+    }
+    renderCategories(); // Update category visual state
+    
+    // Show placeholder message instead of all articles
+    const container = document.getElementById('knowledgeArticles');
+    if (container) {
+      container.innerHTML = `
+        <div style="text-align: center; padding: var(--spacing-8); color: var(--text-secondary);">
+          <i class="ph ph-hand-pointing" style="font-size: 3rem; margin-bottom: var(--spacing-4); color: var(--color-primary);"></i>
+          <p style="font-size: var(--font-size-lg); margin-bottom: var(--spacing-2);">Select a category above to view articles</p>
+          <p style="font-size: var(--font-size-sm);">Choose from SPV, Barter Systems, Collaboration Models, or FAQs</p>
+        </div>
+      `;
+    }
   }
 
   // Export
