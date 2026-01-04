@@ -80,17 +80,29 @@
     // Check if sidebar is minimized
     const isMinimized = sidebar.classList.contains('minimized') || document.body.classList.contains('sidebar-minimized');
     
-    // Get sidebar width from CSS or use default
-    let sidebarWidth = isMinimized ? '80px' : '300px';
+    // Determine expected sidebar width based on state (not computed width during transition)
+    // Use expected width to avoid reading intermediate values during CSS transitions
+    let expectedWidth = isMinimized ? 80 : 300;
+    
+    // Try to get actual computed width, but only use it if it's close to expected
+    // This handles cases where CSS might have different values
     try {
-      const computedWidth = window.getComputedStyle(sidebar).width;
-      if (computedWidth && computedWidth !== 'auto') {
-        sidebarWidth = computedWidth;
+      const computedWidth = parseInt(window.getComputedStyle(sidebar).width);
+      if (computedWidth && !isNaN(computedWidth)) {
+        // If we're transitioning, the computed width might be intermediate
+        // So we use the expected width based on state instead
+        // Only use computed width if it's clearly in a stable state
+        const isTransitioning = document.body.classList.contains('sidebar-transitioning');
+        if (!isTransitioning) {
+          // If not transitioning, use computed width if it's reasonable
+          if (computedWidth > 50 && computedWidth < 400) {
+            expectedWidth = computedWidth;
+          }
+        }
       }
     } catch (e) {
-      console.warn('[Layout] Could not get sidebar width, using default');
+      console.warn('[Layout] Could not get sidebar width, using expected width');
     }
-    const sidebarWidthNum = parseInt(sidebarWidth) || (isMinimized ? 80 : 300);
     
     // On desktop, add margin for sidebar
     const isDesktop = window.innerWidth > 768;
@@ -102,7 +114,7 @@
       }
       
       if (isDesktop) {
-        main.style.marginLeft = `${sidebarWidthNum}px`;
+        main.style.marginLeft = `${expectedWidth}px`;
         main.style.transition = 'margin-left 0.4s cubic-bezier(0.4, 0, 0.2, 1), padding 0.4s cubic-bezier(0.4, 0, 0.2, 1)';
       } else {
         main.style.marginLeft = '0';

@@ -363,7 +363,7 @@
         const unreadNotifications = PMTwinData.Notifications.getUnread(currentUser.id);
         const unreadCount = unreadNotifications ? unreadNotifications.length : 0;
         if (unreadCount > 0) {
-          return `<span style="position: absolute; top: -8px; right: -8px; background: var(--color-danger, #dc3545); color: white; border-radius: 50%; width: 18px; height: 18px; display: flex; align-items: center; justify-content: center; font-size: 0.7rem; font-weight: bold;">${unreadCount > 9 ? '9+' : unreadCount}</span>`;
+          return `<span class="notification-badge">${unreadCount > 99 ? '99+' : unreadCount}</span>`;
         }
       } catch (error) {
         console.warn('Error getting notification count:', error);
@@ -694,10 +694,21 @@
 
     let html = `
       <div class="sidebar-header">
-        <h2 class="sidebar-title">Menu</h2>
-        <button id="sidebarMinimize" class="sidebar-minimize" aria-label="Minimize sidebar" title="Minimize menu">
-          <i class="ph ph-sidebar-simple"></i>
-        </button>
+        <a href="${basePath}dashboard/" class="sidebar-brand" title="Go to Dashboard">
+          <div class="sidebar-logo">
+            <i class="ph ph-notebook"></i>
+          </div>
+          <span class="sidebar-brand-name">PMTwin</span>
+        </a>
+        <div class="sidebar-header-actions">
+          <a href="${basePath}notifications/" class="sidebar-notification-btn" title="Notifications">
+            <i class="ph ph-bell"></i>
+            ${getNotificationBadge()}
+          </a>
+          <button id="sidebarMinimize" class="sidebar-minimize" aria-label="Minimize sidebar" title="Minimize menu">
+            <i class="ph ph-sidebar-simple"></i>
+          </button>
+        </div>
       </div>
       <nav class="sidebar-nav">
         <ul class="sidebar-menu">
@@ -923,7 +934,7 @@
           </div>
         </div>
         <button onclick="Navigation.logout()" class="sidebar-logout">
-          <i class="ph ph-sign-out"></i> Logout
+          <i class="ph ph-sign-out"></i> <span>Logout</span>
         </button>
       </div>
     `;
@@ -1023,6 +1034,11 @@
     // Add transitioning class for smooth animation
     document.body.classList.add('sidebar-transitioning');
     
+    // Ensure sidebar-open class is set on desktop
+    if (window.innerWidth > 768) {
+      document.body.classList.add('sidebar-open');
+    }
+    
     removeMinimizedState();
     
     // Remove transitioning class after animation completes
@@ -1066,10 +1082,15 @@
     }
     
     // Adjust main content margin if layout exists
+    // Use double requestAnimationFrame + small delay to ensure sidebar width has updated
     if (typeof AppLayout !== 'undefined') {
-      // Use requestAnimationFrame for smoother transition
       requestAnimationFrame(() => {
-        AppLayout.adjustMainContentMargin();
+        requestAnimationFrame(() => {
+          // Small delay to let CSS transition start
+          setTimeout(() => {
+            AppLayout.adjustMainContentMargin();
+          }, 50);
+        });
       });
     }
   }
@@ -1099,10 +1120,15 @@
     }
     
     // Adjust main content margin if layout exists
+    // Use double requestAnimationFrame + small delay to ensure sidebar width has updated
     if (typeof AppLayout !== 'undefined') {
-      // Use requestAnimationFrame for smoother transition
       requestAnimationFrame(() => {
-        AppLayout.adjustMainContentMargin();
+        requestAnimationFrame(() => {
+          // Small delay to let CSS transition start
+          setTimeout(() => {
+            AppLayout.adjustMainContentMargin();
+          }, 50);
+        });
       });
     }
   }
@@ -1217,6 +1243,8 @@
         if (sidebar) {
           sidebar.classList.add('open');
           sidebar.style.transform = 'translateX(0)';
+          // Set sidebar-open class on body for CSS margin rules
+          document.body.classList.add('sidebar-open');
           console.log('[Navigation] Sidebar opened on desktop');
         }
       }
