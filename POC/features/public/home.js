@@ -57,8 +57,15 @@
       }
     }
 
-    // Load projects preview
-    loadProjectsPreview();
+    // Load projects preview (with delay to ensure siteData is loaded)
+    setTimeout(() => {
+      loadProjectsPreview();
+    }, 100);
+    
+    // Also try loading after data is loaded event
+    window.addEventListener('pmtwinDataLoaded', function() {
+      loadProjectsPreview();
+    }, { once: true });
   }
 
   function loadProjectsPreview() {
@@ -70,21 +77,84 @@
                            typeof PMTwinData.Sessions !== 'undefined' && 
                            PMTwinData.Sessions.getCurrentUser() !== null;
 
+    // For public users, show featured projects from portfolio data
     if (!isAuthenticated || typeof PMTwinData === 'undefined') {
-      // For public users, show a call-to-action
-      container.innerHTML = `
-        <div class="card enhanced-card" style="text-align: center; padding: 3rem;">
-          <h3 style="margin-bottom: 1rem;">Discover Active Mega-Projects</h3>
-          <p style="color: var(--text-secondary); margin-bottom: 2rem;">
-            Sign up to browse and explore active construction projects in the MENA region.
-          </p>
-          <div style="display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap;">
-            <a href="../signup/" class="btn btn-primary">Sign Up to View Projects</a>
-            <a href="../discovery/" class="btn btn-secondary">Explore Discovery</a>
+      // Get portfolio data from siteData
+      let portfolioProjects = [];
+      if (typeof siteData !== 'undefined' && siteData.portfolio && Array.isArray(siteData.portfolio)) {
+        portfolioProjects = siteData.portfolio.slice(0, 6); // Show up to 6 projects
+      }
+
+      if (portfolioProjects.length > 0) {
+        // Show actual project cards
+        let html = '<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 2rem; margin-bottom: 2rem;">';
+        
+        portfolioProjects.forEach(project => {
+          html += `
+            <div class="card enhanced-card" style="transition: transform 0.3s ease, box-shadow 0.3s ease; height: 100%; display: flex; flex-direction: column;" 
+                 onmouseover="this.style.transform='translateY(-8px)'; this.style.boxShadow='0 12px 24px rgba(0,0,0,0.15)';" 
+                 onmouseout="this.style.transform=''; this.style.boxShadow='';">
+              ${project.image ? `
+                <div style="width: 100%; height: 220px; overflow: hidden; border-radius: var(--radius) var(--radius) 0 0;">
+                  <img src="${project.image}" alt="${project.title || ''}" style="width: 100%; height: 100%; object-fit: cover; transition: transform 0.3s ease;" 
+                       onmouseover="this.style.transform='scale(1.05)';" 
+                       onmouseout="this.style.transform='scale(1)';">
+                </div>
+              ` : ''}
+              <div class="card-body" style="flex: 1; display: flex; flex-direction: column; padding: var(--spacing-5);">
+                <div style="margin-bottom: var(--spacing-3);">
+                  <span class="badge badge-primary" style="font-size: 0.85rem; padding: 0.35rem 0.75rem;">${project.category || 'Mega Project'}</span>
+                </div>
+                <h3 style="margin-bottom: var(--spacing-3); font-size: 1.35rem; font-weight: 600; color: var(--text-primary); line-height: 1.3;">
+                  ${project.title || 'Untitled Project'}
+                </h3>
+                <p style="color: var(--text-secondary); margin-bottom: var(--spacing-4); line-height: 1.6; flex: 1; font-size: 0.95rem;">
+                  ${project.description || 'No description available.'}
+                </p>
+                <div style="margin-top: auto;">
+                  <a href="${project.link || '../discovery/'}" class="btn btn-primary" style="width: 100%; text-decoration: none; display: inline-block; text-align: center;">
+                    <i class="ph ph-arrow-right"></i> View Project Details
+                  </a>
+                </div>
+              </div>
+            </div>
+          `;
+        });
+        
+        html += '</div>';
+        
+        // Add signup CTA below projects
+        html += `
+          <div class="card enhanced-card" style="text-align: center; padding: 2.5rem; background: linear-gradient(135deg, var(--color-primary-light, #e3f2fd) 0%, var(--bg-secondary) 100%); border: 2px solid var(--color-primary, #3b82f6);">
+            <h3 style="margin-bottom: 1rem; color: var(--text-primary);">Want to See More Projects?</h3>
+            <p style="color: var(--text-secondary); margin-bottom: 2rem; font-size: 1.05rem;">
+              Sign up to access detailed project information, budgets, and collaboration opportunities.
+            </p>
+            <div style="display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap;">
+              <a href="../signup/" class="btn btn-primary btn-lg">Sign Up to View All Projects</a>
+              <a href="../discovery/" class="btn btn-secondary btn-lg">Explore Discovery Engine</a>
+            </div>
           </div>
-        </div>
-      `;
-      return;
+        `;
+        
+        container.innerHTML = html;
+        return;
+      } else {
+        // Fallback: show CTA if no portfolio data
+        container.innerHTML = `
+          <div class="card enhanced-card" style="text-align: center; padding: 3rem;">
+            <h3 style="margin-bottom: 1rem;">Discover Active Mega-Projects</h3>
+            <p style="color: var(--text-secondary); margin-bottom: 2rem;">
+              Sign up to browse and explore active construction projects in the MENA region.
+            </p>
+            <div style="display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap;">
+              <a href="../signup/" class="btn btn-primary">Sign Up to View Projects</a>
+              <a href="../discovery/" class="btn btn-secondary">Explore Discovery</a>
+            </div>
+          </div>
+        `;
+        return;
+      }
     }
 
     try {
