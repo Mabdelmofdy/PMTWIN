@@ -63,13 +63,40 @@
 
   function loadProjectsPreview() {
     const container = document.getElementById('projectsPreview');
-    if (!container || typeof PMTwinData === 'undefined') return;
+    if (!container) return;
+
+    // Check if user is authenticated
+    const isAuthenticated = typeof PMTwinData !== 'undefined' && 
+                           typeof PMTwinData.Sessions !== 'undefined' && 
+                           PMTwinData.Sessions.getCurrentUser() !== null;
+
+    if (!isAuthenticated || typeof PMTwinData === 'undefined') {
+      // For public users, show a call-to-action
+      container.innerHTML = `
+        <div class="card enhanced-card" style="text-align: center; padding: 3rem;">
+          <h3 style="margin-bottom: 1rem;">Discover Active Mega-Projects</h3>
+          <p style="color: var(--text-secondary); margin-bottom: 2rem;">
+            Sign up to browse and explore active construction projects in the MENA region.
+          </p>
+          <div style="display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap;">
+            <a href="../signup/" class="btn btn-primary">Sign Up to View Projects</a>
+            <a href="../discovery/" class="btn btn-secondary">Explore Discovery</a>
+          </div>
+        </div>
+      `;
+      return;
+    }
 
     try {
       const projects = PMTwinData.Projects.getActive().slice(0, 6);
       
       if (projects.length === 0) {
-        container.innerHTML = '<p style="text-align: center;">No active projects at the moment.</p>';
+        container.innerHTML = `
+          <div class="card enhanced-card" style="text-align: center; padding: 3rem;">
+            <p style="color: var(--text-secondary);">No active projects at the moment. Check back soon!</p>
+            <a href="../discovery/" class="btn btn-primary" style="margin-top: 1rem;">Browse All Projects</a>
+          </div>
+        `;
         return;
       }
 
@@ -77,14 +104,19 @@
       
       projects.forEach(project => {
         html += `
-          <div class="card">
+          <div class="card enhanced-card" style="transition: transform 0.2s, box-shadow 0.2s;" 
+               onmouseover="this.style.transform='translateY(-4px)'; this.style.boxShadow='0 8px 16px rgba(0,0,0,0.1)';" 
+               onmouseout="this.style.transform=''; this.style.boxShadow='';">
             <div class="card-body">
-              <h3 style="margin-bottom: 0.5rem;">${project.title || 'Untitled Project'}</h3>
-              <p style="color: var(--text-secondary); margin-bottom: 1rem;">
-                ${project.category || 'General'} • ${project.location?.city || 'Location TBD'}
+              <h3 style="margin-bottom: 0.5rem; font-size: var(--font-size-lg); font-weight: var(--font-weight-semibold);">${project.title || 'Untitled Project'}</h3>
+              <p style="color: var(--text-secondary); margin-bottom: 1rem; font-size: var(--font-size-sm);">
+                <i class="ph ph-folder"></i> ${project.category || 'General'} • 
+                <i class="ph ph-map-pin"></i> ${project.location?.city || 'Location TBD'}
               </p>
-              <p style="margin-bottom: 1rem;">${(project.description || '').substring(0, 150)}...</p>
-              <a href="../project/?id=${project.id}" class="btn btn-primary btn-sm">View Details</a>
+              <p style="margin-bottom: 1.5rem; color: var(--text-secondary); line-height: 1.6;">
+                ${(project.description || 'No description available.').substring(0, 150)}${project.description && project.description.length > 150 ? '...' : ''}
+              </p>
+              <a href="../project/?id=${project.id}" class="btn btn-primary btn-sm" style="text-decoration: none; width: 100%;">View Details</a>
             </div>
           </div>
         `;
@@ -94,7 +126,12 @@
       container.innerHTML = html;
     } catch (error) {
       console.error('Error loading projects preview:', error);
-      container.innerHTML = '<p style="text-align: center;">Error loading projects.</p>';
+      container.innerHTML = `
+        <div class="card enhanced-card" style="text-align: center; padding: 3rem;">
+          <p style="color: var(--text-secondary);">Error loading projects. Please try again later.</p>
+          <a href="../discovery/" class="btn btn-primary" style="margin-top: 1rem;">Browse Projects</a>
+        </div>
+      `;
     }
   }
 

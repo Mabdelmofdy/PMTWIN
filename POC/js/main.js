@@ -115,13 +115,13 @@
     const container = document.getElementById('services');
     if (!container || !data || !Array.isArray(data)) return;
 
-    const servicesHTML = data.map(service => `
+    const servicesHTML = data.map((service, index) => `
       <div class="card" style="text-align: center; height: 100%; transition: transform 0.3s ease;">
         <div class="card-body">
           ${service.icon ? `<img src="${service.icon}" alt="${service.title || ''}" style="width: 80px; height: 80px; margin: 0 auto var(--spacing-4); border-radius: var(--radius);">` : ''}
           <h3 class="card-title">${service.title || ''}</h3>
           <p class="card-text">${service.description || ''}</p>
-          ${service.link ? `<a href="${service.link}" class="btn btn-outline" style="margin-top: var(--spacing-4);">Learn More</a>` : ''}
+          <button onclick="showServiceDetails(${index})" class="btn btn-outline" style="margin-top: var(--spacing-4);">Learn More</button>
         </div>
       </div>
     `).join('');
@@ -134,7 +134,148 @@
         </div>
       </div>
     `;
+    
+    // Store services data globally for modal access
+    window.servicesData = data;
   }
+
+  /**
+   * Show Service Details Modal
+   */
+  function showServiceDetails(serviceIndex) {
+    if (!window.servicesData || !window.servicesData[serviceIndex]) {
+      console.error('Service data not available');
+      return;
+    }
+
+    const service = window.servicesData[serviceIndex];
+    const details = service.details || {};
+
+    // Remove existing modal if present
+    const existingModal = document.querySelector('.service-details-modal-backdrop');
+    if (existingModal) {
+      existingModal.remove();
+    }
+
+    // Create modal backdrop
+    const modalBackdrop = document.createElement('div');
+    modalBackdrop.className = 'modal-backdrop show service-details-modal-backdrop';
+    modalBackdrop.onclick = function(e) {
+      if (e.target === modalBackdrop) {
+        modalBackdrop.remove();
+      }
+    };
+
+    // Build features HTML
+    const featuresHTML = details.features && details.features.length > 0 ? `
+      <div style="margin-top: var(--spacing-6);">
+        <h4 style="margin-bottom: var(--spacing-3); color: var(--color-primary);">
+          <i class="ph ph-check-circle"></i> Key Features
+        </h4>
+        <ul style="list-style: none; padding: 0; margin: 0;">
+          ${details.features.map(feature => `
+            <li style="padding: var(--spacing-2) 0; padding-left: var(--spacing-5); position: relative;">
+              <i class="ph ph-check" style="position: absolute; left: 0; color: var(--color-success);"></i>
+              ${feature}
+            </li>
+          `).join('')}
+        </ul>
+      </div>
+    ` : '';
+
+    // Build benefits HTML
+    const benefitsHTML = details.benefits && details.benefits.length > 0 ? `
+      <div style="margin-top: var(--spacing-6);">
+        <h4 style="margin-bottom: var(--spacing-3); color: var(--color-success);">
+          <i class="ph ph-star"></i> Benefits
+        </h4>
+        <ul style="list-style: none; padding: 0; margin: 0;">
+          ${details.benefits.map(benefit => `
+            <li style="padding: var(--spacing-2) 0; padding-left: var(--spacing-5); position: relative;">
+              <i class="ph ph-arrow-right" style="position: absolute; left: 0; color: var(--color-success);"></i>
+              ${benefit}
+            </li>
+          `).join('')}
+        </ul>
+      </div>
+    ` : '';
+
+    // Build use cases HTML
+    const useCasesHTML = details.useCases && details.useCases.length > 0 ? `
+      <div style="margin-top: var(--spacing-6);">
+        <h4 style="margin-bottom: var(--spacing-3); color: var(--color-info);">
+          <i class="ph ph-lightbulb"></i> Use Cases
+        </h4>
+        <div style="display: grid; gap: var(--spacing-3);">
+          ${details.useCases.map(useCase => `
+            <div style="padding: var(--spacing-3); background: var(--bg-secondary); border-radius: var(--radius); border-left: 3px solid var(--color-info);">
+              <p style="margin: 0;">${useCase}</p>
+            </div>
+          `).join('')}
+        </div>
+      </div>
+    ` : '';
+
+    // Create modal content
+    modalBackdrop.innerHTML = `
+      <div class="modal show" style="max-width: 800px; max-height: 90vh; overflow-y: auto;" onclick="event.stopPropagation()">
+        <div class="modal-header" style="display: flex; align-items: center; gap: var(--spacing-4);">
+          ${service.icon ? `<img src="${service.icon}" alt="${service.title || ''}" style="width: 60px; height: 60px; border-radius: var(--radius);">` : ''}
+          <h2 class="modal-title" style="flex: 1; margin: 0;">${service.title || 'Service Details'}</h2>
+          <button class="modal-close" onclick="this.closest('.service-details-modal-backdrop').remove()" style="background: none; border: none; font-size: 1.5rem; cursor: pointer; color: var(--text-secondary);">&times;</button>
+        </div>
+        <div class="modal-body" style="padding: var(--spacing-6);">
+          ${details.overview ? `
+            <div style="margin-bottom: var(--spacing-6);">
+              <h3 style="margin-bottom: var(--spacing-3);">Overview</h3>
+              <p style="line-height: 1.8; color: var(--text-secondary); font-size: 1.05rem;">${details.overview}</p>
+            </div>
+          ` : ''}
+          
+          ${featuresHTML}
+          ${benefitsHTML}
+          ${useCasesHTML}
+          
+          ${!details.overview && !details.features && !details.benefits && !details.useCases ? `
+            <p style="color: var(--text-secondary);">${service.description || 'No additional details available.'}</p>
+          ` : ''}
+        </div>
+        <div class="modal-footer" style="display: flex; justify-content: space-between; align-items: center; padding: var(--spacing-4) var(--spacing-6); border-top: 1px solid var(--border-color);">
+          <button class="btn btn-outline" onclick="this.closest('.service-details-modal-backdrop').remove()">Close</button>
+          ${service.link ? `<a href="${service.link}" class="btn btn-primary" onclick="this.closest('.service-details-modal-backdrop').remove()">Get Started</a>` : ''}
+        </div>
+      </div>
+    `;
+
+    document.body.appendChild(modalBackdrop);
+    
+    // Prevent body scroll when modal is open
+    document.body.style.overflow = 'hidden';
+    
+    // Restore body scroll when modal is closed
+    const closeModal = () => {
+      document.body.style.overflow = '';
+    };
+    
+    modalBackdrop.addEventListener('click', function(e) {
+      if (e.target === modalBackdrop) {
+        closeModal();
+      }
+    });
+    
+    // Close on escape key
+    const handleEscape = (e) => {
+      if (e.key === 'Escape') {
+        modalBackdrop.remove();
+        closeModal();
+        document.removeEventListener('keydown', handleEscape);
+      }
+    };
+    document.addEventListener('keydown', handleEscape);
+  }
+
+  // Export function globally
+  window.showServiceDetails = showServiceDetails;
 
   /**
    * Render Portfolio Section
@@ -162,7 +303,7 @@
           ${portfolioHTML}
         </div>
         <div style="text-align: center; margin-top: var(--spacing-8);">
-          <a href="public-portal.html#discovery" class="btn btn-primary btn-lg">View All Projects</a>
+          <a href="../discovery/" class="btn btn-primary btn-lg">View All Projects</a>
         </div>
       </div>
     `;

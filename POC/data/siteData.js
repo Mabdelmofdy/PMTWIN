@@ -9,9 +9,9 @@ const siteData = {
     title: "Digitize Construction Collaboration in MENA",
     subtitle: "Connect, collaborate, and execute mega-projects through intelligent matching and flexible resource exchange. Transform how construction companies partner, share resources, and grow together.",
     ctaText: "Get Started",
-    ctaLink: "public-portal.html#signup",
+    ctaLink: "../signup/",
     secondaryCtaText: "Explore Projects",
-    secondaryCtaLink: "public-portal.html#discovery",
+    secondaryCtaLink: "../discovery/",
     backgroundImage: "https://picsum.photos/1920/1080?random=construction"
   },
 
@@ -46,37 +46,181 @@ const siteData = {
       title: "Project-Based Collaboration",
       description: "Find partners for specific projects through Joint Ventures and Consortia. Match with companies that complement your capabilities and share your vision.",
       icon: "https://placehold.co/80x80/6366f1/ffffff?text=JV",
-      link: "public-portal.html#collaboration-models"
+      link: "../collaboration/",
+      details: {
+        overview: "Project-Based Collaboration enables construction companies to form strategic partnerships for specific mega-projects through Joint Ventures (JVs) and Consortia models. This service helps you find the right partners who complement your capabilities and share your vision for successful project execution.",
+        features: [
+          "Intelligent partner matching based on project requirements and company capabilities",
+          "Support for Joint Ventures (JVs) and Consortia formations",
+          "Project-specific collaboration agreements and governance structures",
+          "Risk sharing and resource pooling for mega-projects",
+          "Transparent partner vetting and verification process",
+          "Real-time collaboration tools and project management integration"
+        ],
+        benefits: [
+          "Access to larger projects through strategic partnerships",
+          "Shared risk and resources for complex mega-projects",
+          "Complementary expertise and capabilities",
+          "Enhanced credibility through verified partnerships",
+          "Flexible collaboration models tailored to project needs"
+        ],
+        useCases: [
+          "Forming a consortium for a multi-billion dollar infrastructure project",
+          "Creating a Joint Venture for a large-scale residential development",
+          "Partnering with specialized companies for complex industrial projects",
+          "Collaborating on mixed-use developments requiring diverse expertise"
+        ]
+      }
     },
     {
       title: "Resource Pooling & Sharing",
       description: "Share equipment, facilities, and expertise with other companies. Maximize utilization and reduce costs through strategic resource exchange.",
       icon: "https://placehold.co/80x80/8b5cf6/ffffff?text=RP",
-      link: "public-portal.html#collaboration-models"
+      link: "../collaboration/",
+      details: {
+        overview: "Resource Pooling & Sharing allows construction companies to maximize the utilization of their equipment, facilities, and expertise by sharing them with other companies in the network. This service helps reduce costs, improve efficiency, and create value through strategic resource exchange.",
+        features: [
+          "Equipment sharing marketplace for construction machinery and tools",
+          "Facility sharing for warehouses, offices, and production facilities",
+          "Expertise sharing and knowledge transfer programs",
+          "Resource utilization tracking and optimization",
+          "Cost-sharing agreements and revenue models",
+          "Resource availability calendar and booking system"
+        ],
+        benefits: [
+          "Reduced capital expenditure on underutilized resources",
+          "Increased revenue from idle equipment and facilities",
+          "Access to specialized resources without full ownership",
+          "Improved resource utilization rates",
+          "Cost savings through shared infrastructure"
+        ],
+        useCases: [
+          "Sharing heavy machinery during project downtime",
+          "Renting warehouse space to other companies",
+          "Accessing specialized equipment for specific project phases",
+          "Sharing technical expertise and training resources"
+        ]
+      }
     },
     {
       title: "Barter Exchange Network",
       description: "Trade services and resources without cash transactions. Exchange construction services, materials, or expertise in a structured, transparent marketplace.",
       icon: "https://placehold.co/80x80/ec4899/ffffff?text=BE",
-      link: "public-portal.html#collaboration-models"
+      link: "../collaboration/",
+      details: {
+        overview: "The Barter Exchange Network enables construction companies to trade services, materials, and expertise without cash transactions. This innovative marketplace facilitates structured barter exchanges, helping companies optimize their resources and reduce cash flow constraints.",
+        features: [
+          "Structured barter exchange marketplace",
+          "Service-for-service trading platform",
+          "Material and equipment barter options",
+          "Barter credit system and valuation tools",
+          "Transparent exchange tracking and history",
+          "Multi-party barter chain support"
+        ],
+        benefits: [
+          "Reduced cash flow requirements",
+          "Better utilization of available resources",
+          "Access to services without immediate payment",
+          "Flexible exchange options and terms",
+          "Enhanced business relationships through direct exchanges"
+        ],
+        useCases: [
+          "Exchanging construction services for design consulting",
+          "Trading excess materials for needed equipment",
+          "Bartering expertise for project management services",
+          "Multi-party exchanges involving several companies"
+        ]
+      }
     },
     {
       title: "Talent Matching",
       description: "Connect consultants and professionals with projects that match their expertise. Task-based engagements and skill-verified opportunities.",
       icon: "https://placehold.co/80x80/10b981/ffffff?text=TM",
-      link: "public-portal.html#signup"
+      link: "../signup/",
+      details: {
+        overview: "Talent Matching connects skilled consultants and professionals with construction projects that match their expertise. This service facilitates task-based engagements, ensuring that projects have access to the right talent at the right time, while professionals find opportunities aligned with their skills.",
+        features: [
+          "AI-powered talent-to-project matching",
+          "Skill verification and certification tracking",
+          "Task-based engagement models",
+          "Professional profile and portfolio management",
+          "Project requirement analysis and matching",
+          "Rating and review system for quality assurance"
+        ],
+        benefits: [
+          "Access to verified, skilled professionals",
+          "Flexible engagement models for short-term or project-specific needs",
+          "Reduced hiring costs and administrative overhead",
+          "Quality assurance through verification and reviews",
+          "Faster project staffing with pre-verified talent"
+        ],
+        useCases: [
+          "Finding specialized engineers for a specific project phase",
+          "Hiring project managers for short-term assignments",
+          "Accessing consultants with niche expertise",
+          "Matching professionals to projects based on skills and availability"
+        ]
+      }
     },
     {
       title: "Bulk Purchasing",
       description: "Access group purchasing power for materials and equipment. Combine orders with other companies to negotiate better prices and terms.",
       icon: "https://placehold.co/80x80/f59e0b/ffffff?text=BP",
-      link: "public-portal.html#signup"
+      link: "../signup/",
+      details: {
+        overview: "Bulk Purchasing leverages the collective buying power of multiple construction companies to negotiate better prices and terms for materials and equipment. By combining orders, companies can access volume discounts and favorable terms that would be unavailable to individual buyers.",
+        features: [
+          "Group purchasing coordination and management",
+          "Volume discount negotiation with suppliers",
+          "Material and equipment catalog with group pricing",
+          "Order aggregation and coordination tools",
+          "Supplier relationship management",
+          "Cost savings tracking and reporting"
+        ],
+        benefits: [
+          "Significant cost savings through volume discounts",
+          "Better payment terms and credit options",
+          "Access to premium suppliers and materials",
+          "Reduced procurement administrative costs",
+          "Improved supply chain reliability"
+        ],
+        useCases: [
+          "Combining orders for steel, concrete, or other bulk materials",
+          "Group purchasing of construction equipment",
+          "Negotiating better prices for recurring material needs",
+          "Accessing premium suppliers through collective bargaining"
+        ]
+      }
     },
     {
       title: "Financial Health Tracking",
       description: "Monitor and verify the financial stability of potential partners. Make informed decisions with transparent financial health indicators.",
       icon: "https://placehold.co/80x80/3b82f6/ffffff?text=FH",
-      link: "public-portal.html#signup"
+      link: "../signup/",
+      details: {
+        overview: "Financial Health Tracking provides transparent financial health indicators for potential partners, helping you make informed decisions about collaborations. This service monitors and verifies the financial stability of companies in the network, reducing risks and enabling confident partnership decisions.",
+        features: [
+          "Financial health scoring and indicators",
+          "Creditworthiness verification and monitoring",
+          "Payment history tracking and analysis",
+          "Financial stability reports and alerts",
+          "Risk assessment tools for partnerships",
+          "Transparent financial health dashboard"
+        ],
+        benefits: [
+          "Reduced financial risk in partnerships",
+          "Informed decision-making with verified data",
+          "Early warning system for financial issues",
+          "Enhanced trust through transparency",
+          "Better risk management for collaborations"
+        ],
+        useCases: [
+          "Verifying financial stability before entering a Joint Venture",
+          "Assessing partner creditworthiness for resource sharing",
+          "Monitoring financial health of existing partners",
+          "Making informed decisions about barter exchanges"
+        ]
+      }
     }
   ],
 
@@ -87,42 +231,42 @@ const siteData = {
       category: "Infrastructure",
       description: "Multi-billion dollar metro system expansion connecting new districts across the capital city.",
       image: "https://picsum.photos/400/300?random=project1",
-      link: "public-portal.html#discovery"
+      link: "../discovery/"
     },
     {
       title: "Dubai Marina Towers",
       category: "Residential",
       description: "Luxury residential complex with sustainable design and smart building technologies.",
       image: "https://picsum.photos/400/300?random=project2",
-      link: "public-portal.html#discovery"
+      link: "../discovery/"
     },
     {
       title: "NEOM Industrial Zone",
       category: "Industrial",
       description: "State-of-the-art industrial facility supporting the future city's manufacturing needs.",
       image: "https://picsum.photos/400/300?random=project3",
-      link: "public-portal.html#discovery"
+      link: "../discovery/"
     },
     {
       title: "Cairo Airport Terminal",
       category: "Infrastructure",
       description: "Modern airport terminal expansion with advanced passenger processing systems.",
       image: "https://picsum.photos/400/300?random=project4",
-      link: "public-portal.html#discovery"
+      link: "../discovery/"
     },
     {
       title: "Abu Dhabi Cultural District",
       category: "Cultural",
       description: "World-class cultural complex featuring museums, theaters, and exhibition spaces.",
       image: "https://picsum.photos/400/300?random=project5",
-      link: "public-portal.html#discovery"
+      link: "../discovery/"
     },
     {
       title: "Jeddah Waterfront Development",
       category: "Mixed-Use",
       description: "Integrated waterfront development combining residential, commercial, and recreational spaces.",
       image: "https://picsum.photos/400/300?random=project6",
-      link: "public-portal.html#discovery"
+      link: "../discovery/"
     }
   ],
 
@@ -225,18 +369,18 @@ const siteData = {
       {
         category: "Platform",
         items: [
-          { text: "Discover Projects", url: "public-portal.html#discovery" },
-          { text: "PMTwin Wizard", url: "public-portal.html#wizard" },
-          { text: "Knowledge Hub", url: "public-portal.html#knowledge" },
-          { text: "Collaboration Models", url: "public-portal.html#collaboration-models" }
+          { text: "Discover Projects", url: "../discovery/" },
+          { text: "PMTwin Wizard", url: "../wizard/" },
+          { text: "Knowledge Hub", url: "../knowledge/" },
+          { text: "Service Providers", url: "../service-providers/" }
         ]
       },
       {
         category: "Company",
         items: [
-          { text: "About Us", url: "#about" },
-          { text: "Our Team", url: "#team" },
-          { text: "Contact", url: "#contact" },
+          { text: "About Us", url: "../home/#about" },
+          { text: "Our Team", url: "../home/#team" },
+          { text: "Contact", url: "../home/#contact" },
           { text: "Careers", url: "#" }
         ]
       },
