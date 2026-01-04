@@ -10,67 +10,86 @@
 </head>
 <body>
     <!-- Main Content - Sidebar and Navbar are automatically added by layout system -->
-    <main>
-        <div class="container" style="padding: 2rem 0;">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
-                <div>
-                    <h1>Project Directory</h1>
-                    <p style="color: var(--text-secondary); margin-top: 0.5rem;">Browse and manage all projects in the platform</p>
+    <main class="page-wrapper">
+        <div class="container">
+            <!-- Page Header -->
+            <div class="page-header">
+                <div class="page-header-content">
+                    <div>
+                        <h1>Project Directory</h1>
+                        <p>Browse and manage all projects in the platform</p>
+                    </div>
                 </div>
             </div>
 
             <!-- Statistics Section -->
-            <div class="card" style="margin-bottom: 2rem;">
-                <div class="card-body">
-                    <h2 style="margin: 0 0 1rem 0;">Project Statistics</h2>
-                    <div id="directoryStatistics" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">
-                        <!-- Statistics will be loaded here -->
+            <div class="content-section">
+                <div class="card enhanced-card">
+                    <div class="card-body">
+                        <h2 class="section-title" style="margin: 0 0 1rem 0;">Project Statistics</h2>
+                        <div id="directoryStatistics" class="content-grid-4">
+                            <!-- Statistics will be loaded here -->
+                        </div>
                     </div>
                 </div>
             </div>
 
             <!-- Search and Filters -->
-            <div class="card" style="margin-bottom: 2rem;">
-                <div class="card-body" style="padding: 1rem;">
-                    <form id="directoryFilterForm" onsubmit="return false;">
-                        <div style="display: flex; gap: 1rem; align-items: end; flex-wrap: wrap;">
-                            <div style="flex: 1; min-width: 250px; position: relative;">
-                                <i class="ph ph-magnifying-glass" style="position: absolute; left: 0.75rem; top: 50%; transform: translateY(-50%); color: var(--text-secondary); pointer-events: none;"></i>
+            <div class="content-section">
+                <div class="card filters-section">
+                    <div class="card-body">
+                        <h3 class="section-title">Filter Projects</h3>
+                        <form id="directoryFilterForm" onsubmit="return false;" class="filter-row">
+                            <div class="form-group" style="position: relative;">
+                                <i class="ph ph-magnifying-glass" style="position: absolute; left: 0.75rem; top: 50%; transform: translateY(-50%); color: var(--text-secondary); pointer-events: none; z-index: 1;"></i>
+                                <label for="directorySearch" class="form-label">Search</label>
                                 <input type="text" id="directorySearch" class="form-control" placeholder="Search projects by title, description, or location..." style="padding-left: 2.5rem;">
                             </div>
-                            <select id="categoryFilter" class="form-control" style="width: 200px;">
-                                <option value="">All Categories</option>
-                                <option value="Infrastructure">Infrastructure</option>
-                                <option value="Residential">Residential</option>
-                                <option value="Commercial">Commercial</option>
-                                <option value="Industrial">Industrial</option>
-                            </select>
-                            <select id="statusFilter" class="form-control" style="width: 150px;">
-                                <option value="">All Status</option>
-                                <option value="draft">Draft</option>
-                                <option value="active">Active</option>
-                                <option value="in_progress">In Progress</option>
-                                <option value="completed">Completed</option>
-                                <option value="cancelled">Cancelled</option>
-                            </select>
-                            <select id="typeFilter" class="form-control" style="width: 150px;">
-                                <option value="">All Types</option>
-                                <option value="single">Single</option>
-                                <option value="jv">Joint Venture</option>
-                                <option value="consortium">Consortium</option>
+                            <div class="form-group">
+                                <label for="categoryFilter" class="form-label">Category</label>
+                                <select id="categoryFilter" class="form-control">
+                                    <option value="">All Categories</option>
+                                    <option value="Infrastructure">Infrastructure</option>
+                                    <option value="Residential">Residential</option>
+                                    <option value="Commercial">Commercial</option>
+                                    <option value="Industrial">Industrial</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="statusFilter" class="form-label">Status</label>
+                                <select id="statusFilter" class="form-control">
+                                    <option value="">All Status</option>
+                                    <option value="draft">Draft</option>
+                                    <option value="active">Active</option>
+                                    <option value="in_progress">In Progress</option>
+                                    <option value="completed">Completed</option>
+                                    <option value="cancelled">Cancelled</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="typeFilter" class="form-label">Type</label>
+                                <select id="typeFilter" class="form-control">
+                                    <option value="">All Types</option>
+                                    <option value="single">Single</option>
+                                    <option value="jv">Joint Venture</option>
+                                    <option value="consortium">Consortium</option>
                                 <option value="spv">SPV</option>
                             </select>
-                            <button type="button" class="btn btn-outline" id="clearFilters" style="white-space: nowrap;">
-                                <i class="ph ph-x"></i> Clear
-                            </button>
-                        </div>
-                    </form>
+                            </div>
+                            <div class="form-group" style="display: flex; gap: var(--spacing-3);">
+                                <button type="button" class="btn btn-secondary" id="clearFilters">
+                                    <i class="ph ph-x"></i> Clear
+                                </button>
+                            </div>
+                        </form>
+                    </div>
                 </div>
             </div>
 
             <!-- Projects Table -->
-            <div class="card">
-                <div class="card-body">
+            <div class="content-section">
+                <div class="card enhanced-card">
+                    <div class="card-body">
                     <div style="overflow-x: auto;">
                         <table class="table" id="directoryTable">
                             <thead>

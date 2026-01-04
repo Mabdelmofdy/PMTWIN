@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{PAGE_TITLE}} - PMTwin</title>
+    <link rel="stylesheet" href="{{CSS_PATH}}/main.css">
+</head>
+<body>
+    <!-- Layout System automatically adds sidebar and navbar -->
+    <main class="page-wrapper">
+        <div class="container">
+            <!-- Page Header -->
+            <div class="page-header">
+                <div class="page-header-content">
+                    <div>
+                        <h1>{{PAGE_TITLE}}</h1>
+                        <p>{{PAGE_DESCRIPTION}}</p>
+                    </div>
+                    <div class="page-actions">
+                        {{PAGE_ACTIONS}}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Breadcrumbs (optional) -->
+            {{BREADCRUMBS}}
+
+            <!-- Main Content Sections -->
+            <div class="content-section">
+                <div id="{{CONTENT_ID}}">
+                    <!-- Page-specific content -->
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Standard Script Loading Order -->
+    <!-- Configuration (must load first) -->
+    <script src="{{JS_PATH}}/config.js"></script>
+    
+    <!-- API Layer (for future Java backend integration) -->
+    <script src="{{JS_PATH}}/api/api-client.js"></script>
+    <script src="{{JS_PATH}}/api/api-service.js"></script>
+    
+    <!-- Core Scripts -->
+    <script src="{{JS_PATH}}/data.js"></script>
+    <script src="{{JS_PATH}}/user-manager.js"></script>
+    <script src="{{JS_PATH}}/auth.js"></script>
+    <script src="{{JS_PATH}}/auth-check.js"></script>
+    <script src="{{JS_PATH}}/demo-credentials.js"></script>
+    <script src="{{JS_PATH}}/services/services-loader.js"></script>
+    <script src="{{JS_PATH}}/data/data-loader.js"></script>
+    
+    <!-- Layout System (automatically includes sidebar and navbar) -->
+    <script src="{{JS_PATH}}/layout.js"></script>
+    <script src="{{JS_PATH}}/navigation.js"></script>
+    <script src="{{JS_PATH}}/app-init.js"></script>
+    
+    <!-- Reusable Components -->
+    <script src="{{JS_PATH}}/components/page-header.js"></script>
+    <script src="{{JS_PATH}}/components/stat-card.js"></script>
+    <script src="{{JS_PATH}}/components/filter-bar.js"></script>
+    
+    <!-- Page-specific Scripts -->
+    {{PAGE_SCRIPTS}}
+    
+    <!-- Page Initialization -->
+    <script>
+        document.addEventListener('DOMContentLoaded', async function() {
+            // Check authentication
+            const isAuth = await AuthCheck.checkAuth({ requireAuth: true });
+            if (!isAuth) return;
+            
+            // Initialize page-specific functionality
+            {{PAGE_INIT}}
+        });
+    </script>
+</body>
+</html>
+

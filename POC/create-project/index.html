@@ -8,14 +8,23 @@
 </head>
 <body>
     <!-- Main Content - Sidebar and Navbar are automatically added by layout system -->
-    <main>
-        <div class="container" style="max-width: 1200px; padding: 2rem 0;">
-            <h1 style="margin-bottom: var(--spacing-6);">Create Project</h1>
+    <main class="page-wrapper">
+        <div class="container container-xl">
+            <!-- Page Header -->
+            <div class="page-header">
+                <div class="page-header-content">
+                    <div>
+                        <h1>Create Project</h1>
+                        <p>Create a new project or mega-project with multiple phases</p>
+                    </div>
+                </div>
+            </div>
             
             <!-- Project Mode Selection -->
-            <div class="card" style="margin-bottom: 2rem;">
-                <div class="card-body">
-                    <h2 style="margin-bottom: 1rem;">Project Type</h2>
+            <div class="content-section">
+                <div class="card enhanced-card">
+                    <div class="card-body">
+                        <h2 class="section-title spacing-section">Project Type</h2>
                     <div class="form-group">
                         <label for="projectMode" class="form-label">Select Project Type *</label>
                         <select id="projectMode" class="form-control" required>
@@ -31,26 +40,29 @@
             </div>
 
             <!-- Sub-Projects List (for mega-project mode) -->
-            <div id="subProjectsContainer" class="card" style="display: none; margin-bottom: 2rem;">
-                <div class="card-body">
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
-                        <h2 style="margin: 0;">Sub-Projects / Phases</h2>
-                        <button type="button" id="addSubProjectBtn" class="btn btn-primary">
-                            <i class="ph ph-plus"></i> Add Sub-Project
-                        </button>
-                    </div>
-                    <div id="subProjectsList">
-                        <!-- Sub-projects will be listed here -->
+            <div class="content-section">
+                <div id="subProjectsContainer" class="card enhanced-card" style="display: none;">
+                    <div class="card-body">
+                        <div class="flex justify-between align-center spacing-section">
+                            <h2 class="section-title">Sub-Projects / Phases</h2>
+                            <button type="button" id="addSubProjectBtn" class="btn btn-primary">
+                                <i class="ph ph-plus"></i> Add Sub-Project
+                            </button>
+                        </div>
+                        <div id="subProjectsList">
+                            <!-- Sub-projects will be listed here -->
+                        </div>
                     </div>
                 </div>
             </div>
             
             <!-- Form to trigger ProjectService.createProject() -->
-            <form id="projectCreateForm" onsubmit="return projectCreateComponent.handleSubmit(event)">
-                <div class="card">
-                    <div class="card-body">
-                        <!-- Form Title (updates for sub-projects) -->
-                        <h2 id="projectFormTitle" style="margin-bottom: 1rem; display: none;">Project Details</h2>
+            <div class="content-section">
+                <form id="projectCreateForm" onsubmit="return projectCreateComponent.handleSubmit(event)">
+                    <div class="card enhanced-card">
+                        <div class="card-body">
+                            <!-- Form Title (updates for sub-projects) -->
+                            <h2 id="projectFormTitle" class="section-title spacing-section" style="display: none;">Project Details</h2>
                         
                         <!-- Tab Navigation -->
                         <div class="tab-container">
@@ -80,7 +92,7 @@
 
                             <!-- Tab Progress -->
                             <div class="tab-progress">
-                                <div style="display: flex; justify-content: space-between; align-items: center;">
+                                <div class="flex justify-between align-center">
                                     <span style="font-weight: var(--font-weight-semibold);">Form Progress</span>
                                     <span class="tab-progress-text" id="progressText">Step 1 of 5</span>
                                 </div>
@@ -91,7 +103,7 @@
 
                             <!-- Tab 1: Basic Information -->
                             <div class="tab-content active" id="tab-basic" role="tabpanel">
-                                <h2 style="margin-bottom: 1.5rem;">Basic Information</h2>
+                                <h2 class="section-title spacing-section">Basic Information</h2>
                                 <div class="form-group">
                                     <label for="projectTitle" class="form-label">Project Title *</label>
                                     <input type="text" id="projectTitle" class="form-control" required>
@@ -100,7 +112,7 @@
                                     <label for="projectDescription" class="form-label">Description *</label>
                                     <textarea id="projectDescription" class="form-control" rows="4" required></textarea>
                                 </div>
-                                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">
+                                <div class="content-grid-3">
                                     <div class="form-group">
                                         <label for="projectCategory" class="form-label">Category *</label>
                                         <select id="projectCategory" class="form-control" required>
@@ -124,7 +136,7 @@
 
                             <!-- Tab 2: Scope & Budget -->
                             <div class="tab-content" id="tab-scope" role="tabpanel">
-                                <h2 style="margin-bottom: 1.5rem;">Scope & Requirements</h2>
+                                <h2 class="section-title spacing-section">Scope & Requirements</h2>
                                 <div class="form-group">
                                     <label for="requiredServices" class="form-label">Required Services (comma-separated)</label>
                                     <input type="text" id="requiredServices" class="form-control" placeholder="e.g. Engineering Services, Construction Services">
@@ -134,8 +146,8 @@
                                     <input type="text" id="requiredSkills" class="form-control" placeholder="e.g. Project Management, Civil Engineering">
                                 </div>
 
-                                <h2 style="margin-top: 2rem; margin-bottom: 1.5rem;">Financial Details</h2>
-                                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">
+                                <h2 class="section-title" style="margin-top: 2rem; margin-bottom: 1.5rem;">Financial Details</h2>
+                                <div class="content-grid-2">
                                     <div class="form-group">
                                         <label for="minBudget" class="form-label">Min Budget (SAR)</label>
                                         <input type="number" id="minBudget" class="form-control" min="0">
@@ -150,7 +162,7 @@
                             <!-- Tab 3: Project Details (Category-Specific) -->
                             <div class="tab-content" id="tab-details" role="tabpanel">
                                 <div id="categoryDetailsContainer" style="display: none;">
-                                    <h2 style="margin-bottom: 1.5rem;">Project Details</h2>
+                                    <h2 class="section-title spacing-section">Project Details</h2>
                                     <p style="color: var(--text-secondary); margin-bottom: 1.5rem;">
                                         Please select a category in the Basic Info tab to see relevant project details.
                                     </p>
@@ -175,11 +187,11 @@
 
                             <!-- Tab 5: Review & Submit -->
                             <div class="tab-content" id="tab-review" role="tabpanel">
-                                <h2 style="margin-bottom: 1.5rem;">Review & Submit</h2>
+                                <h2 class="section-title spacing-section">Review & Submit</h2>
                                 
-                                <div class="card" style="margin-bottom: 1.5rem; background: var(--bg-secondary);">
+                                <div class="card enhanced-card spacing-section" style="background: var(--bg-secondary);">
                                     <div class="card-body">
-                                        <h3 style="margin-bottom: 1rem;">Project Summary</h3>
+                                        <h3 class="section-title spacing-section">Project Summary</h3>
                                         <div id="projectSummary">
                                             <p style="color: var(--text-secondary);">Review your project information before submitting.</p>
                                         </div>
@@ -218,8 +230,8 @@
                             </div>
                         </div>
                     </div>
-                </div>
-            </form>
+                </form>
+            </div>
         </div>
     </main>
 

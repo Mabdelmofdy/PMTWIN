@@ -8,30 +8,35 @@
 </head>
 <body>
     <!-- Main Content - Sidebar and Navbar are automatically added by layout system -->
-    <main>
-        <div class="container" style="padding: 2rem 0;">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
-                <h1 style="margin: 0;">My Matches</h1>
-                <div style="display: flex; gap: 1rem;">
-                    <!-- Filter Buttons - Trigger getMatches with filters -->
-                    <button onclick="matchesComponent.filterMatches({minScore: 80})" class="btn btn-secondary">
-                        High Matches (80%+)
-                    </button>
-                    <button onclick="matchesComponent.filterMatches({notified: false})" class="btn btn-secondary">
-                        Unread Matches
-                    </button>
-                    <button onclick="matchesComponent.loadMatches()" class="btn btn-primary">
-                        Refresh
-                    </button>
+    <main class="page-wrapper">
+        <div class="container">
+            <!-- Page Header -->
+            <div class="page-header">
+                <div class="page-header-content">
+                    <div>
+                        <h1>My Matches</h1>
+                        <p>View project matches based on your profile and preferences</p>
+                    </div>
+                    <div class="page-actions">
+                        <button onclick="matchesComponent.filterMatches({minScore: 80})" class="btn btn-secondary">
+                            <i class="ph ph-star"></i> High Matches (80%+)
+                        </button>
+                        <button onclick="matchesComponent.filterMatches({notified: false})" class="btn btn-secondary">
+                            <i class="ph ph-bell-slash"></i> Unread Matches
+                        </button>
+                        <button onclick="matchesComponent.loadMatches()" class="btn btn-primary">
+                            <i class="ph ph-arrow-clockwise"></i> Refresh
+                        </button>
+                    </div>
                 </div>
             </div>
 
             <!-- Filters Section -->
-            <div class="card" style="margin-bottom: 2rem;">
-                <div class="card-body">
-                    <h3>Filter Matches</h3>
-                    <form id="matchFiltersForm" onsubmit="return matchesComponent.applyFilters(event)">
-                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">
+            <div class="content-section">
+                <div class="card filters-section">
+                    <div class="card-body">
+                        <h3 class="section-title">Filter Matches</h3>
+                        <form id="matchFiltersForm" onsubmit="return matchesComponent.applyFilters(event)" class="filter-row">
                             <div class="form-group">
                                 <label for="minScoreFilter" class="form-label">Minimum Score</label>
                                 <input type="number" id="minScoreFilter" class="form-control" min="0" max="100" placeholder="e.g. 80">
@@ -48,16 +53,20 @@
                                     <option value="false">Not Notified</option>
                                 </select>
                             </div>
-                        </div>
-                        <button type="submit" class="btn btn-primary" style="margin-top: 1rem;">Apply Filters</button>
-                        <button type="button" onclick="matchesComponent.clearFilters()" class="btn btn-secondary" style="margin-top: 1rem; margin-left: 0.5rem;">Clear</button>
-                    </form>
+                            <div class="form-group" style="display: flex; gap: var(--spacing-3); align-items: flex-end;">
+                                <button type="submit" class="btn btn-primary">Apply Filters</button>
+                                <button type="button" onclick="matchesComponent.clearFilters()" class="btn btn-secondary">Clear</button>
+                            </div>
+                        </form>
+                    </div>
                 </div>
             </div>
 
             <!-- Matches List -->
-            <div id="matchesList">
-                <!-- Matches will be loaded here -->
+            <div class="content-section">
+                <div id="matchesList">
+                    <!-- Matches will be loaded here -->
+                </div>
             </div>
         </div>
     </main>

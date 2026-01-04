@@ -8,62 +8,80 @@
 </head>
 <body>
     <!-- Main Content - Sidebar and Navbar are automatically added by layout system -->
-    <main>
-        <div class="container" style="padding: 2rem 0;">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
-                <h1>User Management</h1>
+    <main class="page-wrapper">
+        <div class="container container-padded">
+            <!-- Page Header -->
+            <div class="page-header">
+                <div class="page-header-content">
+                    <div>
+                        <h1>User Management</h1>
+                        <p>Manage user accounts, roles, and permissions</p>
+                    </div>
+                </div>
             </div>
 
             <!-- Statistics Section -->
-            <div class="card" style="margin-bottom: 2rem;">
-                <div class="card-body">
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
-                        <h2 style="margin: 0;">User Statistics</h2>
-                        <div style="display: flex; gap: 0.5rem;">
-                            <button type="button" class="btn btn-secondary btn-sm" onclick="if(window.admin && window.admin['admin-users-management']) { window.admin['admin-users-management'].createTestUsers(); }">
-                                <i class="ph ph-plus"></i> Create Test Data
-                            </button>
-                            <button type="button" class="btn btn-outline btn-sm" onclick="if(window.admin && window.admin['admin-users-management']) { window.admin['admin-users-management'].createSuspendedTestUsers(); }">
-                                <i class="ph ph-lock"></i> Add Suspended Users
-                            </button>
+            <div class="content-section">
+                <div class="card enhanced-card">
+                    <div class="card-body">
+                        <div class="flex justify-between align-center spacing-section">
+                            <h2 class="section-title">User Statistics</h2>
+                            <div style="display: flex; gap: 0.5rem;">
+                                <button type="button" class="btn btn-secondary btn-sm" onclick="if(window.admin && window.admin['admin-users-management']) { window.admin['admin-users-management'].createTestUsers(); }">
+                                    <i class="ph ph-plus"></i> Create Test Data
+                                </button>
+                                <button type="button" class="btn btn-outline btn-sm" onclick="if(window.admin && window.admin['admin-users-management']) { window.admin['admin-users-management'].createSuspendedTestUsers(); }">
+                                    <i class="ph ph-lock"></i> Add Suspended Users
+                                </button>
+                            </div>
                         </div>
-                    </div>
-                    <div id="usersStatistics">
-                        <!-- Statistics will be loaded here -->
+                        <div id="usersStatistics">
+                            <!-- Statistics will be loaded here -->
+                        </div>
                     </div>
                 </div>
             </div>
 
             <!-- Simplified Search and Filters -->
-            <div class="card" style="margin-bottom: 2rem;">
-                <div class="card-body" style="padding: 1rem;">
-                    <form id="usersFilterForm" onsubmit="return false;">
-                        <div style="display: flex; gap: 1rem; align-items: end; flex-wrap: wrap;">
-                            <div style="flex: 1; min-width: 250px; position: relative;">
-                                <i class="ph ph-magnifying-glass" style="position: absolute; left: 0.75rem; top: 50%; transform: translateY(-50%); color: var(--text-secondary); pointer-events: none;"></i>
+            <div class="content-section">
+                <div class="card filters-section">
+                    <div class="card-body">
+                        <h3 class="section-title">Filter Users</h3>
+                        <form id="usersFilterForm" onsubmit="return false;" class="filter-row">
+                            <div class="form-group" style="position: relative;">
+                                <i class="ph ph-magnifying-glass" style="position: absolute; left: 0.75rem; top: 50%; transform: translateY(-50%); color: var(--text-secondary); pointer-events: none; z-index: 1;"></i>
+                                <label for="userSearch" class="form-label">Search</label>
                                 <input type="text" id="userSearch" class="form-control" placeholder="Search by name or email..." style="padding-left: 2.5rem;">
                             </div>
-                            <select id="statusFilter" class="form-control" style="width: 200px;">
-                                <option value="approved" selected>Approved</option>
-                                <option value="approved_and_suspended">Approved & Suspended</option>
-                                <option value="suspended">Suspended</option>
-                                <option value="pending">Pending</option>
-                                <option value="under_review">Under Review</option>
-                                <option value="rejected">Rejected</option>
-                            </select>
-                            <select id="userTypeFilter" class="form-control" style="width: 150px;">
-                                <option value="">All Types</option>
-                                <option value="company">Company</option>
-                                <option value="individual">Individual</option>
-                                <option value="consultant">Consultant</option>
-                            </select>
-                            <button type="button" onclick="if(window.admin && window.admin['admin-users-management']) { window.admin['admin-users-management'].toggleAdvancedFilters(); }" class="btn btn-outline" style="white-space: nowrap;">
-                                <i class="ph ph-funnel"></i> More
-                            </button>
-                            <button type="button" class="btn btn-outline" id="clearFilters" style="white-space: nowrap;">
-                                <i class="ph ph-x"></i> Clear
-                            </button>
-                        </div>
+                            <div class="form-group">
+                                <label for="statusFilter" class="form-label">Status</label>
+                                <select id="statusFilter" class="form-control">
+                                    <option value="approved" selected>Approved</option>
+                                    <option value="approved_and_suspended">Approved & Suspended</option>
+                                    <option value="suspended">Suspended</option>
+                                    <option value="pending">Pending</option>
+                                    <option value="under_review">Under Review</option>
+                                    <option value="rejected">Rejected</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="userTypeFilter" class="form-label">User Type</label>
+                                <select id="userTypeFilter" class="form-control">
+                                    <option value="">All Types</option>
+                                    <option value="company">Company</option>
+                                    <option value="individual">Individual</option>
+                                    <option value="consultant">Consultant</option>
+                                </select>
+                            </div>
+                            <div class="form-group" style="display: flex; gap: var(--spacing-3);">
+                                <button type="button" onclick="if(window.admin && window.admin['admin-users-management']) { window.admin['admin-users-management'].toggleAdvancedFilters(); }" class="btn btn-outline">
+                                    <i class="ph ph-funnel"></i> More
+                                </button>
+                                <button type="button" class="btn btn-secondary" id="clearFilters">
+                                    <i class="ph ph-x"></i> Clear
+                                </button>
+                            </div>
+                        </form>
                         <div id="advancedFilters" style="display: none; margin-top: 1rem; padding-top: 1rem; border-top: 1px solid var(--border-color);">
                             <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
                                 <select id="roleFilter" class="form-control" style="width: 150px;">
@@ -84,7 +102,7 @@
             <!-- Users List -->
             <div class="card">
                 <div class="card-body">
-                    <h2 style="margin-bottom: 1rem;">Users</h2>
+                    <h2 class="spacing-section">Users</h2>
                     <div id="usersList">
                         <!-- Users will be loaded here -->
                     </div>

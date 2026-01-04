@@ -54,7 +54,7 @@
             <div class="content-section">
                 <div class="card">
                     <div class="card-body">
-                        <form id="filterForm" onsubmit="return false;" class="content-grid-2" style="align-items: end;">
+                        <form id="filterForm" onsubmit="return false;" class="filter-row">
                             <div class="form-group">
                                 <label for="statusFilter" class="form-label">Status</label>
                                 <select id="statusFilter" class="form-control">
@@ -84,7 +84,7 @@
                                     <option value="5.1">Call for Competition</option>
                                 </select>
                             </div>
-                            <div class="form-group" style="display: flex; gap: var(--spacing-3); align-items: flex-end;">
+                            <div class="form-group" style="display: flex; gap: var(--spacing-3);">
                                 <button type="button" class="btn btn-primary" onclick="applyFilters()">Apply Filters</button>
                                 <button type="button" class="btn btn-secondary" onclick="clearFilters()">Clear</button>
                             </div>

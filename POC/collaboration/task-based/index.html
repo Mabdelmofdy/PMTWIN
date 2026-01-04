@@ -7,28 +7,33 @@
     <link rel="stylesheet" href="../../css/main.css">
 </head>
 <body>
-    <main>
-        <div class="container" style="padding: 2rem 0;">
-            <div style="margin-bottom: 2rem;">
-                <a href="../../collaboration/" class="btn btn-secondary" style="margin-bottom: 1rem;">
-                    <i class="ph ph-arrow-left"></i> Back to Collaboration
-                </a>
-                <h1>Task-Based Engagement</h1>
-                <p style="color: var(--text-secondary); margin-top: 1rem;">
-                    Short-term collaboration for executing specific tasks, deliverables, or providing expert consultation.
-                </p>
+    <main class="page-wrapper">
+        <div class="container container-padded">
+            <!-- Page Header -->
+            <div class="page-header">
+                <div class="page-header-content">
+                    <div>
+                        <a href="../../collaboration/" class="btn btn-secondary btn-sm spacing-section">
+                            <i class="ph ph-arrow-left"></i> Back to Collaboration
+                        </a>
+                        <h1>Task-Based Engagement</h1>
+                        <p>Short-term collaboration for executing specific tasks, deliverables, or providing expert consultation.</p>
+                    </div>
+                </div>
             </div>
 
             <!-- Collaboration Form Container -->
-            <div id="collaborationFormContainer">
+            <div class="content-section">
+                <div id="collaborationFormContainer">
                 <div class="loading">
                     <div class="spinner"></div>
                     <p>Loading form...</p>
                 </div>
+                </div>
+                
+                <!-- Alternative container ID for compatibility -->
+                <div id="createCollaborationContent" style="display: none;"></div>
             </div>
-            
-            <!-- Alternative container ID for compatibility -->
-            <div id="createCollaborationContent" style="display: none;"></div>
         </div>
     </main>
 

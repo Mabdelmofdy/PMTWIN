@@ -7,21 +7,33 @@
     <link rel="stylesheet" href="../../css/main.css">
 </head>
 <body>
-    <main>
-        <div class="container" style="padding: 2rem 0;">
-            <div style="margin-bottom: 2rem;">
-                <a href="../../collaboration/" class="btn btn-secondary" style="margin-bottom: 1rem;">
-                    <i class="ph ph-arrow-left"></i> Back to Collaboration
-                </a>
-                <h1>Consultant Hiring</h1>
-                <p style="color: var(--text-secondary); margin-top: 1rem;">
-                    Engaging consultants for advisory services
-                </p>
+    <main class="page-wrapper">
+        <div class="container container-padded">
+            <!-- Page Header -->
+            <div class="page-header">
+                <div class="page-header-content">
+                    <div>
+                        <a href="../../collaboration/" class="btn btn-secondary btn-sm spacing-section">
+                            <i class="ph ph-arrow-left"></i> Back to Collaboration
+                        </a>
+                        <h1>Consultant Hiring</h1>
+                        <p>Engaging consultants for advisory services</p>
+                    </div>
+                </div>
             </div>
-            <div id="collaborationFormContainer">
-                <div class="loading"><div class="spinner"></div><p>Loading form...</p></div>
+
+            <!-- Collaboration Form Container -->
+            <div class="content-section">
+                <div id="collaborationFormContainer">
+                    <div class="loading">
+                        <div class="spinner"></div>
+                        <p>Loading form...</p>
+                    </div>
+                </div>
+                
+                <!-- Alternative container ID for compatibility -->
+                <div id="createCollaborationContent" style="display: none;"></div>
             </div>
-            <div id="createCollaborationContent" style="display: none;"></div>
         </div>
     </main>
     <script src="../../js/config.js"></script>

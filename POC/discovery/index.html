@@ -26,16 +26,24 @@
     </nav>
 
     <!-- Main Content -->
-    <main>
-        <div class="container" style="padding: 2rem 0;">
-            <h1 style="margin-bottom: var(--spacing-6);">Discover Projects</h1>
+    <main class="page-wrapper">
+        <div class="container">
+            <!-- Page Header -->
+            <div class="page-header">
+                <div class="page-header-content">
+                    <div>
+                        <h1>Discover Projects</h1>
+                        <p>Browse available projects and find opportunities that match your expertise</p>
+                    </div>
+                </div>
+            </div>
 
             <!-- Filter Section -->
-            <div class="card" style="margin-bottom: 2rem;">
-                <div class="card-body">
-                    <h3>Filter Projects</h3>
-                    <form id="discoveryFiltersForm" onsubmit="return discoveryComponent.applyFilters(event)">
-                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">
+            <div class="content-section">
+                <div class="card filters-section">
+                    <div class="card-body">
+                        <h3 class="section-title">Filter Projects</h3>
+                        <form id="discoveryFiltersForm" onsubmit="return discoveryComponent.applyFilters(event)" class="filter-row">
                             <div class="form-group">
                                 <label for="discoveryCategoryFilter" class="form-label">Category</label>
                                 <select id="discoveryCategoryFilter" class="form-control">
@@ -58,16 +66,20 @@
                                     <option value="draft">Draft</option>
                                 </select>
                             </div>
-                        </div>
-                        <button type="submit" class="btn btn-primary" style="margin-top: 1rem;">Apply Filters</button>
-                        <button type="button" onclick="discoveryComponent.clearFilters()" class="btn btn-secondary" style="margin-top: 1rem; margin-left: 0.5rem;">Clear</button>
-                    </form>
+                            <div class="form-group" style="display: flex; gap: var(--spacing-3); align-items: flex-end;">
+                                <button type="submit" class="btn btn-primary">Apply Filters</button>
+                                <button type="button" onclick="discoveryComponent.clearFilters()" class="btn btn-secondary">Clear</button>
+                            </div>
+                        </form>
+                    </div>
                 </div>
             </div>
 
             <!-- Projects Grid -->
-            <div id="discoveryProjectsList">
-                <!-- Projects will be loaded here -->
+            <div class="content-section">
+                <div id="discoveryProjectsList">
+                    <!-- Projects will be loaded here -->
+                </div>
             </div>
         </div>
     </main>

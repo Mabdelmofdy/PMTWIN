@@ -8,14 +8,23 @@
 </head>
 <body>
     <!-- Main Content - Sidebar and Navbar are automatically added by layout system -->
-    <main>
-        <div class="container" style="max-width: 900px; padding: 2rem 0;">
-            <h1 style="margin-bottom: var(--spacing-6);">Create Proposal</h1>
+    <main class="page-wrapper">
+        <div class="container container-md">
+            <!-- Page Header -->
+            <div class="page-header">
+                <div class="page-header-content">
+                    <div>
+                        <h1>Create Proposal</h1>
+                        <p>Submit a proposal for a project opportunity</p>
+                    </div>
+                </div>
+            </div>
             
             <!-- Form to trigger ProposalService.createProposal() -->
-            <form id="proposalCreateForm" onsubmit="return proposalCreateComponent.handleSubmit(event)">
-                <div class="card">
-                    <div class="card-body">
+            <div class="content-section">
+                <form id="proposalCreateForm" onsubmit="return proposalCreateComponent.handleSubmit(event)">
+                    <div class="card enhanced-card">
+                        <div class="card-body">
                         <!-- Project Selection -->
                         <div class="form-group">
                             <label for="proposalProjectId" class="form-label">Project *</label>
@@ -28,12 +37,12 @@
                         <!-- Proposal Type -->
                         <div class="form-group">
                             <label class="form-label">Proposal Type *</label>
-                            <div style="display: flex; gap: 1rem; margin-top: 0.5rem;">
-                                <label style="flex: 1; cursor: pointer;">
+                            <div class="content-grid-2" style="margin-top: 0.5rem;">
+                                <label style="cursor: pointer; display: flex; align-items: center; padding: var(--spacing-3); border: 2px solid var(--border-color); border-radius: var(--radius-md); transition: all 0.2s;">
                                     <input type="radio" name="proposalType" value="cash" checked style="margin-right: 0.5rem;">
                                     Cash Proposal
                                 </label>
-                                <label style="flex: 1; cursor: pointer;">
+                                <label style="cursor: pointer; display: flex; align-items: center; padding: var(--spacing-3); border: 2px solid var(--border-color); border-radius: var(--radius-md); transition: all 0.2s;">
                                     <input type="radio" name="proposalType" value="barter" style="margin-right: 0.5rem;">
                                     Barter Proposal
                                 </label>
@@ -48,7 +57,7 @@
 
                         <!-- Cash Proposal Fields -->
                         <div id="cashProposalFields">
-                            <h3 style="margin-top: 2rem; margin-bottom: 1rem;">Pricing</h3>
+                            <h3 class="section-title" style="margin-top: 2rem; margin-bottom: 1rem;">Pricing</h3>
                             <div id="pricingItems">
                                 <!-- Pricing items will be added dynamically -->
                             </div>
@@ -59,7 +68,7 @@
 
                         <!-- Barter Proposal Fields -->
                         <div id="barterProposalFields" style="display: none;">
-                            <h3 style="margin-top: 2rem; margin-bottom: 1rem;">Services Offered</h3>
+                            <h3 class="section-title" style="margin-top: 2rem; margin-bottom: 1rem;">Services Offered</h3>
                             <div id="servicesOffered">
                                 <!-- Services will be added dynamically -->
                             </div>
@@ -67,7 +76,7 @@
                                 Add Service
                             </button>
                             
-                            <h3 style="margin-top: 2rem; margin-bottom: 1rem;">Services Requested</h3>
+                            <h3 class="section-title" style="margin-top: 2rem; margin-bottom: 1rem;">Services Requested</h3>
                             <div id="servicesRequested">
                                 <!-- Services will be added dynamically -->
                             </div>
@@ -80,13 +89,18 @@
                         <div id="proposalCreateMessage" style="display: none; margin-top: 1rem;"></div>
 
                         <!-- Action Buttons -->
-                        <div style="display: flex; gap: 1rem; margin-top: 2rem;">
-                            <button type="submit" class="btn btn-primary">Submit Proposal</button>
-                            <a href="../proposals/" class="btn btn-secondary">Cancel</a>
+                        <div class="flex gap-3" style="margin-top: 2rem;">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="ph ph-paper-plane-tilt"></i> Submit Proposal
+                            </button>
+                            <a href="../proposals/" class="btn btn-secondary">
+                                <i class="ph ph-x"></i> Cancel
+                            </a>
                         </div>
                     </div>
                 </div>
             </form>
+            </div>
         </div>
     </main>
 

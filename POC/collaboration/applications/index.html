@@ -36,22 +36,27 @@
 </head>
 <body>
     <!-- Main Content - Sidebar and Navbar are automatically added by layout system -->
-    <main>
-        <div class="container" style="padding: 2rem 0;">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
-                <div>
-                    <h1 style="margin-bottom: 0.5rem;">My Applications</h1>
-                    <p style="color: var(--text-secondary); margin: 0;">Track your collaboration applications</p>
+    <main class="page-wrapper">
+        <div class="container container-padded">
+            <div class="page-header">
+                <div class="page-header-content">
+                    <div>
+                        <h1>My Applications</h1>
+                        <p>Track your collaboration applications</p>
+                    </div>
+                    <div class="page-actions">
+                        <a href="../../collaboration/opportunities/" class="btn btn-primary">
+                            <i class="ph ph-sparkle"></i> Browse Opportunities
+                        </a>
+                    </div>
                 </div>
-                <a href="../../collaboration/opportunities/" class="btn btn-primary">
-                    <i class="ph ph-sparkle"></i> Browse Opportunities
-                </a>
             </div>
 
             <!-- Filters -->
-            <div class="card" style="margin-bottom: 2rem;">
+            <div class="content-section">
+                <div class="card filters-section">
                 <div class="card-body">
-                    <form id="filterForm" onsubmit="return false;" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">
+                    <form id="filterForm" onsubmit="return false;" class="filter-row">
                         <div class="form-group">
                             <label for="statusFilter">Status</label>
                             <select id="statusFilter" class="form-control">
@@ -64,20 +69,23 @@
                                 <option value="withdrawn">Withdrawn</option>
                             </select>
                         </div>
-                        <div class="form-group" style="display: flex; align-items: flex-end;">
-                            <button type="button" class="btn btn-primary" onclick="applyFilters()" style="margin-right: 0.5rem;">Apply Filters</button>
+                        <div class="form-group" style="display: flex; gap: var(--spacing-3);">
+                            <button type="button" class="btn btn-primary" onclick="applyFilters()">Apply Filters</button>
                             <button type="button" class="btn btn-secondary" onclick="clearFilters()">Clear</button>
                         </div>
                     </form>
                 </div>
             </div>
+            </div>
 
             <!-- Applications List -->
-            <div id="applicationsList">
+            <div class="content-section">
+                <div id="applicationsList">
                 <div class="loading">
                     <div class="spinner"></div>
                     <p>Loading your applications...</p>
                 </div>
+            </div>
             </div>
         </div>
     </main>
@@ -145,7 +153,7 @@
                                 <i class="ph ph-file-text" style="font-size: 3rem; color: var(--text-secondary); margin-bottom: 1rem;"></i>
                                 <h3>No applications found</h3>
                                 <p style="color: var(--text-secondary);">You haven't applied to any collaboration opportunities yet.</p>
-                                <a href="../../collaboration/opportunities/" class="btn btn-primary" style="margin-top: 1rem;">
+                                <a href="../../collaboration/opportunities/" class="btn btn-primary spacing-section">
                                     <i class="ph ph-sparkle"></i> Browse Opportunities
                                 </a>
                             </div>
@@ -174,7 +182,7 @@
 
                 // Render statistics
                 let html = `
-                    <div class="card enhanced-card" style="margin-bottom: 2rem;">
+                    <div class="card enhanced-card spacing-section">
                         <div class="card-body">
                             <h3 style="margin-bottom: 1rem;">Application Statistics</h3>
                             <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 1rem;">

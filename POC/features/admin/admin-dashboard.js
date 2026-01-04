@@ -157,7 +157,7 @@
         }, 0);
 
         html += `
-          <div class="card" style="cursor: pointer;" onclick="window.location.href='../models-management/?category=${categoryId}'">
+          <div class="card" style="cursor: pointer;" onclick="window.location.href='models-management/?category=${categoryId}'">
             <div class="card-body" style="text-align: center;">
               <h3 style="margin: 0 0 0.5rem 0; font-size: 1.5rem; color: var(--color-primary);">${categoryTotal}</h3>
               <p style="margin: 0; color: var(--text-secondary);">${category.name}</p>
@@ -169,7 +169,7 @@
       html += `
             </div>
             <div style="margin-top: 1rem;">
-              <a href="../models-management/" class="btn btn-primary">Manage All Models</a>
+              <a href="models-management/" class="btn btn-primary">Manage All Models</a>
             </div>
           </div>
         </div>
@@ -223,7 +223,7 @@
         html += `
           <div>
             <h3 style="margin-bottom: 0.5rem;">Collaboration Opportunities (${pendingOpportunities.length})</h3>
-            <a href="../models-management/?status=pending" class="btn btn-warning">Review Opportunities</a>
+            <a href="models-management/?status=pending" class="btn btn-warning">Review Opportunities</a>
           </div>
         `;
       }

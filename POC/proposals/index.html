@@ -8,19 +8,29 @@
 </head>
 <body>
     <!-- Main Content - Sidebar and Navbar are automatically added by layout system -->
-    <main>
-        <div class="container" style="padding: 2rem 0;">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
-                <h1 style="margin: 0;">Proposals</h1>
-                <a href="../create-proposal/" class="btn btn-primary">Create New Proposal</a>
+    <main class="page-wrapper">
+        <div class="container">
+            <!-- Page Header -->
+            <div class="page-header">
+                <div class="page-header-content">
+                    <div>
+                        <h1>Proposals</h1>
+                        <p>View and manage proposals submitted for your projects</p>
+                    </div>
+                    <div class="page-actions">
+                        <a href="../create-proposal/" class="btn btn-primary">
+                            <i class="ph ph-plus"></i> Create New Proposal
+                        </a>
+                    </div>
+                </div>
             </div>
 
-            <!-- Filter Section - Trigger getProposals with filters -->
-            <div class="card" style="margin-bottom: 2rem;">
-                <div class="card-body">
-                    <h3>Filter Proposals</h3>
-                    <form id="proposalFiltersForm" onsubmit="return proposalsListComponent.applyFilters(event)">
-                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">
+            <!-- Filter Section -->
+            <div class="content-section">
+                <div class="card filters-section">
+                    <div class="card-body">
+                        <h3 class="section-title">Filter Proposals</h3>
+                        <form id="proposalFiltersForm" onsubmit="return proposalsListComponent.applyFilters(event)" class="filter-row">
                             <div class="form-group">
                                 <label for="proposalStatusFilter" class="form-label">Status</label>
                                 <select id="proposalStatusFilter" class="form-control">
@@ -35,16 +45,20 @@
                                 <label for="proposalProjectFilter" class="form-label">Project ID</label>
                                 <input type="text" id="proposalProjectFilter" class="form-control" placeholder="Filter by project">
                             </div>
-                        </div>
-                        <button type="submit" class="btn btn-primary" style="margin-top: 1rem;">Apply Filters</button>
-                        <button type="button" onclick="proposalsListComponent.clearFilters()" class="btn btn-secondary" style="margin-top: 1rem; margin-left: 0.5rem;">Clear</button>
-                    </form>
+                            <div class="form-group" style="display: flex; gap: var(--spacing-3); align-items: flex-end;">
+                                <button type="submit" class="btn btn-primary">Apply Filters</button>
+                                <button type="button" onclick="proposalsListComponent.clearFilters()" class="btn btn-secondary">Clear</button>
+                            </div>
+                        </form>
+                    </div>
                 </div>
             </div>
 
             <!-- Proposals List -->
-            <div id="proposalsList">
-                <!-- Proposals will be loaded here -->
+            <div class="content-section">
+                <div id="proposalsList">
+                    <!-- Proposals will be loaded here -->
+                </div>
             </div>
         </div>
     </main>

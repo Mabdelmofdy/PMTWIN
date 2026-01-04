@@ -77,13 +77,33 @@
 
     if (!sidebar) return;
 
+    // Check if sidebar is minimized
+    const isMinimized = sidebar.classList.contains('minimized') || document.body.classList.contains('sidebar-minimized');
+    
+    // Get sidebar width from CSS or use default
+    let sidebarWidth = isMinimized ? '80px' : '300px';
+    try {
+      const computedWidth = window.getComputedStyle(sidebar).width;
+      if (computedWidth && computedWidth !== 'auto') {
+        sidebarWidth = computedWidth;
+      }
+    } catch (e) {
+      console.warn('[Layout] Could not get sidebar width, using default');
+    }
+    const sidebarWidthNum = parseInt(sidebarWidth) || (isMinimized ? 80 : 300);
+    
     // On desktop, add margin for sidebar
     const isDesktop = window.innerWidth > 768;
     
     mainElements.forEach(main => {
+      // Add page-wrapper class if not present
+      if (!main.classList.contains('page-wrapper')) {
+        main.classList.add('page-wrapper');
+      }
+      
       if (isDesktop) {
-        main.style.marginLeft = '280px';
-        main.style.transition = 'margin-left var(--transition-base)';
+        main.style.marginLeft = `${sidebarWidthNum}px`;
+        main.style.transition = 'margin-left 0.4s cubic-bezier(0.4, 0, 0.2, 1), padding 0.4s cubic-bezier(0.4, 0, 0.2, 1)';
       } else {
         main.style.marginLeft = '0';
       }
@@ -91,19 +111,26 @@
 
     // Handle window resize
     let resizeTimeout;
-    window.addEventListener('resize', () => {
+    const handleResize = () => {
       clearTimeout(resizeTimeout);
       resizeTimeout = setTimeout(() => {
         const isDesktop = window.innerWidth > 768;
+        const isMinimizedNow = sidebar ? (sidebar.classList.contains('minimized') || document.body.classList.contains('sidebar-minimized')) : false;
+        const currentSidebarWidth = sidebar ? parseInt(window.getComputedStyle(sidebar).width) : (isMinimizedNow ? 80 : 300);
+        
         mainElements.forEach(main => {
           if (isDesktop) {
-            main.style.marginLeft = '280px';
+            main.style.marginLeft = `${currentSidebarWidth}px`;
           } else {
             main.style.marginLeft = '0';
           }
         });
       }, 100);
-    });
+    };
+    
+    // Remove existing listener if any, then add new one
+    window.removeEventListener('resize', handleResize);
+    window.addEventListener('resize', handleResize);
   }
 
   // ============================================

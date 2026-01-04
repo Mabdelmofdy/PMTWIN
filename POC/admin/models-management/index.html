@@ -8,76 +8,106 @@
 </head>
 <body>
     <!-- Main Content - Sidebar and Navbar are automatically added by layout system -->
-    <main>
-        <div class="container" style="padding: 2rem 0;">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
-                <h1>Collaboration Models Management</h1>
-                <button class="btn btn-primary" onclick="exportOpportunities()">Export Data</button>
+    <main class="page-wrapper">
+        <div class="container container-padded">
+            <!-- Page Header -->
+            <div class="page-header">
+                <div class="page-header-content">
+                    <div>
+                        <h1>Collaboration Models Management</h1>
+                        <p>Manage and monitor collaboration opportunities across all models</p>
+                    </div>
+                    <div class="page-actions">
+                        <button class="btn btn-primary" onclick="exportOpportunities()">
+                            <i class="ph ph-download"></i> Export Data
+                        </button>
+                    </div>
+                </div>
             </div>
 
             <!-- Models Overview -->
-            <div class="card" style="margin-bottom: 2rem;">
-                <div class="card-body">
-                    <h2 style="margin-bottom: 1rem;">Models Overview</h2>
-                    <div id="modelsOverview">
-                        <!-- Models overview will be loaded here -->
+            <div class="content-section">
+                <div class="card enhanced-card">
+                    <div class="card-body">
+                        <h2 class="section-title spacing-section">Models Overview</h2>
+                        <div id="modelsOverview">
+                            <!-- Models overview will be loaded here -->
+                        </div>
                     </div>
                 </div>
             </div>
 
             <!-- Simplified Search and Filters -->
-            <div class="card" style="margin-bottom: 2rem;">
-                <div class="card-body" style="padding: 1rem;">
-                    <form id="modelsFilterForm" onsubmit="return false;">
-                        <div style="display: flex; gap: 1rem; align-items: end; flex-wrap: wrap;">
-                            <div style="flex: 1; min-width: 250px; position: relative;">
-                                <i class="ph ph-magnifying-glass" style="position: absolute; left: 0.75rem; top: 50%; transform: translateY(-50%); color: var(--text-secondary); pointer-events: none;"></i>
+            <div class="content-section">
+                <div class="card filters-section">
+                    <div class="card-body">
+                        <h3 class="section-title">Filter Models</h3>
+                        <form id="modelsFilterForm" onsubmit="return false;" class="filter-row">
+                            <div class="form-group" style="position: relative;">
+                                <i class="ph ph-magnifying-glass" style="position: absolute; left: 0.75rem; top: 50%; transform: translateY(-50%); color: var(--text-secondary); pointer-events: none; z-index: 1;"></i>
+                                <label for="modelSearch" class="form-label">Search</label>
                                 <input type="text" id="modelSearch" class="form-control" placeholder="Search by title or creator..." style="padding-left: 2.5rem;">
                             </div>
-                            <select id="modelSelector" class="form-control" style="width: 200px;">
-                                <option value="all" selected>All Models</option>
-                                <option value="1.1">1.1 - Task-Based</option>
-                                <option value="1.2">1.2 - Consortium</option>
-                                <option value="1.3">1.3 - Joint Venture</option>
-                                <option value="1.4">1.4 - SPV</option>
-                                <option value="2.1">2.1 - Strategic JV</option>
-                                <option value="2.2">2.2 - Strategic Alliance</option>
-                                <option value="2.3">2.3 - Mentorship</option>
-                                <option value="3.1">3.1 - Bulk Purchasing</option>
-                                <option value="3.2">3.2 - Co-Ownership</option>
-                                <option value="3.3">3.3 - Resource Exchange</option>
-                                <option value="4.1">4.1 - Professional Hiring</option>
-                                <option value="4.2">4.2 - Consultant Hiring</option>
-                                <option value="5.1">5.1 - Competition/RFP</option>
-                            </select>
-                            <select id="statusFilter" class="form-control" style="width: 150px;">
-                                <option value="">All Statuses</option>
-                                <option value="draft">Draft</option>
-                                <option value="pending">Pending</option>
-                                <option value="active">Active</option>
-                                <option value="closed">Closed</option>
-                                <option value="rejected">Rejected</option>
-                            </select>
-                            <button type="button" onclick="if(window.admin && window.admin['admin-models-management']) { window.admin['admin-models-management'].toggleAdvancedFilters(); }" class="btn btn-outline" style="white-space: nowrap;">
-                                <i class="ph ph-funnel"></i> More
-                            </button>
-                            <button type="button" class="btn btn-outline" id="clearFilters" style="white-space: nowrap;">
-                                <i class="ph ph-x"></i> Clear
-                            </button>
-                        </div>
+                            <div class="form-group">
+                                <label for="modelSelector" class="form-label">Model Type</label>
+                                <select id="modelSelector" class="form-control">
+                                    <option value="all" selected>All Models</option>
+                                    <option value="1.1">1.1 - Task-Based</option>
+                                    <option value="1.2">1.2 - Consortium</option>
+                                    <option value="1.3">1.3 - Joint Venture</option>
+                                    <option value="1.4">1.4 - SPV</option>
+                                    <option value="2.1">2.1 - Strategic JV</option>
+                                    <option value="2.2">2.2 - Strategic Alliance</option>
+                                    <option value="2.3">2.3 - Mentorship</option>
+                                    <option value="3.1">3.1 - Bulk Purchasing</option>
+                                    <option value="3.2">3.2 - Co-Ownership</option>
+                                    <option value="3.3">3.3 - Resource Exchange</option>
+                                    <option value="4.1">4.1 - Professional Hiring</option>
+                                    <option value="4.2">4.2 - Consultant Hiring</option>
+                                    <option value="5.1">5.1 - Competition/RFP</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="statusFilter" class="form-label">Status</label>
+                                <select id="statusFilter" class="form-control">
+                                    <option value="">All Statuses</option>
+                                    <option value="draft">Draft</option>
+                                    <option value="pending">Pending</option>
+                                    <option value="active">Active</option>
+                                    <option value="closed">Closed</option>
+                                    <option value="rejected">Rejected</option>
+                                </select>
+                            </div>
+                            <div class="form-group" style="display: flex; gap: var(--spacing-3);">
+                                <button type="button" onclick="if(window.admin && window.admin['admin-models-management']) { window.admin['admin-models-management'].toggleAdvancedFilters(); }" class="btn btn-outline">
+                                    <i class="ph ph-funnel"></i> More
+                                </button>
+                                <button type="button" class="btn btn-secondary" id="clearFilters">
+                                    <i class="ph ph-x"></i> Clear
+                                </button>
+                            </div>
+                        </form>
                         <div id="advancedFilters" style="display: none; margin-top: 1rem; padding-top: 1rem; border-top: 1px solid var(--border-color);">
-                            <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
-                                <input type="date" id="dateFromFilter" class="form-control" style="width: 150px;" placeholder="From Date">
-                                <input type="date" id="dateToFilter" class="form-control" style="width: 150px;" placeholder="To Date">
+                            <div class="filter-row">
+                                <div class="form-group">
+                                    <label for="dateFromFilter" class="form-label">From Date</label>
+                                    <input type="date" id="dateFromFilter" class="form-control" placeholder="From Date">
+                                </div>
+                                <div class="form-group">
+                                    <label for="dateToFilter" class="form-label">To Date</label>
+                                    <input type="date" id="dateToFilter" class="form-control" placeholder="To Date">
+                                </div>
                             </div>
                         </div>
-                    </form>
+                    </div>
                 </div>
             </div>
 
             <!-- Opportunities List -->
-            <div id="opportunitiesList">
-                <!-- Opportunities will be loaded here -->
+            <div class="content-section">
+                <div id="opportunitiesList">
+                    <!-- Opportunities will be loaded here -->
+                </div>
             </div>
         </div>
     </main>

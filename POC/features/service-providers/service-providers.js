@@ -302,13 +302,14 @@
       }
 
       const modal = document.createElement('div');
+      modal.className = 'service-provider-modal';
       modal.style.cssText = 'position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 1000; display: flex; align-items: center; justify-content: center; padding: 2rem;';
       modal.innerHTML = `
         <div class="card" style="max-width: 700px; width: 100%; max-height: 90vh; overflow-y: auto;">
           <div class="card-body">
             <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 1rem;">
               <h2 style="margin: 0;">${provider.companyName || provider.name || 'Service Provider'}</h2>
-              <button onclick="this.closest('[style*=\"position: fixed\"]').remove()" class="btn btn-secondary btn-sm">
+              <button onclick="this.closest('.service-provider-modal').remove()" class="btn btn-secondary btn-sm">
                 <i class="ph ph-x"></i>
               </button>
             </div>
@@ -400,11 +401,11 @@
             
             <div style="display: flex; gap: 0.5rem; margin-top: 1rem;">
               ${currentUser ? `
-                <button onclick="serviceProvidersComponent.contactProvider('${provider.id}'); this.closest('[style*=\"position: fixed\"]').remove();" class="btn btn-success" style="flex: 1;">
+                <button onclick="serviceProvidersComponent.contactProvider('${provider.id}'); this.closest('.service-provider-modal').remove();" class="btn btn-success" style="flex: 1;">
                   <i class="ph ph-envelope"></i> Contact Provider
                 </button>
               ` : ''}
-              <button onclick="this.closest('[style*=\"position: fixed\"]').remove()" class="btn btn-secondary">
+              <button onclick="this.closest('.service-provider-modal').remove()" class="btn btn-secondary">
                 Close
               </button>
             </div>

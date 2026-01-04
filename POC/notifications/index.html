@@ -8,26 +8,32 @@
 </head>
 <body>
     <!-- Main Content - Sidebar and Navbar are automatically added by layout system -->
-    <main>
-        <div class="container" style="padding: 2rem 0;">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
-                <h1 style="margin: 0;">Notifications</h1>
-                <div style="display: flex; gap: 0.5rem;">
-                    <button onclick="notificationsComponent.reloadSampleNotifications()" class="btn btn-secondary" title="Reload sample notifications from notification.json">
-                        <i class="ph ph-arrow-clockwise"></i> Reload Samples
-                    </button>
-                    <button onclick="notificationsComponent.markAllAsRead()" class="btn btn-primary">
-                        Mark All as Read
-                    </button>
+    <main class="page-wrapper">
+        <div class="container">
+            <!-- Page Header -->
+            <div class="page-header">
+                <div class="page-header-content">
+                    <div>
+                        <h1>Notifications</h1>
+                        <p>Stay updated with your project activities and important updates</p>
+                    </div>
+                    <div class="page-actions">
+                        <button onclick="notificationsComponent.reloadSampleNotifications()" class="btn btn-secondary" title="Reload sample notifications">
+                            <i class="ph ph-arrow-clockwise"></i> Reload Samples
+                        </button>
+                        <button onclick="notificationsComponent.markAllAsRead()" class="btn btn-primary">
+                            <i class="ph ph-check-circle"></i> Mark All as Read
+                        </button>
+                    </div>
                 </div>
             </div>
 
-            <!-- Filter Section - Trigger getNotifications with filters -->
-            <div class="card" style="margin-bottom: 2rem;">
-                <div class="card-body">
-                    <h3>Filter Notifications</h3>
-                    <form id="notificationFiltersForm" onsubmit="return notificationsComponent.applyFilters(event)">
-                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">
+            <!-- Filter Section -->
+            <div class="content-section">
+                <div class="card filters-section">
+                    <div class="card-body">
+                        <h3 class="section-title">Filter Notifications</h3>
+                        <form id="notificationFiltersForm" onsubmit="return notificationsComponent.applyFilters(event)" class="filter-row">
                             <div class="form-group">
                                 <label for="notificationTypeFilter" class="form-label">Type</label>
                                 <select id="notificationTypeFilter" class="form-control">
@@ -48,16 +54,20 @@
                                     <option value="false">Unread</option>
                                 </select>
                             </div>
-                        </div>
-                        <button type="submit" class="btn btn-primary" style="margin-top: 1rem;">Apply Filters</button>
-                        <button type="button" onclick="notificationsComponent.clearFilters()" class="btn btn-secondary" style="margin-top: 1rem; margin-left: 0.5rem;">Clear</button>
-                    </form>
+                            <div class="form-group" style="display: flex; gap: var(--spacing-3);">
+                                <button type="submit" class="btn btn-primary">Apply Filters</button>
+                                <button type="button" onclick="notificationsComponent.clearFilters()" class="btn btn-secondary">Clear</button>
+                            </div>
+                        </form>
+                    </div>
                 </div>
             </div>
 
             <!-- Notifications List -->
-            <div id="notificationsList">
-                <!-- Notifications will be loaded here -->
+            <div class="content-section">
+                <div id="notificationsList">
+                    <!-- Notifications will be loaded here -->
+                </div>
             </div>
         </div>
     </main>

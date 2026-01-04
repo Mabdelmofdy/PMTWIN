@@ -9,6 +9,7 @@
   let menuItems = [];
   let currentUser = null;
   let sidebarOpen = false;
+  let sidebarMinimized = false;
 
   // ============================================
   // Get Base Path Helper
@@ -693,9 +694,9 @@
 
     let html = `
       <div class="sidebar-header">
-        <h2>Menu</h2>
-        <button id="sidebarClose" class="sidebar-close" aria-label="Close sidebar" title="Close menu">
-          <i class="ph ph-x"></i>
+        <h2 class="sidebar-title">Menu</h2>
+        <button id="sidebarMinimize" class="sidebar-minimize" aria-label="Minimize sidebar" title="Minimize menu">
+          <i class="ph ph-sidebar-simple"></i>
         </button>
       </div>
       <nav class="sidebar-nav">
@@ -929,10 +930,33 @@
 
     container.innerHTML = html;
 
-    // Setup close button
-    const closeBtn = document.getElementById('sidebarClose');
-    if (closeBtn) {
-      closeBtn.onclick = () => toggleSidebar(false);
+    // Create expand button if it doesn't exist
+    let expandBtn = document.getElementById('sidebarExpand');
+    if (!expandBtn) {
+      expandBtn = document.createElement('button');
+      expandBtn.id = 'sidebarExpand';
+      expandBtn.className = 'sidebar-expand';
+      expandBtn.setAttribute('aria-label', 'Expand sidebar');
+      expandBtn.setAttribute('title', 'Expand menu');
+      expandBtn.style.display = 'none';
+      expandBtn.innerHTML = '<i class="ph ph-sidebar"></i>';
+      document.body.appendChild(expandBtn);
+    }
+
+    // Setup minimize/expand buttons
+    const minimizeBtn = document.getElementById('sidebarMinimize');
+    
+    if (minimizeBtn) {
+      minimizeBtn.onclick = () => minimizeSidebar();
+    }
+    
+    if (expandBtn) {
+      expandBtn.onclick = () => expandSidebar();
+    }
+    
+    // Apply current minimized state
+    if (sidebarMinimized) {
+      applyMinimizedState();
     }
   }
 
@@ -967,6 +991,123 @@
   }
 
   // ============================================
+  // Minimize Sidebar
+  // ============================================
+  function minimizeSidebar() {
+    sidebarMinimized = true;
+    
+    // Add transitioning class for smooth animation
+    document.body.classList.add('sidebar-transitioning');
+    
+    applyMinimizedState();
+    
+    // Remove transitioning class after animation completes
+    setTimeout(() => {
+      document.body.classList.remove('sidebar-transitioning');
+    }, 400);
+    
+    // Save state to localStorage
+    try {
+      localStorage.setItem('pmtwin_sidebar_minimized', 'true');
+    } catch (e) {
+      console.error('Error saving sidebar state:', e);
+    }
+  }
+
+  // ============================================
+  // Expand Sidebar
+  // ============================================
+  function expandSidebar() {
+    sidebarMinimized = false;
+    
+    // Add transitioning class for smooth animation
+    document.body.classList.add('sidebar-transitioning');
+    
+    removeMinimizedState();
+    
+    // Remove transitioning class after animation completes
+    setTimeout(() => {
+      document.body.classList.remove('sidebar-transitioning');
+    }, 400);
+    
+    // Save state to localStorage
+    try {
+      localStorage.setItem('pmtwin_sidebar_minimized', 'false');
+    } catch (e) {
+      console.error('Error saving sidebar state:', e);
+    }
+  }
+
+  // ============================================
+  // Apply Minimized State
+  // ============================================
+  function applyMinimizedState() {
+    const sidebar = document.getElementById('sidebar');
+    const minimizeBtn = document.getElementById('sidebarMinimize');
+    const expandBtn = document.getElementById('sidebarExpand');
+    
+    if (sidebar) {
+      sidebar.classList.add('minimized');
+    }
+    
+    // Add body class for main content margin adjustment
+    document.body.classList.add('sidebar-minimized');
+    
+    if (minimizeBtn) {
+      minimizeBtn.style.display = 'none';
+    }
+    
+    if (expandBtn) {
+      expandBtn.classList.add('show');
+      // Trigger animation
+      setTimeout(() => {
+        expandBtn.style.display = 'flex';
+      }, 50);
+    }
+    
+    // Adjust main content margin if layout exists
+    if (typeof AppLayout !== 'undefined') {
+      // Use requestAnimationFrame for smoother transition
+      requestAnimationFrame(() => {
+        AppLayout.adjustMainContentMargin();
+      });
+    }
+  }
+
+  // ============================================
+  // Remove Minimized State
+  // ============================================
+  function removeMinimizedState() {
+    const sidebar = document.getElementById('sidebar');
+    const minimizeBtn = document.getElementById('sidebarMinimize');
+    const expandBtn = document.getElementById('sidebarExpand');
+    
+    if (sidebar) {
+      sidebar.classList.remove('minimized');
+    }
+    
+    // Remove body class
+    document.body.classList.remove('sidebar-minimized');
+    
+    if (minimizeBtn) {
+      minimizeBtn.style.display = 'flex';
+    }
+    
+    if (expandBtn) {
+      expandBtn.classList.remove('show');
+      expandBtn.style.display = 'none';
+    }
+    
+    // Adjust main content margin if layout exists
+    if (typeof AppLayout !== 'undefined') {
+      // Use requestAnimationFrame for smoother transition
+      requestAnimationFrame(() => {
+        AppLayout.adjustMainContentMargin();
+      });
+    }
+  }
+
+  // ============================================
   // Create Sidebar Structure
   // ============================================
   function createSidebarStructure() {
@@ -978,6 +1119,9 @@
       <aside id="sidebar" class="sidebar">
         <!-- Sidebar content will be rendered here -->
       </aside>
+      <button id="sidebarExpand" class="sidebar-expand" onclick="Navigation.expandSidebar()" aria-label="Expand sidebar" title="Expand menu">
+        <i class="ph ph-sidebar"></i>
+      </button>
     `;
 
     document.body.insertAdjacentHTML('beforeend', sidebarHTML);
@@ -1076,6 +1220,20 @@
           console.log('[Navigation] Sidebar opened on desktop');
         }
       }
+      
+      // Load minimized state from localStorage
+      try {
+        const savedState = localStorage.getItem('pmtwin_sidebar_minimized');
+        if (savedState === 'true') {
+          sidebarMinimized = true;
+          // Apply after a short delay to ensure sidebar is rendered
+          setTimeout(() => {
+            applyMinimizedState();
+          }, 150);
+        }
+      } catch (e) {
+        console.error('Error loading sidebar state:', e);
+      }
     }
     
     // Adjust main content margin if layout exists
@@ -1092,6 +1250,8 @@
     renderAppbar,
     renderSidebar,
     toggleSidebar,
+    minimizeSidebar,
+    expandSidebar,
     toggleMenuGroup,
     logout,
     loadMenuItems,
