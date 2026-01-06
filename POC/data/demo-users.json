@@ -9,36 +9,28 @@
       "description": "Full system access - Vetting, Moderation, Reports, Audit Trail, User Management"
     },
     {
-      "userId": "demo_project_lead_001",
+      "userId": "demo_entity_001",
       "email": "entity@pmtwin.com",
       "password": "Entity123",
-      "role": "project_lead",
+      "role": "entity",
       "name": "ABC Construction Co.",
-      "description": "General Contracting Company - Project creation, tenders, consortia, SPVs, proposal management"
+      "description": "Corporate/Organization - Creates and requests projects/megaprojects, defines requirements, reviews proposals"
     },
     {
-      "userId": "demo_professional_001",
-      "email": "individual@pmtwin.com",
-      "password": "User123",
-      "role": "professional",
+      "userId": "demo_vendor_001",
+      "email": "vendor@pmtwin.com",
+      "password": "Vendor123",
+      "role": "vendor",
+      "name": "Global Construction Services",
+      "description": "Vendor/Service Provider - Provides full megaprojects or complete subprojects, manages sub_contractors"
+    },
+    {
+      "userId": "demo_sub_contractor_001",
+      "email": "subcontractor@pmtwin.com",
+      "password": "SubContractor123",
+      "role": "sub_contractor",
       "name": "John Doe",
-      "description": "Senior Civil Engineer - Task-based opportunities, proposals, profile management, matches"
-    },
-    {
-      "userId": "demo_supplier_001",
-      "email": "supplier@pmtwin.com",
-      "password": "Supplier123",
-      "role": "supplier",
-      "name": "Global Materials Supply",
-      "description": "Materials Supplier - Bulk purchasing, inventory management, strategic alliances, resource marketplace"
-    },
-    {
-      "userId": "demo_service_provider_001",
-      "email": "service@pmtwin.com",
-      "password": "Service123",
-      "role": "service_provider",
-      "name": "Legal & Logistics Services",
-      "description": "B2B Service Provider - Task-based engagements, strategic alliances, service portfolio management"
+      "description": "Individual Service Provider - Works under vendors for minor scope work, submits proposals to vendors only"
     },
     {
       "userId": "demo_consultant_001",

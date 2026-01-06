@@ -9,33 +9,25 @@
       "isActive": true
     },
     {
-      "userId": "demo_project_lead_001",
+      "userId": "demo_entity_001",
       "email": "entity@pmtwin.com",
-      "roleId": "project_lead",
+      "roleId": "entity",
       "assignedAt": "2024-01-01T00:00:00Z",
       "assignedBy": "system",
       "isActive": true
     },
     {
-      "userId": "demo_professional_001",
-      "email": "individual@pmtwin.com",
-      "roleId": "professional",
+      "userId": "demo_vendor_001",
+      "email": "vendor@pmtwin.com",
+      "roleId": "vendor",
       "assignedAt": "2024-01-01T00:00:00Z",
       "assignedBy": "system",
       "isActive": true
     },
     {
-      "userId": "demo_supplier_001",
-      "email": "supplier@pmtwin.com",
-      "roleId": "supplier",
-      "assignedAt": "2024-01-01T00:00:00Z",
-      "assignedBy": "system",
-      "isActive": true
-    },
-    {
-      "userId": "demo_service_provider_001",
-      "email": "service@pmtwin.com",
-      "roleId": "service_provider",
+      "userId": "demo_sub_contractor_001",
+      "email": "subcontractor@pmtwin.com",
+      "roleId": "sub_contractor",
       "assignedAt": "2024-01-01T00:00:00Z",
       "assignedBy": "system",
       "isActive": true
@@ -68,17 +60,22 @@
   "defaultRole": "guest",
   "roleAssignmentRules": {
     "onRegistration": {
-      "entity": "project_lead",
-      "individual": "professional",
-      "company": "project_lead",
+      "entity": "entity",
+      "vendor": "vendor",
+      "sub_contractor": "sub_contractor",
+      "company": "entity",
+      "individual": "sub_contractor",
       "consultant": "consultant"
     },
     "onApproval": {
-      "company": "project_lead",
+      "entity": "entity",
+      "vendor": "vendor",
+      "sub_contractor": "sub_contractor",
+      "company": "entity",
       "supplier": "supplier",
-      "service_provider": "service_provider",
+      "service_provider": "vendor",
       "consultant": "consultant",
-      "individual": "professional",
+      "individual": "sub_contractor",
       "mentor": "mentor"
     }
   }

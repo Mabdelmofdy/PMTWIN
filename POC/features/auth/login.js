@@ -176,7 +176,8 @@
         console.log('✅ Login successful. User:', currentUser.email, 'Role:', currentUser.role);
         
         // Determine redirect path based on user role
-        let redirectPath = '../dashboard/'; // Default to dashboard
+        // From pages/auth/login/, we need ../../ to reach pages/ level
+        let redirectPath = '../../dashboard/'; // Default to dashboard
         
         // Use the user from result if available, otherwise get from session
         const user = result.user || currentUser;
@@ -185,14 +186,14 @@
         console.log('User role for redirect:', userRole);
         
         // Simple role-based redirect (more reliable than RBAC for now)
-        if (userRole === 'admin') {
-          redirectPath = '../admin/';
+        if (userRole === 'admin' || userRole === 'platform_admin') {
+          redirectPath = '../../admin/';
           console.log('🔐 Admin user detected, redirecting to admin portal');
-        } else if (userRole === 'entity' || userRole === 'individual') {
-          redirectPath = '../dashboard/';
+        } else if (userRole === 'entity' || userRole === 'individual' || userRole === 'project_lead' || userRole === 'professional' || userRole === 'supplier' || userRole === 'service_provider' || userRole === 'consultant' || userRole === 'mentor') {
+          redirectPath = '../../dashboard/';
           console.log('👤 User detected, redirecting to user portal (dashboard)');
         } else {
-          redirectPath = '../home/';
+          redirectPath = '../../home/';
           console.log('🏠 Unknown role, redirecting to home');
         }
         

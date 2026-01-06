@@ -5,14 +5,226 @@
 (function() {
   'use strict';
 
-  function init(params) {
+  async function init(params) {
     // Get projectId from params or query string
     const urlParams = new URLSearchParams(window.location.search);
     const projectId = urlParams.get('projectId') || (params && params.projectId);
     
+    // Get current user role
+    await setupRoleBasedUI();
+    
     loadProjects(projectId);
     setupProposalTypeToggle();
     addPricingItem(); // Add initial pricing item
+  }
+
+  // ============================================
+  // Setup Role-Based UI
+  // ============================================
+  async function setupRoleBasedUI() {
+    if (typeof PMTwinData === 'undefined' || typeof PMTwinRBAC === 'undefined') {
+      return;
+    }
+
+    const currentUser = PMTwinData.Sessions.getCurrentUser();
+    if (!currentUser) return;
+
+    const userRole = await PMTwinRBAC.getCurrentUserRole();
+    
+    // Hide/show fields based on role
+    const projectSelectGroup = document.querySelector('#proposalProjectId')?.closest('.form-group');
+    const vendorSelectGroup = document.getElementById('vendorSelectGroup');
+    
+    if (userRole === 'sub_contractor') {
+      // Sub_contractors submit to vendors, not entities
+      if (projectSelectGroup) {
+        projectSelectGroup.style.display = 'none';
+      }
+      
+      // Show vendor selection
+      if (!vendorSelectGroup) {
+        createVendorSelectionUI();
+      }
+      
+      // Add info message
+      showRoleInfo('You can only submit proposals to vendors for minor scope work.');
+    } else if (userRole === 'vendor' || userRole === 'service_provider') {
+      // Vendors can bid on projects or subprojects
+      if (projectSelectGroup) {
+        projectSelectGroup.style.display = 'block';
+      }
+      
+      // Add subproject selection if project has subprojects
+      setupSubprojectSelection();
+      
+      // Add info message
+      showRoleInfo('You can bid on full projects or complete subprojects only. Partial work is not allowed.');
+    } else if (userRole === 'entity') {
+      // Entities cannot submit proposals
+      const form = document.getElementById('proposalCreateForm');
+      if (form) {
+        form.style.display = 'none';
+        showRoleInfo('Entities cannot submit proposals. You can only receive and review proposals.', 'error');
+      }
+    }
+  }
+
+  // ============================================
+  // Create Vendor Selection UI
+  // ============================================
+  function createVendorSelectionUI() {
+    const projectSelectGroup = document.querySelector('#proposalProjectId')?.closest('.form-group');
+    if (!projectSelectGroup) return;
+
+    const vendorGroup = document.createElement('div');
+    vendorGroup.id = 'vendorSelectGroup';
+    vendorGroup.className = 'form-group';
+    vendorGroup.innerHTML = `
+      <label for="proposalVendorId" class="form-label">Vendor *</label>
+      <select id="proposalVendorId" class="form-control" required>
+        <option value="">Select Vendor</option>
+        <!-- Vendors will be loaded dynamically -->
+      </select>
+      <small class="form-text text-muted">Sub_contractors can only submit proposals to vendors</small>
+    `;
+    
+    projectSelectGroup.parentNode.insertBefore(vendorGroup, projectSelectGroup);
+    loadVendors();
+  }
+
+  // ============================================
+  // Load Vendors for Sub_Contractor Selection
+  // ============================================
+  async function loadVendors() {
+    const select = document.getElementById('proposalVendorId');
+    if (!select) return;
+
+    try {
+      const users = PMTwinData.Users.getAll();
+      let userRole;
+      
+      // Filter vendors
+      const vendors = users.filter(async (user) => {
+        if (typeof PMTwinRBAC !== 'undefined') {
+          userRole = await PMTwinRBAC.getUserRole(user.id, user.email);
+        } else {
+          userRole = user.role;
+        }
+        return userRole === 'vendor' || userRole === 'service_provider';
+      });
+
+      // Wait for all role checks
+      const vendorPromises = users.map(async (user) => {
+        let role;
+        if (typeof PMTwinRBAC !== 'undefined') {
+          role = await PMTwinRBAC.getUserRole(user.id, user.email);
+        } else {
+          role = user.role;
+        }
+        return { user, role };
+      });
+
+      const usersWithRoles = await Promise.all(vendorPromises);
+      const vendorsList = usersWithRoles
+        .filter(({ role }) => role === 'vendor' || role === 'service_provider')
+        .map(({ user }) => user);
+
+      vendorsList.forEach(vendor => {
+        const option = document.createElement('option');
+        option.value = vendor.id;
+        option.textContent = vendor.name || vendor.profile?.companyName || vendor.email;
+        select.appendChild(option);
+      });
+    } catch (error) {
+      console.error('Error loading vendors:', error);
+    }
+  }
+
+  // ============================================
+  // Setup Subproject Selection for Vendors
+  // ============================================
+  function setupSubprojectSelection() {
+    const projectSelect = document.getElementById('proposalProjectId');
+    if (!projectSelect) return;
+
+    projectSelect.addEventListener('change', async function() {
+      const projectId = this.value;
+      if (!projectId) {
+        hideSubprojectSelection();
+        return;
+      }
+
+      const project = PMTwinData.Projects.getById(projectId);
+      if (!project) return;
+
+      // Check if project has subprojects
+      if (project.subProjects && project.subProjects.length > 0) {
+        showSubprojectSelection(project.subProjects);
+      } else {
+        hideSubprojectSelection();
+      }
+    });
+  }
+
+  // ============================================
+  // Show Subproject Selection
+  // ============================================
+  function showSubprojectSelection(subProjects) {
+    let subprojectGroup = document.getElementById('subprojectSelectGroup');
+    
+    if (!subprojectGroup) {
+      const projectSelectGroup = document.querySelector('#proposalProjectId')?.closest('.form-group');
+      if (!projectSelectGroup) return;
+
+      subprojectGroup = document.createElement('div');
+      subprojectGroup.id = 'subprojectSelectGroup';
+      subprojectGroup.className = 'form-group';
+      projectSelectGroup.parentNode.insertBefore(subprojectGroup, projectSelectGroup.nextSibling);
+    }
+
+    subprojectGroup.innerHTML = `
+      <label for="proposalSubprojectId" class="form-label">Scope *</label>
+      <select id="proposalSubprojectId" class="form-control" required>
+        <option value="">Select Scope</option>
+        <option value="full_project">Full Project</option>
+        ${subProjects.map((sp, index) => 
+          `<option value="${sp.id}">Subproject ${index + 1}: ${sp.title || 'Untitled'}</option>`
+        ).join('')}
+      </select>
+      <small class="form-text text-muted">Vendors can bid on full projects or complete subprojects only</small>
+    `;
+    
+    subprojectGroup.style.display = 'block';
+  }
+
+  // ============================================
+  // Hide Subproject Selection
+  // ============================================
+  function hideSubprojectSelection() {
+    const subprojectGroup = document.getElementById('subprojectSelectGroup');
+    if (subprojectGroup) {
+      subprojectGroup.style.display = 'none';
+    }
+  }
+
+  // ============================================
+  // Show Role Info Message
+  // ============================================
+  function showRoleInfo(message, type = 'info') {
+    let infoDiv = document.getElementById('roleInfoMessage');
+    
+    if (!infoDiv) {
+      const form = document.getElementById('proposalCreateForm');
+      if (!form) return;
+
+      infoDiv = document.createElement('div');
+      infoDiv.id = 'roleInfoMessage';
+      infoDiv.className = `alert alert-${type}`;
+      form.insertBefore(infoDiv, form.firstChild);
+    }
+
+    infoDiv.textContent = message;
+    infoDiv.style.display = 'block';
   }
 
   function setupProposalTypeToggle() {
@@ -80,20 +292,61 @@
     }
 
     try {
-      const projectId = document.getElementById('proposalProjectId').value;
+      // Get current user role
+      const currentUser = PMTwinData?.Sessions?.getCurrentUser();
+      let userRole = currentUser?.role;
+      if (typeof PMTwinRBAC !== 'undefined') {
+        userRole = await PMTwinRBAC.getCurrentUserRole();
+      }
+
       const proposalType = document.querySelector('input[name="proposalType"]:checked')?.value;
       const description = document.getElementById('proposalDescription').value;
 
-      if (!projectId || !proposalType || !description) {
+      if (!proposalType || !description) {
         showMessage('Please fill in all required fields', 'error');
         return false;
       }
 
       let proposalData = {
-        projectId: projectId,
         type: proposalType,
         serviceDescription: description
       };
+
+      // Handle role-specific proposal data
+      if (userRole === 'sub_contractor') {
+        // Sub_contractors submit to vendors
+        const vendorId = document.getElementById('proposalVendorId')?.value;
+        if (!vendorId) {
+          showMessage('Please select a vendor', 'error');
+          return false;
+        }
+        proposalData.vendorId = vendorId;
+      } else if (userRole === 'vendor' || userRole === 'service_provider') {
+        // Vendors submit to entities (projects)
+        const projectId = document.getElementById('proposalProjectId')?.value;
+        if (!projectId) {
+          showMessage('Please select a project', 'error');
+          return false;
+        }
+        proposalData.projectId = projectId;
+
+        // Check for subproject selection
+        const subprojectId = document.getElementById('proposalSubprojectId')?.value;
+        if (subprojectId && subprojectId !== 'full_project') {
+          proposalData.subprojectId = subprojectId;
+          proposalData.scopeType = 'subproject';
+        } else {
+          proposalData.scopeType = 'full_project';
+        }
+      } else {
+        // Other roles (legacy support)
+        const projectId = document.getElementById('proposalProjectId')?.value;
+        if (!projectId) {
+          showMessage('Please select a project', 'error');
+          return false;
+        }
+        proposalData.projectId = projectId;
+      }
 
       if (proposalType === 'cash') {
         // Collect pricing items
@@ -170,9 +423,13 @@
         proposalData.totalRequested = servicesRequested.reduce((sum, s) => sum + s.value, 0);
       }
 
-      // Call service
+      // Call service based on role
       let result;
-      if (typeof ProposalService !== 'undefined') {
+      if (userRole === 'sub_contractor' && typeof ProposalService !== 'undefined') {
+        // Sub_contractors use createSubContractorProposal
+        result = await ProposalService.createSubContractorProposal(proposalData.vendorId, proposalData);
+      } else if (typeof ProposalService !== 'undefined') {
+        // Vendors and others use createProposal
         result = await ProposalService.createProposal(proposalData);
       } else {
         showMessage('Proposal service not available', 'error');
@@ -180,7 +437,10 @@
       }
 
       if (result.success) {
-        showMessage('Proposal created successfully!', 'success');
+        const successMessage = userRole === 'sub_contractor' 
+          ? 'Proposal submitted to vendor successfully!'
+          : 'Proposal created successfully!';
+        showMessage(successMessage, 'success');
         setTimeout(() => {
           window.location.href = '../proposals/';
         }, 1500);

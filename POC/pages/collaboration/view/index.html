@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>View Collaboration Opportunity - PMTwin</title>
+    <link rel="stylesheet" href="../../../assets/css/main.css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap">
+    <link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.0.3/src/regular/style.css">
+</head>
+<body>
+    <!-- Main Content - Sidebar and Navbar are automatically added by layout system -->
+    <main>
+        <div class="container" style="padding: 2rem 0;">
+            <div id="collaborationViewContent">
+                <div class="loading">
+                    <div class="spinner"></div>
+                    <p>Loading collaboration opportunity...</p>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Configuration (must load first) -->
+    <script type="text/javascript" src="../../../src/config/config.js"></script>
+    
+    <!-- API Layer (for future Java backend integration) -->
+    <script type="text/javascript" src="../../../src/core/api/api-client.js"></script>
+    <script type="text/javascript" src="../../../src/core/api/api-service.js"></script>
+    
+    <!-- Core Scripts -->
+    <script type="text/javascript" src="../../../src/core/data/data.js"></script>
+    <script type="text/javascript" src="../../../src/core/auth/auth.js"></script>
+    <script type="text/javascript" src="../../../src/core/auth/auth-check.js"></script>
+    <script type="text/javascript" src="../../../src/utils/demo-credentials.js"></script>
+    <script type="text/javascript" src="../../../src/services/services-loader.js"></script>
+    <script type="text/javascript" src="../../../data/data-loader.js"></script>
+    
+    <!-- Layout System (automatically includes sidebar and navbar) -->
+    <script type="text/javascript" src="../../../src/core/layout/layout.js"></script>
+    <script type="text/javascript" src="../../../src/core/layout/navigation.js"></script>
+    <script type="text/javascript" src="../../../src/core/init/app-init.js"></script>
+    
+    <!-- Component Scripts -->
+    <script type="text/javascript" src="../../../features/collaboration/collaboration-opportunities.js"></script>
+    
+    <!-- Initialize Component -->
+    <script type="text/javascript">
+        document.addEventListener('DOMContentLoaded', async function() {
+            // Check authentication
+            const isAuth = await AuthCheck.checkAuth({ requireAuth: true });
+            if (!isAuth) {
+                window.location.href = '../../login/';
+                return;
+            }
+            
+            // Extract opportunity ID from URL
+            // Try query parameter first: /collaboration/view/?id=collab_xxx
+            // Fallback to path segment: /collaboration/view/collab_xxx/
+            let opportunityId = null;
+            
+            // Check query parameter
+            const urlParams = new URLSearchParams(window.location.search);
+            opportunityId = urlParams.get('id');
+            
+            // If not in query, try path segment
+            if (!opportunityId) {
+                const pathParts = window.location.pathname.split('/').filter(p => p);
+                const viewIndex = pathParts.indexOf('view');
+                if (viewIndex !== -1 && pathParts[viewIndex + 1]) {
+                    opportunityId = pathParts[viewIndex + 1];
+                }
+            }
+            
+            if (!opportunityId) {
+                document.getElementById('collaborationViewContent').innerHTML = `
+                    <div class="alert alert-error">
+                        <p>Invalid collaboration opportunity ID. Please go back and try again.</p>
+                        <a href="../../collaboration/opportunities/" class="btn btn-primary">Browse Opportunities</a>
+                    </div>
+                `;
+                return;
+            }
+            
+            // Wait for services to load
+            function waitForServices() {
+                return new Promise((resolve) => {
+                    if (typeof CollaborationService !== 'undefined') {
+                        resolve();
+                    } else {
+                        window.addEventListener('servicesLoaded', resolve, { once: true });
+                        setTimeout(resolve, 3000);
+                    }
+                });
+            }
+            
+            await waitForServices();
+            
+            // Load and display opportunity
+            await loadOpportunityView(opportunityId);
+        });
+        
+        async function loadOpportunityView(opportunityId) {
+            const container = document.getElementById('collaborationViewContent');
+            
+            try {
+                if (typeof CollaborationService === 'undefined') {
+                    container.innerHTML = `
+                        <div class="alert alert-error">
+                            <p>Collaboration service not available. Please refresh the page.</p>
+                        </div>
+                    `;
+                    return;
+                }
+                
+                // Get opportunity details (increment views)
+                const result = await CollaborationService.getOpportunityById(opportunityId, true);
+                if (!result.success || !result.opportunity) {
+                    container.innerHTML = `
+                        <div class="alert alert-error">
+                            <p>${result.error || 'Collaboration opportunity not found'}</p>
+                            <a href="../../collaboration/opportunities/" class="btn btn-primary">Browse Opportunities</a>
+                        </div>
+                    `;
+                    return;
+                }
+                
+                const opportunity = result.opportunity;
+                const currentUser = PMTwinData.Sessions.getCurrentUser();
+                
+                // Get model information
+                const model = typeof CollaborationModels !== 'undefined' 
+                    ? CollaborationModels.getModel(opportunity.modelId || opportunity.modelType) 
+                    : null;
+                
+                // Get creator information
+                const creator = typeof PMTwinData !== 'undefined' && PMTwinData.Users
+                    ? PMTwinData.Users.getById(opportunity.creatorId)
+                    : null;
+                const creatorName = creator 
+                    ? (creator.profile?.name || creator.profile?.companyName || creator.name || creator.email || 'Unknown')
+                    : 'Unknown';
+                const creatorEmail = creator?.email || 'N/A';
+                
+                // Get applications count
+                let applicationsCount = 0;
+                let canApply = false;
+                try {
+                    const appsResult = await CollaborationService.getCollaborationApplications({ opportunityId: opportunityId });
+                    if (appsResult.success && appsResult.applications) {
+                        applicationsCount = appsResult.applications.length;
+                        // Check if current user has already applied
+                        const hasApplied = appsResult.applications.some(app => app.applicantId === currentUser?.id);
+                        canApply = !hasApplied && currentUser && opportunity.creatorId !== currentUser.id && opportunity.status === 'active';
+                    }
+                } catch (error) {
+                    console.error('Error loading applications:', error);
+                    canApply = currentUser && opportunity.creatorId !== currentUser.id && opportunity.status === 'active';
+                }
+                
+                // Format status badge
+                const statusColors = {
+                    'active': 'success',
+                    'draft': 'warning',
+                    'closed': 'danger',
+                    'pending': 'info'
+                };
+                const statusColor = statusColors[opportunity.status] || 'secondary';
+                
+                // Build HTML
+                let html = `
+                    <div style="margin-bottom: 1.5rem;">
+                        <a href="../../collaboration/opportunities/" class="btn btn-secondary btn-sm" style="margin-bottom: 1rem;">
+                            <i class="ph ph-arrow-left"></i> Back to Opportunities
+                        </a>
+                    </div>
+                    
+                    <div class="card" style="margin-bottom: 2rem;">
+                        <div class="card-body">
+                            <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 1.5rem;">
+                                <div style="flex: 1;">
+                                    <h1 style="margin: 0 0 0.5rem 0;">${model?.name || opportunity.modelName || opportunity.modelType || 'Collaboration Opportunity'}</h1>
+                                    <p style="color: var(--text-secondary); margin: 0 0 0.5rem 0;">
+                                        <span class="badge badge-${statusColor}">${opportunity.status || 'active'}</span>
+                                        ${model?.category ? `<span class="badge badge-info" style="margin-left: 0.5rem;">${model.category}</span>` : ''}
+                                    </p>
+                                </div>
+                                <div style="text-align: right;">
+                                    ${canApply ? `
+                                        <button onclick="applyToOpportunity('${opportunity.id}')" class="btn btn-primary">
+                                            <i class="ph ph-paper-plane-tilt"></i> Apply Now
+                                        </button>
+                                    ` : opportunity.creatorId === currentUser?.id ? `
+                                        <a href="../../collaboration/my-collaborations/" class="btn btn-secondary">
+                                            <i class="ph ph-folder"></i> Manage
+                                        </a>
+                                    ` : ''}
+                                </div>
+                            </div>
+                            
+                            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 1.5rem; padding: 1rem; background: var(--bg-secondary); border-radius: var(--radius);">
+                                <div>
+                                    <div style="font-size: 0.875rem; color: var(--text-secondary); margin-bottom: 0.25rem;">Views</div>
+                                    <div style="font-size: 1.5rem; font-weight: 600; color: var(--color-primary);">${opportunity.views || 0}</div>
+                                </div>
+                                <div>
+                                    <div style="font-size: 0.875rem; color: var(--text-secondary); margin-bottom: 0.25rem;">Applications</div>
+                                    <div style="font-size: 1.5rem; font-weight: 600; color: var(--color-primary);">${applicationsCount}</div>
+                                </div>
+                                <div>
+                                    <div style="font-size: 0.875rem; color: var(--text-secondary); margin-bottom: 0.25rem;">Created By</div>
+                                    <div style="font-size: 1rem; font-weight: 500;">${creatorName}</div>
+                                    <div style="font-size: 0.75rem; color: var(--text-secondary);">${creatorEmail}</div>
+                                </div>
+                            </div>
+                            
+                            ${opportunity.attributes ? renderAttributes(opportunity.attributes, model) : ''}
+                        </div>
+                    </div>
+                `;
+                
+                container.innerHTML = html;
+                
+            } catch (error) {
+                console.error('Error loading opportunity view:', error);
+                container.innerHTML = `
+                    <div class="alert alert-error">
+                        <p>Error loading collaboration opportunity: ${error.message}</p>
+                        <a href="../../collaboration/opportunities/" class="btn btn-primary">Browse Opportunities</a>
+                    </div>
+                `;
+            }
+        }
+        
+        function renderAttributes(attributes, model) {
+            if (!attributes || Object.keys(attributes).length === 0) {
+                return '<p style="color: var(--text-secondary);">No additional details available.</p>';
+            }
+            
+            let html = '<div style="margin-top: 1.5rem;"><h3 style="margin-bottom: 1rem;">Opportunity Details</h3>';
+            html += '<div style="display: grid; gap: 1rem;">';
+            
+            // Common fields that should be displayed nicely
+            const fieldLabels = {
+                'taskTitle': 'Task Title',
+                'projectTitle': 'Project Title',
+                'competitionTitle': 'Competition Title',
+                'detailedScope': 'Detailed Scope',
+                'description': 'Description',
+                'duration': 'Duration (days)',
+                'budgetRange': 'Budget Range',
+                'budgetType': 'Budget Type',
+                'requiredSkills': 'Required Skills',
+                'experienceLevel': 'Experience Level',
+                'locationRequirement': 'Location Requirement',
+                'startDate': 'Start Date',
+                'deliverableFormat': 'Deliverable Format',
+                'paymentTerms': 'Payment Terms',
+                'exchangeType': 'Exchange Type',
+                'barterOffer': 'Barter Offer'
+            };
+            
+            Object.keys(attributes).forEach(key => {
+                const value = attributes[key];
+                if (value === null || value === undefined || value === '') {
+                    return;
+                }
+                
+                const label = fieldLabels[key] || key.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase());
+                
+                if (typeof value === 'object') {
+                    if (Array.isArray(value)) {
+                        html += `
+                            <div style="padding: 0.75rem; background: var(--bg-secondary); border-radius: var(--radius);">
+                                <strong>${label}:</strong>
+                                <div style="margin-top: 0.5rem; display: flex; flex-wrap: wrap; gap: 0.5rem;">
+                                    ${value.map(item => `<span class="badge badge-secondary">${item}</span>`).join('')}
+                                </div>
+                            </div>
+                        `;
+                    } else if (value.min !== undefined || value.max !== undefined) {
+                        // Budget range object
+                        const currency = value.currency || 'SAR';
+                        html += `
+                            <div style="padding: 0.75rem; background: var(--bg-secondary); border-radius: var(--radius);">
+                                <strong>${label}:</strong>
+                                <div style="margin-top: 0.5rem;">
+                                    ${value.min ? `${value.min.toLocaleString()} ${currency}` : ''}
+                                    ${value.min && value.max ? ' - ' : ''}
+                                    ${value.max ? `${value.max.toLocaleString()} ${currency}` : ''}
+                                </div>
+                            </div>
+                        `;
+                    } else {
+                        html += `
+                            <div style="padding: 0.75rem; background: var(--bg-secondary); border-radius: var(--radius);">
+                                <strong>${label}:</strong>
+                                <div style="margin-top: 0.5rem;">${JSON.stringify(value, null, 2)}</div>
+                            </div>
+                        `;
+                    }
+                } else {
+                    html += `
+                        <div style="padding: 0.75rem; background: var(--bg-secondary); border-radius: var(--radius);">
+                            <strong>${label}:</strong>
+                            <div style="margin-top: 0.5rem;">${value}</div>
+                        </div>
+                    `;
+                }
+            });
+            
+            html += '</div></div>';
+            return html;
+        }
+        
+        async function applyToOpportunity(opportunityId) {
+            if (typeof CollaborationService === 'undefined') {
+                alert('Collaboration service not available. Please refresh the page.');
+                return;
+            }
+            
+            const currentUser = PMTwinData.Sessions.getCurrentUser();
+            if (!currentUser) {
+                window.location.href = '../../login/';
+                return;
+            }
+            
+            // Navigate to application page or show modal
+            window.location.href = `../../collaboration/applications/?opportunity=${opportunityId}`;
+        }
+    </script>
+</body>
+</html>
+

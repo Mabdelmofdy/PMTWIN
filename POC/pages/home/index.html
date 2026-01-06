@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PMTwin - Digitize Construction Collaboration in MENA</title>
+    <link rel="stylesheet" href="../../assets/css/main.css">
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="container">
+            <div class="navbar-content">
+                <a href="../home/" class="navbar-brand">PMTwin</a>
+                <button class="navbar-toggle" id="navbarToggle" aria-label="Toggle navigation"><i class="ph ph-list"></i></button>
+                <ul class="navbar-nav" id="navbarNav">
+                    <li><a href="../home/" class="navbar-link active">Home</a></li>
+                    <li><a href="../discovery/" class="navbar-link">Discover Projects</a></li>
+                    <li><a href="../wizard/" class="navbar-link">PMTwin Wizard</a></li>
+                    <li><a href="../knowledge/" class="navbar-link">Knowledge Hub</a></li>
+                    <li><a href="../service-providers/" class="navbar-link">Service Providers Directory</a></li>
+                    <li><a href="../auth/signup/" class="navbar-link">Sign Up</a></li>
+                    <li><a href="../auth/login/" class="navbar-link">Login</a></li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main>
+        <!-- Hero Section -->
+        <section id="hero" class="hero" style="position: relative; min-height: 600px; display: flex; align-items: center; background: linear-gradient(135deg, #0d7377 0%, #14a085 100%);">
+            <div class="container" style="position: relative; z-index: 2;">
+                <div style="text-align: center; color: white; max-width: 900px; margin: 0 auto;">
+                    <h1 style="font-size: 3.5rem; font-weight: 700; margin-bottom: 1.5rem; line-height: 1.2;">Digitize Construction Collaboration in MENA</h1>
+                    <p style="font-size: 1.25rem; margin-bottom: 2.5rem; line-height: 1.6; opacity: 0.95;">
+                        Connect, collaborate, and execute mega-projects through intelligent matching and flexible resource exchange. Transform how construction companies partner, share resources, and grow together.
+                    </p>
+                    <div style="display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap;">
+                        <a href="../auth/signup/" class="btn btn-primary btn-lg" style="padding: 1rem 2rem; font-size: 1.1rem; font-weight: 600; text-decoration: none; display: inline-block;">Get Started</a>
+                        <a href="../discovery/" class="btn btn-outline btn-lg" style="padding: 1rem 2rem; font-size: 1.1rem; font-weight: 600; background: rgba(255,255,255,0.1); border: 2px solid white; color: white; text-decoration: none; display: inline-block;">Explore Projects</a>
+                    </div>
+                </div>
+            </div>
+            <!-- Decorative background elements -->
+            <div style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; overflow: hidden; z-index: 1; opacity: 0.1;">
+                <svg width="100%" height="100%" style="position: absolute;">
+                    <defs>
+                        <pattern id="birds" x="0" y="0" width="200" height="200" patternUnits="userSpaceOnUse">
+                            <path d="M50,50 Q60,40 70,50 T90,50" stroke="white" stroke-width="2" fill="none" opacity="0.3"/>
+                            <path d="M120,80 Q130,70 140,80 T160,80" stroke="white" stroke-width="2" fill="none" opacity="0.3"/>
+                            <path d="M30,120 Q40,110 50,120 T70,120" stroke="white" stroke-width="2" fill="none" opacity="0.3"/>
+                        </pattern>
+                    </defs>
+                    <rect width="100%" height="100%" fill="url(#birds)"/>
+                </svg>
+            </div>
+        </section>
+
+        <!-- About Section -->
+        <section id="about" style="padding: 4rem 0;">
+            <div class="container">
+                <h2 style="text-align: center; margin-bottom: 2rem;">About PMTwin</h2>
+                <div id="aboutContent">
+                    <!-- Content will be loaded dynamically -->
+                </div>
+            </div>
+        </section>
+
+        <!-- Services Section -->
+        <section id="services" style="padding: 4rem 0; background: var(--bg-secondary);">
+            <div class="container">
+                <h2 style="text-align: center; margin-bottom: 2rem;">Our Services</h2>
+                <div id="servicesContent">
+                    <!-- Content will be loaded dynamically -->
+                </div>
+            </div>
+        </section>
+
+        <!-- Discovery Engine Preview -->
+        <section class="container" style="padding: var(--spacing-16) var(--container-padding);">
+            <h2 style="text-align: center; margin-bottom: var(--spacing-8);">Active Mega-Projects</h2>
+            <div id="projectsPreview">
+                <!-- Projects preview will be loaded here -->
+            </div>
+            <div style="text-align: center; margin-top: 2rem;">
+                <a href="../discovery/" class="btn btn-primary btn-lg">View All Projects</a>
+            </div>
+        </section>
+    </main>
+
+    <!-- Footer -->
+    <footer id="publicFooter" style="background: var(--bg-dark); color: var(--text-inverse); margin-top: var(--spacing-16);">
+        <!-- Footer content will be loaded dynamically -->
+    </footer>
+
+    <!-- Configuration (must load first) -->
+    <script src="../../src/config/config.js"></script>
+    
+    <!-- API Layer (for future Java backend integration) -->
+    <script src="../../src/core/api/api-client.js"></script>
+    <script src="../../src/core/api/api-service.js"></script>
+    
+    <!-- Core Scripts -->
+    <script src="../../src/core/data/data.js"></script>
+    <script src="../../src/core/auth/auth.js"></script>
+    <script src="../../src/utils/demo-credentials.js"></script>
+    <script src="../../data/data-loader.js"></script>
+    
+    <!-- Load renderer -->
+    <script src="../../src/core/renderer/renderer.js"></script>
+    <script src="../../src/core/init/main.js"></script>
+    
+    <!-- Footer Component -->
+    <script src="../../src/components/footer.js"></script>
+    
+    <!-- Component Scripts -->
+    <script src="../../features/public/home.js"></script>
+    
+    <!-- Initialize Component -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Initialize landing page renderer
+            if (typeof initLandingPage === 'function') {
+                initLandingPage();
+            }
+            
+            // Initialize home component
+            if (window.public && window.public.home) {
+                window.public.home.init();
+            }
+        });
+    </script>
+</body>
+</html>
+
+
+

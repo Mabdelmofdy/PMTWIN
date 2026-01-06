@@ -10,22 +10,30 @@
 
 2. **Login with demo accounts**:
    - **Admin**: `admin@pmtwin.com` / `Admin123`
-   - **Individual**: `individual@pmtwin.com` / `User123`
-   - **Entity**: `entity@pmtwin.com` / `Entity123`
+   - **Entity**: `entity@pmtwin.com` / `Entity123` (Creates and requests projects/megaprojects)
+   - **Vendor**: `vendor@pmtwin.com` / `Vendor123` (Provides full projects/subprojects, manages sub_contractors)
+   - **Sub_Contractor**: `subcontractor@pmtwin.com` / `SubContractor123` (Works under vendors for minor scope)
 
 ## Project Structure
 
+This POC has been reorganized into a professional project structure. See [ARCHITECTURE.md](ARCHITECTURE.md) for detailed documentation.
+
 ```
 POC/
-├── index.html              # Entry point (redirects to home/)
-├── [feature]/              # Feature directories (24 features)
-│   └── index.html          # Feature page
-├── css/                    # Stylesheets
-├── js/                     # Core JavaScript
-├── features/               # Feature components
-├── services/               # Service layer
-├── data/                   # Data files (JSON)
+├── src/                    # Source code
+│   ├── business-logic/    # Domain logic, models, validators
+│   ├── components/         # Reusable UI components
+│   ├── services/           # API services
+│   ├── utils/             # Helpers and utilities
+│   ├── config/             # Configuration
+│   └── core/               # Core application logic
+├── pages/                  # All HTML pages organized by feature
+├── features/               # Feature-specific JS (page controllers)
+├── data/                   # Static data files (JSON)
+├── assets/                 # Static assets (CSS, images)
+├── templates/              # HTML templates
 ├── docs/                   # Documentation
+├── scripts/                # Build/deployment scripts
 └── archive/                # Archived obsolete files
 ```
 

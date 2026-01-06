@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Discover Projects - PMTwin</title>
+    <link rel="stylesheet" href="../../assets/css/main.css">
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="container">
+            <div class="navbar-content">
+                <a href="../home/" class="navbar-brand">PMTwin</a>
+                <button class="navbar-toggle" id="navbarToggle" aria-label="Toggle navigation"><i class="ph ph-list"></i></button>
+                <ul class="navbar-nav" id="navbarNav">
+                    <li><a href="../home/" class="navbar-link">Home</a></li>
+                    <li><a href="../discovery/" class="navbar-link active">Discover Projects</a></li>
+                    <li><a href="../wizard/" class="navbar-link">PMTwin Wizard</a></li>
+                    <li><a href="../knowledge/" class="navbar-link">Knowledge Hub</a></li>
+                    <li><a href="../service-providers/" class="navbar-link">Service Providers Directory</a></li>
+                    <li><a href="../auth/signup/" class="navbar-link">Sign Up</a></li>
+                    <li><a href="../auth/login/" class="navbar-link">Login</a></li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="page-wrapper">
+        <div class="container">
+            <!-- Page Header -->
+            <div class="page-header">
+                <div class="page-header-content">
+                    <div>
+                        <h1>Discover Projects</h1>
+                        <p>Browse available projects and find opportunities that match your expertise</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Filter Section -->
+            <div class="content-section">
+                <div class="card filters-section">
+                    <div class="card-body">
+                        <h3 class="section-title">Filter Projects</h3>
+                        <form id="discoveryFiltersForm" onsubmit="return discoveryComponent.applyFilters(event)" class="filter-row">
+                            <div class="form-group">
+                                <label for="discoveryCategoryFilter" class="form-label">Category</label>
+                                <select id="discoveryCategoryFilter" class="form-control">
+                                    <option value="">All Categories</option>
+                                    <option value="Infrastructure">Infrastructure</option>
+                                    <option value="Residential">Residential</option>
+                                    <option value="Commercial">Commercial</option>
+                                    <option value="Industrial">Industrial</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="discoveryLocationFilter" class="form-label">Location</label>
+                                <input type="text" id="discoveryLocationFilter" class="form-control" placeholder="City or Region">
+                            </div>
+                            <div class="form-group">
+                                <label for="discoveryStatusFilter" class="form-label">Status</label>
+                                <select id="discoveryStatusFilter" class="form-control">
+                                    <option value="">All Statuses</option>
+                                    <option value="active">Active</option>
+                                    <option value="draft">Draft</option>
+                                </select>
+                            </div>
+                            <div class="form-group" style="display: flex; gap: var(--spacing-3); align-items: flex-end;">
+                                <button type="submit" class="btn btn-primary">Apply Filters</button>
+                                <button type="button" onclick="discoveryComponent.clearFilters()" class="btn btn-secondary">Clear</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Projects Grid -->
+            <div class="content-section">
+                <div id="discoveryProjectsList">
+                    <!-- Projects will be loaded here -->
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer id="publicFooter" style="background: var(--bg-dark); color: var(--text-inverse); margin-top: var(--spacing-16);">
+        <!-- Footer content will be loaded dynamically -->
+    </footer>
+
+    <!-- Configuration (must load first) -->
+    <script src="../../src/config/config.js"></script>
+    
+    <!-- API Layer (for future Java backend integration) -->
+    <script src="../../src/core/api/api-client.js"></script>
+    <script src="../../src/core/api/api-service.js"></script>
+    
+    <!-- Core Scripts -->
+    <script src="../../src/core/data/data.js"></script>
+    <script src="../../src/core/auth/auth.js"></script>
+    <script src="../../src/utils/demo-credentials.js"></script>
+    <script src="../../src/services/services-loader.js"></script>
+    <script src="../../data/data-loader.js"></script>
+    
+    <!-- Footer Component -->
+    <script src="../../src/components/footer.js"></script>
+    
+    <!-- Component Scripts -->
+    <script src="../../features/public/discovery.js"></script>
+    
+    <!-- Initialize Component -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            if (window.public && window.public.discovery) {
+                window.public.discovery.init();
+            }
+        });
+    </script>
+</body>
+</html>
+
+
+

@@ -1,11 +1,12 @@
 {
   "roles": {
-    "project_lead": {
-      "id": "project_lead",
-      "name": "Project Lead (Contractor)",
-      "description": "Posts tenders, forms consortia, hires resources, and initiates SPVs",
+    "entity": {
+      "id": "entity",
+      "name": "Entity (Corporate/Organization)",
+      "description": "Creates and requests projects/megaprojects. Defines project requirements and reviews proposals",
       "permissions": [
         "create_projects",
+        "create_megaprojects",
         "edit_own_projects",
         "delete_own_projects",
         "view_own_projects",
@@ -14,6 +15,7 @@
         "form_consortia",
         "create_spvs",
         "view_proposals",
+        "review_proposals",
         "approve_proposals",
         "reject_proposals",
         "create_collaboration_opportunities",
@@ -57,11 +59,112 @@
       "portals": ["user_portal"],
       "availableModels": ["1.1", "1.2", "1.3", "1.4", "2.1", "2.2", "3.1", "3.2", "3.3", "4.1", "4.2", "5.1"],
       "restrictions": [
+        "Cannot submit proposals (only receives them)",
         "Cannot view other entities' private projects",
         "Cannot approve/reject other entities' proposals",
         "Cannot access admin features"
       ]
     },
+    "vendor": {
+      "id": "vendor",
+      "name": "Vendor (Service Provider/Contractor)",
+      "description": "Provides full megaprojects or complete subprojects. Cannot deliver partial work. Manages sub_contractors",
+      "permissions": [
+        "view_public_projects",
+        "view_service_providers",
+        "submit_proposals",
+        "bid_on_projects",
+        "bid_on_subprojects",
+        "manage_sub_contractors",
+        "receive_sub_contractor_proposals",
+        "approve_sub_contractor_proposals",
+        "reject_sub_contractor_proposals",
+        "create_task_based_engagements",
+        "apply_to_task_based_engagements",
+        "create_strategic_alliances",
+        "join_strategic_alliances",
+        "manage_service_portfolio",
+        "create_service_offerings",
+        "edit_own_service_offerings",
+        "service_offering:delete",
+        "service_offering:view",
+        "view_own_dashboard",
+        "manage_own_profile",
+        "view_own_notifications"
+      ],
+      "features": [
+        "user_dashboard",
+        "merchant_portal",
+        "project_browsing",
+        "matches_view",
+        "task_based_engagement",
+        "strategic_alliances",
+        "service_portfolio",
+        "service_providers",
+        "service_evaluations",
+        "collaboration_opportunities",
+        "collaboration_applications",
+        "proposal_creation",
+        "proposal_management",
+        "sub_contractor_management",
+        "pipeline_management",
+        "profile_management",
+        "notifications"
+      ],
+      "portals": ["user_portal"],
+      "availableModels": ["1.1", "2.2"],
+      "restrictions": [
+        "Cannot submit proposals for partial work (only full projects or complete subprojects)",
+        "Cannot create mega-projects",
+        "Cannot post tenders",
+        "Cannot access admin features"
+      ]
+    },
+    "sub_contractor": {
+      "id": "sub_contractor",
+      "name": "Sub_Contractor (Individual Service Provider)",
+      "description": "Works ONLY under vendors for minor scope work. Cannot work directly with entities",
+      "permissions": [
+        "submit_proposals_to_vendors",
+        "view_vendor_opportunities",
+        "manage_own_proposals",
+        "edit_own_proposals",
+        "delete_own_proposals",
+        "view_own_proposals",
+        "view_own_applications",
+        "view_service_providers",
+        "view_own_dashboard",
+        "manage_own_profile",
+        "view_own_notifications"
+      ],
+      "features": [
+        "user_dashboard",
+        "project_browsing",
+        "matches_view",
+        "service_providers",
+        "service_evaluations",
+        "proposal_creation",
+        "proposal_management",
+        "collaboration_opportunities",
+        "collaboration_applications",
+        "pipeline_management",
+        "profile_management",
+        "notifications"
+      ],
+      "portals": ["user_portal"],
+      "availableModels": ["1.1"],
+      "restrictions": [
+        "Cannot submit proposals to entities (only to vendors)",
+        "Cannot bid on full projects or subprojects directly",
+        "Cannot create projects",
+        "Cannot access admin features",
+        "Must be associated with a vendor"
+      ]
+    },
+    "project_lead": {
+      "id": "project_lead",
+      "name": "Project Lead (Contractor) - Legacy",
+      "description": "Legacy role - use 'entity' instead. Posts tenders, forms consortia, hires resources, and initiates SPVs",
     "supplier": {
       "id": "supplier",
       "name": "Supplier",
@@ -107,8 +210,8 @@
     },
     "service_provider": {
       "id": "service_provider",
-      "name": "Service Provider",
-      "description": "Offers specialized B2B services (Legal, Logistics, Design) for Task-Based or SPV models",
+      "name": "Service Provider - Legacy",
+      "description": "Legacy role - use 'vendor' instead. Offers specialized B2B services (Legal, Logistics, Design) for Task-Based or SPV models",
       "permissions": [
         "view_public_projects",
         "view_service_providers",
@@ -153,8 +256,8 @@
     },
     "professional": {
       "id": "professional",
-      "name": "Professional / Expert",
-      "description": "Accepts task-based engagements, joins consortia as a member, or seeks full-time hiring",
+      "name": "Professional / Expert - Legacy",
+      "description": "Legacy role - use 'sub_contractor' for this use case. Accepts task-based engagements, joins consortia as a member, or seeks full-time hiring",
       "permissions": [
         "view_public_projects",
         "apply_to_task_based_engagements",
@@ -378,6 +481,15 @@
     "proposal_management": "Manage own proposals",
     "proposal_review": "Review proposals received for own projects",
     "proposal_viewing": "View all proposals (read-only)",
+    "sub_contractor_management": "Manage sub_contractors under vendor",
+    "submit_proposals_to_vendors": "Submit proposals to vendors (sub_contractors only)",
+    "view_vendor_opportunities": "View opportunities from vendors",
+    "bid_on_projects": "Bid on full projects",
+    "bid_on_subprojects": "Bid on complete subprojects",
+    "receive_sub_contractor_proposals": "Receive proposals from sub_contractors",
+    "approve_sub_contractor_proposals": "Approve sub_contractor proposals",
+    "reject_sub_contractor_proposals": "Reject sub_contractor proposals",
+    "create_megaprojects": "Create mega-projects with subprojects",
     "collaboration_opportunities": "Create and manage collaboration opportunities",
     "collaboration_applications": "Apply to collaboration opportunities",
     "task_based_engagement": "Task-based engagement opportunities",

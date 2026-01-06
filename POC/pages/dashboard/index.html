@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - PMTwin</title>
+    <link rel="stylesheet" href="../../assets/css/main.css">
+</head>
+<body>
+    <!-- Main Content - Sidebar and Navbar are automatically added by layout system -->
+    <main class="page-wrapper">
+        <div class="container">
+            <div class="page-header">
+                <div class="page-header-content">
+                    <div>
+                        <h1>Dashboard</h1>
+                        <p>Welcome back! Here's an overview of your projects and activities.</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="content-section">
+                <div id="dashboardContent">
+                    <!-- Dashboard content will be loaded here -->
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Configuration (must load first) -->
+    <script src="../../src/config/config.js"></script>
+    
+    <!-- API Layer (for future Java backend integration) -->
+    <script src="../../src/core/api/api-client.js"></script>
+    <script src="../../src/core/api/api-service.js"></script>
+    
+    <!-- Core Scripts -->
+    <script src="../../src/core/data/data.js"></script>
+    <script src="../../src/core/auth/user-manager.js"></script>
+    <script src="../../src/core/auth/auth.js"></script>
+    <script src="../../src/core/auth/auth-check.js"></script>
+    <script src="../../src/utils/demo-credentials.js"></script>
+    <script src="../../src/services/services-loader.js"></script>
+    <script src="../../data/data-loader.js"></script>
+    
+    <!-- Layout System (automatically includes sidebar and navbar) -->
+    <script src="../../src/core/layout/layout.js"></script>
+    <script src="../../src/core/layout/navigation.js"></script>
+    <script src="../../src/core/init/app-init.js"></script>
+    
+    <!-- Load renderer -->
+    <script src="../../src/core/renderer/renderer.js"></script>
+    
+    <!-- Component Scripts -->
+    <script src="../../features/dashboard/dashboard.js"></script>
+    
+    <!-- Initialize Component -->
+    <script>
+        document.addEventListener('DOMContentLoaded', async function() {
+            // Check authentication
+            const isAuth = await AuthCheck.checkAuth({ requireAuth: true });
+            if (!isAuth) return;
+            
+            // Initialize dashboard
+            // Note: Sidebar and navbar are automatically initialized by app-init.js
+            if (window.dashboard && window.dashboard.dashboard) {
+                window.dashboard.dashboard.init();
+            }
+        });
+    </script>
+</body>
+</html>
+

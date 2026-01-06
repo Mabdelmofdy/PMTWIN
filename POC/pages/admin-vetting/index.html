@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Vetting - PMTwin Admin</title>
+    <link rel="stylesheet" href="../../assets/css/main.css">
+</head>
+<body>
+    <!-- Main Content - Sidebar and Navbar are automatically added by layout system -->
+    <main class="page-wrapper">
+        <div class="container">
+            <!-- Page Header -->
+            <div class="page-header">
+                <div class="page-header-content">
+                    <div>
+                        <h1>User Vetting</h1>
+                        <p>Review and manage user account approvals and vetting status</p>
+                    </div>
+                    <div class="page-actions">
+                        <button type="button" class="btn btn-secondary btn-sm" onclick="if(window.adminVettingComponent) { window.adminVettingComponent.createRejectedTestUsers(); }">
+                            <i class="ph ph-plus"></i> Add Rejected Test Data
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Simplified Filter Section -->
+            <div class="content-section">
+                <div class="card filters-section">
+                    <div class="card-body">
+                        <h3 class="section-title">Filter Users</h3>
+                        <form id="vettingFiltersForm" onsubmit="return adminVettingComponent.applyFilters(event)" class="filter-row">
+                            <div class="form-group" style="position: relative;">
+                                <i class="ph ph-magnifying-glass" style="position: absolute; left: 0.75rem; top: 50%; transform: translateY(-50%); color: var(--text-secondary); pointer-events: none; z-index: 1;"></i>
+                                <label for="userSearch" class="form-label">Search</label>
+                                <input type="text" id="userSearch" class="form-control" placeholder="Search by name or email..." style="padding-left: 2.5rem;">
+                            </div>
+                            <div class="form-group">
+                                <label for="userStatusFilter" class="form-label">Status</label>
+                                <select id="userStatusFilter" class="form-control">
+                                    <option value="all_vetting" selected>All Vetting Statuses</option>
+                                    <option value="pending">Pending</option>
+                                    <option value="under_review">Under Review</option>
+                                    <option value="rejected">Rejected</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="userTypeFilter" class="form-label">User Type</label>
+                                <select id="userTypeFilter" class="form-control">
+                                    <option value="">All Types</option>
+                                    <option value="individual">Individual</option>
+                                    <option value="entity">Entity</option>
+                                </select>
+                            </div>
+                            <div class="form-group" style="display: flex; gap: var(--spacing-3);">
+                                <button type="button" onclick="adminVettingComponent.toggleAdvancedFilters()" class="btn btn-outline">
+                                    <i class="ph ph-funnel"></i> More
+                                </button>
+                                <button type="button" onclick="adminVettingComponent.clearFilters()" class="btn btn-secondary">
+                                    <i class="ph ph-x"></i> Clear
+                                </button>
+                            </div>
+                        <div id="advancedFilters" style="display: none; margin-top: 1rem; padding-top: 1rem; border-top: 1px solid var(--border-color);">
+                            <div class="filter-row">
+                                <div class="form-group">
+                                    <label for="onboardingStageFilter" class="form-label">Onboarding Stage</label>
+                                    <select id="onboardingStageFilter" class="form-control">
+                                        <option value="">All Stages</option>
+                                        <option value="registered">Registered</option>
+                                        <option value="profile_in_progress">Profile In Progress</option>
+                                        <option value="under_review">Under Review</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label for="dateFromFilter" class="form-label">From Date</label>
+                                    <input type="date" id="dateFromFilter" class="form-control" placeholder="From Date">
+                                </div>
+                                <div class="form-group">
+                                    <label for="dateToFilter" class="form-label">To Date</label>
+                                    <input type="date" id="dateToFilter" class="form-control" placeholder="To Date">
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Users List -->
+            <div class="content-section">
+                <div id="usersList">
+                    <!-- Users will be loaded here -->
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Configuration (must load first) -->
+    <script src="../../src/config/config.js"></script>
+    
+    <!-- API Layer (for future Java backend integration) -->
+    <script src="../../src/core/api/api-client.js"></script>
+    <script src="../../src/core/api/api-service.js"></script>
+    
+    <!-- Core Scripts -->
+    <script src="../../src/core/data/data.js"></script>
+    <script src="../../src/core/auth/auth.js"></script>
+    <script src="../../src/core/auth/auth-check.js"></script>
+    <script src="../../src/utils/demo-credentials.js"></script>
+    <script src="../../src/services/services-loader.js"></script>
+    <script src="../../data/data-loader.js"></script>
+    
+    <!-- Admin Service (must load before admin-vetting component) -->
+    <script src="../services/admin/admin-service.js"></script>
+    
+    <!-- Layout System (automatically includes sidebar and navbar) -->
+    <script src="../../src/core/layout/layout.js"></script>
+    <script src="../../src/core/layout/navigation.js"></script>
+    <script src="../../src/core/init/app-init.js"></script>
+    
+    <!-- Component Scripts -->
+    <script src="../../features/admin/admin-vetting.js"></script>
+    
+    <!-- Initialize Component -->
+    <script>
+        document.addEventListener('DOMContentLoaded', async function() {
+            // Check authentication and admin role
+            const isAuth = await AuthCheck.checkAuth({ requireAuth: true, requireRole: 'admin' });
+            if (!isAuth) return;
+            
+            // Initialize admin vetting
+            // Note: Sidebar and navbar are automatically initialized by app-init.js
+            if (window.admin && window.admin['admin-vetting']) {
+                window.admin['admin-vetting'].init();
+            }
+        });
+    </script>
+</body>
+</html>
+

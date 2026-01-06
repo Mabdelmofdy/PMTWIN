@@ -1,0 +1,407 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Edit Collaboration Opportunity - PMTwin</title>
+    <link rel="stylesheet" href="../../../assets/css/main.css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap">
+    <link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.0.3/src/regular/style.css">
+</head>
+<body>
+    <!-- Main Content - Sidebar and Navbar are automatically added by layout system -->
+    <main>
+        <div class="container" style="padding: 2rem 0;">
+            <div id="editCollaborationContent">
+                <div class="loading">
+                    <div class="spinner"></div>
+                    <p>Loading collaboration opportunity...</p>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Configuration (must load first) -->
+    <script type="text/javascript" src="../../../src/config/config.js"></script>
+    
+    <!-- API Layer (for future Java backend integration) -->
+    <script type="text/javascript" src="../../../src/core/api/api-client.js"></script>
+    <script type="text/javascript" src="../../../src/core/api/api-service.js"></script>
+    
+    <!-- Core Scripts -->
+    <script type="text/javascript" src="../../../src/core/data/data.js"></script>
+    <script type="text/javascript" src="../../../src/core/auth/auth.js"></script>
+    <script type="text/javascript" src="../../../src/core/auth/auth-check.js"></script>
+    <script type="text/javascript" src="../../../src/utils/demo-credentials.js"></script>
+    <script type="text/javascript" src="../../../src/services/services-loader.js"></script>
+    <script type="text/javascript" src="../../../data/data-loader.js"></script>
+    
+    <!-- Layout System (automatically includes sidebar and navbar) -->
+    <script type="text/javascript" src="../../../src/core/layout/layout.js"></script>
+    <script type="text/javascript" src="../../../src/core/layout/navigation.js"></script>
+    <script type="text/javascript" src="../../../src/core/init/app-init.js"></script>
+    
+    <!-- Collaboration Models Scripts -->
+    <script type="text/javascript" src="../../../src/business-logic/models/collaboration-model-definitions.js"></script>
+    <script type="text/javascript" src="../../../src/business-logic/models/collaboration-models.js"></script>
+    
+    <!-- Component Scripts -->
+    <script type="text/javascript" src="../../../features/collaboration/collaboration-opportunities.js"></script>
+    
+    <!-- Initialize Component -->
+    <script type="text/javascript">
+        let currentOpportunity = null;
+        let currentOpportunityId = null;
+
+        document.addEventListener('DOMContentLoaded', async function() {
+            // Check authentication
+            const isAuth = await AuthCheck.checkAuth({ requireAuth: true });
+            if (!isAuth) {
+                window.location.href = '../../login/';
+                return;
+            }
+            
+            // Extract opportunity ID from URL
+            // Try query parameter first: /collaboration/edit/?id=collab_xxx
+            // Fallback to path segment: /collaboration/edit/collab_xxx/
+            let opportunityId = null;
+            
+            // Check query parameter
+            const urlParams = new URLSearchParams(window.location.search);
+            opportunityId = urlParams.get('id');
+            
+            // If not in query, try path segment
+            if (!opportunityId) {
+                const pathParts = window.location.pathname.split('/').filter(p => p);
+                const editIndex = pathParts.indexOf('edit');
+                if (editIndex !== -1 && pathParts[editIndex + 1]) {
+                    opportunityId = pathParts[editIndex + 1];
+                }
+            }
+            
+            if (!opportunityId) {
+                document.getElementById('editCollaborationContent').innerHTML = `
+                    <div class="alert alert-error">
+                        <p>Invalid collaboration opportunity ID. Please go back and try again.</p>
+                        <a href="../../collaboration/my-collaborations/" class="btn btn-primary">Back to My Collaborations</a>
+                    </div>
+                `;
+                return;
+            }
+            
+            currentOpportunityId = opportunityId;
+            
+            // Wait for services to load
+            function waitForServices() {
+                return new Promise((resolve) => {
+                    if (typeof CollaborationService !== 'undefined' && 
+                        typeof CollaborationModels !== 'undefined' &&
+                        typeof CollaborationModelsUI !== 'undefined') {
+                        resolve();
+                    } else {
+                        window.addEventListener('servicesLoaded', resolve, { once: true });
+                        setTimeout(resolve, 3000);
+                    }
+                });
+            }
+            
+            await waitForServices();
+            
+            // Load and display edit form
+            await loadEditForm(opportunityId);
+        });
+        
+        async function loadEditForm(opportunityId) {
+            const container = document.getElementById('editCollaborationContent');
+            
+            try {
+                if (typeof CollaborationService === 'undefined') {
+                    container.innerHTML = `
+                        <div class="alert alert-error">
+                            <p>Collaboration service not available. Please refresh the page.</p>
+                        </div>
+                    `;
+                    return;
+                }
+                
+                // Get opportunity details
+                const result = await CollaborationService.getOpportunityById(opportunityId, false);
+                if (!result.success || !result.opportunity) {
+                    container.innerHTML = `
+                        <div class="alert alert-error">
+                            <p>${result.error || 'Collaboration opportunity not found'}</p>
+                            <a href="../../collaboration/my-collaborations/" class="btn btn-primary">Back to My Collaborations</a>
+                        </div>
+                    `;
+                    return;
+                }
+                
+                currentOpportunity = result.opportunity;
+                
+                // Check if user is the creator
+                const currentUser = PMTwinData.Sessions.getCurrentUser();
+                if (currentOpportunity.creatorId !== currentUser.id) {
+                    container.innerHTML = `
+                        <div class="alert alert-error">
+                            <p>You don't have permission to edit this collaboration opportunity.</p>
+                            <a href="../../collaboration/view/?id=${opportunityId}" class="btn btn-primary">View Details</a>
+                            <a href="../../collaboration/my-collaborations/" class="btn btn-secondary">Back to My Collaborations</a>
+                        </div>
+                    `;
+                    return;
+                }
+                
+                // Get model information
+                const modelId = currentOpportunity.modelId || currentOpportunity.modelType;
+                const model = typeof CollaborationModels !== 'undefined' 
+                    ? CollaborationModels.getModel(modelId) 
+                    : null;
+                
+                if (!model) {
+                    container.innerHTML = `
+                        <div class="alert alert-error">
+                            <p>Collaboration model not found. Cannot edit this opportunity.</p>
+                            <a href="../../collaboration/my-collaborations/" class="btn btn-primary">Back to My Collaborations</a>
+                        </div>
+                    `;
+                    return;
+                }
+                
+                // Initialize CollaborationModelsUI
+                if (typeof CollaborationModelsUI !== 'undefined') {
+                    CollaborationModelsUI.init(currentUser);
+                }
+                
+                // Build edit form HTML
+                let html = `
+                    <div style="margin-bottom: 1.5rem;">
+                        <a href="../../collaboration/my-collaborations/" class="btn btn-secondary btn-sm" style="margin-bottom: 1rem;">
+                            <i class="ph ph-arrow-left"></i> Back to My Collaborations
+                        </a>
+                    </div>
+                    
+                    <div class="card">
+                        <div class="card-body">
+                            <h1 style="margin-bottom: 1rem;">Edit Collaboration Opportunity</h1>
+                            <p style="color: var(--text-secondary); margin-bottom: 2rem;">
+                                <strong>Model:</strong> ${model.name || modelId} • 
+                                <strong>Status:</strong> <span class="badge badge-${getStatusColor(currentOpportunity.status)}">${currentOpportunity.status || 'draft'}</span>
+                            </p>
+                            
+                            <form id="editCollaborationForm" onsubmit="handleEditFormSubmit(event)">
+                                <div id="collaborationFormContainer">
+                                    <!-- Form will be generated here -->
+                                </div>
+                                
+                                <div style="margin-top: 2rem; display: flex; gap: 1rem; justify-content: flex-end;">
+                                    <a href="../../collaboration/view/?id=${opportunityId}" class="btn btn-secondary">
+                                        <i class="ph ph-x"></i> Cancel
+                                    </a>
+                                    <button type="submit" class="btn btn-primary">
+                                        <i class="ph ph-floppy-disk"></i> Save Changes
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                `;
+                
+                container.innerHTML = html;
+                
+                // Generate form with existing data
+                const formContainer = document.getElementById('collaborationFormContainer');
+                if (formContainer) {
+                    // Pre-fill form with existing opportunity data
+                    const formData = currentOpportunity.attributes || {};
+                    
+                    if (typeof CollaborationModelsUI !== 'undefined' && CollaborationModelsUI.generateForm) {
+                        try {
+                            // Use CollaborationModelsUI to generate form
+                            const formHtml = CollaborationModelsUI.generateForm(modelId, formData);
+                            formContainer.innerHTML = formHtml;
+                        } catch (error) {
+                            console.error('Error generating form with CollaborationModelsUI:', error);
+                            // Fallback: manual form generation
+                            generateEditForm(model, formData);
+                        }
+                    } else {
+                        // Fallback: manual form generation
+                        generateEditForm(model, formData);
+                    }
+                }
+                
+            } catch (error) {
+                console.error('Error loading edit form:', error);
+                container.innerHTML = `
+                    <div class="alert alert-error">
+                        <p>Error loading collaboration opportunity: ${error.message}</p>
+                        <a href="../../collaboration/my-collaborations/" class="btn btn-primary">Back to My Collaborations</a>
+                    </div>
+                `;
+            }
+        }
+        
+        function getStatusColor(status) {
+            const colors = {
+                'active': 'success',
+                'draft': 'warning',
+                'closed': 'danger',
+                'pending': 'info'
+            };
+            return colors[status] || 'secondary';
+        }
+        
+        function generateEditForm(model, formData) {
+            const container = document.getElementById('collaborationFormContainer');
+            if (!container || !model) return;
+            
+            let html = '';
+            const attributes = model.attributes || [];
+            
+            attributes.forEach(attr => {
+                const value = formData[attr.name];
+                html += `<div class="form-group">`;
+                html += `<label for="edit_${attr.name}">${attr.question || attr.name}${attr.required ? ' <span style="color: red;">*</span>' : ''}</label>`;
+                
+                if (attr.type === 'Text' || attr.type === 'String') {
+                    html += `<input type="text" id="edit_${attr.name}" name="${attr.name}" class="form-control" value="${escapeHtml(value || '')}" ${attr.required ? 'required' : ''}>`;
+                } else if (attr.type === 'Integer') {
+                    html += `<input type="number" id="edit_${attr.name}" name="${attr.name}" class="form-control" value="${value || ''}" ${attr.required ? 'required' : ''}>`;
+                } else if (attr.type === 'Decimal' || attr.type === 'Currency') {
+                    html += `<input type="number" step="0.01" id="edit_${attr.name}" name="${attr.name}" class="form-control" value="${value || ''}" ${attr.required ? 'required' : ''}>`;
+                } else if (attr.type === 'Boolean') {
+                    html += `<select id="edit_${attr.name}" name="${attr.name}" class="form-control" ${attr.required ? 'required' : ''}>`;
+                    html += `<option value="true" ${value === true ? 'selected' : ''}>Yes</option>`;
+                    html += `<option value="false" ${value === false ? 'selected' : ''}>No</option>`;
+                    html += `</select>`;
+                } else if (attr.type === 'TextArea') {
+                    html += `<textarea id="edit_${attr.name}" name="${attr.name}" class="form-control" rows="4" ${attr.required ? 'required' : ''}>${escapeHtml(value || '')}</textarea>`;
+                } else {
+                    html += `<input type="text" id="edit_${attr.name}" name="${attr.name}" class="form-control" value="${escapeHtml(value || '')}" ${attr.required ? 'required' : ''}>`;
+                }
+                
+                html += `</div>`;
+            });
+            
+            container.innerHTML = html;
+        }
+        
+        function escapeHtml(text) {
+            if (!text) return '';
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+        
+        async function handleEditFormSubmit(event) {
+            event.preventDefault();
+            
+            if (!currentOpportunity || !currentOpportunityId) {
+                alert('Opportunity data not loaded. Please refresh the page.');
+                return false;
+            }
+            
+            if (typeof CollaborationService === 'undefined') {
+                alert('Collaboration service not available. Please refresh the page.');
+                return false;
+            }
+            
+            const form = event.target;
+            const formData = new FormData(form);
+            const currentUser = PMTwinData.Sessions.getCurrentUser();
+            
+            if (!currentUser) {
+                alert('User session not found. Please log in again.');
+                window.location.href = '../../login/';
+                return false;
+            }
+            
+            // Get model
+            const modelId = currentOpportunity.modelId || currentOpportunity.modelType;
+            const model = typeof CollaborationModels !== 'undefined' 
+                ? CollaborationModels.getModel(modelId) 
+                : null;
+            
+            if (!model) {
+                alert('Model not found. Cannot update opportunity.');
+                return false;
+            }
+            
+            // Collect form values
+            const attributes = {};
+            const modelAttributes = model.attributes || [];
+            
+            modelAttributes.forEach(attr => {
+                if (attr.type === 'Boolean') {
+                    attributes[attr.name] = formData.get(attr.name) === 'true';
+                } else if (attr.type === 'CurrencyRange') {
+                    attributes[attr.name] = {
+                        min: parseFloat(formData.get(`${attr.name}_min`)) || 0,
+                        max: parseFloat(formData.get(`${attr.name}_max`)) || 0,
+                        currency: attr.currency || 'SAR'
+                    };
+                } else if (attr.type === 'DateRange') {
+                    attributes[attr.name] = {
+                        start: formData.get(`${attr.name}_start`),
+                        end: formData.get(`${attr.name}_end`)
+                    };
+                } else if (attr.type === 'Array') {
+                    const hiddenInput = document.getElementById(`collab_${attr.name}`);
+                    if (hiddenInput) {
+                        try {
+                            attributes[attr.name] = JSON.parse(hiddenInput.value || '[]');
+                        } catch (e) {
+                            attributes[attr.name] = [];
+                        }
+                    } else {
+                        attributes[attr.name] = [];
+                    }
+                } else {
+                    const value = formData.get(attr.name);
+                    if (value !== null && value !== '') {
+                        if (attr.type === 'Integer') {
+                            attributes[attr.name] = parseInt(value);
+                        } else if (attr.type === 'Currency' || attr.type === 'Decimal') {
+                            attributes[attr.name] = parseFloat(value);
+                        } else {
+                            attributes[attr.name] = value;
+                        }
+                    }
+                }
+            });
+            
+            // Prepare update data
+            const updateData = {
+                attributes: attributes,
+                updatedAt: new Date().toISOString()
+            };
+            
+            // Optional: Allow status change
+            const statusSelect = document.getElementById('edit_status');
+            if (statusSelect) {
+                updateData.status = statusSelect.value;
+            }
+            
+            // Update opportunity
+            try {
+                const result = await CollaborationService.updateCollaborationOpportunity(currentOpportunityId, updateData);
+                
+                if (result.success) {
+                    alert('Collaboration opportunity updated successfully!');
+                    // Redirect to view page
+                    window.location.href = `../../collaboration/view/?id=${currentOpportunityId}`;
+                    return true;
+                } else {
+                    alert(`Error updating opportunity: ${result.error || 'Unknown error'}`);
+                    return false;
+                }
+            } catch (error) {
+                console.error('Error updating opportunity:', error);
+                alert(`Error updating opportunity: ${error.message}`);
+                return false;
+            }
+        }
+    </script>
+</body>
+</html>
+

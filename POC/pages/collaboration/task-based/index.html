@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Task-Based Engagement - PMTwin</title>
+    <link rel="stylesheet" href="../../../assets/css/main.css">
+</head>
+<body>
+    <main class="page-wrapper">
+        <div class="container container-padded">
+            <!-- Page Header -->
+            <div class="page-header">
+                <div class="page-header-content">
+                    <div>
+                        <a href="../../collaboration/" class="btn btn-secondary btn-sm spacing-section">
+                            <i class="ph ph-arrow-left"></i> Back to Collaboration
+                        </a>
+                        <h1>Task-Based Engagement</h1>
+                        <p>Short-term collaboration for executing specific tasks, deliverables, or providing expert consultation.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Collaboration Form Container -->
+            <div class="content-section">
+                <div id="collaborationFormContainer">
+                <div class="loading">
+                    <div class="spinner"></div>
+                    <p>Loading form...</p>
+                </div>
+                </div>
+                
+                <!-- Alternative container ID for compatibility -->
+                <div id="createCollaborationContent" style="display: none;"></div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Configuration (must load first) -->
+    <script src="../../../src/config/config.js"></script>
+    <script src="../../../src/core/api/api-client.js"></script>
+    <script src="../../../src/core/api/api-service.js"></script>
+    <script src="../../../src/core/data/data.js"></script>
+    <script src="../../../src/core/auth/auth.js"></script>
+    <script src="../../../src/core/auth/auth-check.js"></script>
+    <script src="../../../src/utils/demo-credentials.js"></script>
+    <script src="../../../src/services/services-loader.js"></script>
+    <script src="../../../data/data-loader.js"></script>
+    <script src="../../../src/core/layout/layout.js"></script>
+    <script src="../../../src/core/layout/navigation.js"></script>
+    <script src="../../../src/core/init/app-init.js"></script>
+    <script src="../../../src/business-logic/models/collaboration-model-definitions.js"></script>
+    <script src="../../../src/business-logic/models/collaboration-models.js"></script>
+    <script src="../../../src/business-logic/collab-init.js"></script>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            initCollaborationPage('1.1');
+        });
+    </script>
+</body>
+</html>
+

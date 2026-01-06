@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Service Providers Directory - PMTwin</title>
+    <link rel="stylesheet" href="../../assets/css/main.css">
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="container">
+            <div class="navbar-content">
+                <a href="../home/" class="navbar-brand">PMTwin</a>
+                <button class="navbar-toggle" id="navbarToggle" aria-label="Toggle navigation"><i class="ph ph-list"></i></button>
+                <ul class="navbar-nav" id="navbarNav">
+                    <li><a href="../home/" class="navbar-link">Home</a></li>
+                    <li><a href="../discovery/" class="navbar-link">Discover Projects</a></li>
+                    <li><a href="../wizard/" class="navbar-link">PMTwin Wizard</a></li>
+                    <li><a href="../knowledge/" class="navbar-link">Knowledge Hub</a></li>
+                    <li><a href="../service-providers/" class="navbar-link active">Service Providers Directory</a></li>
+                    <li><a href="../auth/signup/" class="navbar-link">Sign Up</a></li>
+                    <li><a href="../auth/login/" class="navbar-link">Login</a></li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="page-wrapper">
+        <div class="container">
+            <!-- Tabs for Directory and Management (if service provider) -->
+            <div id="serviceProvidersTabs" style="margin-bottom: 2rem; display: none;">
+                <div style="display: flex; gap: 0.5rem; border-bottom: 2px solid var(--border-color);">
+                    <button id="tabDirectory" onclick="serviceProvidersComponent.switchView('directory')" 
+                            class="btn btn-secondary" style="border-radius: 0; border-bottom: 2px solid transparent; margin-bottom: -2px;">
+                        <i class="ph ph-list"></i> Browse Providers
+                    </button>
+                    <button id="tabManage" onclick="serviceProvidersComponent.switchView('manage')" 
+                            class="btn btn-secondary" style="border-radius: 0; border-bottom: 2px solid transparent; margin-bottom: -2px; display: none;">
+                        <i class="ph ph-gear"></i> Manage Services
+                    </button>
+                </div>
+            </div>
+
+            <div id="serviceProvidersContent">
+                <!-- Content will be loaded here -->
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer id="publicFooter" style="background: var(--bg-dark); color: var(--text-inverse); margin-top: var(--spacing-16);">
+        <!-- Footer content will be loaded dynamically -->
+    </footer>
+
+    <!-- Configuration (must load first) -->
+    <script src="../../src/config/config.js"></script>
+    
+    <!-- API Layer (for future Java backend integration) -->
+    <script src="../../src/core/api/api-client.js"></script>
+    <script src="../../src/core/api/api-service.js"></script>
+    
+    <!-- Core Scripts -->
+    <script src="../../src/core/data/data.js"></script>
+    <script src="../../src/core/auth/user-manager.js"></script>
+    <script src="../../src/core/auth/auth.js"></script>
+    <script src="../../src/core/auth/auth-check.js"></script>
+    <script src="../../src/utils/demo-credentials.js"></script>
+    <script src="../../src/services/services-loader.js"></script>
+    <script src="../../data/data-loader.js"></script>
+    
+    <!-- Footer Component -->
+    <script src="../../src/components/footer.js"></script>
+    
+    <!-- RBAC Service -->
+    <script src="../services/rbac/role-service.js"></script>
+    
+    <!-- Service Provider Service -->
+    <script src="../services/service-providers/service-provider-service.js"></script>
+    
+    <!-- Component Scripts -->
+    <script src="../../features/service-providers/service-providers.js"></script>
+    
+    <!-- Initialize Component -->
+    <script>
+        // Mobile navigation toggle
+        document.addEventListener('DOMContentLoaded', function() {
+            const toggle = document.getElementById('navbarToggle');
+            const nav = document.getElementById('navbarNav');
+            if (toggle && nav) {
+                toggle.onclick = function() {
+                    nav.classList.toggle('show');
+                };
+            }
+        });
+
+        // Initialize Component
+        document.addEventListener('DOMContentLoaded', async function() {
+            // Check authentication (optional for directory view)
+            const isAuth = await AuthCheck.checkAuth({ requireAuth: false });
+            
+            // Initialize service providers component
+            if (window.serviceProviders && window.serviceProviders.serviceProviders) {
+                await window.serviceProviders.serviceProviders.init();
+                
+                // Show tabs if user is a service provider
+                const currentUser = PMTwinData?.Sessions.getCurrentUser();
+                if (currentUser && typeof PMTwinRBAC !== 'undefined') {
+                    const userRole = await PMTwinRBAC.getCurrentUserRole();
+                    if (userRole === 'service_provider') {
+                        const tabsContainer = document.getElementById('serviceProvidersTabs');
+                        const tabManage = document.getElementById('tabManage');
+                        if (tabsContainer) tabsContainer.style.display = 'block';
+                        if (tabManage) tabManage.style.display = 'inline-block';
+                        
+                        // Update active tab
+                        const urlParams = new URLSearchParams(window.location.search);
+                        const view = urlParams.get('view') || 'directory';
+                        const tabDirectory = document.getElementById('tabDirectory');
+                        if (view === 'manage') {
+                            if (tabDirectory) tabDirectory.classList.remove('active');
+                            if (tabManage) tabManage.classList.add('active');
+                        } else {
+                            if (tabDirectory) tabDirectory.classList.add('active');
+                            if (tabManage) tabManage.classList.remove('active');
+                        }
+                    }
+                }
+            }
+        });
+    </script>
+</body>
+</html>
+
+
+
