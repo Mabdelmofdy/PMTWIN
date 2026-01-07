@@ -9,25 +9,33 @@
       "isActive": true
     },
     {
-      "userId": "demo_entity_001",
+      "userId": "demo_project_lead_001",
       "email": "entity@pmtwin.com",
-      "roleId": "entity",
+      "roleId": "project_lead",
       "assignedAt": "2024-01-01T00:00:00Z",
       "assignedBy": "system",
       "isActive": true
     },
     {
-      "userId": "demo_vendor_001",
-      "email": "vendor@pmtwin.com",
-      "roleId": "vendor",
+      "userId": "demo_supplier_001",
+      "email": "supplier@pmtwin.com",
+      "roleId": "supplier",
       "assignedAt": "2024-01-01T00:00:00Z",
       "assignedBy": "system",
       "isActive": true
     },
     {
-      "userId": "demo_sub_contractor_001",
-      "email": "subcontractor@pmtwin.com",
-      "roleId": "sub_contractor",
+      "userId": "demo_service_provider_001",
+      "email": "service@pmtwin.com",
+      "roleId": "service_provider",
+      "assignedAt": "2024-01-01T00:00:00Z",
+      "assignedBy": "system",
+      "isActive": true
+    },
+    {
+      "userId": "demo_professional_001",
+      "email": "professional@pmtwin.com",
+      "roleId": "professional",
       "assignedAt": "2024-01-01T00:00:00Z",
       "assignedBy": "system",
       "isActive": true
@@ -60,23 +68,20 @@
   "defaultRole": "guest",
   "roleAssignmentRules": {
     "onRegistration": {
-      "entity": "entity",
-      "vendor": "vendor",
-      "sub_contractor": "sub_contractor",
-      "company": "entity",
-      "individual": "sub_contractor",
+      "entity": "project_lead",
+      "company": "project_lead",
+      "individual": "professional",
       "consultant": "consultant"
     },
     "onApproval": {
-      "entity": "entity",
-      "vendor": "vendor",
-      "sub_contractor": "sub_contractor",
-      "company": "entity",
+      "entity": "project_lead",
+      "company": "project_lead",
+      "individual": "professional",
       "supplier": "supplier",
-      "service_provider": "vendor",
+      "service_provider": "service_provider",
       "consultant": "consultant",
-      "individual": "sub_contractor",
-      "mentor": "mentor"
+      "mentor": "mentor",
+      "professional": "professional"
     }
   }
 }

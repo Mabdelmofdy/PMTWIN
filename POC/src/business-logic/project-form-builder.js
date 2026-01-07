@@ -476,6 +476,19 @@
       });
     });
 
+    // Collect collaboration models data
+    if (typeof CollaborationModelsSelector !== 'undefined' && typeof CollaborationModelFields !== 'undefined') {
+      const selectedModels = CollaborationModelsSelector.getSelectedModels();
+      const modelData = CollaborationModelFields.collectModelData();
+      
+      if (selectedModels.length > 0) {
+        formData.collaborationModels = {
+          selectedModels: selectedModels,
+          modelData: modelData
+        };
+      }
+    }
+
     return formData;
   }
 

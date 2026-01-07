@@ -23,10 +23,14 @@
     SERVICE_EVALUATIONS: 'pmtwin_service_evaluations',
     SERVICE_OFFERINGS_INDEX: 'pmtwin_service_offerings_index',
     VENDOR_SUBCONTRACTOR_RELATIONSHIPS: 'pmtwin_vendor_subcontractor_relationships',
+    SERVICE_PROVIDER_PROFILES: 'pmtwin_service_provider_profiles',
+    SERVICE_REQUESTS: 'pmtwin_service_requests',
+    SERVICE_OFFERS: 'pmtwin_service_offers',
+    SERVICE_ENGAGEMENTS: 'pmtwin_service_engagements',
     VERSION: 'pmtwin_data_version'
   };
 
-  const DATA_VERSION = '2.2.0'; // Updated for service index re-optimization
+  const DATA_VERSION = '2.3.0'; // Updated for Service Providers implementation
 
   // ============================================
   // User Type & Role Mapping
@@ -43,9 +47,11 @@
         'admin': 'admin', // Legacy
         'project_lead': 'company',
         'entity': 'company',
+        'beneficiary': 'company', // Alias for entity
         'vendor': 'company',
         'supplier': 'company',
-        'service_provider': 'company', // Legacy
+        'service_provider': 'company', // Legacy - mapped to vendor
+        'skill_service_provider': 'service_provider', // New Service Provider entity type
         'sub_contractor': 'individual',
         'professional': 'individual', // Legacy
         'consultant': 'consultant',
@@ -112,6 +118,9 @@
     
     // Load test data for new models
     loadServiceIndexTestData();
+    
+    // Migrate Service Provider model
+    migrateServiceProviderModel();
   }
 
   // ============================================
@@ -2528,8 +2537,11 @@
       // Check if notifications have old demo user IDs that need to be remapped
       const hasOldIds = existingNotifications.some(n => 
         n.userId === 'demo_admin_001' || 
+        n.userId === 'demo_platform_admin_001' ||
         n.userId === 'demo_individual_001' || 
-        n.userId === 'demo_entity_001'
+        n.userId === 'demo_professional_001' ||
+        n.userId === 'demo_entity_001' ||
+        n.userId === 'demo_project_lead_001'
       );
       if (!hasOldIds) {
         return; // Notifications already loaded with correct IDs
@@ -2554,8 +2566,18 @@
       if (data.notifications && Array.isArray(data.notifications)) {
         // Map userIds from JSON to actual user IDs based on email
         const userIdMapping = {
+          // New user IDs
+          'demo_platform_admin_001': 'admin@pmtwin.com',
+          'demo_professional_001': 'professional@pmtwin.com',
+          'demo_project_lead_001': 'entity@pmtwin.com',
+          'demo_supplier_001': 'supplier@pmtwin.com',
+          'demo_service_provider_001': 'service@pmtwin.com',
+          'demo_consultant_001': 'consultant@pmtwin.com',
+          'demo_mentor_001': 'mentor@pmtwin.com',
+          'demo_auditor_001': 'auditor@pmtwin.com',
+          // Legacy user IDs (for backward compatibility)
           'demo_admin_001': 'admin@pmtwin.com',
-          'demo_individual_001': 'individual@pmtwin.com',
+          'demo_individual_001': 'professional@pmtwin.com',
           'demo_entity_001': 'entity@pmtwin.com'
         };
         
@@ -7158,6 +7180,407 @@
   };
 
   // ============================================
+  // Migration: Service Provider Model
+  // ============================================
+  function migrateServiceProviderModel() {
+    const currentVersion = localStorage.getItem(STORAGE_KEYS.VERSION) || '0.0.0';
+    
+    // Only migrate if version is less than 2.3.0
+    if (compareVersions(currentVersion, '2.3.0') < 0) {
+      console.log('🔄 Migrating to Service Provider model (v2.3.0)...');
+      
+      // Initialize new storage keys
+      if (!localStorage.getItem(STORAGE_KEYS.SERVICE_PROVIDER_PROFILES)) {
+        localStorage.setItem(STORAGE_KEYS.SERVICE_PROVIDER_PROFILES, JSON.stringify([]));
+      }
+      if (!localStorage.getItem(STORAGE_KEYS.SERVICE_REQUESTS)) {
+        localStorage.setItem(STORAGE_KEYS.SERVICE_REQUESTS, JSON.stringify([]));
+      }
+      if (!localStorage.getItem(STORAGE_KEYS.SERVICE_OFFERS)) {
+        localStorage.setItem(STORAGE_KEYS.SERVICE_OFFERS, JSON.stringify([]));
+      }
+      if (!localStorage.getItem(STORAGE_KEYS.SERVICE_ENGAGEMENTS)) {
+        localStorage.setItem(STORAGE_KEYS.SERVICE_ENGAGEMENTS, JSON.stringify([]));
+      }
+      
+      // Create ServiceProviderProfile for users with skill_service_provider role
+      const users = Users.getAll();
+      let profilesCreated = 0;
+      
+      users.forEach(user => {
+        if (user.role === 'skill_service_provider') {
+          // Check if profile already exists
+          const existingProfiles = get(STORAGE_KEYS.SERVICE_PROVIDER_PROFILES);
+          const existingProfile = existingProfiles.find(p => p.userId === user.id);
+          
+          if (!existingProfile) {
+            const profile = {
+              id: generateId('sp_profile'),
+              userId: user.id,
+              providerType: user.userType === 'consultant' ? 'CONSULTANT' : 
+                           user.userType === 'individual' ? 'INDIVIDUAL' : 'FIRM',
+              skills: user.profile?.skills || [],
+              certifications: user.profile?.certifications || [],
+              availabilityStatus: 'AVAILABLE',
+              pricingModel: 'HOURLY',
+              hourlyRate: null,
+              createdAt: new Date().toISOString(),
+              updatedAt: new Date().toISOString()
+            };
+            
+            existingProfiles.push(profile);
+            set(STORAGE_KEYS.SERVICE_PROVIDER_PROFILES, existingProfiles);
+            profilesCreated++;
+          }
+        }
+      });
+      
+      if (profilesCreated > 0) {
+        console.log(`✅ Created ${profilesCreated} Service Provider profile(s)`);
+      }
+      
+      // Update version
+      localStorage.setItem(STORAGE_KEYS.VERSION, '2.3.0');
+      console.log('✅ Service Provider model migration completed');
+    }
+  }
+  
+  // Helper function to compare versions
+  function compareVersions(v1, v2) {
+    const parts1 = v1.split('.').map(Number);
+    const parts2 = v2.split('.').map(Number);
+    for (let i = 0; i < Math.max(parts1.length, parts2.length); i++) {
+      const part1 = parts1[i] || 0;
+      const part2 = parts2[i] || 0;
+      if (part1 < part2) return -1;
+      if (part1 > part2) return 1;
+    }
+    return 0;
+  }
+
+  // ============================================
+  // Service Provider Profiles CRUD
+  // ============================================
+  const ServiceProviderProfiles = {
+    getAll() {
+      return get(STORAGE_KEYS.SERVICE_PROVIDER_PROFILES);
+    },
+
+    getById(id) {
+      const profiles = this.getAll();
+      return profiles.find(p => p.id === id) || null;
+    },
+
+    getByUserId(userId) {
+      const profiles = this.getAll();
+      return profiles.find(p => p.userId === userId) || null;
+    },
+
+    create(profileData) {
+      const profiles = this.getAll();
+      // Check if profile already exists for this user
+      const existing = profiles.find(p => p.userId === profileData.userId);
+      if (existing) {
+        return this.update(existing.id, profileData);
+      }
+      
+      const profile = {
+        id: generateId('sp_profile'),
+        userId: profileData.userId,
+        providerType: profileData.providerType || 'INDIVIDUAL',
+        skills: profileData.skills || [],
+        certifications: profileData.certifications || [],
+        availabilityStatus: profileData.availabilityStatus || 'AVAILABLE',
+        pricingModel: profileData.pricingModel || 'HOURLY',
+        hourlyRate: profileData.hourlyRate || null,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      };
+      profiles.push(profile);
+      if (set(STORAGE_KEYS.SERVICE_PROVIDER_PROFILES, profiles)) {
+        return profile;
+      }
+      return null;
+    },
+
+    update(id, updates) {
+      const profiles = this.getAll();
+      const index = profiles.findIndex(p => p.id === id);
+      if (index === -1) return null;
+
+      profiles[index] = {
+        ...profiles[index],
+        ...updates,
+        updatedAt: new Date().toISOString()
+      };
+      if (set(STORAGE_KEYS.SERVICE_PROVIDER_PROFILES, profiles)) {
+        return profiles[index];
+      }
+      return null;
+    },
+
+    delete(id) {
+      const profiles = this.getAll();
+      const filtered = profiles.filter(p => p.id !== id);
+      return set(STORAGE_KEYS.SERVICE_PROVIDER_PROFILES, filtered);
+    }
+  };
+
+  // ============================================
+  // Service Requests CRUD
+  // ============================================
+  const ServiceRequests = {
+    getAll() {
+      return get(STORAGE_KEYS.SERVICE_REQUESTS);
+    },
+
+    getById(id) {
+      const requests = this.getAll();
+      return requests.find(r => r.id === id) || null;
+    },
+
+    getByRequester(requesterId) {
+      const requests = this.getAll();
+      return requests.filter(r => r.requesterId === requesterId);
+    },
+
+    getByStatus(status) {
+      const requests = this.getAll();
+      return requests.filter(r => r.status === status);
+    },
+
+    create(requestData) {
+      const requests = this.getAll();
+      const request = {
+        id: generateId('sr'),
+        requesterType: requestData.requesterType,
+        requesterId: requestData.requesterId,
+        title: requestData.title,
+        description: requestData.description,
+        requiredSkills: requestData.requiredSkills || [],
+        status: 'OPEN',
+        budget: requestData.budget || { min: 0, max: 0, currency: 'SAR' },
+        timeline: requestData.timeline || { startDate: null, duration: 0 },
+        bids: requestData.bids || [], // Array of bids from entities/vendors
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      };
+      requests.push(request);
+      if (set(STORAGE_KEYS.SERVICE_REQUESTS, requests)) {
+        return request;
+      }
+      return null;
+    },
+
+    update(id, updates) {
+      const requests = this.getAll();
+      const index = requests.findIndex(r => r.id === id);
+      if (index === -1) return null;
+
+      requests[index] = {
+        ...requests[index],
+        ...updates,
+        updatedAt: new Date().toISOString()
+      };
+      if (set(STORAGE_KEYS.SERVICE_REQUESTS, requests)) {
+        return requests[index];
+      }
+      return null;
+    },
+
+    delete(id) {
+      const requests = this.getAll();
+      const filtered = requests.filter(r => r.id !== id);
+      return set(STORAGE_KEYS.SERVICE_REQUESTS, filtered);
+    }
+  };
+
+  // ============================================
+  // Service Offers CRUD
+  // ============================================
+  const ServiceOffers = {
+    getAll() {
+      return get(STORAGE_KEYS.SERVICE_OFFERS);
+    },
+
+    getById(id) {
+      const offers = this.getAll();
+      return offers.find(o => o.id === id) || null;
+    },
+
+    getByServiceRequest(serviceRequestId) {
+      const offers = this.getAll();
+      return offers.filter(o => o.serviceRequestId === serviceRequestId);
+    },
+
+    getByServiceProvider(serviceProviderUserId) {
+      const offers = this.getAll();
+      return offers.filter(o => o.serviceProviderUserId === serviceProviderUserId);
+    },
+
+    getByStatus(status) {
+      const offers = this.getAll();
+      return offers.filter(o => o.status === status);
+    },
+
+    create(offerData) {
+      const offers = this.getAll();
+      const offer = {
+        id: generateId('so'),
+        serviceRequestId: offerData.serviceRequestId,
+        serviceProviderUserId: offerData.serviceProviderUserId,
+        proposedPricing: offerData.proposedPricing || {
+          model: 'HOURLY',
+          amount: 0,
+          currency: 'SAR',
+          breakdown: null
+        },
+        message: offerData.message || '',
+        status: 'SUBMITTED',
+        submittedAt: new Date().toISOString(),
+        respondedAt: null,
+        respondedBy: null
+      };
+      offers.push(offer);
+      if (set(STORAGE_KEYS.SERVICE_OFFERS, offers)) {
+        return offer;
+      }
+      return null;
+    },
+
+    update(id, updates) {
+      const offers = this.getAll();
+      const index = offers.findIndex(o => o.id === id);
+      if (index === -1) return null;
+
+      const oldOffer = { ...offers[index] };
+      offers[index] = {
+        ...offers[index],
+        ...updates,
+        updatedAt: new Date().toISOString()
+      };
+
+      // Set respondedAt when status changes
+      if (updates.status && updates.status !== oldOffer.status && 
+          (updates.status === 'ACCEPTED' || updates.status === 'REJECTED')) {
+        offers[index].respondedAt = new Date().toISOString();
+        const currentUser = Sessions.getCurrentUser();
+        if (currentUser) {
+          offers[index].respondedBy = currentUser.id;
+        }
+      }
+
+      if (set(STORAGE_KEYS.SERVICE_OFFERS, offers)) {
+        return offers[index];
+      }
+      return null;
+    },
+
+    delete(id) {
+      const offers = this.getAll();
+      const filtered = offers.filter(o => o.id !== id);
+      return set(STORAGE_KEYS.SERVICE_OFFERS, filtered);
+    }
+  };
+
+  // ============================================
+  // Service Engagements CRUD
+  // ============================================
+  const ServiceEngagements = {
+    getAll() {
+      return get(STORAGE_KEYS.SERVICE_ENGAGEMENTS);
+    },
+
+    getById(id) {
+      const engagements = this.getAll();
+      return engagements.find(e => e.id === id) || null;
+    },
+
+    getByServiceRequest(serviceRequestId) {
+      const engagements = this.getAll();
+      return engagements.filter(e => e.serviceRequestId === serviceRequestId);
+    },
+
+    getByServiceProvider(serviceProviderUserId) {
+      const engagements = this.getAll();
+      return engagements.filter(e => e.serviceProviderUserId === serviceProviderUserId);
+    },
+
+    getByStatus(status) {
+      const engagements = this.getAll();
+      return engagements.filter(e => e.status === status);
+    },
+
+    getBySubProject(subProjectId) {
+      const engagements = this.getAll();
+      return engagements.filter(e => 
+        e.linkedSubProjectIds && e.linkedSubProjectIds.includes(subProjectId)
+      );
+    },
+
+    getByMegaProject(megaProjectId) {
+      const engagements = this.getAll();
+      return engagements.filter(e => e.linkedMegaProjectId === megaProjectId);
+    },
+
+    create(engagementData) {
+      const engagements = this.getAll();
+      const engagement = {
+        id: generateId('se'),
+        serviceRequestId: engagementData.serviceRequestId,
+        serviceProviderUserId: engagementData.serviceProviderUserId,
+        serviceOfferId: engagementData.serviceOfferId,
+        status: 'ACTIVE',
+        startedAt: new Date().toISOString(),
+        completedAt: null,
+        terminatedAt: null,
+        terminationReason: null,
+        linkedSubProjectIds: engagementData.linkedSubProjectIds || [],
+        linkedMegaProjectId: engagementData.linkedMegaProjectId || null,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      };
+      engagements.push(engagement);
+      if (set(STORAGE_KEYS.SERVICE_ENGAGEMENTS, engagements)) {
+        return engagement;
+      }
+      return null;
+    },
+
+    update(id, updates) {
+      const engagements = this.getAll();
+      const index = engagements.findIndex(e => e.id === id);
+      if (index === -1) return null;
+
+      const oldEngagement = { ...engagements[index] };
+      engagements[index] = {
+        ...engagements[index],
+        ...updates,
+        updatedAt: new Date().toISOString()
+      };
+
+      // Set timestamps for status changes
+      if (updates.status === 'COMPLETED' && oldEngagement.status !== 'COMPLETED') {
+        engagements[index].completedAt = new Date().toISOString();
+      }
+      if (updates.status === 'TERMINATED' && oldEngagement.status !== 'TERMINATED') {
+        engagements[index].terminatedAt = new Date().toISOString();
+      }
+
+      if (set(STORAGE_KEYS.SERVICE_ENGAGEMENTS, engagements)) {
+        return engagements[index];
+      }
+      return null;
+    },
+
+    delete(id) {
+      const engagements = this.getAll();
+      const filtered = engagements.filter(e => e.id !== id);
+      return set(STORAGE_KEYS.SERVICE_ENGAGEMENTS, filtered);
+    }
+  };
+
+  // ============================================
   // Profile Submission & Review Functions
   // ============================================
   
@@ -8368,6 +8791,10 @@
     Beneficiaries,
     ServiceEvaluations,
     VendorSubContractorRelationships,
+    ServiceProviderProfiles,
+    ServiceRequests,
+    ServiceOffers,
+    ServiceEngagements,
     IndexManager,
     generateId,
     generateDeviceFingerprint,

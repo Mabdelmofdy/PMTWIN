@@ -30,11 +30,25 @@
       }
     }
 
+    // Initialize collaboration models selector
+    if (typeof CollaborationModelsSelector !== 'undefined') {
+      CollaborationModelsSelector.init(handleCollaborationModelSelection);
+    }
+
     // Check if editing existing project - try query params first, then params
     const urlParams = new URLSearchParams(window.location.search);
     const projectId = urlParams.get('id') || (params && params.id);
     if (projectId) {
       loadProjectForEdit(projectId);
+    }
+  }
+
+  // ============================================
+  // Handle Collaboration Model Selection
+  // ============================================
+  function handleCollaborationModelSelection(selectedModelIds) {
+    if (typeof CollaborationModelFields !== 'undefined') {
+      CollaborationModelFields.renderFields(selectedModelIds);
     }
   }
 
@@ -141,6 +155,20 @@
       };
     }
 
+    // Collect collaboration models data
+    let collaborationModels = null;
+    if (typeof CollaborationModelsSelector !== 'undefined' && typeof CollaborationModelFields !== 'undefined') {
+      const selectedModels = CollaborationModelsSelector.getSelectedModels();
+      const modelData = CollaborationModelFields.collectModelData();
+      
+      if (selectedModels.length > 0) {
+        collaborationModels = {
+          selectedModels: selectedModels,
+          modelData: modelData
+        };
+      }
+    }
+
     // Build project data structure
     const projectData = {
       title: formData.basic.title,
@@ -168,6 +196,8 @@
       facilities: formData.facilities || {},
       // Include attachments metadata (files will be handled separately)
       attachments: formData.attachments || {},
+      // Include collaboration models
+      collaborationModels: collaborationModels,
       status: document.getElementById('projectStatus').value,
       visibility: 'public',
       projectType: 'single'
@@ -286,6 +316,19 @@
         }
       }
     });
+
+    // Collect collaboration models data for mega-project
+    if (typeof CollaborationModelsSelector !== 'undefined' && typeof CollaborationModelFields !== 'undefined') {
+      const selectedModels = CollaborationModelsSelector.getSelectedModels();
+      const modelData = CollaborationModelFields.collectModelData();
+      
+      if (selectedModels.length > 0) {
+        megaProjectData.collaborationModels = {
+          selectedModels: selectedModels,
+          modelData: modelData
+        };
+      }
+    }
 
     // Call service
     let result;

@@ -98,3 +98,4 @@ All buttons follow the project page pattern:
 - Components exported globally: `window.componentName`
 - Consistent button styling: `btn btn-primary`, `btn btn-success`, etc.
 
+

@@ -1033,29 +1033,49 @@
     
     const basePath = getBasePath();
     
-    // Base menu items with proper feature mappings and directory-based routes
-    const allMenuItems = [
-      // User Dashboard
+    // Core menu items matching the new design (8 items)
+    const coreMenuItems = [
+      // 1. Dashboard
       { id: 'dashboard', label: 'Dashboard', route: `${basePath}dashboard/`, feature: 'user_dashboard', icon: '<i class="ph ph-gauge"></i>' },
       
-      // Projects Section
-      // Note: 'My Projects' can be accessed with either project_management OR project_browsing
+      // 2. My Projects
       { id: 'projects', label: 'My Projects', route: `${basePath}projects/`, feature: 'project_management', icon: '<i class="ph ph-buildings"></i>', alternativeFeatures: ['project_browsing'] },
+      
+      // 3. Create Project
       { id: 'create-project', label: 'Create Project', route: `${basePath}projects/create/`, feature: 'project_creation', icon: '<i class="ph ph-plus-circle"></i>' },
       
-      // Opportunities & Matching
+      // 4. Opportunities
       { id: 'opportunities', label: 'Opportunities', route: `${basePath}opportunities/`, feature: 'matches_view', icon: '<i class="ph ph-sparkle"></i>' },
+      
+      // 5. Matches
       { id: 'matches', label: 'Matches', route: `${basePath}matches/`, feature: 'matches_view', icon: '<i class="ph ph-link"></i>' },
       
-      // Proposals & Pipeline
-      // Note: Proposals can be accessed with proposal_management OR proposal_creation OR proposal_review
+      // 6. Proposals
       { id: 'proposals', label: 'Proposals', route: `${basePath}proposals/`, feature: 'proposal_management', icon: '<i class="ph ph-file-text"></i>', alternativeFeatures: ['proposal_creation', 'proposal_review'] },
+      
+      // 7. Pipeline
       { id: 'pipeline', label: 'Pipeline', route: `${basePath}pipeline/`, feature: 'pipeline_management', icon: '<i class="ph ph-trend-up"></i>' },
       
-      // Services Section
+      // 8. My Services
       { id: 'my-services', label: 'My Services', route: `${basePath}my-services/`, feature: 'service_portfolio', icon: '<i class="ph ph-briefcase"></i>', alternativeFeatures: ['service_providers'] },
+      
+      // 9. Profile
+      { id: 'profile', label: 'Profile', route: `${basePath}profile/`, feature: 'profile_management', icon: '<i class="ph ph-user"></i>' },
+      
+      // 10. Settings
+      { id: 'settings', label: 'Settings', route: `${basePath}settings/`, feature: 'profile_management', icon: '<i class="ph ph-gear"></i>' }
+    ];
+    
+    // Additional menu items (for admin or future expansion)
+    const additionalMenuItems = [
       { id: 'services-marketplace', label: 'Service Marketplace', route: `${basePath}services-marketplace/`, feature: 'service_providers', icon: '<i class="ph ph-storefront"></i>' },
       { id: 'service-evaluations', label: 'Service Evaluations', route: `${basePath}service-providers/`, feature: 'service_evaluations', icon: '<i class="ph ph-star"></i>', alternativeFeatures: ['service_providers'] },
+      
+      // Service Provider & Service Request Section (New)
+      { id: 'service-provider-profile', label: 'Service Provider Profile', route: `${basePath}service-providers/profile/`, feature: 'service_provider_profile', icon: '<i class="ph ph-user-circle"></i>' },
+      { id: 'service-requests', label: 'Service Requests', route: `${basePath}service-requests/`, feature: 'service_requests_browse', icon: '<i class="ph ph-clipboard-text"></i>', alternativeFeatures: ['create_service_requests'] },
+      { id: 'skills-search', label: 'Search Provider Skills', route: `${basePath}service-providers/skills-search.html`, feature: 'search_service_provider_skills', icon: '<i class="ph ph-magnifying-glass"></i>', roles: ['vendor', 'entity', 'beneficiary'] },
+      { id: 'service-engagements', label: 'Service Engagements', route: `${basePath}service-engagements/`, feature: 'service_engagements_view', icon: '<i class="ph ph-handshake"></i>' },
       
       // Profile & Settings
       { id: 'profile', label: 'Profile', route: `${basePath}profile/`, feature: 'profile_management', icon: '<i class="ph ph-user"></i>' },
@@ -1106,13 +1126,6 @@
         isSeparator: true 
       },
       // Simplified Model Categories with Sub-Features
-      { 
-        id: 'collab-models', 
-        label: 'Collaboration Models', 
-        route: `${basePath}collaboration/`, 
-        feature: 'collaboration_opportunities',
-        icon: '<i class="ph ph-clipboard-text"></i>' 
-      },
       { 
         id: 'collab-project-based', 
         label: 'Project-Based', 
@@ -1174,26 +1187,8 @@
       }
     ];
     
-    // Insert Collaboration menu item with dropdown before Profile
-    const collaborationItem = {
-      id: 'collaboration',
-      label: 'Collaboration',
-      route: `${basePath}collaboration/`,
-      feature: 'collaboration_opportunities',
-      icon: '<i class="ph ph-handshake"></i>',
-      alternativeFeatures: ['collaboration_applications'],
-      hasChildren: true,
-      children: collaborationChildren,
-      isExpanded: false // Default collapsed
-    };
-    
-    // Add before Profile section
-    const profileIndex = allMenuItems.findIndex(item => item.id === 'profile');
-    if (profileIndex >= 0) {
-      allMenuItems.splice(profileIndex, 0, collaborationItem);
-    } else {
-      allMenuItems.push(collaborationItem);
-    }
+    // Start with core menu items for the new design (8 items)
+    let allMenuItems = [...coreMenuItems];
     
     // Filter by role using RBAC
     if (typeof PMTwinRBAC !== 'undefined') {
@@ -1211,9 +1206,28 @@
         console.log('[DashboardService] Available features count:', availableFeatures?.length || 0);
         console.log('[DashboardService] Total menu items before filter:', allMenuItems.length);
         
-        // Special case: platform_admin should see everything (check early)
+        // Special case: platform_admin should see core menu items + admin items
         if (userRoleId === 'platform_admin' || currentUser.role === 'admin' || currentUser.role === 'platform_admin') {
-          console.log('[DashboardService] Platform admin detected - showing all menu items');
+          console.log('[DashboardService] Platform admin detected - showing core menu items + admin items');
+          
+          // Add admin menu items
+          const adminMenuItems = [
+            { id: 'admin-separator', label: '---', route: '#', feature: null, icon: '', isSeparator: true },
+            { id: 'admin-dashboard', label: 'Admin Dashboard', route: `${basePath}admin/`, feature: 'admin_dashboard', icon: '<i class="ph ph-gear"></i>' },
+            { id: 'directory', label: 'Directory', route: `${basePath}admin/directory/`, feature: 'admin_directory', icon: '<i class="ph ph-folder"></i>' },
+            { id: 'user-vetting', label: 'User Vetting', route: `${basePath}admin-vetting/`, feature: 'user_vetting', icon: '<i class="ph ph-check-circle"></i>' },
+            { id: 'user-management', label: 'User Management', route: `${basePath}admin/users-management/`, feature: 'user_management', icon: '<i class="ph ph-users"></i>' },
+            { id: 'project-moderation', label: 'Project Moderation', route: `${basePath}admin-moderation/`, feature: 'project_moderation', icon: '<i class="ph ph-shield-check"></i>' },
+            { id: 'audit-trail', label: 'Audit Trail', route: `${basePath}admin-audit/`, feature: 'audit_trail', icon: '<i class="ph ph-clipboard"></i>' },
+            { id: 'reports', label: 'Reports', route: `${basePath}admin-reports/`, feature: 'reports', icon: '<i class="ph ph-chart-bar"></i>' }
+          ];
+          
+          // Combine core items with admin items
+          allMenuItems = [...allMenuItems, ...adminMenuItems];
+          
+          // For platform_admin, show all items (they have wildcard access "*")
+          // Platform admin has all features, so show everything
+          console.log('[DashboardService] Platform admin - showing all menu items (wildcard access)');
           return { success: true, items: allMenuItems };
         }
         
@@ -1285,6 +1299,13 @@
             }
             
             // Regular item filtering
+            // Check role restrictions first
+            if (item.roles && Array.isArray(item.roles)) {
+              if (!item.roles.includes(userRoleId)) {
+                return null;
+              }
+            }
+            
             // If no feature requirement, hide it (security: explicit permission required)
             if (!item.feature) {
               console.log('[DashboardService] Hiding item without feature:', item.id);
@@ -1336,19 +1357,30 @@
     // Legacy role-based filtering (fallback)
     const role = currentUser.role;
     const filtered = allMenuItems.filter(item => {
+      // Check if item has role restrictions
+      if (item.roles && Array.isArray(item.roles)) {
+        if (!item.roles.includes(role)) {
+          return false;
+        }
+      }
+      
       if (role === 'admin' || role === 'platform_admin') return true;
-      if (role === 'entity' || role === 'project_lead') {
+      if (role === 'entity' || role === 'project_lead' || role === 'beneficiary') {
         return !item.feature || ['user_dashboard', 'project_creation', 'project_management', 
                                 'proposal_review', 'matches_view', 'profile_management', 
                                 'notifications', 'collaboration_opportunities', 'pipeline_management',
-                                'service_providers', 'service_portfolio', 'service_offering:view'].includes(item.feature);
+                                'service_providers', 'service_portfolio', 'service_offering:view',
+                                'service_provider_profile', 'service_requests_browse', 'service_offers_manage', 'service_engagements_view',
+                                'search_service_provider_skills'].includes(item.feature);
       }
       if (role === 'vendor') {
         return !item.feature || ['user_dashboard', 'project_browsing', 'matches_view',
                                 'service_providers', 'service_portfolio', 'service_offering:view',
                                 'collaboration_opportunities', 'collaboration_applications',
                                 'proposal_creation', 'proposal_management', 'sub_contractor_management',
-                                'pipeline_management', 'profile_management', 'notifications'].includes(item.feature);
+                                'pipeline_management', 'profile_management', 'notifications',
+                                'service_provider_profile', 'service_requests_browse', 'service_offers_manage', 'service_engagements_view',
+                                'search_service_provider_skills'].includes(item.feature);
       }
       if (role === 'sub_contractor') {
         return !item.feature || ['user_dashboard', 'project_browsing', 'matches_view',
@@ -1370,6 +1402,11 @@
                                 'collaboration_opportunities', 'collaboration_applications',
                                 'proposal_creation', 'proposal_management', 'pipeline_management',
                                 'profile_management', 'notifications'].includes(item.feature);
+      }
+      if (role === 'skill_service_provider') {
+        return !item.feature || ['user_dashboard', 'service_provider_profile', 'service_requests_browse',
+                                'service_offers_manage', 'service_engagements_view',
+                                'pipeline_management', 'profile_management', 'notifications'].includes(item.feature);
       }
       if (role === 'supplier') {
         return !item.feature || ['user_dashboard', 'project_browsing', 'matches_view',

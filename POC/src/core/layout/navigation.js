@@ -102,13 +102,6 @@
           { id: 'collab-separator', label: '---', route: '#', icon: '', isSeparator: true, roles: ['admin', 'entity', 'individual'] },
           // Simplified Model Categories with Sub-Features
           { 
-            id: 'collab-models', 
-            label: 'Collaboration Models', 
-            route: `${basePath}collaboration/`, 
-            icon: '<i class="ph ph-clipboard-text"></i>', 
-            roles: ['admin', 'entity', 'individual'] 
-          },
-          { 
             id: 'collab-project-based', 
             label: 'Project-Based', 
             route: `${basePath}collaboration/?category=1`, 
@@ -173,8 +166,9 @@
           }
         ]
       },
-      { id: 'profile', label: 'Profile', route: `${basePath}profile/`, icon: '<i class="ph ph-user"></i>', roles: ['admin', 'entity', 'individual'] },
-      { id: 'notifications', label: 'Notifications', route: `${basePath}notifications/`, icon: '<i class="ph ph-bell"></i>', roles: ['admin', 'entity', 'individual'] },
+      { id: 'profile', label: 'Profile', route: `${basePath}profile/`, icon: '<i class="ph ph-user"></i>', roles: ['admin', 'entity', 'individual', 'project_lead', 'supplier', 'service_provider', 'professional', 'consultant', 'mentor'] },
+      { id: 'settings', label: 'Settings', route: `${basePath}settings/`, icon: '<i class="ph ph-gear"></i>', roles: ['admin', 'entity', 'individual', 'project_lead', 'supplier', 'service_provider', 'professional', 'consultant', 'mentor'] },
+      { id: 'notifications', label: 'Notifications', route: `${basePath}notifications/`, icon: '<i class="ph ph-bell"></i>', roles: ['admin', 'entity', 'individual', 'project_lead', 'supplier', 'service_provider', 'professional', 'consultant', 'mentor'] },
       { id: 'admin', label: 'Admin Dashboard', route: `${basePath}admin/`, icon: '<i class="ph ph-gear"></i>', roles: ['admin'] },
       { id: 'admin-vetting', label: 'User Vetting', route: `${basePath}admin-vetting/`, icon: '<i class="ph ph-check-circle"></i>', roles: ['admin'] },
       { id: 'admin-users-management', label: 'User Management', route: `${basePath}admin/users-management/`, icon: '<i class="ph ph-users"></i>', roles: ['admin'] },
@@ -281,7 +275,7 @@
                 </button>
                 <div id="quickActionsDropdown" style="display: none; position: absolute; top: 100%; right: 0; margin-top: 0.5rem; background: var(--bg-primary); border: 1px solid var(--border-color); border-radius: var(--radius); box-shadow: 0 4px 6px rgba(0,0,0,0.1); min-width: 220px; z-index: 1000;">
                   <div style="padding: 0.75rem 1rem; border-bottom: 1px solid var(--border-color); font-weight: 600; font-size: 0.9rem;">Quick Actions</div>
-                  <a href="${basePath}create-project/" class="navbar-link" style="display: flex; align-items: center; gap: 0.75rem; padding: 0.75rem 1rem; border-bottom: 1px solid var(--border-color);" onclick="Navigation.handleNavClick(event, '${basePath}create-project/');">
+                  <a href="${basePath}projects/create/" class="navbar-link" style="display: flex; align-items: center; gap: 0.75rem; padding: 0.75rem 1rem; border-bottom: 1px solid var(--border-color);" onclick="Navigation.handleNavClick(event, '${basePath}projects/create/');">
                     <i class="ph ph-plus-circle"></i> <span>Create Project</span>
                   </a>
                   <a href="${basePath}create-proposal/" class="navbar-link" style="display: flex; align-items: center; gap: 0.75rem; padding: 0.75rem 1rem; border-bottom: 1px solid var(--border-color);" onclick="Navigation.handleNavClick(event, '${basePath}create-proposal/');">
@@ -385,7 +379,7 @@
         const unreadNotifications = PMTwinData.Notifications.getUnread(currentUser.id);
         const unreadCount = unreadNotifications ? unreadNotifications.length : 0;
         if (unreadCount > 0) {
-          return `<span class="notification-badge">${unreadCount > 99 ? '99+' : unreadCount}</span>`;
+          return `<span class="notification-badge" style="position: absolute; top: -4px; right: -4px; width: 18px; height: 18px; background: var(--color-error, #dc2626); color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.625rem; font-weight: var(--font-weight-bold, 700); border: 2px solid var(--bg-primary, white);">${unreadCount > 99 ? '99+' : unreadCount}</span>`;
         }
       } catch (error) {
         console.warn('Error getting notification count:', error);
@@ -717,18 +711,18 @@
     let html = `
       <div class="sidebar-header">
         <a href="${basePath}dashboard/" class="sidebar-brand" title="Go to Dashboard">
-          <div class="sidebar-logo">
-            <i class="ph ph-notebook"></i>
+          <div class="sidebar-logo" style="width: 40px; height: 40px; background: var(--primary-color, #2563eb); border-radius: 8px; display: flex; align-items: center; justify-content: center; color: white; font-size: 1.25rem;">
+            <i class="ph ph-file-text"></i>
           </div>
-          <span class="sidebar-brand-name">PMTwin</span>
+          <span class="sidebar-brand-name" style="font-weight: var(--font-weight-bold, 700); font-size: 1.125rem;">PMTwin</span>
         </a>
-        <div class="sidebar-header-actions">
-          <a href="${basePath}notifications/" class="sidebar-notification-btn" title="Notifications">
+        <div class="sidebar-header-actions" style="display: flex; gap: 0.5rem; align-items: center;">
+          <a href="${basePath}notifications/" class="sidebar-notification-btn" title="Notifications" style="position: relative; width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; background: var(--bg-secondary, #f3f4f6); border-radius: 8px; border: none; cursor: pointer; text-decoration: none; color: var(--text-primary);">
             <i class="ph ph-bell"></i>
             ${getNotificationBadge()}
           </a>
-          <button id="sidebarMinimize" class="sidebar-minimize" aria-label="Minimize sidebar" title="Minimize menu">
-            <i class="ph ph-sidebar-simple"></i>
+          <button class="sidebar-header-btn" title="Menu" style="width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; background: var(--bg-secondary, #f3f4f6); border-radius: 8px; border: none; cursor: pointer; color: var(--text-primary);">
+            <i class="ph ph-squares-four"></i>
           </button>
         </div>
       </div>
@@ -947,16 +941,20 @@
     html += `
         </ul>
       </nav>
-      <div class="sidebar-footer">
-        <div class="sidebar-user">
-          <div class="sidebar-user-avatar">${(currentUser.name || currentUser.email || 'U')[0].toUpperCase()}</div>
-          <div class="sidebar-user-info">
-            <div class="sidebar-user-name">${currentUser.name || 'User'}</div>
-            <div class="sidebar-user-role">${currentUser.role || 'guest'}</div>
+      <div class="sidebar-footer" style="border-top: 1px solid var(--border-color, #e5e7eb); padding: 1rem; margin-top: auto;">
+        <div class="sidebar-user" style="display: flex; align-items: center; gap: 0.75rem; padding: 0.75rem; background: var(--bg-secondary, #f9fafb); border-radius: 8px; margin-bottom: 1rem;">
+          <div class="sidebar-user-avatar" style="width: 40px; height: 40px; background: var(--primary-color, #2563eb); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-weight: var(--font-weight-semibold, 600); font-size: 1rem; flex-shrink: 0;">
+            ${(currentUser.name || currentUser.email || 'U')[0].toUpperCase()}
+          </div>
+          <div class="sidebar-user-info" style="flex: 1; min-width: 0;">
+            <div class="sidebar-user-name" style="font-weight: var(--font-weight-bold, 700); font-size: 0.875rem; color: var(--text-primary); margin-bottom: 0.25rem;">${currentUser.name || 'User'}</div>
+            <div class="sidebar-user-role-badge" style="display: inline-block; padding: 0.125rem 0.5rem; background: var(--bg-tertiary, #e5e7eb); border-radius: 4px; font-size: 0.75rem; font-weight: var(--font-weight-medium, 500); color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.025em;">
+              ${(currentUser.role || 'guest').toUpperCase()}
+            </div>
           </div>
         </div>
-        <button onclick="Navigation.logout()" class="sidebar-logout">
-          <i class="ph ph-sign-out"></i> <span>Logout</span>
+        <button onclick="Navigation.logout()" class="sidebar-logout" style="width: 100%; padding: 0.75rem 1rem; background: var(--color-error, #dc2626); color: white; border: none; border-radius: 8px; font-weight: var(--font-weight-medium, 500); cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 0.5rem; transition: background-color 0.2s;">
+          <i class="ph ph-arrow-right"></i> <span>Logout</span>
         </button>
       </div>
     `;

@@ -157,3 +157,4 @@ The sidebar CSS has been simplified and modernized for better performance, clean
 - Improved accessibility
 - Better browser compatibility
 
+

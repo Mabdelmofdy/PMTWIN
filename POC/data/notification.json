@@ -2,20 +2,20 @@
   "notifications": [
     {
       "id": "notif_001",
-      "userId": "demo_admin_001",
+      "userId": "demo_platform_admin_001",
       "type": "user_review_pending",
       "title": "New User Pending Review",
       "message": "John Doe (individual) has submitted their profile for review",
       "read": false,
       "createdAt": "2024-01-15T10:30:00.000Z",
       "relatedEntityType": "user",
-      "relatedEntityId": "demo_individual_001",
+      "relatedEntityId": "demo_professional_001",
       "actionUrl": "#vetting",
       "actionLabel": "Review User"
     },
     {
       "id": "notif_002",
-      "userId": "demo_individual_001",
+      "userId": "demo_professional_001",
       "type": "match_found",
       "title": "New Match Found!",
       "message": "A new project opportunity matches your skills: High-rise Building Design in Dubai",
@@ -28,7 +28,7 @@
     },
     {
       "id": "notif_003",
-      "userId": "demo_individual_001",
+      "userId": "demo_professional_001",
       "type": "proposal_received",
       "title": "Proposal Received",
       "message": "ABC Construction Co. has received your proposal for the Commercial Complex project",
@@ -42,7 +42,7 @@
     },
     {
       "id": "notif_004",
-      "userId": "demo_entity_001",
+      "userId": "demo_project_lead_001",
       "type": "proposal_approved",
       "title": "Proposal Approved",
       "message": "Your proposal for the Infrastructure Development project has been approved",
@@ -55,7 +55,7 @@
     },
     {
       "id": "notif_005",
-      "userId": "demo_entity_001",
+      "userId": "demo_project_lead_001",
       "type": "proposal_received",
       "title": "New Proposal Received",
       "message": "You have received a new proposal from John Doe for the Residential Complex project",
@@ -68,7 +68,7 @@
     },
     {
       "id": "notif_006",
-      "userId": "demo_individual_001",
+      "userId": "demo_professional_001",
       "type": "account_approved",
       "title": "Account Approved",
       "message": "Congratulations! Your account has been approved. You can now access all features.",
@@ -76,26 +76,26 @@
       "createdAt": "2024-01-10T12:00:00.000Z",
       "readAt": "2024-01-10T12:15:00.000Z",
       "relatedEntityType": "user",
-      "relatedEntityId": "demo_individual_001",
+      "relatedEntityId": "demo_professional_001",
       "actionUrl": "#dashboard",
       "actionLabel": "Go to Dashboard"
     },
     {
       "id": "notif_007",
-      "userId": "demo_admin_001",
+      "userId": "demo_platform_admin_001",
       "type": "user_review_pending",
       "title": "New User Pending Review",
       "message": "ABC Construction Co. (entity) has submitted their profile for review",
       "read": false,
       "createdAt": "2024-01-19T09:00:00.000Z",
       "relatedEntityType": "user",
-      "relatedEntityId": "demo_entity_001",
+      "relatedEntityId": "demo_project_lead_001",
       "actionUrl": "#vetting",
       "actionLabel": "Review User"
     },
     {
       "id": "notif_008",
-      "userId": "demo_entity_001",
+      "userId": "demo_project_lead_001",
       "type": "match_found",
       "title": "Potential Consultant Match",
       "message": "We found a consultant that matches your project requirements: Senior Civil Engineer",
@@ -108,7 +108,7 @@
     },
     {
       "id": "notif_009",
-      "userId": "demo_individual_001",
+      "userId": "demo_professional_001",
       "type": "proposal_rejected",
       "title": "Proposal Status Update",
       "message": "Your proposal for the Office Building project was not selected at this time",
@@ -121,7 +121,7 @@
     },
     {
       "id": "notif_010",
-      "userId": "demo_admin_001",
+      "userId": "demo_platform_admin_001",
       "type": "user_review_pending",
       "title": "Account Review Required",
       "message": "3 new user accounts are pending review",

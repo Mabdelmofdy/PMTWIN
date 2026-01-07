@@ -4877,19 +4877,23 @@ select.form-control {
 }
 
 .sidebar-notification-btn {
-  width: 36px;
-  height: 36px;
+  width: 40px;
+  height: 40px;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: var(--bg-secondary);
-  border: 1px solid var(--border-color);
+  background: var(--bg-secondary, #f3f4f6);
+  border: none;
   border-radius: 8px;
   color: var(--text-primary);
   font-size: 1.125rem;
   text-decoration: none;
-  transition: all 0.3s ease;
+  transition: all 0.2s ease;
   position: relative;
+}
+
+.sidebar-notification-btn:hover {
+  background: var(--bg-tertiary, #e5e7eb);
 }
 
 .sidebar-notification-btn:hover {
@@ -4900,22 +4904,40 @@ select.form-control {
 
 .notification-badge {
   position: absolute;
-  top: -6px;
-  right: -6px;
-  background: var(--color-error, #dc3545);
+  top: -4px;
+  right: -4px;
+  background: var(--color-error, #dc2626);
   color: white;
-  border-radius: 10px;
+  border-radius: 50%;
   min-width: 18px;
   height: 18px;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 0.7rem;
-  font-weight: var(--font-weight-bold);
-  padding: 0 4px;
-  border: 2px solid var(--bg-primary);
+  font-size: 0.625rem;
+  font-weight: var(--font-weight-bold, 700);
+  padding: 0;
+  border: 2px solid var(--bg-primary, white);
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
   line-height: 1;
+}
+
+.sidebar-header-btn {
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--bg-secondary, #f3f4f6);
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  color: var(--text-primary);
+  transition: all 0.2s ease;
+}
+
+.sidebar-header-btn:hover {
+  background: var(--bg-tertiary, #e5e7eb);
 }
 
 .sidebar-header h2 {
@@ -5557,25 +5579,40 @@ select.form-control {
   display: inline-block;
 }
 
+.sidebar-user-role-badge {
+  display: inline-block;
+  padding: 0.125rem 0.5rem;
+  background: var(--bg-tertiary, #e5e7eb);
+  border-radius: 4px;
+  font-size: 0.75rem;
+  font-weight: var(--font-weight-medium, 500);
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.025em;
+}
+
 .sidebar-logout {
   width: 100%;
-  padding: var(--spacing-3) var(--spacing-4);
-  background: linear-gradient(135deg, var(--color-error) 0%, var(--color-error-light) 100%);
+  padding: 0.75rem 1rem;
+  background: var(--color-error, #dc2626);
   color: white;
   border: none;
-  border-radius: 10px;
+  border-radius: 8px;
   cursor: pointer;
   font-size: var(--font-size-sm);
-  font-weight: var(--font-weight-semibold);
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  font-weight: var(--font-weight-medium, 500);
+  transition: background-color 0.2s;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: var(--spacing-2);
-  box-shadow: 0 2px 8px rgba(220, 53, 69, 0.2);
+  gap: 0.5rem;
   position: relative;
   overflow: hidden;
   min-height: 44px;
+}
+
+.sidebar-logout:hover {
+  background: var(--color-error-dark, #b91c1c);
 }
 
 .sidebar-logout::before {

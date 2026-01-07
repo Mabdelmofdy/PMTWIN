@@ -204,12 +204,21 @@
       userRole = await PMTwinRBAC.getCurrentUserRole();
     }
 
+    // Block Service Providers (skill_service_provider) from submitting project proposals
+    if (userRole === 'skill_service_provider') {
+      return { 
+        valid: false, 
+        error: 'Service Providers cannot bid on projects. Service Providers offer skill-based services through the Service Track, not project execution.' 
+      };
+    }
+
     // Load project if not provided
     if (!project && proposalData.projectId) {
       project = PMTwinData?.Projects?.getById?.(proposalData.projectId);
     }
 
     // Role-specific validations
+    // Note: Legacy service_provider role (mapped to vendor) should still have access
     if (userRole === 'vendor' || userRole === 'service_provider') {
       if (!project) {
         return { valid: false, error: 'Project is required for vendor proposals' };

@@ -53,3 +53,4 @@ const template = (title, description) => `    <main class="page-wrapper">
 
 console.log('Template created. Use this to update collaboration pages manually.');
 
+

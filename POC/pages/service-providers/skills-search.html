@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Search Provider Skills - PMTwin</title>
+    <link rel="stylesheet" href="../../assets/css/main.css">
+</head>
+<body>
+    <main class="page-wrapper">
+        <div class="container">
+            <div class="page-header">
+                <div class="page-header-content">
+                    <div>
+                        <h1>Search Provider Skills</h1>
+                        <p>Search for service providers by specific skills and create service requests directly</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="content-section">
+                <div id="skillsSearchContent">
+                    <!-- Search interface will be loaded here -->
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Configuration -->
+    <script src="../../src/config/config.js"></script>
+    
+    <!-- API Layer -->
+    <script src="../../src/core/api/api-client.js"></script>
+    <script src="../../src/core/api/api-service.js"></script>
+    
+    <!-- Core Scripts -->
+    <script src="../../src/core/data/data.js"></script>
+    <script src="../../src/core/auth/user-manager.js"></script>
+    <script src="../../src/core/auth/auth.js"></script>
+    <script src="../../src/core/auth/auth-check.js"></script>
+    
+    <!-- Track Guards -->
+    <script src="../../src/domains/auth/guards/track-guards.js"></script>
+    <script src="../../src/domains/auth/guards/service-track-guards.js"></script>
+    
+    <!-- Services -->
+    <script src="../../src/domains/services/service-providers/service-provider-service.js"></script>
+    <script src="../../src/domains/services/service-requests/service-request-service.js"></script>
+    
+    <!-- Services Loader -->
+    <script src="../../src/services/services-loader.js"></script>
+    <script src="../../data/data-loader.js"></script>
+    
+    <!-- Layout System -->
+    <script src="../../src/core/layout/layout.js"></script>
+    <script src="../../src/core/layout/navigation.js"></script>
+    <script src="../../src/core/init/app-init.js"></script>
+    
+    <!-- Feature Script -->
+    <script src="../../features/service-providers/skills-search.js"></script>
+    
+    <!-- Initialize -->
+    <script>
+        document.addEventListener('DOMContentLoaded', async function() {
+            const isAuth = await AuthCheck.checkAuth({ requireAuth: true });
+            if (!isAuth) return;
+            
+            // Check if user is vendor/entity
+            const currentUser = PMTwinData?.Sessions?.getCurrentUser();
+            if (currentUser && typeof TrackGuards !== 'undefined') {
+                if (!TrackGuards.requireEntityOrVendor()) {
+                    document.getElementById('skillsSearchContent').innerHTML = 
+                        '<div class="alert alert-error">Only Entities and Vendors can search provider skills.</div>';
+                    return;
+                }
+            }
+            
+            if (window.SkillsSearch && window.SkillsSearch.init) {
+                window.SkillsSearch.init();
+            }
+        });
+    </script>
+</body>
+</html>
+

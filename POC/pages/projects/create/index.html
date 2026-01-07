@@ -161,6 +161,21 @@
                                         <input type="number" id="maxBudget" class="form-control" min="0">
                                     </div>
                                 </div>
+
+                                <h2 class="section-title" style="margin-top: 2rem; margin-bottom: 1.5rem;">Collaboration Models</h2>
+                                <p style="color: var(--text-secondary); margin-bottom: 1.5rem;">
+                                    Select one or more collaboration models that apply to this project. Additional fields will appear based on your selections.
+                                </p>
+
+                                <!-- Model Selection Grid -->
+                                <div id="collaborationModelsGrid" class="collaboration-models-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 1rem; margin-bottom: 2rem;">
+                                    <!-- Cards will be rendered here -->
+                                </div>
+
+                                <!-- Dynamic Fields Container -->
+                                <div id="collaborationModelFields" class="collaboration-model-fields" style="margin-top: 2rem;">
+                                    <!-- Dynamic fields will be rendered here based on selected models -->
+                                </div>
                             </div>
 
                             <!-- Tab 3: Project Details (Category-Specific) -->
@@ -259,10 +274,15 @@
     <script src="../../../src/core/layout/navigation.js"></script>
     <script src="../../../src/core/init/app-init.js"></script>
     
+    <!-- Collaboration Models Scripts -->
+    <script src="../../../src/business-logic/models/collaboration-model-definitions.js"></script>
+    
     <!-- Component Scripts -->
     <script src="../../../src/components/tab-manager.js"></script>
     <script src="../../../src/business-logic/sub-project-manager.js"></script>
     <script src="../../../src/business-logic/project-form-builder.js"></script>
+    <script src="../../../features/projects/collaboration-models-selector.js"></script>
+    <script src="../../../features/projects/collaboration-model-fields.js"></script>
     <script src="../../../features/projects/project-create.js"></script>
     
     <!-- Initialize Component -->

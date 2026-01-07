@@ -379,7 +379,7 @@
 
       <div style="display: flex; gap: 1rem; margin-top: 2rem; flex-wrap: wrap;">
         ${canEdit ? `
-          <a href="../create-project/?id=${project.id}" class="btn btn-primary">
+          <a href="../projects/create/?id=${project.id}" class="btn btn-primary">
             <i class="ph ph-pencil"></i> Edit Project
           </a>
         ` : ''}

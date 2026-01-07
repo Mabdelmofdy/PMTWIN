@@ -9,28 +9,36 @@
       "description": "Full system access - Vetting, Moderation, Reports, Audit Trail, User Management"
     },
     {
-      "userId": "demo_entity_001",
+      "userId": "demo_project_lead_001",
       "email": "entity@pmtwin.com",
       "password": "Entity123",
-      "role": "entity",
+      "role": "project_lead",
       "name": "ABC Construction Co.",
-      "description": "Corporate/Organization - Creates and requests projects/megaprojects, defines requirements, reviews proposals"
+      "description": "Project Lead/Contractor - Posts tenders and project opportunities, forms consortia, hires resources, initiates SPVs, manages project lifecycle"
     },
     {
-      "userId": "demo_vendor_001",
-      "email": "vendor@pmtwin.com",
-      "password": "Vendor123",
-      "role": "vendor",
-      "name": "Global Construction Services",
-      "description": "Vendor/Service Provider - Provides full megaprojects or complete subprojects, manages sub_contractors"
+      "userId": "demo_supplier_001",
+      "email": "supplier@pmtwin.com",
+      "password": "Supplier123",
+      "role": "supplier",
+      "name": "Global Materials Supply",
+      "description": "Supplier - Participates in bulk purchasing initiatives, lists surplus materials and equipment, joins strategic alliances, manages inventory"
     },
     {
-      "userId": "demo_sub_contractor_001",
-      "email": "subcontractor@pmtwin.com",
-      "password": "SubContractor123",
-      "role": "sub_contractor",
+      "userId": "demo_service_provider_001",
+      "email": "service@pmtwin.com",
+      "password": "Service123",
+      "role": "service_provider",
+      "name": "Legal & Logistics Services",
+      "description": "Service Provider - Offers specialized B2B services (Legal, Logistics, Design), participates in Task-Based engagements, joins Strategic Alliances"
+    },
+    {
+      "userId": "demo_professional_001",
+      "email": "professional@pmtwin.com",
+      "password": "Professional123",
+      "role": "professional",
       "name": "John Doe",
-      "description": "Individual Service Provider - Works under vendors for minor scope work, submits proposals to vendors only"
+      "description": "Professional/Expert - Accepts task-based engagements, joins consortia as a member, seeks full-time hiring opportunities, participates in mentorship programs"
     },
     {
       "userId": "demo_consultant_001",

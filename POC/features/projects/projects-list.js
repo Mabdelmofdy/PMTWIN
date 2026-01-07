@@ -176,7 +176,7 @@
         <div class="card">
           <div class="card-body" style="text-align: center; padding: 3rem;">
             <p style="margin-bottom: 1rem;">You haven't created any projects yet.</p>
-            <a href="../create-project/" class="btn btn-primary">Create Your First Project</a>
+            <a href="../projects/create/" class="btn btn-primary">Create Your First Project</a>
           </div>
         </div>
       `;
@@ -240,7 +240,7 @@
               <a href="../project/?id=${project.id}" class="btn btn-primary btn-sm">
                 <i class="ph ph-eye"></i> View Details
               </a>
-              <a href="../create-project/?id=${project.id}" class="btn btn-secondary btn-sm">
+              <a href="../projects/create/?id=${project.id}" class="btn btn-secondary btn-sm">
                 <i class="ph ph-pencil"></i> Edit
               </a>
             </div>

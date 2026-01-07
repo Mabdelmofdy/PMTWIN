@@ -18,12 +18,12 @@
                     <div class="page-header-content">
                         <div>
                             <h1>My Services</h1>
-                            <p>Manage your service offerings and track their performance</p>
+                            <p>Manage your service offers and engagements</p>
                         </div>
                         <div class="page-actions">
-                            <button id="createOfferingBtn" class="btn btn-primary">
-                                <i class="ph ph-plus"></i> Create New Service
-                            </button>
+                            <a href="../service-requests/index.html" class="btn btn-primary">
+                                <i class="ph ph-magnifying-glass"></i> Browse Service Requests
+                            </a>
                         </div>
                     </div>
                 </div>
@@ -32,7 +32,7 @@
                 <div class="content-section">
                     <div id="statisticsSection" class="card enhanced-card" style="display: none;">
                         <div class="card-body">
-                            <h3 class="section-title spacing-section">Your Service Offerings Statistics</h3>
+                            <h3 class="section-title spacing-section">Your Service Statistics</h3>
                             <div id="statisticsContent" class="content-grid-4">
                                 <!-- Statistics will be loaded here -->
                             </div>
@@ -40,42 +40,73 @@
                     </div>
                 </div>
                 
-                <!-- Filters -->
+                <!-- Tabs -->
                 <div class="content-section">
-                    <div class="card filters-section">
+                    <div class="card">
                         <div class="card-body">
-                            <h3 class="section-title">Filter Services</h3>
-                            <form class="filter-row">
-                                <div class="form-group">
-                                    <label class="form-label">Filter by Status</label>
-                                    <select id="statusFilter" class="form-control">
-                                        <option value="">All Statuses</option>
-                                        <option value="Active">Active</option>
-                                        <option value="Paused">Paused</option>
-                                        <option value="Draft">Draft</option>
-                                        <option value="Archived">Archived</option>
-                                    </select>
+                            <div style="display: flex; gap: 0.5rem; border-bottom: 2px solid var(--border-color, #e0e0e0); margin-bottom: 1.5rem;">
+                                <button id="offersTab" class="tab-button active" type="button" onclick="if(window.myServicesComponent){window.myServicesComponent.switchTab('offers')}" style="padding: 0.75rem 1.5rem; background: none; border: none; border-bottom: 3px solid var(--color-primary); cursor: pointer; font-weight: 600; color: var(--color-primary);">
+                                    <i class="ph ph-handshake"></i> My Offers
+                                </button>
+                                <button id="engagementsTab" class="tab-button" type="button" onclick="if(window.myServicesComponent){window.myServicesComponent.switchTab('engagements')}" style="padding: 0.75rem 1.5rem; background: none; border: none; border-bottom: 3px solid transparent; cursor: pointer; font-weight: 600; color: var(--text-secondary);">
+                                    <i class="ph ph-briefcase"></i> My Engagements
+                                </button>
+                            </div>
+                            
+                            <!-- Filters -->
+                            <div id="offersFilters" style="margin-bottom: 1.5rem;">
+                                <form class="filter-row">
+                                    <div class="form-group">
+                                        <label class="form-label">Filter by Status</label>
+                                        <select id="offerStatusFilter" class="form-control">
+                                            <option value="">All Statuses</option>
+                                            <option value="SUBMITTED">Pending</option>
+                                            <option value="ACCEPTED">Accepted</option>
+                                            <option value="REJECTED">Rejected</option>
+                                            <option value="WITHDRAWN">Withdrawn</option>
+                                        </select>
+                                    </div>
+                                    <div class="form-group" style="display: flex; gap: var(--spacing-3); align-items: flex-end;">
+                                        <button type="button" id="clearFiltersBtn" class="btn btn-secondary">
+                                            <i class="ph ph-x"></i> Clear Filters
+                                        </button>
+                                    </div>
+                                </form>
+                            </div>
+                            
+                            <div id="engagementsFilters" style="display: none; margin-bottom: 1.5rem;">
+                                <form class="filter-row">
+                                    <div class="form-group">
+                                        <label class="form-label">Filter by Status</label>
+                                        <select id="engagementStatusFilter" class="form-control">
+                                            <option value="">All Statuses</option>
+                                            <option value="ACTIVE">Active</option>
+                                            <option value="COMPLETED">Completed</option>
+                                            <option value="TERMINATED">Terminated</option>
+                                        </select>
+                                    </div>
+                                    <div class="form-group" style="display: flex; gap: var(--spacing-3); align-items: flex-end;">
+                                        <button type="button" id="clearFiltersBtn2" class="btn btn-secondary">
+                                            <i class="ph ph-x"></i> Clear Filters
+                                        </button>
+                                    </div>
+                                </form>
+                            </div>
+                            
+                            <!-- Offers Content -->
+                            <div id="offersContent">
+                                <div id="offersList">
+                                    <p>Loading your service offers...</p>
                                 </div>
-                                <div class="form-group">
-                                    <label class="form-label">Filter by Category</label>
-                                    <select id="categoryFilter" class="form-control">
-                                        <option value="">All Categories</option>
-                                    </select>
+                            </div>
+                            
+                            <!-- Engagements Content -->
+                            <div id="engagementsContent" style="display: none;">
+                                <div id="engagementsList">
+                                    <p>Loading your service engagements...</p>
                                 </div>
-                                <div class="form-group" style="display: flex; gap: var(--spacing-3);">
-                                    <button id="clearFiltersBtn" class="btn btn-secondary">
-                                        <i class="ph ph-x"></i> Clear Filters
-                                    </button>
-                                </div>
-                            </form>
+                            </div>
                         </div>
-                    </div>
-                </div>
-                
-                <!-- Services List -->
-                <div class="content-section">
-                    <div id="offeringsList">
-                        <p>Loading your service offerings...</p>
                     </div>
                 </div>
             </div>
@@ -94,6 +125,16 @@
     <script src="../../src/core/auth/auth.js"></script>
     <script src="../../src/core/auth/auth-check.js"></script>
     <script src="../../src/utils/demo-credentials.js"></script>
+    
+    <!-- Track Guards -->
+    <script src="../../src/domains/auth/guards/track-guards.js"></script>
+    <script src="../../src/domains/auth/guards/service-track-guards.js"></script>
+    
+    <!-- Validators -->
+    <script src="../../src/domains/services/service-offers/service-offer-validator.js"></script>
+    <script src="../../src/domains/services/service-engagements/service-engagement-validator.js"></script>
+    
+    <!-- Services Loader -->
     <script src="../../src/services/services-loader.js"></script>
     <script src="../../data/data-loader.js"></script>
     
@@ -115,12 +156,14 @@
             // Wait for services to load
             function waitForServices() {
                 return new Promise((resolve) => {
-                    if (typeof ServiceOfferingService !== 'undefined') {
+                    if (typeof ServiceOfferService !== 'undefined' && 
+                        typeof ServiceEngagementService !== 'undefined' &&
+                        typeof ServiceRequestService !== 'undefined') {
                         resolve();
                     } else {
                         window.addEventListener('servicesLoaded', resolve, { once: true });
                         // Fallback timeout
-                        setTimeout(resolve, 2000);
+                        setTimeout(resolve, 3000);
                     }
                 });
             }
@@ -128,13 +171,11 @@
             await waitForServices();
             
             // Wait for component to be available
-            // The component should be available immediately after script loads, but check for it
             function waitForComponent() {
                 return new Promise((resolve) => {
                     if (typeof myServicesComponent !== 'undefined') {
                         resolve();
                     } else {
-                        // Check if script loaded but component not exported
                         let attempts = 0;
                         const checkInterval = setInterval(() => {
                             if (typeof myServicesComponent !== 'undefined') {
@@ -143,7 +184,7 @@
                             } else if (attempts >= 20) {
                                 clearInterval(checkInterval);
                                 console.error('myServicesComponent not found after 2 seconds');
-                                resolve(); // Resolve anyway to continue
+                                resolve();
                             }
                             attempts++;
                         }, 100);
@@ -154,12 +195,11 @@
             await waitForComponent();
             
             // Initialize my services component
-            // Note: Sidebar and navbar are automatically initialized by app-init.js
             if (typeof myServicesComponent !== 'undefined') {
                 myServicesComponent.init();
             } else {
                 console.error('myServicesComponent not found. Check browser console for JavaScript errors.');
-                const container = document.getElementById('offeringsList');
+                const container = document.getElementById('offersList');
                 if (container) {
                     container.innerHTML = '<p class="alert alert-error">Failed to load My Services component. Please refresh the page.</p>';
                 }
@@ -168,4 +208,3 @@
     </script>
 </body>
 </html>
-

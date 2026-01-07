@@ -40,7 +40,13 @@
     'src/services/service-offerings/service-offering-service.js',
     'src/services/service-evaluations/service-evaluation-service.js',
     'src/services/notifications/notification-service.js',
-    'src/services/admin/admin-service.js'
+    'src/services/admin/admin-service.js',
+    
+    // New Service Provider Domain Services
+    'src/domains/services/service-providers/service-provider-service.js',
+    'src/domains/services/service-requests/service-request-service.js',
+    'src/domains/services/service-offers/service-offer-service.js',
+    'src/domains/services/service-engagements/service-engagement-service.js'
   ];
 
   function loadService(servicePath) {

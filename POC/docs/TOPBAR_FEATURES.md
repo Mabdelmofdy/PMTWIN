@@ -216,3 +216,4 @@ html += `
 5. **User Avatar**: Display user avatar in user menu
 6. **Language Switcher**: Quick language change in topbar
 
+
