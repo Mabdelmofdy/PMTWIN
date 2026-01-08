@@ -11,10 +11,10 @@
 
   // Portal type to role mapping
   const PORTAL_ROLE_MAP = {
-    'admin': ['platform_admin', 'auditor'],
-    'user': ['project_lead', 'professional', 'supplier', 'service_provider', 'consultant', 'mentor'],
-    'mobile': ['project_lead', 'professional', 'supplier', 'service_provider', 'consultant', 'mentor'],
-    'public': ['platform_admin', 'project_lead', 'professional', 'supplier', 'service_provider', 'consultant', 'mentor', 'auditor'] // Show all in public portal
+    'admin': ['platform_admin', 'admin', 'auditor'],
+    'user': ['beneficiary', 'project_lead', 'entity', 'vendor', 'professional', 'supplier', 'service_provider', 'skill_service_provider', 'consultant', 'sub_contractor', 'mentor', 'individual'],
+    'mobile': ['beneficiary', 'project_lead', 'entity', 'vendor', 'professional', 'supplier', 'service_provider', 'skill_service_provider', 'consultant', 'sub_contractor', 'mentor', 'individual'],
+    'public': ['platform_admin', 'admin', 'beneficiary', 'project_lead', 'entity', 'vendor', 'professional', 'supplier', 'service_provider', 'skill_service_provider', 'consultant', 'sub_contractor', 'mentor', 'auditor', 'individual'] // Show all in public portal
   };
 
   // ============================================
@@ -82,14 +82,18 @@
   function getRoleBadge(role) {
     const roleLabels = {
       'platform_admin': { text: 'Platform Admin', class: 'badge-error' },
-      'admin': { text: 'Admin', class: 'badge-error' }, // Legacy support
+      'admin': { text: 'Admin', class: 'badge-error' },
+      'beneficiary': { text: 'Beneficiary', class: 'badge-success' },
       'project_lead': { text: 'Project Lead', class: 'badge-success' },
-      'entity': { text: 'Entity', class: 'badge-success' }, // Legacy support
+      'entity': { text: 'Entity', class: 'badge-success' },
+      'vendor': { text: 'Vendor', class: 'badge-warning' },
       'professional': { text: 'Professional', class: 'badge-info' },
-      'individual': { text: 'Individual', class: 'badge-info' }, // Legacy support
+      'individual': { text: 'Individual', class: 'badge-info' },
       'supplier': { text: 'Supplier', class: 'badge-warning' },
       'service_provider': { text: 'Service Provider', class: 'badge-primary' },
+      'skill_service_provider': { text: 'Service Provider', class: 'badge-primary' },
       'consultant': { text: 'Consultant', class: 'badge-secondary' },
+      'sub_contractor': { text: 'SubContractor', class: 'badge-purple' },
       'mentor': { text: 'Mentor', class: 'badge-purple' },
       'auditor': { text: 'Auditor', class: 'badge-dark' }
     };
@@ -147,8 +151,23 @@
         
         // Determine redirect based on user role
         let redirectPath = `${basePath}dashboard/`;
-        if (user.role === 'platform_admin' || user.role === 'admin' || user.role === 'auditor') {
+        
+        // Check for admin roles (case-insensitive)
+        const role = user.role?.toLowerCase();
+        const adminRoles = ['admin', 'platform_admin', 'auditor'];
+        const isAdmin = adminRoles.some(r => r.toLowerCase() === role);
+        
+        if (isAdmin) {
           redirectPath = `${basePath}admin/`;
+          console.log('🔐 Admin user detected in demo credentials, redirecting to admin portal');
+        } else if (role === 'beneficiary' || role === 'entity' || role === 'project_lead' ||
+                   role === 'vendor' || role === 'service_provider' || role === 'skill_service_provider' ||
+                   role === 'consultant' || role === 'sub_contractor' || role === 'professional' ||
+                   role === 'supplier' || role === 'individual') {
+          redirectPath = `${basePath}dashboard/`;
+          console.log('👤 User detected in demo credentials, redirecting to dashboard');
+        } else {
+          console.warn('⚠️ Unknown role in demo credentials:', user.role);
         }
         
         console.log(`🔄 Redirecting to: ${redirectPath}`);

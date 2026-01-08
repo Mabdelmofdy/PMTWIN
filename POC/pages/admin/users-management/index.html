@@ -83,26 +83,119 @@
                             </div>
                         </form>
                         <div id="advancedFilters" style="display: none; margin-top: 1rem; padding-top: 1rem; border-top: 1px solid var(--border-color);">
-                            <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
-                                <select id="roleFilter" class="form-control" style="width: 150px;">
-                                    <option value="">All Roles</option>
-                                    <option value="admin">Admin</option>
-                                    <option value="entity">Entity</option>
-                                    <option value="individual">Individual</option>
-                                    <option value="consultant">Consultant</option>
-                                </select>
-                                <input type="date" id="dateFromFilter" class="form-control" style="width: 150px;" placeholder="From Date">
-                                <input type="date" id="dateToFilter" class="form-control" style="width: 150px;" placeholder="To Date">
+                            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">
+                                <div class="form-group">
+                                    <label for="roleFilter" class="form-label">Role</label>
+                                    <select id="roleFilter" class="form-control">
+                                        <option value="">All Roles</option>
+                                        <option value="admin">Admin</option>
+                                        <option value="platform_admin">Platform Admin</option>
+                                        <option value="entity">Entity</option>
+                                        <option value="project_lead">Project Lead</option>
+                                        <option value="individual">Individual</option>
+                                        <option value="professional">Professional</option>
+                                        <option value="consultant">Consultant</option>
+                                        <option value="service_provider">Service Provider</option>
+                                        <option value="supplier">Supplier</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label for="verificationFilter" class="form-label">Verification Status</label>
+                                    <select id="verificationFilter" class="form-control">
+                                        <option value="">All</option>
+                                        <option value="verified">Verified</option>
+                                        <option value="unverified">Unverified</option>
+                                        <option value="pending_verification">Pending Verification</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label for="activityFilter" class="form-label">Activity Status</label>
+                                    <select id="activityFilter" class="form-control">
+                                        <option value="">All</option>
+                                        <option value="active">Active (Last 30 days)</option>
+                                        <option value="inactive">Inactive (30+ days)</option>
+                                        <option value="never_logged_in">Never Logged In</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label for="dateFromFilter" class="form-label">Registration From</label>
+                                    <input type="date" id="dateFromFilter" class="form-control">
+                                </div>
+                                <div class="form-group">
+                                    <label for="dateToFilter" class="form-label">Registration To</label>
+                                    <input type="date" id="dateToFilter" class="form-control">
+                                </div>
+                                <div class="form-group">
+                                    <label for="sortBy" class="form-label">Sort By</label>
+                                    <select id="sortBy" class="form-control">
+                                        <option value="name">Name</option>
+                                        <option value="email">Email</option>
+                                        <option value="registration_date">Registration Date</option>
+                                        <option value="last_login">Last Login</option>
+                                        <option value="status">Status</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label for="sortOrder" class="form-label">Order</label>
+                                    <select id="sortOrder" class="form-control">
+                                        <option value="asc">Ascending</option>
+                                        <option value="desc">Descending</option>
+                                    </select>
+                                </div>
                             </div>
                         </div>
                     </form>
                 </div>
             </div>
 
+            <!-- Bulk Operations -->
+            <div class="content-section" id="bulkOperationsSection" style="display: none;">
+                <div class="card">
+                    <div class="card-body">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                            <h3 class="section-title">Bulk Operations</h3>
+                            <button type="button" class="btn btn-outline btn-sm" onclick="if(window.admin && window.admin['admin-users-management']) { window.admin['admin-users-management'].hideBulkOperations(); }">
+                                <i class="ph ph-x"></i> Cancel
+                            </button>
+                        </div>
+                        <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+                            <button type="button" class="btn btn-success" onclick="if(window.admin && window.admin['admin-users-management']) { window.admin['admin-users-management'].bulkApprove(); }">
+                                <i class="ph ph-check-circle"></i> Approve Selected
+                            </button>
+                            <button type="button" class="btn btn-warning" onclick="if(window.admin && window.admin['admin-users-management']) { window.admin['admin-users-management'].bulkSuspend(); }">
+                                <i class="ph ph-lock"></i> Suspend Selected
+                            </button>
+                            <button type="button" class="btn btn-error" onclick="if(window.admin && window.admin['admin-users-management']) { window.admin['admin-users-management'].bulkReject(); }">
+                                <i class="ph ph-x-circle"></i> Reject Selected
+                            </button>
+                            <button type="button" class="btn btn-secondary" onclick="if(window.admin && window.admin['admin-users-management']) { window.admin['admin-users-management'].bulkExport(); }">
+                                <i class="ph ph-download"></i> Export Selected
+                            </button>
+                            <button type="button" class="btn btn-outline" onclick="if(window.admin && window.admin['admin-users-management']) { window.admin['admin-users-management'].bulkAssignRole(); }">
+                                <i class="ph ph-user-switch"></i> Assign Role
+                            </button>
+                        </div>
+                        <p style="margin-top: 0.75rem; color: var(--text-secondary); font-size: 0.9rem;">
+                            <span id="selectedCount">0</span> user(s) selected
+                        </p>
+                    </div>
+                </div>
+            </div>
+
             <!-- Users List -->
             <div class="card">
                 <div class="card-body">
-                    <h2 class="spacing-section">Users</h2>
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                        <h2 class="section-title" style="margin: 0;">Users</h2>
+                        <div style="display: flex; gap: 0.5rem;">
+                            <button type="button" class="btn btn-outline btn-sm" onclick="if(window.admin && window.admin['admin-users-management']) { window.admin['admin-users-management'].selectAll(); }">
+                                <i class="ph ph-check-square"></i> Select All
+                            </button>
+                            <button type="button" class="btn btn-outline btn-sm" onclick="if(window.admin && window.admin['admin-users-management']) { window.admin['admin-users-management'].deselectAll(); }">
+                                <i class="ph ph-square"></i> Deselect All
+                            </button>
+                        </div>
+                    </div>
                     <div id="usersList">
                         <!-- Users will be loaded here -->
                     </div>

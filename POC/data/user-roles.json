@@ -1,9 +1,9 @@
 {
   "userRoles": [
     {
-      "userId": "demo_platform_admin_001",
+      "userId": "user-admin-001",
       "email": "admin@pmtwin.com",
-      "roleId": "platform_admin",
+      "roleId": "admin",
       "assignedAt": "2024-01-01T00:00:00Z",
       "assignedBy": "system",
       "isActive": true

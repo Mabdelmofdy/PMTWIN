@@ -115,32 +115,97 @@ New_PMTWIN/
      - Open browser console (F12)
      - Run the setup script manually (see setup-accounts.js for code)
 
-## Test Account Credentials
+## Test Account Credentials - Golden Seed Dataset
 
-After running the setup script, you can login to any portal using these credentials:
+After the application loads, golden seed data is automatically created. You can login using these credentials:
 
 ### Admin Portal
 - **Email:** `admin@pmtwin.com`
 - **Password:** `Admin123`
 - **Role:** Admin
-- **Access:** Full admin access (vetting, moderation, reports, audit trail)
+- **Access:** Full admin access (vetting, moderation, reports, audit trail, view all contracts/engagements)
 
-### User Portal - Individual
-- **Email:** `individual@pmtwin.com`
-- **Password:** `User123`
-- **Role:** Individual (Professional/Consultant)
-- **Access:** Task-based opportunities, skill matching, proposals, profile management
+### Beneficiaries (Project Creators)
 
-### User Portal - Entity
-- **Email:** `entity@pmtwin.com`
+#### NEOM Development Authority
+- **Email:** `beneficiary@pmtwin.com`
+- **Password:** `Beneficiary123`
+- **Role:** Beneficiary
+- **Access:** Creates MegaProject "NEOM Package", manages contracts, creates ServiceRequests
+- **Scenario:** Demonstrates MegaProject with Vendor, Service, Advisory, and SubContracts
+
+#### Saudi Real Estate Company
+- **Email:** `entity2@pmtwin.com`
 - **Password:** `Entity123`
-- **Role:** Entity (Company/Contractor)
-- **Access:** Project creation, matching, proposals, financial overview
+- **Role:** Project Lead
+- **Access:** Creates standalone Project "Residential Tower", manages PROJECT_CONTRACT
+- **Scenario:** Demonstrates standalone Project workflow
+
+### Vendors (Contractors)
+
+#### Alpha Construction Group
+- **Email:** `vendor.alpha@pmtwin.com`
+- **Password:** `Vendor123`
+- **Role:** Vendor
+- **Access:** Executes MegaProject, manages SubContractors, creates SubContracts
+- **Scenario:** Demonstrates MEGA_PROJECT_CONTRACT and SUB_CONTRACT relationships
+
+#### Beta Infrastructure Ltd
+- **Email:** `vendor.beta@pmtwin.com`
+- **Password:** `Vendor123`
+- **Role:** Vendor
+- **Access:** Executes standalone Project
+- **Scenario:** Demonstrates PROJECT_CONTRACT workflow
+
+### Service Providers (Skill-Based Services)
+
+#### BIM Solutions Co
+- **Email:** `bim@pmtwin.com`
+- **Password:** `Service123`
+- **Role:** Service Provider
+- **Access:** Provides BIM coordination, responds to ServiceRequests (never bids on Projects)
+- **Scenario:** Demonstrates SERVICE_CONTRACT workflow
+
+#### Quality Assurance Services
+- **Email:** `qa@pmtwin.com`
+- **Password:** `Service123`
+- **Role:** Service Provider
+- **Access:** Provides QA/QC inspection services
+- **Scenario:** Demonstrates SERVICE_CONTRACT workflow
+
+#### Project Planning Experts
+- **Email:** `scheduler@pmtwin.com`
+- **Password:** `Service123`
+- **Role:** Service Provider
+- **Access:** Provides project planning and scheduling services
+
+### Consultant
+
+#### Green Building Consultants
+- **Email:** `consultant@pmtwin.com`
+- **Password:** `Consultant123`
+- **Role:** Consultant
+- **Access:** Provides sustainability advisory services
+- **Scenario:** Demonstrates ADVISORY_CONTRACT workflow
+
+### Sub-Contractors
+
+#### MEP Specialists LLC
+- **Email:** `mep.sub@pmtwin.com`
+- **Password:** `SubContractor123`
+- **Role:** SubContractor
+- **Access:** Works under Vendor Alpha only (cannot contract with Beneficiaries)
+- **Scenario:** Demonstrates SUB_CONTRACT workflow and isolation constraint
+
+#### Steel Fabrication Co
+- **Email:** `steel.sub@pmtwin.com`
+- **Password:** `SubContractor123`
+- **Role:** SubContractor
+- **Access:** Works under Vendor Alpha only (cannot contract with Beneficiaries)
+- **Scenario:** Demonstrates SUB_CONTRACT workflow and isolation constraint
 
 ### Mobile App
-- **Use Individual or Entity credentials above**
-- **Email:** `individual@pmtwin.com` or `entity@pmtwin.com`
-- **Password:** `User123` or `Entity123`
+- **Use any user credentials above**
 - **Access:** Biometric approval, site logging, notifications, offline mode
 
 ### Quick Reference Table

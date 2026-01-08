@@ -1,0 +1,69 @@
+{
+  "users": [
+    {
+      "userId": "demo_platform_admin_001",
+      "email": "admin@pmtwin.com",
+      "password": "Admin123",
+      "role": "platform_admin",
+      "name": "Platform Administrator",
+      "description": "Full system access - Vetting, Moderation, Reports, Audit Trail, User Management"
+    },
+    {
+      "userId": "demo_project_lead_001",
+      "email": "entity@pmtwin.com",
+      "password": "Entity123",
+      "role": "project_lead",
+      "name": "ABC Construction Co.",
+      "description": "Project Lead/Contractor - Posts tenders and project opportunities, forms consortia, hires resources, initiates SPVs, manages project lifecycle"
+    },
+    {
+      "userId": "demo_supplier_001",
+      "email": "supplier@pmtwin.com",
+      "password": "Supplier123",
+      "role": "supplier",
+      "name": "Global Materials Supply",
+      "description": "Supplier - Participates in bulk purchasing initiatives, lists surplus materials and equipment, joins strategic alliances, manages inventory"
+    },
+    {
+      "userId": "demo_service_provider_001",
+      "email": "service@pmtwin.com",
+      "password": "Service123",
+      "role": "service_provider",
+      "name": "Legal & Logistics Services",
+      "description": "Service Provider - Offers specialized B2B services (Legal, Logistics, Design), participates in Task-Based engagements, joins Strategic Alliances"
+    },
+    {
+      "userId": "demo_professional_001",
+      "email": "professional@pmtwin.com",
+      "password": "Professional123",
+      "role": "professional",
+      "name": "John Doe",
+      "description": "Professional/Expert - Accepts task-based engagements, joins consortia as a member, seeks full-time hiring opportunities, participates in mentorship programs"
+    },
+    {
+      "userId": "demo_consultant_001",
+      "email": "consultant@pmtwin.com",
+      "password": "Consultant123",
+      "role": "consultant",
+      "name": "Dr. Sarah Ahmed",
+      "description": "Construction Consultant - Advisory services, feasibility studies, expert reviews, strategic alliances"
+    },
+    {
+      "userId": "demo_mentor_001",
+      "email": "mentor@pmtwin.com",
+      "password": "Mentor123",
+      "role": "mentor",
+      "name": "Mohammed Al-Rashid",
+      "description": "Senior Project Manager - Mentorship programs, guides junior professionals, tracks mentee progress"
+    },
+    {
+      "userId": "demo_auditor_001",
+      "email": "auditor@pmtwin.com",
+      "password": "Auditor123",
+      "role": "auditor",
+      "name": "Compliance Auditor",
+      "description": "Read-only access - Verify compliance, contract integrity, view audit trails, export data"
+    }
+  ]
+}
+

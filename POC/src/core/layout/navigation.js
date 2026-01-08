@@ -751,8 +751,21 @@
     // Load menu items
     await loadMenuItems();
     
+    // Get role from RBAC if available
+    let userRole = currentUser?.role;
+    if (typeof PMTwinRBAC !== 'undefined') {
+      try {
+        const rbacRole = await PMTwinRBAC.getCurrentUserRole();
+        if (rbacRole) {
+          userRole = rbacRole;
+        }
+      } catch (e) {
+        console.warn('[Navigation] Could not get RBAC role:', e);
+      }
+    }
+    
     console.log('[Navigation] Rendering sidebar with', menuItems.length, 'menu items');
-    console.log('[Navigation] Current user:', currentUser?.email, 'Role:', currentUser?.role);
+    console.log('[Navigation] Current user:', currentUser?.email, 'Role (from user):', currentUser?.role, 'Role (from RBAC):', userRole);
     console.log('[Navigation] Menu items:', menuItems);
 
     const basePath = getBasePath();

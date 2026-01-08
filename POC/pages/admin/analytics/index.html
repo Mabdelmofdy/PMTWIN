@@ -10,20 +10,26 @@
     <!-- Main Content - Sidebar and Navbar are automatically added by layout system -->
     <main>
         <div class="container" style="padding: 2rem 0;">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
-                <h1>Analytics Dashboard</h1>
-                <div>
-                    <button class="btn btn-primary" data-export="csv">Export CSV</button>
-                    <button class="btn btn-primary" data-export="json">Export JSON</button>
+            <div class="page-header">
+                <div class="page-header-content">
+                    <div>
+                        <h1>Analytics Dashboard</h1>
+                        <p>Comprehensive analytics and insights for platform performance</p>
+                    </div>
                 </div>
             </div>
 
-            <!-- Date Range Filter -->
+            <!-- Filters Section -->
             <div class="card" style="margin-bottom: 2rem;">
                 <div class="card-body">
-                    <h2 style="margin-bottom: 1rem;">Date Range</h2>
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                        <h2 style="margin: 0;">Filters & Date Range</h2>
+                        <button type="button" class="btn btn-outline btn-sm" onclick="if(window.admin && window.admin['admin-analytics']) { window.admin['admin-analytics'].clearFilters(); }">
+                            <i class="ph ph-x"></i> Clear Filters
+                        </button>
+                    </div>
                     <form id="analyticsDateForm">
-                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">
+                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 1rem;">
                             <div class="form-group">
                                 <label for="dateFrom">From Date</label>
                                 <input type="date" id="dateFrom" class="form-control" required>
@@ -32,9 +38,54 @@
                                 <label for="dateTo">To Date</label>
                                 <input type="date" id="dateTo" class="form-control" required>
                             </div>
+                            <div class="form-group">
+                                <label for="categoryFilter">Category</label>
+                                <select id="categoryFilter" class="form-control">
+                                    <option value="">All Categories</option>
+                                    <option value="residential">Residential</option>
+                                    <option value="commercial">Commercial</option>
+                                    <option value="infrastructure">Infrastructure</option>
+                                    <option value="industrial">Industrial</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="statusFilter">Status</label>
+                                <select id="statusFilter" class="form-control">
+                                    <option value="">All Statuses</option>
+                                    <option value="active">Active</option>
+                                    <option value="completed">Completed</option>
+                                    <option value="pending">Pending</option>
+                                    <option value="cancelled">Cancelled</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="typeFilter">Type</label>
+                                <select id="typeFilter" class="form-control">
+                                    <option value="">All Types</option>
+                                    <option value="cash">Cash</option>
+                                    <option value="barter">Barter</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="userTypeFilter">User Type</label>
+                                <select id="userTypeFilter" class="form-control">
+                                    <option value="">All User Types</option>
+                                    <option value="individual">Individual</option>
+                                    <option value="entity">Entity</option>
+                                    <option value="consultant">Consultant</option>
+                                </select>
+                            </div>
                         </div>
-                        <div style="margin-top: 1rem;">
-                            <button type="submit" class="btn btn-primary">Apply Date Range</button>
+                        <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="ph ph-magnifying-glass"></i> Apply Filters
+                            </button>
+                            <button type="button" class="btn btn-outline" onclick="if(window.admin && window.admin['admin-analytics']) { window.admin['admin-analytics'].exportAnalytics('csv'); }">
+                                <i class="ph ph-download"></i> Export CSV
+                            </button>
+                            <button type="button" class="btn btn-outline" onclick="if(window.admin && window.admin['admin-analytics']) { window.admin['admin-analytics'].exportAnalytics('json'); }">
+                                <i class="ph ph-download"></i> Export JSON
+                            </button>
                         </div>
                     </form>
                 </div>

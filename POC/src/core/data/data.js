@@ -113,10 +113,23 @@
     // Load sample notifications if none exist
     loadSampleNotifications();
     
-    // Load sample projects if none exist
-    loadSampleProjects();
+    // Load golden seed data (replaces old sample data loaders)
+    // Golden seed script should be loaded before data.js in templates
+    if (typeof GoldenSeedData !== 'undefined') {
+      GoldenSeedData.load();
+    } else {
+      // Fallback: Load script dynamically if not in template
+      const script = document.createElement('script');
+      script.src = getDataBasePath() + 'src/core/data/golden-seed-data.js';
+      script.onload = function() {
+        if (typeof GoldenSeedData !== 'undefined') {
+          GoldenSeedData.load();
+        }
+      };
+      document.head.appendChild(script);
+    }
     
-    // Load sample collaboration opportunities if none exist
+    // Load sample collaboration opportunities if none exist (keep for now)
     loadSampleCollaborationOpportunities();
     
     // Load sample collaboration applications if none exist (after opportunities are loaded)
@@ -124,14 +137,8 @@
       loadSampleCollaborationApplications();
     }, 100);
     
-    // Load sample proposals if none exist
-    loadSampleProposals();
-    
-    // Initialize service index
+    // Initialize service index (migration still needed)
     migrateServiceIndex();
-    
-    // Load test data for new models
-    loadServiceIndexTestData();
     
     // Migrate Service Provider model
     migrateServiceProviderModel();
@@ -9381,6 +9388,16 @@
     loadSampleProposals: () => loadSampleProposals(true),
     loadServiceIndexTestData: () => loadServiceIndexTestData(),
     updateOpportunitiesWithTestData: updateOpportunitiesWithTestData,
+    
+    // Golden Seed Data
+    loadGoldenSeedData: (forceReload = false) => {
+      if (typeof GoldenSeedData !== 'undefined') {
+        return GoldenSeedData.load(forceReload);
+      } else {
+        console.warn('GoldenSeedData not available. Make sure golden-seed-data.js is loaded.');
+        return null;
+      }
+    },
     
     // Test Data Helpers
     getServiceTestDataStats() {

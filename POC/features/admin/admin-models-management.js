@@ -106,44 +106,181 @@
 
   function renderModelsOverview(container, stats) {
     const modelCategories = {
-      '1': { name: 'Project-Based Collaboration', subModels: ['1.1', '1.2', '1.3', '1.4'] },
-      '2': { name: 'Strategic Partnerships', subModels: ['2.1', '2.2', '2.3'] },
-      '3': { name: 'Resource Pooling & Sharing', subModels: ['3.1', '3.2', '3.3'] },
-      '4': { name: 'Hiring a Resource', subModels: ['4.1', '4.2'] },
-      '5': { name: 'Call for Competition', subModels: ['5.1'] }
+      '1': { name: 'Project-Based Collaboration', subModels: ['1.1', '1.2', '1.3', '1.4'], icon: 'ph-folder', color: 'primary' },
+      '2': { name: 'Strategic Partnerships', subModels: ['2.1', '2.2', '2.3'], icon: 'ph-handshake', color: 'info' },
+      '3': { name: 'Resource Pooling & Sharing', subModels: ['3.1', '3.2', '3.3'], icon: 'ph-stack', color: 'secondary' },
+      '4': { name: 'Hiring a Resource', subModels: ['4.1', '4.2'], icon: 'ph-user-plus', color: 'success' },
+      '5': { name: 'Call for Competition', subModels: ['5.1'], icon: 'ph-trophy', color: 'warning' }
     };
 
-    let html = '<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1.5rem;">';
+    const modelLabels = {
+      '1.1': 'Task-Based Engagement',
+      '1.2': 'Consortium',
+      '1.3': 'Joint Venture',
+      '1.4': 'SPV',
+      '2.1': 'Strategic JV',
+      '2.2': 'Strategic Alliance',
+      '2.3': 'Mentorship',
+      '3.1': 'Bulk Purchasing',
+      '3.2': 'Co-Ownership',
+      '3.3': 'Resource Exchange',
+      '4.1': 'Professional Hiring',
+      '4.2': 'Consultant Hiring',
+      '5.1': 'Competition/RFP'
+    };
+
+    // Calculate overall stats
+    const totalOpportunities = stats.total || 0;
+    const activeOpportunities = stats.byStatus?.active || 0;
+    const pendingOpportunities = stats.byStatus?.pending || 0;
+    const totalApplications = stats.totalApplications || 0;
+
+    let html = `
+      <div style="margin-bottom: 2rem;">
+        <h3 style="margin-bottom: 1rem;">Overall Statistics</h3>
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">
+          <div class="card" style="text-align: center; padding: 1.5rem;">
+            <h3 style="font-size: 2.5rem; margin: 0 0 0.5rem 0; color: var(--color-primary);">${totalOpportunities}</h3>
+            <p style="margin: 0; color: var(--text-secondary);">Total Opportunities</p>
+          </div>
+          <div class="card" style="text-align: center; padding: 1.5rem;">
+            <h3 style="font-size: 2.5rem; margin: 0 0 0.5rem 0; color: var(--color-success);">${activeOpportunities}</h3>
+            <p style="margin: 0; color: var(--text-secondary);">Active</p>
+          </div>
+          <div class="card" style="text-align: center; padding: 1.5rem;">
+            <h3 style="font-size: 2.5rem; margin: 0 0 0.5rem 0; color: var(--color-warning);">${pendingOpportunities}</h3>
+            <p style="margin: 0; color: var(--text-secondary);">Pending Review</p>
+          </div>
+          <div class="card" style="text-align: center; padding: 1.5rem;">
+            <h3 style="font-size: 2.5rem; margin: 0 0 0.5rem 0; color: var(--color-info);">${totalApplications}</h3>
+            <p style="margin: 0; color: var(--text-secondary);">Total Applications</p>
+          </div>
+        </div>
+      </div>
+      
+      <div style="margin-bottom: 2rem;">
+        <h3 style="margin-bottom: 1rem;">Model Categories</h3>
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1.5rem;">
+    `;
     
     Object.entries(modelCategories).forEach(([categoryId, category]) => {
       const categoryStats = {
         total: 0,
         active: 0,
+        pending: 0,
+        closed: 0,
         byModel: {}
       };
       
       category.subModels.forEach(modelId => {
-        const modelStats = stats.byModel[modelId] || 0;
-        categoryStats.total += modelStats;
-        categoryStats.byModel[modelId] = modelStats;
+        const modelCount = stats.byModel[modelId] || 0;
+        categoryStats.total += modelCount;
+        categoryStats.byModel[modelId] = {
+          count: modelCount,
+          label: modelLabels[modelId] || modelId
+        };
       });
       
+      // Get status breakdown for this category
+      if (stats.byStatus) {
+        categoryStats.active = stats.byStatus.active || 0;
+        categoryStats.pending = stats.byStatus.pending || 0;
+        categoryStats.closed = stats.byStatus.closed || 0;
+      }
+      
       html += `
-        <div class="card" style="cursor: pointer;" onclick="loadModelCategory('${categoryId}')">
+        <div class="card" style="cursor: pointer; transition: transform 0.2s, box-shadow 0.2s;" 
+             onclick="loadModelCategory('${categoryId}')"
+             onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 4px 12px rgba(0,0,0,0.1)';"
+             onmouseout="this.style.transform=''; this.style.boxShadow='';">
           <div class="card-body">
-            <h3 style="margin: 0 0 0.5rem 0;">${category.name}</h3>
-            <p style="margin: 0 0 1rem 0; color: var(--text-secondary);">${category.subModels.length} sub-models</p>
-            <div style="display: flex; justify-content: space-between; align-items: center;">
-              <span style="font-size: 2rem; font-weight: bold; color: var(--color-primary);">${categoryStats.total}</span>
-              <span style="color: var(--text-secondary);">Total Opportunities</span>
+            <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 1rem;">
+              <div style="width: 3rem; height: 3rem; border-radius: 50%; background: var(--color-${category.color}-light); display: flex; align-items: center; justify-content: center;">
+                <i class="ph ${category.icon}" style="font-size: 1.5rem; color: var(--color-${category.color});"></i>
+              </div>
+              <div style="flex: 1;">
+                <h3 style="margin: 0 0 0.25rem 0;">${category.name}</h3>
+                <p style="margin: 0; color: var(--text-secondary); font-size: 0.9rem;">${category.subModels.length} sub-models</p>
+              </div>
+            </div>
+            
+            <div style="margin-bottom: 1rem;">
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+                <span style="font-size: 2rem; font-weight: bold; color: var(--color-primary);">${categoryStats.total}</span>
+                <span style="color: var(--text-secondary);">Total</span>
+              </div>
+              <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.5rem; font-size: 0.85rem;">
+                <div style="text-align: center; padding: 0.5rem; background: var(--bg-secondary); border-radius: var(--radius-md);">
+                  <div style="color: var(--color-success); font-weight: 600;">${categoryStats.active}</div>
+                  <div style="color: var(--text-secondary); font-size: 0.75rem;">Active</div>
+                </div>
+                <div style="text-align: center; padding: 0.5rem; background: var(--bg-secondary); border-radius: var(--radius-md);">
+                  <div style="color: var(--color-warning); font-weight: 600;">${categoryStats.pending}</div>
+                  <div style="color: var(--text-secondary); font-size: 0.75rem;">Pending</div>
+                </div>
+                <div style="text-align: center; padding: 0.5rem; background: var(--bg-secondary); border-radius: var(--radius-md);">
+                  <div style="color: var(--color-info); font-weight: 600;">${categoryStats.closed}</div>
+                  <div style="color: var(--text-secondary); font-size: 0.75rem;">Closed</div>
+                </div>
+              </div>
+            </div>
+            
+            <div style="padding-top: 1rem; border-top: 1px solid var(--border-color);">
+              <strong style="font-size: 0.9rem; color: var(--text-secondary);">Sub-models:</strong>
+              <div style="display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 0.5rem;">
+                ${Object.entries(categoryStats.byModel).map(([modelId, modelData]) => 
+                  `<span class="badge badge-info" style="font-size: 0.75rem;">${modelId}: ${modelData.count}</span>`
+                ).join('')}
+              </div>
             </div>
           </div>
         </div>
       `;
     });
     
-    html += '</div>';
+    html += `
+        </div>
+      </div>
+      
+      <div>
+        <h3 style="margin-bottom: 1rem;">Per-Model Statistics</h3>
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">
+    `;
+    
+    // Show per-model stats
+    Object.entries(modelLabels).forEach(([modelId, label]) => {
+      const count = stats.byModel[modelId] || 0;
+      if (count > 0) {
+        html += `
+          <div class="card" style="cursor: pointer;" onclick="if(window.admin && window.admin['admin-models-management']) { window.admin['admin-models-management'].loadModel('${modelId}'); }">
+            <div class="card-body" style="text-align: center; padding: 1.5rem;">
+              <div style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 0.5rem;">${modelId}</div>
+              <h4 style="margin: 0 0 0.5rem 0; font-size: 1rem;">${label}</h4>
+              <div style="font-size: 2rem; font-weight: bold; color: var(--color-primary);">${count}</div>
+            </div>
+          </div>
+        `;
+      }
+    });
+    
+    html += `
+        </div>
+      </div>
+    `;
+    
     container.innerHTML = html;
+  }
+
+  function loadModel(modelId) {
+    currentModel = modelId;
+    const selector = document.getElementById('modelSelector');
+    if (selector) selector.value = modelId;
+    loadOpportunities();
+    // Scroll to opportunities list
+    const opportunitiesList = document.getElementById('opportunitiesList');
+    if (opportunitiesList) {
+      opportunitiesList.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
   }
 
   async function loadOpportunities() {
@@ -445,25 +582,113 @@
   }
 
   function showOpportunityModal(opportunity, applications) {
+    const creator = PMTwinData.Users.getById(opportunity.creatorId);
+    const creatorName = creator?.profile?.name || creator?.email || 'Unknown';
+    const createdAt = opportunity.createdAt ? new Date(opportunity.createdAt) : new Date();
+    const modelLabels = {
+      '1.1': 'Task-Based Engagement',
+      '1.2': 'Consortium',
+      '1.3': 'Joint Venture',
+      '1.4': 'SPV',
+      '2.1': 'Strategic JV',
+      '2.2': 'Strategic Alliance',
+      '2.3': 'Mentorship',
+      '3.1': 'Bulk Purchasing',
+      '3.2': 'Co-Ownership',
+      '3.3': 'Resource Exchange',
+      '4.1': 'Professional Hiring',
+      '4.2': 'Consultant Hiring',
+      '5.1': 'Competition/RFP'
+    };
+    const modelLabel = modelLabels[opportunity.modelId] || opportunity.modelName || opportunity.modelId || 'Unknown';
+    
     const modal = document.createElement('div');
     modal.className = 'modal-backdrop show';
     modal.innerHTML = `
-      <div class="modal show" style="max-width: 800px; max-height: 90vh; overflow-y: auto;">
+      <div class="modal show" style="max-width: 900px; max-height: 90vh; overflow-y: auto;">
         <div class="modal-header">
-          <h2 class="modal-title">Opportunity Details</h2>
+          <h2 class="modal-title">Opportunity Review</h2>
           <button class="modal-close" onclick="this.closest('.modal-backdrop').remove()">&times;</button>
         </div>
         <div class="modal-body">
-          <h3>${opportunity.title || 'Untitled'}</h3>
-          <p><strong>Model:</strong> ${opportunity.modelName || opportunity.modelId || 'Unknown'}</p>
-          <p><strong>Status:</strong> <span class="badge badge-${getStatusColor(opportunity.status)}">${opportunity.status}</span></p>
-          <p><strong>Creator:</strong> ${PMTwinData.Users.getById(opportunity.creatorId)?.profile?.name || 'Unknown'}</p>
-          <p><strong>Description:</strong> ${opportunity.description || 'No description'}</p>
-          <h4 style="margin-top: 1.5rem;">Applications (${applications.length})</h4>
-          ${applications.length > 0 ? renderApplicationsList(applications) : '<p>No applications yet</p>'}
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-bottom: 2rem;">
+            <div>
+              <h3 style="margin: 0 0 1rem 0;">${opportunity.title || 'Untitled'}</h3>
+              <div style="display: flex; flex-direction: column; gap: 0.75rem;">
+                <div>
+                  <strong style="color: var(--text-secondary); font-size: 0.9rem;">Model:</strong>
+                  <div style="margin-top: 0.25rem;">
+                    <span class="badge badge-info">${opportunity.modelId || 'Unknown'}</span>
+                    <span style="margin-left: 0.5rem; color: var(--text-secondary);">${modelLabel}</span>
+                  </div>
+                </div>
+                <div>
+                  <strong style="color: var(--text-secondary); font-size: 0.9rem;">Status:</strong>
+                  <div style="margin-top: 0.25rem;">
+                    <span class="badge badge-${getStatusColor(opportunity.status)}">${opportunity.status}</span>
+                  </div>
+                </div>
+                <div>
+                  <strong style="color: var(--text-secondary); font-size: 0.9rem;">Created:</strong>
+                  <div style="margin-top: 0.25rem; color: var(--text-secondary);">
+                    ${createdAt.toLocaleDateString()} at ${createdAt.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div>
+              <h4 style="margin: 0 0 1rem 0;">Creator Information</h4>
+              <div style="padding: 1rem; background: var(--bg-secondary); border-radius: var(--radius-md);">
+                <p style="margin: 0 0 0.5rem 0;"><strong>${creatorName}</strong></p>
+                <p style="margin: 0; color: var(--text-secondary); font-size: 0.9rem;">${creator?.email || 'No email'}</p>
+                ${creator?.profile?.company ? `<p style="margin: 0.5rem 0 0 0; color: var(--text-secondary); font-size: 0.9rem;">${creator.profile.company}</p>` : ''}
+              </div>
+            </div>
+          </div>
+          
+          <div style="margin-bottom: 2rem; padding-bottom: 2rem; border-bottom: 1px solid var(--border-color);">
+            <h4 style="margin-bottom: 1rem;">Description</h4>
+            <p style="color: var(--text-secondary); line-height: 1.6;">${opportunity.description || 'No description provided'}</p>
+          </div>
+          
+          ${opportunity.budget ? `
+            <div style="margin-bottom: 2rem; padding-bottom: 2rem; border-bottom: 1px solid var(--border-color);">
+              <h4 style="margin-bottom: 1rem;">Budget Information</h4>
+              <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">
+                ${opportunity.budget.min ? `
+                  <div>
+                    <strong style="color: var(--text-secondary); font-size: 0.9rem;">Minimum:</strong>
+                    <div style="margin-top: 0.25rem; font-size: 1.25rem; font-weight: 600;">${formatCurrency(opportunity.budget.min)}</div>
+                  </div>
+                ` : ''}
+                ${opportunity.budget.max ? `
+                  <div>
+                    <strong style="color: var(--text-secondary); font-size: 0.9rem;">Maximum:</strong>
+                    <div style="margin-top: 0.25rem; font-size: 1.25rem; font-weight: 600;">${formatCurrency(opportunity.budget.max)}</div>
+                  </div>
+                ` : ''}
+              </div>
+            </div>
+          ` : ''}
+          
+          <div style="margin-bottom: 2rem;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+              <h4 style="margin: 0;">Applications (${applications.length})</h4>
+              ${applications.length > 0 ? `<span class="badge badge-info">${applications.filter(a => a.status === 'approved').length} approved</span>` : ''}
+            </div>
+            ${applications.length > 0 ? renderApplicationsList(applications) : '<p style="color: var(--text-secondary); text-align: center; padding: 2rem;">No applications received yet</p>'}
+          </div>
         </div>
         <div class="modal-footer">
           <button class="btn btn-outline" onclick="this.closest('.modal-backdrop').remove()">Close</button>
+          ${opportunity.status === 'pending' ? `
+            <button class="btn btn-success" onclick="approveOpportunity('${opportunity.id}'); this.closest('.modal-backdrop').remove();">
+              <i class="ph ph-check"></i> Approve
+            </button>
+            <button class="btn btn-error" onclick="rejectOpportunity('${opportunity.id}'); this.closest('.modal-backdrop').remove();">
+              <i class="ph ph-x"></i> Reject
+            </button>
+          ` : ''}
         </div>
       </div>
     `;
@@ -471,23 +696,65 @@
     document.body.appendChild(modal);
   }
 
+  function formatCurrency(amount) {
+    if (!amount) return '0 SAR';
+    return new Intl.NumberFormat('en-SA', { style: 'currency', currency: 'SAR', minimumFractionDigits: 0 }).format(amount);
+  }
+
   function renderApplicationsList(applications) {
     let html = '<div style="display: grid; gap: 1rem;">';
     
     applications.forEach(app => {
       const applicant = PMTwinData.Users.getById(app.applicantId);
+      const submittedAt = app.submittedAt ? new Date(app.submittedAt) : new Date();
+      
       html += `
         <div class="card">
           <div class="card-body">
-            <div style="display: flex; justify-content: space-between; align-items: start;">
-              <div>
-                <strong>${applicant?.profile?.name || applicant?.email || 'Unknown'}</strong>
-                <p style="margin: 0.5rem 0; color: var(--text-secondary);">${app.applicationData?.proposal || 'No proposal text'}</p>
-                <span class="badge badge-${getStatusColor(app.status)}">${app.status}</span>
+            <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 1rem;">
+              <div style="flex: 1;">
+                <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem;">
+                  <strong style="font-size: 1.1rem;">${applicant?.profile?.name || applicant?.email || 'Unknown'}</strong>
+                  <span class="badge badge-${getStatusColor(app.status)}">${app.status}</span>
+                </div>
+                ${applicant?.email ? `<p style="margin: 0 0 0.5rem 0; color: var(--text-secondary); font-size: 0.9rem;">${applicant.email}</p>` : ''}
+                ${applicant?.profile?.company ? `<p style="margin: 0; color: var(--text-secondary); font-size: 0.9rem;">${applicant.profile.company}</p>` : ''}
               </div>
-              <span style="color: var(--text-secondary); font-size: 0.9rem;">
-                ${new Date(app.submittedAt).toLocaleDateString()}
-              </span>
+              <div style="text-align: right;">
+                <div style="color: var(--text-secondary); font-size: 0.85rem;">
+                  ${submittedAt.toLocaleDateString()}
+                </div>
+                <div style="color: var(--text-secondary); font-size: 0.85rem;">
+                  ${submittedAt.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                </div>
+              </div>
+            </div>
+            
+            ${app.applicationData?.proposal ? `
+              <div style="padding: 1rem; background: var(--bg-secondary); border-radius: var(--radius-md); margin-bottom: 1rem;">
+                <strong style="font-size: 0.9rem; color: var(--text-secondary);">Proposal:</strong>
+                <p style="margin: 0.5rem 0 0 0; color: var(--text-primary); line-height: 1.6;">${app.applicationData.proposal}</p>
+              </div>
+            ` : ''}
+            
+            ${app.applicationData?.value ? `
+              <div style="margin-bottom: 1rem;">
+                <strong style="font-size: 0.9rem; color: var(--text-secondary);">Proposed Value:</strong>
+                <div style="margin-top: 0.25rem; font-size: 1.1rem; font-weight: 600; color: var(--color-primary);">
+                  ${formatCurrency(app.applicationData.value)}
+                </div>
+              </div>
+            ` : ''}
+            
+            <div style="display: flex; gap: 0.5rem; justify-content: flex-end;">
+              ${app.status === 'pending' ? `
+                <button class="btn btn-sm btn-success" onclick="approveApplication('${app.id}', '${app.opportunityId}')">
+                  <i class="ph ph-check"></i> Approve
+                </button>
+                <button class="btn btn-sm btn-error" onclick="rejectApplication('${app.id}', '${app.opportunityId}')">
+                  <i class="ph ph-x"></i> Reject
+                </button>
+              ` : ''}
             </div>
           </div>
         </div>
@@ -496,6 +763,56 @@
     
     html += '</div>';
     return html;
+  }
+
+  async function approveApplication(applicationId, opportunityId) {
+    if (!confirm('Are you sure you want to approve this application?')) return;
+    
+    try {
+      if (typeof ModelsManagementService === 'undefined') {
+        alert('Models management service not available');
+        return;
+      }
+
+      // Update application status
+      const application = PMTwinData.CollaborationApplications.getById(applicationId);
+      if (application) {
+        application.status = 'approved';
+        PMTwinData.CollaborationApplications.update(applicationId, application);
+      }
+
+      alert('Application approved successfully');
+      viewOpportunityDetails(opportunityId);
+    } catch (error) {
+      console.error('Error approving application:', error);
+      alert('Error approving application');
+    }
+  }
+
+  async function rejectApplication(applicationId, opportunityId) {
+    const reason = prompt('Please provide a reason for rejection:');
+    if (!reason) return;
+    
+    try {
+      if (typeof ModelsManagementService === 'undefined') {
+        alert('Models management service not available');
+        return;
+      }
+
+      // Update application status
+      const application = PMTwinData.CollaborationApplications.getById(applicationId);
+      if (application) {
+        application.status = 'rejected';
+        application.rejectionReason = reason;
+        PMTwinData.CollaborationApplications.update(applicationId, application);
+      }
+
+      alert('Application rejected successfully');
+      viewOpportunityDetails(opportunityId);
+    } catch (error) {
+      console.error('Error rejecting application:', error);
+      alert('Error rejecting application');
+    }
   }
 
   async function approveOpportunity(opportunityId) {
@@ -609,6 +926,8 @@
   window.rejectOpportunity = rejectOpportunity;
   window.loadModelCategory = loadModelCategory;
   window.exportOpportunities = exportOpportunities;
+  window.approveApplication = approveApplication;
+  window.rejectApplication = rejectApplication;
 
   // Export
   if (!window.admin) window.admin = {};
@@ -617,7 +936,8 @@
     exportOpportunities,
     toggleAdvancedFilters,
     clearFilters,
-    applyFilters
+    applyFilters,
+    loadModel
   };
 
 })();

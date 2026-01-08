@@ -1,69 +1,176 @@
 {
   "users": [
     {
-      "userId": "demo_platform_admin_001",
+      "userId": "demo_admin_001",
       "email": "admin@pmtwin.com",
       "password": "Admin123",
-      "role": "platform_admin",
+      "role": "admin",
       "name": "Platform Administrator",
       "description": "Full system access - Vetting, Moderation, Reports, Audit Trail, User Management"
     },
     {
-      "userId": "demo_project_lead_001",
-      "email": "entity@pmtwin.com",
-      "password": "Entity123",
-      "role": "project_lead",
-      "name": "ABC Construction Co.",
-      "description": "Project Lead/Contractor - Posts tenders and project opportunities, forms consortia, hires resources, initiates SPVs, manages project lifecycle"
+      "userId": "demo_beneficiary_001",
+      "email": "beneficiary@pmtwin.com",
+      "password": "Beneficiary123",
+      "role": "beneficiary",
+      "name": "NEOM Development Authority",
+      "description": "Beneficiary - Creates MegaProjects, creates ServiceRequests, reviews proposals, accepts service offers. Demonstrates MegaProject with multiple contract types."
     },
     {
-      "userId": "demo_supplier_001",
-      "email": "supplier@pmtwin.com",
-      "password": "Supplier123",
-      "role": "supplier",
-      "name": "Global Materials Supply",
-      "description": "Supplier - Participates in bulk purchasing initiatives, lists surplus materials and equipment, joins strategic alliances, manages inventory"
+      "userId": "demo_beneficiary_002",
+      "email": "entity2@pmtwin.com",
+      "password": "Entity123",
+      "role": "project_lead",
+      "name": "Saudi Real Estate Company",
+      "description": "Beneficiary - Creates standalone Projects, manages project lifecycle. Demonstrates PROJECT_CONTRACT workflow."
+    },
+    {
+      "userId": "demo_vendor_001",
+      "email": "vendor.alpha@pmtwin.com",
+      "password": "Vendor123",
+      "role": "vendor",
+      "name": "Alpha Construction Group",
+      "description": "Vendor - Executes MegaProject contracts, manages sub-contractors, creates SubContracts. Demonstrates MEGA_PROJECT_CONTRACT and SUB_CONTRACT relationships."
+    },
+    {
+      "userId": "demo_vendor_002",
+      "email": "vendor.beta@pmtwin.com",
+      "password": "Vendor123",
+      "role": "vendor",
+      "name": "Beta Infrastructure Ltd",
+      "description": "Vendor - Executes standalone Project contracts. Demonstrates PROJECT_CONTRACT workflow."
     },
     {
       "userId": "demo_service_provider_001",
-      "email": "service@pmtwin.com",
+      "email": "bim@pmtwin.com",
       "password": "Service123",
-      "role": "service_provider",
-      "name": "Legal & Logistics Services",
-      "description": "Service Provider - Offers specialized B2B services (Legal, Logistics, Design), participates in Task-Based engagements, joins Strategic Alliances"
+      "role": "skill_service_provider",
+      "name": "BIM Solutions Co",
+      "description": "Service Provider - Provides BIM coordination services. Responds to ServiceRequests, never bids on Projects. Demonstrates SERVICE_CONTRACT workflow."
     },
     {
-      "userId": "demo_professional_001",
-      "email": "professional@pmtwin.com",
-      "password": "Professional123",
-      "role": "professional",
-      "name": "John Doe",
-      "description": "Professional/Expert - Accepts task-based engagements, joins consortia as a member, seeks full-time hiring opportunities, participates in mentorship programs"
+      "userId": "demo_service_provider_002",
+      "email": "qa@pmtwin.com",
+      "password": "Service123",
+      "role": "skill_service_provider",
+      "name": "Quality Assurance Services",
+      "description": "Service Provider - Provides QA/QC inspection services. Responds to ServiceRequests, demonstrates SERVICE_CONTRACT workflow."
+    },
+    {
+      "userId": "demo_service_provider_003",
+      "email": "scheduler@pmtwin.com",
+      "password": "Service123",
+      "role": "skill_service_provider",
+      "name": "Project Planning Experts",
+      "description": "Service Provider - Provides project planning and scheduling services. Responds to ServiceRequests from Vendors."
     },
     {
       "userId": "demo_consultant_001",
       "email": "consultant@pmtwin.com",
       "password": "Consultant123",
       "role": "consultant",
-      "name": "Dr. Sarah Ahmed",
-      "description": "Construction Consultant - Advisory services, feasibility studies, expert reviews, strategic alliances"
+      "name": "Green Building Consultants",
+      "description": "Consultant - Provides sustainability advisory services. Demonstrates ADVISORY_CONTRACT workflow."
     },
     {
-      "userId": "demo_mentor_001",
-      "email": "mentor@pmtwin.com",
-      "password": "Mentor123",
-      "role": "mentor",
-      "name": "Mohammed Al-Rashid",
-      "description": "Senior Project Manager - Mentorship programs, guides junior professionals, tracks mentee progress"
+      "userId": "demo_subcontractor_001",
+      "email": "mep.sub@pmtwin.com",
+      "password": "SubContractor123",
+      "role": "sub_contractor",
+      "name": "MEP Specialists LLC",
+      "description": "SubContractor - Works under Vendors only, never directly with Beneficiaries. Demonstrates SUB_CONTRACT workflow with Vendor Alpha."
     },
     {
-      "userId": "demo_auditor_001",
-      "email": "auditor@pmtwin.com",
-      "password": "Auditor123",
-      "role": "auditor",
-      "name": "Compliance Auditor",
-      "description": "Read-only access - Verify compliance, contract integrity, view audit trails, export data"
+      "userId": "demo_subcontractor_002",
+      "email": "steel.sub@pmtwin.com",
+      "password": "SubContractor123",
+      "role": "sub_contractor",
+      "name": "Steel Fabrication Co",
+      "description": "SubContractor - Works under Vendors only, never directly with Beneficiaries. Demonstrates SUB_CONTRACT workflow with Vendor Alpha."
     }
-  ]
+  ],
+  "workflowScenarios": {
+    "megaProject": {
+      "description": "MegaProject with multiple contract types",
+      "beneficiary": "beneficiary@pmtwin.com",
+      "vendor": "vendor.alpha@pmtwin.com",
+      "serviceProviders": ["bim@pmtwin.com", "qa@pmtwin.com"],
+      "consultant": "consultant@pmtwin.com",
+      "subContractors": ["mep.sub@pmtwin.com", "steel.sub@pmtwin.com"]
+    },
+    "standaloneProject": {
+      "description": "Standalone Project with Vendor contract",
+      "beneficiary": "entity2@pmtwin.com",
+      "vendor": "vendor.beta@pmtwin.com"
+    },
+    "serviceRequest": {
+      "description": "ServiceRequest to ServiceContract workflow",
+      "requesters": ["beneficiary@pmtwin.com", "vendor.alpha@pmtwin.com"],
+      "providers": ["bim@pmtwin.com", "qa@pmtwin.com", "scheduler@pmtwin.com"]
+    }
+  },
+  "quickReference": {
+    "admin": {
+      "email": "admin@pmtwin.com",
+      "password": "Admin123"
+    },
+    "beneficiaries": [
+      {
+        "email": "beneficiary@pmtwin.com",
+        "password": "Beneficiary123",
+        "scenario": "MegaProject creator"
+      },
+      {
+        "email": "entity2@pmtwin.com",
+        "password": "Entity123",
+        "scenario": "Standalone Project creator"
+      }
+    ],
+    "vendors": [
+      {
+        "email": "vendor.alpha@pmtwin.com",
+        "password": "Vendor123",
+        "scenario": "MegaProject executor, manages sub-contractors"
+      },
+      {
+        "email": "vendor.beta@pmtwin.com",
+        "password": "Vendor123",
+        "scenario": "Standalone Project executor"
+      }
+    ],
+    "serviceProviders": [
+      {
+        "email": "bim@pmtwin.com",
+        "password": "Service123",
+        "scenario": "BIM coordination services"
+      },
+      {
+        "email": "qa@pmtwin.com",
+        "password": "Service123",
+        "scenario": "QA/QC inspection services"
+      },
+      {
+        "email": "scheduler@pmtwin.com",
+        "password": "Service123",
+        "scenario": "Project planning and scheduling"
+      }
+    ],
+    "consultant": {
+      "email": "consultant@pmtwin.com",
+      "password": "Consultant123",
+      "scenario": "Sustainability advisory services"
+    },
+    "subContractors": [
+      {
+        "email": "mep.sub@pmtwin.com",
+        "password": "SubContractor123",
+        "scenario": "MEP works under Vendor Alpha"
+      },
+      {
+        "email": "steel.sub@pmtwin.com",
+        "password": "SubContractor123",
+        "scenario": "Steel fabrication under Vendor Alpha"
+      }
+    ]
+  }
 }
-

@@ -50,11 +50,16 @@
   // ============================================
   function mapRoleToUserType(role) {
     const roleToUserTypeMap = {
+      'admin': 'admin',
       'platform_admin': 'admin',
       'project_lead': 'entity',
+      'beneficiary': 'beneficiary',
       'professional': 'individual',
       'supplier': 'entity',
       'service_provider': 'entity',
+      'skill_service_provider': 'service_provider',
+      'vendor': 'vendor_corporate',
+      'sub_contractor': 'sub_contractor',
       'consultant': 'consultant',
       'mentor': 'individual',
       'auditor': 'admin'
@@ -68,17 +73,24 @@
   // ============================================
   function mapRoleToLegacyRole(role) {
     const roleMap = {
+      'admin': 'admin',
       'platform_admin': 'admin',
-      'project_lead': 'entity',
-      'professional': 'individual',
-      'supplier': 'entity',
-      'service_provider': 'entity',
+      'project_lead': 'project_lead',
+      'beneficiary': 'beneficiary',
+      'professional': 'professional',
+      'supplier': 'supplier',
+      'service_provider': 'service_provider',
+      'skill_service_provider': 'skill_service_provider',
+      'vendor': 'vendor',
+      'sub_contractor': 'sub_contractor',
       'consultant': 'consultant',
-      'mentor': 'individual',
-      'auditor': 'admin'
+      'mentor': 'mentor',
+      'auditor': 'auditor',
+      'individual': 'individual'
     };
     
-    return roleMap[role] || 'individual';
+    // Return the role as-is if mapped, otherwise return the original role (not 'individual')
+    return roleMap[role] || role;
   }
 
   // ============================================

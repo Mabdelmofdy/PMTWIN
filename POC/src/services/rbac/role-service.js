@@ -123,6 +123,13 @@
           features: ["user_dashboard", "mentorship_management"],
           portals: ["user_portal"]
         },
+        admin: {
+          id: "admin",
+          name: "Admin",
+          permissions: ["*"],
+          features: ["*"],
+          portals: ["admin_portal", "user_portal"]
+        },
         platform_admin: {
           id: "platform_admin",
           name: "Platform Admin",
@@ -177,18 +184,22 @@
       if (user) {
         // Map legacy role to new role system
         const roleMapping = {
-          'admin': 'platform_admin',
+          'admin': 'admin', // Map to admin role (not platform_admin)
+          'platform_admin': 'platform_admin',
           'entity': 'entity',
-          'project_lead': 'entity', // Legacy mapping
+          'project_lead': 'project_lead', // Keep as project_lead
+          'beneficiary': 'project_lead', // Map beneficiary to project_lead
           'vendor': 'vendor',
           'service_provider': 'vendor', // Legacy mapping
+          'skill_service_provider': 'service_provider',
           'sub_contractor': 'sub_contractor',
-          'individual': 'sub_contractor', // Legacy mapping for this use case
-          'professional': 'sub_contractor', // Legacy mapping for this use case
-          'consultant': 'consultant'
+          'individual': 'professional', // Map individual to professional
+          'professional': 'professional',
+          'consultant': 'consultant',
+          'supplier': 'supplier'
         };
         
-        const roleId = roleMapping[user.role] || userRoles.defaultRole;
+        const roleId = roleMapping[user.role] || user.role || userRoles.defaultRole;
         console.log('[RBAC] Mapped legacy role:', user.role, '->', roleId);
         
         // Auto-assign role if not in user-roles.json

@@ -33,10 +33,10 @@ Or manually copy/paste the setup code from `js/setup-accounts.js` into the conso
 
 Use these credentials to test all portals:
 
-## 📋 Login Credentials
+## 📋 Login Credentials - Golden Seed Dataset
 
 ### 🔐 Admin Portal
-**URL:** `admin-portal.html`
+**URL:** `pages/admin/` or `admin-portal.html`
 
 | Field | Value |
 |-------|-------|
@@ -50,42 +50,157 @@ Use these credentials to test all portals:
 - Moderate marketplace projects
 - View financial reports and analytics
 - Access complete audit trail
+- View all contracts, engagements, and projects
 
 ---
 
-### 👤 User Portal - Individual
-**URL:** `user-portal.html`
+### 🏢 Beneficiaries (Project Creators)
 
+#### NEOM Development Authority
 | Field | Value |
 |-------|-------|
-| Email | `individual@pmtwin.com` |
-| Password | `User123` |
-| Role | Individual (Professional) |
-| Features | Opportunities, Proposals, Profile, Pipeline |
+| Email | `beneficiary@pmtwin.com` |
+| Password | `Beneficiary123` |
+| Role | Beneficiary |
+| Scenario | Creates MegaProject "NEOM Package" with multiple contract types |
 
 **What you can do:**
-- View task-based opportunities matched to your skills
-- Submit proposals (cash or barter)
-- Manage your profile and endorsements
-- Track proposal status in pipeline
+- View MegaProject "NEOM Package" with 2 SubProjects
+- See all contracts: Vendor, Service, Advisory, SubContracts
+- View active engagements and milestones
+- Create and manage ServiceRequests
 
----
-
-### 🏢 User Portal - Entity
-**URL:** `user-portal.html`
-
+#### Saudi Real Estate Company
 | Field | Value |
 |-------|-------|
-| Email | `entity@pmtwin.com` |
+| Email | `entity2@pmtwin.com` |
 | Password | `Entity123` |
-| Role | Entity (Company) |
-| Features | Project Creation, Matching, Proposals, Financial Overview |
+| Role | Project Lead |
+| Scenario | Creates standalone Project "Residential Tower" |
 
 **What you can do:**
-- Create and publish mega-projects
-- View matched service providers
-- Review and approve/reject proposals
-- Track financial health and active projects
+- View standalone Project "Residential Tower"
+- See PROJECT_CONTRACT with Vendor Beta
+- Manage project lifecycle
+
+---
+
+### 🏗️ Vendors (Contractors)
+
+#### Alpha Construction Group
+| Field | Value |
+|-------|-------|
+| Email | `vendor.alpha@pmtwin.com` |
+| Password | `Vendor123` |
+| Role | Vendor |
+| Scenario | Executes MegaProject, manages SubContractors |
+
+**What you can do:**
+- View MEGA_PROJECT_CONTRACT for NEOM Package
+- Manage SubContracts with MEP and Steel SubContractors
+- View active engagements and milestones
+- Create ServiceRequests for planning support
+
+#### Beta Infrastructure Ltd
+| Field | Value |
+|-------|-------|
+| Email | `vendor.beta@pmtwin.com` |
+| Password | `Vendor123` |
+| Role | Vendor |
+| Scenario | Executes standalone Project |
+
+**What you can do:**
+- View PROJECT_CONTRACT for Residential Tower
+- Manage project execution
+
+---
+
+### 🔧 Service Providers (Skill-Based Services)
+
+#### BIM Solutions Co
+| Field | Value |
+|-------|-------|
+| Email | `bim@pmtwin.com` |
+| Password | `Service123` |
+| Role | Service Provider |
+| Scenario | Provides BIM coordination services |
+
+**What you can do:**
+- View SERVICE_CONTRACT for BIM services
+- See active BIM Engagement with milestones
+- Respond to ServiceRequests (never bids on Projects)
+
+#### Quality Assurance Services
+| Field | Value |
+|-------|-------|
+| Email | `qa@pmtwin.com` |
+| Password | `Service123` |
+| Role | Service Provider |
+| Scenario | Provides QA/QC inspection services |
+
+**What you can do:**
+- View SERVICE_CONTRACT for QA services
+- See planned QA Engagement
+- Manage weekly inspection milestones
+
+#### Project Planning Experts
+| Field | Value |
+|-------|-------|
+| Email | `scheduler@pmtwin.com` |
+| Password | `Service123` |
+| Role | Service Provider |
+| Scenario | Provides project planning and scheduling |
+
+**What you can do:**
+- Respond to ServiceRequests from Vendors
+- Provide scheduling services
+
+---
+
+### 💼 Consultant
+
+#### Green Building Consultants
+| Field | Value |
+|-------|-------|
+| Email | `consultant@pmtwin.com` |
+| Password | `Consultant123` |
+| Role | Consultant |
+| Scenario | Provides sustainability advisory services |
+
+**What you can do:**
+- View ADVISORY_CONTRACT for MegaProject
+- See active Advisory Engagement
+- Track sustainability milestones
+
+---
+
+### 🔨 Sub-Contractors
+
+#### MEP Specialists LLC
+| Field | Value |
+|-------|-------|
+| Email | `mep.sub@pmtwin.com` |
+| Password | `SubContractor123` |
+| Role | SubContractor |
+| Scenario | Works under Vendor Alpha for MEP works |
+
+**What you can do:**
+- View SUB_CONTRACT with Vendor Alpha (NOT with Beneficiary)
+- See planned MEP Sub Engagement
+- Track MEP installation milestones
+
+#### Steel Fabrication Co
+| Field | Value |
+|-------|-------|
+| Email | `steel.sub@pmtwin.com` |
+| Password | `SubContractor123` |
+| Role | SubContractor |
+| Scenario | Works under Vendor Alpha for steel fabrication |
+
+**What you can do:**
+- View SUB_CONTRACT with Vendor Alpha (NOT with Beneficiary)
+- See active Steel Sub Engagement
+- Track steel fabrication milestones
 
 ---
 
@@ -94,9 +209,9 @@ Use these credentials to test all portals:
 
 | Field | Value |
 |-------|-------|
-| Email | `individual@pmtwin.com` or `entity@pmtwin.com` |
-| Password | `User123` or `Entity123` |
-| Role | Individual or Entity |
+| Email | Any user email above |
+| Password | Corresponding password |
+| Role | Any role |
 | Features | Biometric Approval, Site Logging, Notifications, Offline Mode |
 
 **What you can do:**
@@ -117,16 +232,31 @@ Use these credentials to test all portals:
    - Go to Reports → View platform statistics
    - Go to Audit Trail → View activity logs
 
-2. **As Entity:**
-   - Login to User Portal (entity@pmtwin.com)
-   - Create a new mega-project
-   - Publish the project (triggers matching)
-   - View matched providers in Opportunities
-   - Review proposals received
+2. **As Beneficiary (NEOM Development Authority):**
+   - Login to User Portal (beneficiary@pmtwin.com)
+   - View MegaProject "NEOM Package" with SubProjects
+   - See all contract types: Vendor, Service, Advisory, SubContracts
+   - View active engagements and milestones
+   - Create ServiceRequests for additional services
 
-3. **As Individual:**
-   - Login to User Portal (individual@pmtwin.com)
-   - View matched opportunities
+3. **As Vendor (Alpha Construction Group):**
+   - Login to User Portal (vendor.alpha@pmtwin.com)
+   - View MEGA_PROJECT_CONTRACT
+   - See SubContracts with MEP and Steel SubContractors
+   - Manage engagements and track milestones
+   - Create ServiceRequests for planning support
+
+4. **As Service Provider (BIM Solutions Co):**
+   - Login to User Portal (bim@pmtwin.com)
+   - View SERVICE_CONTRACT and active engagement
+   - Track BIM milestones (Clash Report, IFC Model)
+   - Browse ServiceRequests (never see Project bidding)
+
+5. **As SubContractor (MEP Specialists):**
+   - Login to User Portal (mep.sub@pmtwin.com)
+   - View SUB_CONTRACT with Vendor Alpha only
+   - Note: Cannot see contracts with Beneficiaries
+   - Track MEP installation milestones
    - Submit a proposal on a project
    - Track proposal status in Pipeline
 

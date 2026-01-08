@@ -1011,7 +1011,9 @@
       return { success: false, error: 'User not authenticated' };
     }
     
-    console.log('[DashboardService] Current user:', currentUser.email, 'Role:', currentUser.role);
+        // Get role from RBAC instead of direct user property
+        const userRoleFromRBAC = typeof PMTwinRBAC !== 'undefined' ? await PMTwinRBAC.getCurrentUserRole() : currentUser.role;
+        console.log('[DashboardService] Current user:', currentUser.email, 'Role (from user):', currentUser.role, 'Role (from RBAC):', userRoleFromRBAC);
     
     // Get base path for routes
     function getBasePath() {
