@@ -11,15 +11,16 @@
             const currentPath = window.location.pathname;
             let basePath;
             
-            // If accessed via /auth/login/ or /login/, set base to actual file location
+            // If accessed via /auth/login/ or /login/, use the user-facing URL path
+            // Vercel rewrites handle the /POC/ prefix transparently, so we should use the user-facing path
             if (currentPath.match(/^\/(auth\/)?login\/?$/)) {
-                basePath = '/POC/pages/auth/login/';
+                basePath = currentPath.endsWith('/') ? currentPath : currentPath + '/';
             } else if (currentPath.includes('/pages/auth/login')) {
                 // Already in correct path structure - use current path as base
                 basePath = currentPath.endsWith('/') ? currentPath : currentPath + '/';
             } else {
-                // Default fallback
-                basePath = '/POC/pages/auth/login/';
+                // Default fallback - use current path
+                basePath = currentPath.endsWith('/') ? currentPath : currentPath + '/';
             }
             
             const base = document.createElement('base');
@@ -27,7 +28,7 @@
             document.head.insertBefore(base, document.head.firstChild);
         })();
     </script>
-    <link rel="stylesheet" href="../../../assets/css/main.css">
+    <link rel="stylesheet" href="/POC/assets/css/main.css">
 </head>
 <body class="login-page">
     <!-- Navigation -->
@@ -95,28 +96,28 @@
     </footer>
 
     <!-- Configuration (must load first) -->
-    <script src="../../../src/config/config.js"></script>
+    <script src="/POC/src/config/config.js"></script>
     
     <!-- API Layer (for future Java backend integration) -->
-    <script src="../../../src/core/api/api-client.js"></script>
-    <script src="../../../src/core/api/api-service.js"></script>
+    <script src="/POC/src/core/api/api-client.js"></script>
+    <script src="/POC/src/core/api/api-service.js"></script>
     
     <!-- Core Scripts -->
-    <script src="../../../src/core/data/golden-seed-data.js"></script>
-    <script src="../../../src/core/data/data.js"></script>
-    <script src="../../../src/core/auth/user-manager.js"></script>
-    <script src="../../../src/core/auth/auth.js"></script>
-    <script src="../../../src/core/auth/auth-check.js"></script>
-    <script src="../../../src/utils/demo-credentials.js"></script>
-    <script src="../../../src/utils/check-user-roles.js"></script>
-    <script src="../../../src/services/services-loader.js"></script>
-    <script src="../../../data/data-loader.js"></script>
+    <script src="/POC/src/core/data/golden-seed-data.js"></script>
+    <script src="/POC/src/core/data/data.js"></script>
+    <script src="/POC/src/core/auth/user-manager.js"></script>
+    <script src="/POC/src/core/auth/auth.js"></script>
+    <script src="/POC/src/core/auth/auth-check.js"></script>
+    <script src="/POC/src/utils/demo-credentials.js"></script>
+    <script src="/POC/src/utils/check-user-roles.js"></script>
+    <script src="/POC/src/services/services-loader.js"></script>
+    <script src="/POC/data/data-loader.js"></script>
     
     <!-- Footer Component -->
-    <script src="../../../src/components/footer.js"></script>
+    <script src="/POC/src/components/footer.js"></script>
     
     <!-- Component Scripts -->
-    <script src="../../../features/auth/login.js"></script>
+    <script src="/POC/features/auth/login.js"></script>
     
     <!-- Initialize Component -->
     <script>

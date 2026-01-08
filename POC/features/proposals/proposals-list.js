@@ -329,7 +329,8 @@
     toggleAdvancedFilters,
     approveProposal,
     rejectProposal,
-    viewProposal
+    viewProposal,
+    renderProposals
   };
 
   // Global reference for onclick handlers
