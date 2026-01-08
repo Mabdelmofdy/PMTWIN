@@ -6,6 +6,14 @@
 (function() {
   'use strict';
 
+  // Flag to skip audit logs during initialization
+  let skipAuditLogs = false;
+  
+  // Function to enable/disable audit logging
+  function setSkipAuditLogs(value) {
+    skipAuditLogs = value;
+  }
+
   // Storage keys
   const STORAGE_KEYS = {
     USERS: 'pmtwin_users',
@@ -3012,10 +3020,13 @@
       }
 
       if (set(STORAGE_KEYS.USERS, users)) {
-        this.createAuditLog('profile_update', id, {
-          description: `User profile updated: ${users[index].email}`,
-          changes: { before: oldUser, after: users[index] }
-        });
+        // Only create audit log if not skipping (during initialization)
+        if (!skipAuditLogs) {
+          this.createAuditLog('profile_update', id, {
+            description: `User profile updated: ${users[index].email}`,
+            changes: { before: oldUser, after: users[index] }
+          });
+        }
         return users[index];
       }
       return null;
@@ -3038,29 +3049,41 @@
     },
 
     createAuditLog(action, entityId, details) {
-      const auditLogs = Audit.getAll();
+      // Skip audit logs during initialization to prevent localStorage quota issues
+      if (skipAuditLogs) {
+        return; // Skip if flag is set
+      }
+      
+      // Check if we're in initialization phase (no current user or system user)
       const currentUser = Sessions.getCurrentUser();
-      auditLogs.push({
-        id: generateId('audit'),
-        timestamp: new Date().toISOString(),
-        userId: currentUser?.id || 'system',
-        userRole: currentUser?.role || 'system',
-        userEmail: currentUser?.email || 'system',
-        userName: currentUser?.profile?.name || 'System',
-        action: action,
-        actionCategory: 'user',
-        entityType: 'user',
-        entityId: entityId,
-        description: details.description,
-        changes: details.changes || null,
-        context: {
-          portal: 'user_portal',
-          ipAddress: null,
-          userAgent: navigator.userAgent
-        },
-        metadata: details.metadata || {}
-      });
-      set(STORAGE_KEYS.AUDIT, auditLogs);
+      if (!currentUser || currentUser.id === 'system' || currentUser.email === 'system') {
+        return; // Skip audit logs during initialization
+      }
+      
+      // Use Audit.create() which already handles log limiting (keeps only last 1000)
+      try {
+        Audit.create({
+          userId: currentUser.id,
+          userRole: currentUser.role,
+          userEmail: currentUser.email,
+          userName: currentUser.profile?.name || 'Unknown',
+          action: action,
+          actionCategory: 'user',
+          entityType: 'user',
+          entityId: entityId,
+          description: details.description,
+          changes: details.changes || null,
+          context: {
+            portal: 'user_portal',
+            ipAddress: null,
+            userAgent: navigator.userAgent
+          },
+          metadata: details.metadata || {}
+        });
+      } catch (e) {
+        // Silently fail if localStorage quota is exceeded
+        console.warn('Could not create audit log (storage quota may be exceeded):', e.message);
+      }
     },
 
     // ============================================
@@ -4361,16 +4384,28 @@
     },
 
     create(logData) {
-      const logs = this.getAll();
-      const log = {
-        id: generateId('audit'),
-        ...logData,
-        timestamp: new Date().toISOString()
-      };
-      logs.push(log);
-      // Keep only last 1000 logs to prevent storage overflow
-      const limited = logs.slice(-1000);
-      return set(STORAGE_KEYS.AUDIT, limited) ? log : null;
+      try {
+        const logs = this.getAll();
+        const log = {
+          id: generateId('audit'),
+          ...logData,
+          timestamp: new Date().toISOString()
+        };
+        logs.push(log);
+        // Keep only last 500 logs to prevent storage overflow (reduced from 1000)
+        const limited = logs.slice(-500);
+        const success = set(STORAGE_KEYS.AUDIT, limited);
+        if (!success) {
+          // If write failed, try with even fewer logs
+          const minimal = logs.slice(-250);
+          set(STORAGE_KEYS.AUDIT, minimal);
+        }
+        return success ? log : null;
+      } catch (e) {
+        // Silently fail if localStorage quota is exceeded
+        console.warn('Could not create audit log (storage quota exceeded):', e.message);
+        return null;
+      }
     }
   };
 
@@ -9638,7 +9673,9 @@
   // ============================================
   // Public API
   // ============================================
+  // Export setSkipAuditLogs function
   window.PMTwinData = {
+    setSkipAuditLogs,
     init: initStorage,
     Users,
     Sessions,

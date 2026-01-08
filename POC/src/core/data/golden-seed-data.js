@@ -12,6 +12,10 @@
   // Main Golden Seed Data Loader
   // ============================================
   function loadGoldenSeedData(forceReload = false) {
+    // Skip audit logs during seed data loading to prevent localStorage quota issues
+    if (typeof PMTwinData !== 'undefined' && PMTwinData.setSkipAuditLogs) {
+      PMTwinData.setSkipAuditLogs(true);
+    }
     if (typeof PMTwinData === 'undefined') {
       console.error('PMTwinData not available');
       return;
@@ -48,6 +52,12 @@
     };
 
     console.log('✅ Golden Seed Data Loaded:', seedResults);
+    
+    // Re-enable audit logs after seed data loading
+    if (typeof PMTwinData !== 'undefined' && PMTwinData.setSkipAuditLogs) {
+      PMTwinData.setSkipAuditLogs(false);
+    }
+    
     return seedResults;
   }
 
@@ -2502,6 +2512,13 @@
       console.warn('Required entities not found, skipping contracts');
       return { created: 0, skipped: 0 };
     }
+    
+    if (!offer1 || !offer2) {
+      console.warn('Required service offers not found, skipping service contracts');
+      // Set to null to prevent access errors
+      if (!offer1) offer1 = null;
+      if (!offer2) offer2 = null;
+    }
 
     const created = [];
     const skipped = [];
@@ -2560,7 +2577,7 @@
     });
 
     // 2. SERVICE_CONTRACT 1: MegaProject/SubProject A ↔ BIM ServiceProvider
-    const serviceContract1 = createContractIfNotExists({
+    const serviceContract1 = (hasOffer1 && offer1 && offer1.serviceRequestId) ? createContractIfNotExists({
       id: 'contract_service_bim_001',
       contractType: 'SERVICE_CONTRACT',
       scopeType: 'SERVICE_REQUEST',
@@ -2587,10 +2604,10 @@
       },
       createdAt: new Date(now.getTime() - 4 * 24 * 60 * 60 * 1000).toISOString(),
       createdBy: beneficiaryA.id
-    });
+    }) : null;
 
     // 3. SERVICE_CONTRACT 2: SubProject B ↔ QA ServiceProvider
-    const serviceContract2 = createContractIfNotExists({
+    const serviceContract2 = (hasOffer2 && offer2 && offer2.serviceRequestId) ? createContractIfNotExists({
       id: 'contract_service_qa_001',
       contractType: 'SERVICE_CONTRACT',
       scopeType: 'SERVICE_REQUEST',
@@ -2617,7 +2634,7 @@
       },
       createdAt: new Date(now.getTime() - 4 * 24 * 60 * 60 * 1000).toISOString(),
       createdBy: beneficiaryA.id
-    });
+    }) : null;
 
     // 4. ADVISORY_CONTRACT: MegaProject ↔ Sustainability Consultant
     const advisoryContract = createContractIfNotExists({

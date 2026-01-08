@@ -360,6 +360,9 @@
       return { success: false, error: 'User not authenticated' };
     }
     
+    // Declare ownerCompanyId outside the permission check block
+    let ownerCompanyId = proposal.ownerCompanyId;
+    
     // Check permission based on status change
     if (status === 'approved' || status === 'rejected') {
       const canApprove = typeof PMTwinRBAC !== 'undefined' && 
@@ -375,7 +378,6 @@
       }
       
       // Check if user owns the opportunity (using ownerCompanyId)
-      const ownerCompanyId = proposal.ownerCompanyId;
       if (ownerCompanyId && ownerCompanyId !== currentUser.id && !canApprove) {
         return { success: false, error: 'You can only approve/reject proposals for your own opportunities' };
       }
@@ -386,12 +388,20 @@
         if (project && project.creatorId !== currentUser.id && project.ownerCompanyId !== currentUser.id && !canApprove) {
           return { success: false, error: 'You can only approve/reject proposals for your own projects' };
         }
+        // Set ownerCompanyId from project if found
+        if (project && project.ownerCompanyId) {
+          ownerCompanyId = project.ownerCompanyId;
+        }
       }
+    }
+    
     // Normalize status to uppercase
     status = status.toUpperCase();
     
-    // Get company IDs
-    const ownerCompanyId = proposal.ownerCompanyId;
+    // Get company IDs (ensure ownerCompanyId is set)
+    if (!ownerCompanyId) {
+      ownerCompanyId = proposal.ownerCompanyId;
+    }
     const bidderCompanyId = proposal.bidderCompanyId || proposal.providerId;
     const currentCompanyId = companyId || currentUser.id; // Users represent companies
     
