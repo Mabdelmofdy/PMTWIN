@@ -198,7 +198,9 @@
     serviceProviderProfiles: new ApiService('service-providers', 'pmtwin_service_provider_profiles'),
     serviceRequests: new ApiService('service-requests', 'pmtwin_service_requests'),
     serviceOffers: new ApiService('service-offers', 'pmtwin_service_offers'),
-    serviceEngagements: new ApiService('service-engagements', 'pmtwin_service_engagements')
+    serviceEngagements: new ApiService('service-engagements', 'pmtwin_service_engagements'),
+    contracts: new ApiService('contracts', 'pmtwin_contracts'),
+    engagements: new ApiService('engagements', 'pmtwin_engagements')
   };
 
   // ============================================
@@ -448,6 +450,195 @@
       return ServiceEngagementService.getEngagementsForSubProject(subProjectId);
     }
     return [];
+  };
+
+  // ============================================
+  // Contract API Methods
+  // ============================================
+  ApiServices.contracts.sign = async function(id, signerId) {
+    if (this.isApiAvailable()) {
+      try {
+        const response = await this.apiClient.post(`${this.resourceName}/${id}/sign`, { signerId });
+        if (response && response.success) {
+          return response.data;
+        }
+      } catch (error) {
+        console.warn(`API request failed, falling back to localStorage:`, error);
+      }
+    }
+    // Fallback to localStorage
+    if (typeof ContractService !== 'undefined') {
+      return ContractService.signContract(id, signerId);
+    }
+    return { success: false, error: 'Service not available' };
+  };
+
+  ApiServices.contracts.getByScope = async function(scopeType, scopeId) {
+    if (this.isApiAvailable()) {
+      try {
+        const response = await this.apiClient.get(`${this.resourceName}/scope/${scopeType}/${scopeId}`);
+        if (response && response.success) {
+          return response.data;
+        }
+      } catch (error) {
+        console.warn(`API request failed, falling back to localStorage:`, error);
+      }
+    }
+    // Fallback to localStorage
+    if (typeof ContractService !== 'undefined') {
+      return ContractService.getContractsByScope(scopeType, scopeId);
+    }
+    return [];
+  };
+
+  ApiServices.contracts.getByParty = async function(partyId, partyType) {
+    if (this.isApiAvailable()) {
+      try {
+        const url = partyType 
+          ? `${this.resourceName}/party/${partyId}?type=${partyType}`
+          : `${this.resourceName}/party/${partyId}`;
+        const response = await this.apiClient.get(url);
+        if (response && response.success) {
+          return response.data;
+        }
+      } catch (error) {
+        console.warn(`API request failed, falling back to localStorage:`, error);
+      }
+    }
+    // Fallback to localStorage
+    if (typeof ContractService !== 'undefined') {
+      return ContractService.getContractsByParty(partyId, partyType);
+    }
+    return [];
+  };
+
+  ApiServices.contracts.getSubContracts = async function(parentContractId) {
+    if (this.isApiAvailable()) {
+      try {
+        const response = await this.apiClient.get(`${this.resourceName}/${parentContractId}/sub-contracts`);
+        if (response && response.success) {
+          return response.data;
+        }
+      } catch (error) {
+        console.warn(`API request failed, falling back to localStorage:`, error);
+      }
+    }
+    // Fallback to localStorage
+    if (typeof ContractService !== 'undefined') {
+      return ContractService.getSubContracts(parentContractId);
+    }
+    return [];
+  };
+
+  ApiServices.contracts.createFromProposal = async function(proposalId) {
+    if (this.isApiAvailable()) {
+      try {
+        const response = await this.apiClient.post(`${this.resourceName}/from-proposal/${proposalId}`);
+        if (response && response.success) {
+          return response.data;
+        }
+      } catch (error) {
+        console.warn(`API request failed, falling back to localStorage:`, error);
+      }
+    }
+    // Fallback to localStorage
+    if (typeof ContractService !== 'undefined') {
+      return ContractService.createContractFromProposal(proposalId);
+    }
+    return { success: false, error: 'Service not available' };
+  };
+
+  ApiServices.contracts.createFromServiceOffer = async function(serviceOfferId) {
+    if (this.isApiAvailable()) {
+      try {
+        const response = await this.apiClient.post(`${this.resourceName}/from-service-offer/${serviceOfferId}`);
+        if (response && response.success) {
+          return response.data;
+        }
+      } catch (error) {
+        console.warn(`API request failed, falling back to localStorage:`, error);
+      }
+    }
+    // Fallback to localStorage
+    if (typeof ContractService !== 'undefined') {
+      return ContractService.createContractFromServiceOffer(serviceOfferId);
+    }
+    return { success: false, error: 'Service not available' };
+  };
+
+  // ============================================
+  // Engagement API Methods
+  // ============================================
+  ApiServices.engagements.getByContract = async function(contractId) {
+    if (this.isApiAvailable()) {
+      try {
+        const response = await this.apiClient.get(`${this.resourceName}/contract/${contractId}`);
+        if (response && response.success) {
+          return response.data;
+        }
+      } catch (error) {
+        console.warn(`API request failed, falling back to localStorage:`, error);
+      }
+    }
+    // Fallback to localStorage
+    if (typeof EngagementService !== 'undefined') {
+      return EngagementService.getEngagementsByContract(contractId);
+    }
+    return [];
+  };
+
+  ApiServices.engagements.getByScope = async function(scopeType, scopeId) {
+    if (this.isApiAvailable()) {
+      try {
+        const response = await this.apiClient.get(`${this.resourceName}/scope/${scopeType}/${scopeId}`);
+        if (response && response.success) {
+          return response.data;
+        }
+      } catch (error) {
+        console.warn(`API request failed, falling back to localStorage:`, error);
+      }
+    }
+    // Fallback to localStorage
+    if (typeof EngagementService !== 'undefined') {
+      return EngagementService.getEngagementsByScope(scopeType, scopeId);
+    }
+    return [];
+  };
+
+  ApiServices.engagements.assignToScope = async function(id, scopeType, scopeId) {
+    if (this.isApiAvailable()) {
+      try {
+        const response = await this.apiClient.post(`${this.resourceName}/${id}/assign-scope`, { scopeType, scopeId });
+        if (response && response.success) {
+          return response.data;
+        }
+      } catch (error) {
+        console.warn(`API request failed, falling back to localStorage:`, error);
+      }
+    }
+    // Fallback to localStorage
+    if (typeof EngagementService !== 'undefined') {
+      return EngagementService.assignEngagementToScope(id, scopeType, scopeId);
+    }
+    return { success: false, error: 'Service not available' };
+  };
+
+  ApiServices.engagements.complete = async function(id) {
+    if (this.isApiAvailable()) {
+      try {
+        const response = await this.apiClient.post(`${this.resourceName}/${id}/complete`);
+        if (response && response.success) {
+          return response.data;
+        }
+      } catch (error) {
+        console.warn(`API request failed, falling back to localStorage:`, error);
+      }
+    }
+    // Fallback to localStorage
+    if (typeof EngagementService !== 'undefined') {
+      return EngagementService.completeEngagement(id);
+    }
+    return { success: false, error: 'Service not available' };
   };
 
   // ============================================

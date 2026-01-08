@@ -139,6 +139,9 @@
     const basePath = getBasePath();
 
     // Determine dashboard title and subtitle based on role
+    const isEntity = role === 'project_lead' || role === 'entity' || role === 'vendor';
+    const isIndividual = role === 'professional' || role === 'individual' || role === 'consultant';
+    
     let dashboardTitle = 'Welcome back, ' + (user.name || user.email || 'User') + '!';
     let dashboardSubtitle = "Here's what's happening with your projects";
     
@@ -148,13 +151,13 @@
     } else if (role === 'supplier') {
       dashboardTitle = 'Supplier Dashboard';
       dashboardSubtitle = 'Manage bulk purchasing, inventory listings, and strategic alliances';
-    } else if (role === 'project_lead' || role === 'entity') {
+    } else if (isEntity) {
       dashboardTitle = 'Project Lead Dashboard';
       dashboardSubtitle = 'Manage your projects, proposals, and collaborations';
     } else if (role === 'platform_admin' || role === 'admin') {
       dashboardTitle = 'Admin Dashboard';
       dashboardSubtitle = 'Platform overview and management';
-    } else if (role === 'professional' || role === 'individual' || role === 'consultant') {
+    } else if (isIndividual) {
       dashboardTitle = 'Professional Dashboard';
       dashboardSubtitle = 'Track your proposals, matches, and opportunities';
     } else if (role === 'mentor') {
@@ -1186,7 +1189,215 @@
     html += `</div></div>`;
     html += `</div>`; // Close two-column grid
 
+    // Role-Adaptive Sections
+    const role = data.role || data.user?.role || '';
+    const isEntity = role === 'project_lead' || role === 'entity' || role === 'vendor';
+    const isIndividual = role === 'professional' || role === 'individual' || role === 'consultant';
+    
+    if (isEntity && !isServiceProvider) {
+      html += renderEntityDashboard(data, basePath);
+    } else if (isIndividual) {
+      html += renderIndividualDashboard(data, basePath);
+    }
+
     container.innerHTML = html;
+  }
+
+  function renderEntityDashboard(data, basePath) {
+    const user = data.user || {};
+    
+    // Get financial health data
+    const activeJVs = typeof PMTwinData !== 'undefined' ? 
+      PMTwinData.CollaborationOpportunities.getAll().filter(o => 
+        (o.modelId === '1.3' || o.modelId === '2.1') && o.creatorId === user.id && o.status === 'active'
+      ) : [];
+    
+    const activeTenders = typeof PMTwinData !== 'undefined' ?
+      PMTwinData.Projects.getAll().filter(p => p.creatorId === user.id && p.status === 'active') : [];
+    
+    const pendingProposals = typeof PMTwinData !== 'undefined' ?
+      PMTwinData.Proposals.getAll().filter(p => {
+        const project = PMTwinData.Projects.getById(p.projectId);
+        return project && project.creatorId === user.id && (p.status === 'pending' || p.status === 'in_review');
+      }) : [];
+    
+    // Calculate savings
+    const bulkPurchasingSavings = typeof PMTwinData !== 'undefined' ?
+      PMTwinData.CollaborationOpportunities.getAll().filter(o => 
+        o.modelId === '3.1' && o.creatorId === user.id
+      ).reduce((sum, o) => sum + (o.savings || 0), 0) : 0;
+    
+    const barterSavings = typeof PMTwinData !== 'undefined' ?
+      PMTwinData.Proposals.getAll().filter(p => {
+        const project = PMTwinData.Projects.getById(p.projectId);
+        return project && project.creatorId === user.id && p.type === 'barter';
+      }).reduce((sum, p) => sum + (p.barterValue || 0), 0) : 0;
+    
+    let html = `
+      <div class="content-section">
+        <h2 class="section-title">Financial Health Overview</h2>
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1.5rem; margin-bottom: 2rem;">
+          <div class="card" style="border-left: 4px solid var(--color-primary);">
+            <div class="card-body">
+              <div style="display: flex; align-items: center; gap: 1rem;">
+                <i class="ph ph-handshake" style="font-size: 2rem; color: var(--color-primary);"></i>
+                <div style="flex: 1;">
+                  <div style="font-size: 2rem; font-weight: 700; color: var(--color-primary);">${activeJVs.length}</div>
+                  <div style="font-size: var(--font-size-sm); color: var(--text-secondary);">Active Joint Ventures</div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="card" style="border-left: 4px solid var(--color-info);">
+            <div class="card-body">
+              <div style="display: flex; align-items: center; gap: 1rem;">
+                <i class="ph ph-clipboard-text" style="font-size: 2rem; color: var(--color-info);"></i>
+                <div style="flex: 1;">
+                  <div style="font-size: 2rem; font-weight: 700; color: var(--color-info);">${activeTenders.length}</div>
+                  <div style="font-size: var(--font-size-sm); color: var(--text-secondary);">Active Tenders</div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="card" style="border-left: 4px solid var(--color-warning);">
+            <div class="card-body">
+              <div style="display: flex; align-items: center; gap: 1rem;">
+                <i class="ph ph-file-text" style="font-size: 2rem; color: var(--color-warning);"></i>
+                <div style="flex: 1;">
+                  <div style="font-size: 2rem; font-weight: 700; color: var(--color-warning);">${pendingProposals.length}</div>
+                  <div style="font-size: var(--font-size-sm); color: var(--text-secondary);">Pending Proposals</div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="card" style="border-left: 4px solid var(--color-success);">
+            <div class="card-body">
+              <div style="display: flex; align-items: center; gap: 1rem;">
+                <i class="ph ph-piggy-bank" style="font-size: 2rem; color: var(--color-success);"></i>
+                <div style="flex: 1;">
+                  <div style="font-size: 2rem; font-weight: 700; color: var(--color-success);">
+                    ${((bulkPurchasingSavings + barterSavings) / 1000000).toFixed(1)}M
+                  </div>
+                  <div style="font-size: var(--font-size-sm); color: var(--text-secondary);">Total Savings</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    `;
+    
+    return html;
+  }
+
+  function renderIndividualDashboard(data, basePath) {
+    const user = data.user || {};
+    
+    // Get task-based opportunities
+    const opportunities = typeof PMTwinData !== 'undefined' ?
+      PMTwinData.CollaborationOpportunities.getAll().filter(o => 
+        o.modelId === '1.1' && o.status === 'active'
+      ).slice(0, 10) : [];
+    
+    // Get matches
+    const matches = typeof PMTwinData !== 'undefined' ?
+      PMTwinData.Matches.getByProvider(user.id).filter(m => m.score >= 50).sort((a, b) => b.score - a.score) : [];
+    
+    // Get endorsements
+    const userProfile = typeof PMTwinData !== 'undefined' ? PMTwinData.Users.getById(user.id) : null;
+    const endorsements = userProfile?.profile?.endorsements || [];
+    
+    let html = `
+      <div class="content-section">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+          <h2 class="section-title" style="margin: 0;">Task-Based Opportunities</h2>
+          <a href="${basePath}opportunities/" class="btn btn-outline btn-sm">View All</a>
+        </div>
+        <div style="display: grid; gap: 1rem; max-height: 600px; overflow-y: auto;">
+          ${opportunities.length > 0 ? opportunities.map(opportunity => {
+            const match = matches.find(m => m.projectId === opportunity.projectId || m.opportunityId === opportunity.id);
+            const matchScore = match ? match.score : null;
+            const project = typeof PMTwinData !== 'undefined' ? PMTwinData.Projects.getById(opportunity.projectId) : null;
+            
+            return `
+              <div class="card">
+                <div class="card-body">
+                  <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 1rem;">
+                    <div style="flex: 1;">
+                      <h3 style="margin: 0 0 0.5rem 0; font-size: var(--font-size-lg); font-weight: 600;">${opportunity.title || 'Task Opportunity'}</h3>
+                      ${project ? `<p style="margin: 0; color: var(--text-secondary); font-size: var(--font-size-sm);"><i class="ph ph-buildings"></i> ${project.title}</p>` : ''}
+                    </div>
+                    ${matchScore !== null ? `
+                      <div style="text-align: right;">
+                        <div style="font-size: 1.5rem; font-weight: 700; color: ${matchScore >= 80 ? 'var(--color-success)' : matchScore >= 50 ? 'var(--color-warning)' : 'var(--color-danger)'};">
+                          ${Math.round(matchScore)}%
+                        </div>
+                        <div style="font-size: var(--font-size-xs); color: var(--text-secondary);">Match Score</div>
+                      </div>
+                    ` : ''}
+                  </div>
+                  <p style="margin: 0 0 1rem 0; color: var(--text-secondary); line-height: 1.6; font-size: var(--font-size-sm);">
+                    ${opportunity.description || 'No description available.'}
+                  </p>
+                  <div style="display: flex; gap: 0.75rem;">
+                    <a href="${basePath}collaboration/view/?id=${opportunity.id}" class="btn btn-primary btn-sm" style="flex: 1; text-decoration: none; text-align: center;">View Details</a>
+                    <a href="${basePath}collaboration/applications/?opportunityId=${opportunity.id}" class="btn btn-success btn-sm" style="flex: 1; text-decoration: none; text-align: center;">Apply Now</a>
+                  </div>
+                </div>
+              </div>
+            `;
+          }).join('') : `
+            <div class="card">
+              <div class="card-body" style="text-align: center; padding: 3rem;">
+                <i class="ph ph-sparkle" style="font-size: 3rem; color: var(--text-secondary); margin-bottom: 1rem;"></i>
+                <p style="color: var(--text-secondary); margin-bottom: 1rem;">No task-based opportunities available.</p>
+                <a href="${basePath}opportunities/" class="btn btn-primary">Browse All Opportunities</a>
+              </div>
+            </div>
+          `}
+        </div>
+      </div>
+      ${endorsements.length > 0 ? `
+        <div class="content-section">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+            <h2 class="section-title" style="margin: 0;">Profile Endorsements</h2>
+            <a href="${basePath}profile/" class="btn btn-outline btn-sm">View Full Profile</a>
+          </div>
+          <div class="card">
+            <div class="card-body">
+              <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 1.5rem;">
+                <div style="font-size: 3rem; font-weight: 700; color: var(--color-primary);">${endorsements.length}</div>
+                <div>
+                  <div style="font-weight: 600; font-size: var(--font-size-lg);">Total Endorsements</div>
+                  <div style="font-size: var(--font-size-sm); color: var(--text-secondary);">From ${new Set(endorsements.map(e => e.endorserId)).size} different endorsers</div>
+                </div>
+              </div>
+              <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1rem;">
+                ${endorsements.slice(0, 6).map(endorsement => {
+                  const endorser = typeof PMTwinData !== 'undefined' ? PMTwinData.Users.getById(endorsement.endorserId) : null;
+                  return `
+                    <div style="padding: 1rem; background: var(--bg-secondary); border-radius: var(--radius);">
+                      <div style="display: flex; align-items: start; gap: 0.75rem; margin-bottom: 0.5rem;">
+                        <div style="width: 40px; height: 40px; background: var(--color-primary); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-weight: 600;">
+                          ${(endorser?.name || 'U')[0].toUpperCase()}
+                        </div>
+                        <div style="flex: 1;">
+                          <div style="font-weight: 600; font-size: var(--font-size-sm);">${endorser?.name || 'Anonymous'}</div>
+                          <div style="font-size: var(--font-size-xs); color: var(--text-secondary);">${endorsement.date ? new Date(endorsement.date).toLocaleDateString() : ''}</div>
+                        </div>
+                      </div>
+                      ${endorsement.comment ? `<p style="font-size: var(--font-size-sm); color: var(--text-secondary); line-height: 1.5; margin: 0;">"${endorsement.comment}"</p>` : ''}
+                    </div>
+                  `;
+                }).join('')}
+              </div>
+            </div>
+          </div>
+        </div>
+      ` : ''}
+    `;
+    
+    return html;
   }
 
   // Export

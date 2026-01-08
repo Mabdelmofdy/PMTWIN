@@ -502,18 +502,19 @@
             <!-- Settings Tabs -->
             <div class="content-section">
                 <div class="settings-tabs">
-                <button class="settings-tab active" data-tab="theme">Theme & Appearance</button>
+                <button class="settings-tab active" data-tab="notifications">Notifications</button>
+                <button class="settings-tab" data-tab="privacy">Privacy</button>
+                <button class="settings-tab" data-tab="account">Account & Security</button>
+                <button class="settings-tab" data-tab="theme">Theme & Appearance</button>
                 <button class="settings-tab" data-tab="time">Time & Date</button>
                 <button class="settings-tab" data-tab="display">Display</button>
-                <button class="settings-tab" data-tab="notifications">Notifications</button>
-                <button class="settings-tab" data-tab="account">Account & Security</button>
                 <button class="settings-tab" data-tab="portal">Portal Preferences</button>
             </div>
 
             <!-- Settings Content -->
             <div id="settingsContent">
                 <!-- Theme & Appearance Panel -->
-                <div class="settings-panel active" id="panel-theme">
+                <div class="settings-panel" id="panel-theme">
                     <div class="card">
                         <div class="settings-section">
                             <h3>Theme Mode</h3>
@@ -714,10 +715,12 @@
                 </div>
 
                 <!-- Notifications Panel -->
-                <div class="settings-panel" id="panel-notifications">
+                <div class="settings-panel active" id="panel-notifications">
                     <div class="card">
                         <div class="settings-section">
                             <h3>Email Notifications</h3>
+                            <p style="color: var(--text-secondary); margin-bottom: 1.5rem;">Choose which email notifications you want to receive</p>
+                            
                             <div class="form-group" style="margin-bottom: 1.5rem;">
                                 <label style="display: flex; align-items: center; gap: 0.5rem;">
                                     <input type="checkbox" id="emailNotifications" checked style="width: auto;">
@@ -728,25 +731,78 @@
                                 </small>
                             </div>
                             
-                            <div class="form-group" style="margin-bottom: 1.5rem;">
-                                <label style="display: flex; align-items: center; gap: 0.5rem;">
-                                    <input type="checkbox" id="emailMatches" checked style="width: auto;">
-                                    <span>New matches</span>
-                                </label>
+                            <div style="padding-left: 1.5rem; border-left: 2px solid var(--border-color);">
+                                <div class="form-group" style="margin-bottom: 1.5rem;">
+                                    <label style="display: flex; align-items: center; gap: 0.5rem;">
+                                        <input type="checkbox" id="emailMatches" checked style="width: auto;">
+                                        <span>New matches</span>
+                                    </label>
+                                    <small style="color: var(--text-secondary); display: block; margin-top: 0.5rem; margin-left: 1.75rem;">
+                                        Get notified when you receive new project matches
+                                    </small>
+                                </div>
+                                
+                                <div class="form-group" style="margin-bottom: 1.5rem;">
+                                    <label style="display: flex; align-items: center; gap: 0.5rem;">
+                                        <input type="checkbox" id="emailProposals" checked style="width: auto;">
+                                        <span>Proposal updates</span>
+                                    </label>
+                                    <small style="color: var(--text-secondary); display: block; margin-top: 0.5rem; margin-left: 1.75rem;">
+                                        Receive updates on proposal status changes
+                                    </small>
+                                </div>
+                                
+                                <div class="form-group" style="margin-bottom: 1.5rem;">
+                                    <label style="display: flex; align-items: center; gap: 0.5rem;">
+                                        <input type="checkbox" id="emailProjects" checked style="width: auto;">
+                                        <span>Project notifications</span>
+                                    </label>
+                                    <small style="color: var(--text-secondary); display: block; margin-top: 0.5rem; margin-left: 1.75rem;">
+                                        Updates on projects you're involved in
+                                    </small>
+                                </div>
+                                
+                                <div class="form-group" style="margin-bottom: 1.5rem;">
+                                    <label style="display: flex; align-items: center; gap: 0.5rem;">
+                                        <input type="checkbox" id="emailCollaborations" checked style="width: auto;">
+                                        <span>Collaboration opportunities</span>
+                                    </label>
+                                    <small style="color: var(--text-secondary); display: block; margin-top: 0.5rem; margin-left: 1.75rem;">
+                                        New collaboration opportunities and applications
+                                    </small>
+                                </div>
+                                
+                                <div class="form-group" style="margin-bottom: 1.5rem;">
+                                    <label style="display: flex; align-items: center; gap: 0.5rem;">
+                                        <input type="checkbox" id="emailMessages" checked style="width: auto;">
+                                        <span>Messages and communications</span>
+                                    </label>
+                                    <small style="color: var(--text-secondary); display: block; margin-top: 0.5rem; margin-left: 1.75rem;">
+                                        Direct messages and communication updates
+                                    </small>
+                                </div>
+                                
+                                <div class="form-group" style="margin-bottom: 1.5rem;">
+                                    <label style="display: flex; align-items: center; gap: 0.5rem;">
+                                        <input type="checkbox" id="emailSystem" checked style="width: auto;">
+                                        <span>System notifications</span>
+                                    </label>
+                                    <small style="color: var(--text-secondary); display: block; margin-top: 0.5rem; margin-left: 1.75rem;">
+                                        Important system updates and announcements
+                                    </small>
+                                </div>
                             </div>
                             
-                            <div class="form-group" style="margin-bottom: 1.5rem;">
-                                <label style="display: flex; align-items: center; gap: 0.5rem;">
-                                    <input type="checkbox" id="emailProposals" checked style="width: auto;">
-                                    <span>Proposal updates</span>
-                                </label>
-                            </div>
-                            
-                            <div class="form-group" style="margin-bottom: 1.5rem;">
-                                <label style="display: flex; align-items: center; gap: 0.5rem;">
-                                    <input type="checkbox" id="emailProjects" checked style="width: auto;">
-                                    <span>Project notifications</span>
-                                </label>
+                            <div class="form-group" style="margin-top: 2rem; margin-bottom: 1.5rem;">
+                                <label for="emailFrequency" class="form-label">Email Frequency</label>
+                                <select id="emailFrequency" class="form-control">
+                                    <option value="immediate">Immediate (as they happen)</option>
+                                    <option value="daily">Daily digest</option>
+                                    <option value="weekly">Weekly digest</option>
+                                </select>
+                                <small style="color: var(--text-secondary); display: block; margin-top: 0.5rem;">
+                                    Choose how often you receive email notifications
+                                </small>
                             </div>
                         </div>
 
@@ -754,11 +810,16 @@
 
                         <div class="settings-section">
                             <h3>In-App Notifications</h3>
+                            <p style="color: var(--text-secondary); margin-bottom: 1.5rem;">Control how you receive notifications within the application</p>
+                            
                             <div class="form-group" style="margin-bottom: 1.5rem;">
                                 <label style="display: flex; align-items: center; gap: 0.5rem;">
                                     <input type="checkbox" id="inAppNotifications" checked style="width: auto;">
                                     <span>Enable in-app notifications</span>
                                 </label>
+                                <small style="color: var(--text-secondary); display: block; margin-top: 0.5rem;">
+                                    Show notification badges and alerts within the portal
+                                </small>
                             </div>
                             
                             <div class="form-group" style="margin-bottom: 1.5rem;">
@@ -770,6 +831,116 @@
                                     Receive browser notifications even when the portal is closed
                                 </small>
                             </div>
+                            
+                            <div class="form-group" style="margin-bottom: 1.5rem;">
+                                <label for="notificationSound" class="form-label">Notification Sound</label>
+                                <select id="notificationSound" class="form-control">
+                                    <option value="none">None</option>
+                                    <option value="default">Default</option>
+                                    <option value="gentle">Gentle</option>
+                                    <option value="chime">Chime</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Privacy Panel -->
+                <div class="settings-panel" id="panel-privacy">
+                    <div class="card">
+                        <div class="settings-section">
+                            <h3>Profile Visibility</h3>
+                            <p style="color: var(--text-secondary); margin-bottom: 1.5rem;">Control who can see your profile information</p>
+                            
+                            <div class="form-group" style="margin-bottom: 1.5rem;">
+                                <label for="profileVisibility" class="form-label">Profile Visibility</label>
+                                <select id="profileVisibility" class="form-control">
+                                    <option value="public">Public (Everyone can see)</option>
+                                    <option value="registered">Registered Users Only</option>
+                                    <option value="matched">Matched Users Only</option>
+                                    <option value="private">Private (Only you)</option>
+                                </select>
+                                <small style="color: var(--text-secondary); display: block; margin-top: 0.5rem;">
+                                    Choose who can view your profile
+                                </small>
+                            </div>
+                            
+                            <div class="form-group" style="margin-bottom: 1.5rem;">
+                                <label style="display: flex; align-items: center; gap: 0.5rem;">
+                                    <input type="checkbox" id="showEmail" checked style="width: auto;">
+                                    <span>Show email address on profile</span>
+                                </label>
+                            </div>
+                            
+                            <div class="form-group" style="margin-bottom: 1.5rem;">
+                                <label style="display: flex; align-items: center; gap: 0.5rem;">
+                                    <input type="checkbox" id="showPhone" style="width: auto;">
+                                    <span>Show phone number on profile</span>
+                                </label>
+                            </div>
+                            
+                            <div class="form-group" style="margin-bottom: 1.5rem;">
+                                <label style="display: flex; align-items: center; gap: 0.5rem;">
+                                    <input type="checkbox" id="showLocation" checked style="width: auto;">
+                                    <span>Show location on profile</span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <hr style="margin: 2rem 0; border: none; border-top: 1px solid var(--border-color);">
+
+                        <div class="settings-section">
+                            <h3>Data & Privacy</h3>
+                            <p style="color: var(--text-secondary); margin-bottom: 1.5rem;">Manage your data and privacy preferences</p>
+                            
+                            <div class="form-group" style="margin-bottom: 1.5rem;">
+                                <label style="display: flex; align-items: center; gap: 0.5rem;">
+                                    <input type="checkbox" id="analyticsTracking" checked style="width: auto;">
+                                    <span>Allow analytics tracking</span>
+                                </label>
+                                <small style="color: var(--text-secondary); display: block; margin-top: 0.5rem;">
+                                    Help us improve by sharing anonymous usage data
+                                </small>
+                            </div>
+                            
+                            <div class="form-group" style="margin-bottom: 1.5rem;">
+                                <label style="display: flex; align-items: center; gap: 0.5rem;">
+                                    <input type="checkbox" id="allowSearch" checked style="width: auto;">
+                                    <span>Allow profile to appear in search results</span>
+                                </label>
+                                <small style="color: var(--text-secondary); display: block; margin-top: 0.5rem;">
+                                    Let other users find you through search
+                                </small>
+                            </div>
+                            
+                            <div class="form-group" style="margin-bottom: 1.5rem;">
+                                <label style="display: flex; align-items: center; gap: 0.5rem;">
+                                    <input type="checkbox" id="showActivityStatus" checked style="width: auto;">
+                                    <span>Show activity status</span>
+                                </label>
+                                <small style="color: var(--text-secondary); display: block; margin-top: 0.5rem;">
+                                    Let others see when you're online
+                                </small>
+                            </div>
+                        </div>
+
+                        <hr style="margin: 2rem 0; border: none; border-top: 1px solid var(--border-color);">
+
+                        <div class="settings-section">
+                            <h3>Data Management</h3>
+                            <p style="color: var(--text-secondary); margin-bottom: 1.5rem;">Manage your account data</p>
+                            
+                            <div style="display: grid; gap: 1rem;">
+                                <button id="exportDataBtn" class="btn btn-outline" style="text-align: left; justify-content: flex-start;">
+                                    <i class="ph ph-download"></i> Export My Data
+                                </button>
+                                <button id="deleteAccountBtn" class="btn btn-danger" style="text-align: left; justify-content: flex-start;">
+                                    <i class="ph ph-trash"></i> Delete Account
+                                </button>
+                            </div>
+                            <small style="color: var(--text-secondary); display: block; margin-top: 1rem;">
+                                Export your data or permanently delete your account. Account deletion cannot be undone.
+                            </small>
                         </div>
                     </div>
                 </div>
@@ -999,8 +1170,19 @@
             emailMatches: true,
             emailProposals: true,
             emailProjects: true,
+            emailCollaborations: true,
+            emailMessages: true,
+            emailSystem: true,
+            emailFrequency: 'immediate',
             inAppNotifications: true,
             browserNotifications: false,
+            notificationSound: 'default',
+            profileVisibility: 'registered',
+            showEmail: true,
+            showPhone: false,
+            showLocation: true,
+            allowSearch: true,
+            showActivityStatus: true,
             twoFactorAuth: false,
             showWelcomeMessage: true,
             showQuickActions: true,
@@ -1226,7 +1408,7 @@
                 setupThemeListener();
                 
                 // Debug: Verify all panels exist
-                const panelIds = ['panel-theme', 'panel-time', 'panel-display', 'panel-notifications', 'panel-account', 'panel-portal'];
+                const panelIds = ['panel-notifications', 'panel-privacy', 'panel-account', 'panel-theme', 'panel-time', 'panel-display', 'panel-portal'];
                 panelIds.forEach(panelId => {
                     const panel = document.getElementById(panelId);
                     if (!panel) {
@@ -1360,6 +1542,39 @@
                 
                 const browserNotifications = document.getElementById('browserNotifications');
                 if (browserNotifications) browserNotifications.checked = settings.browserNotifications === true;
+                
+                const emailCollaborations = document.getElementById('emailCollaborations');
+                if (emailCollaborations) emailCollaborations.checked = settings.emailCollaborations !== false;
+                
+                const emailMessages = document.getElementById('emailMessages');
+                if (emailMessages) emailMessages.checked = settings.emailMessages !== false;
+                
+                const emailSystem = document.getElementById('emailSystem');
+                if (emailSystem) emailSystem.checked = settings.emailSystem !== false;
+                
+                const emailFrequency = document.getElementById('emailFrequency');
+                if (emailFrequency) emailFrequency.value = settings.emailFrequency || 'immediate';
+                
+                const notificationSound = document.getElementById('notificationSound');
+                if (notificationSound) notificationSound.value = settings.notificationSound || 'default';
+                
+                const profileVisibility = document.getElementById('profileVisibility');
+                if (profileVisibility) profileVisibility.value = settings.profileVisibility || 'registered';
+                
+                const showEmail = document.getElementById('showEmail');
+                if (showEmail) showEmail.checked = settings.showEmail !== false;
+                
+                const showPhone = document.getElementById('showPhone');
+                if (showPhone) showPhone.checked = settings.showPhone === true;
+                
+                const showLocation = document.getElementById('showLocation');
+                if (showLocation) showLocation.checked = settings.showLocation !== false;
+                
+                const allowSearch = document.getElementById('allowSearch');
+                if (allowSearch) allowSearch.checked = settings.allowSearch !== false;
+                
+                const showActivityStatus = document.getElementById('showActivityStatus');
+                if (showActivityStatus) showActivityStatus.checked = settings.showActivityStatus !== false;
                 
                 // Account
                 const twoFactorAuth = document.getElementById('twoFactorAuth');
@@ -1496,6 +1711,99 @@
                 if (browserNotifications) {
                     browserNotifications.addEventListener('change', (e) => {
                         updateSettings({ browserNotifications: e.target.checked });
+                    });
+                }
+                
+                const emailCollaborations = document.getElementById('emailCollaborations');
+                if (emailCollaborations) {
+                    emailCollaborations.addEventListener('change', (e) => {
+                        updateSettings({ emailCollaborations: e.target.checked });
+                    });
+                }
+                
+                const emailMessages = document.getElementById('emailMessages');
+                if (emailMessages) {
+                    emailMessages.addEventListener('change', (e) => {
+                        updateSettings({ emailMessages: e.target.checked });
+                    });
+                }
+                
+                const emailSystem = document.getElementById('emailSystem');
+                if (emailSystem) {
+                    emailSystem.addEventListener('change', (e) => {
+                        updateSettings({ emailSystem: e.target.checked });
+                    });
+                }
+                
+                const emailFrequency = document.getElementById('emailFrequency');
+                if (emailFrequency) {
+                    emailFrequency.addEventListener('change', (e) => {
+                        updateSettings({ emailFrequency: e.target.value });
+                    });
+                }
+                
+                const notificationSound = document.getElementById('notificationSound');
+                if (notificationSound) {
+                    notificationSound.addEventListener('change', (e) => {
+                        updateSettings({ notificationSound: e.target.value });
+                    });
+                }
+                
+                const profileVisibility = document.getElementById('profileVisibility');
+                if (profileVisibility) {
+                    profileVisibility.addEventListener('change', (e) => {
+                        updateSettings({ profileVisibility: e.target.value });
+                    });
+                }
+                
+                const showEmail = document.getElementById('showEmail');
+                if (showEmail) {
+                    showEmail.addEventListener('change', (e) => {
+                        updateSettings({ showEmail: e.target.checked });
+                    });
+                }
+                
+                const showPhone = document.getElementById('showPhone');
+                if (showPhone) {
+                    showPhone.addEventListener('change', (e) => {
+                        updateSettings({ showPhone: e.target.checked });
+                    });
+                }
+                
+                const showLocation = document.getElementById('showLocation');
+                if (showLocation) {
+                    showLocation.addEventListener('change', (e) => {
+                        updateSettings({ showLocation: e.target.checked });
+                    });
+                }
+                
+                const allowSearch = document.getElementById('allowSearch');
+                if (allowSearch) {
+                    allowSearch.addEventListener('change', (e) => {
+                        updateSettings({ allowSearch: e.target.checked });
+                    });
+                }
+                
+                const showActivityStatus = document.getElementById('showActivityStatus');
+                if (showActivityStatus) {
+                    showActivityStatus.addEventListener('change', (e) => {
+                        updateSettings({ showActivityStatus: e.target.checked });
+                    });
+                }
+                
+                const exportDataBtn = document.getElementById('exportDataBtn');
+                if (exportDataBtn) {
+                    exportDataBtn.addEventListener('click', () => {
+                        alert('Data export functionality will be implemented with backend integration');
+                    });
+                }
+                
+                const deleteAccountBtn = document.getElementById('deleteAccountBtn');
+                if (deleteAccountBtn) {
+                    deleteAccountBtn.addEventListener('click', () => {
+                        if (confirm('Are you sure you want to delete your account? This action cannot be undone.')) {
+                            alert('Account deletion functionality will be implemented with backend integration');
+                        }
                     });
                 }
                 

@@ -666,6 +666,56 @@
   }
 
   // ============================================
+  // Get Badge Count for Menu Item
+  // ============================================
+  function getBadgeCount(itemId, currentUser) {
+    if (!currentUser || typeof PMTwinData === 'undefined') return 0;
+    
+    try {
+      switch(itemId) {
+        case 'proposals':
+          const proposals = PMTwinData.Proposals.getByProvider(currentUser.id);
+          return proposals.filter(p => p.status === 'pending' || p.status === 'in_review').length;
+        
+        case 'matches':
+        case 'opportunities':
+          const matches = PMTwinData.Matches.getByProvider(currentUser.id);
+          return matches.filter(m => m.score >= 80 && !m.viewed).length;
+        
+        case 'notifications':
+          const notifications = PMTwinData.Notifications.getUnread(currentUser.id);
+          return notifications ? notifications.length : 0;
+        
+        case 'collaboration':
+        case 'collab-applications':
+          const applications = PMTwinData.CollaborationApplications.getByApplicant(currentUser.id);
+          return applications.filter(a => a.status === 'pending').length;
+        
+        case 'admin-vetting':
+          if (currentUser.role === 'admin' || currentUser.role === 'platform_admin') {
+            const pendingUsers = PMTwinData.Users.getByStatus('pending');
+            return pendingUsers ? pendingUsers.length : 0;
+          }
+          return 0;
+        
+        default:
+          return 0;
+      }
+    } catch (error) {
+      console.warn('[Navigation] Error getting badge count for', itemId, error);
+      return 0;
+    }
+  }
+
+  // ============================================
+  // Render Badge HTML
+  // ============================================
+  function renderBadge(count) {
+    if (!count || count === 0) return '';
+    return `<span class="sidebar-badge" style="margin-left: auto; background: var(--color-error, #dc2626); color: white; border-radius: 12px; padding: 0.125rem 0.5rem; font-size: 0.75rem; font-weight: var(--font-weight-bold, 700); min-width: 20px; text-align: center; display: inline-flex; align-items: center; justify-content: center;">${count > 99 ? '99+' : count}</span>`;
+  }
+
+  // ============================================
   // Render Sidebar
   // ============================================
   async function renderSidebar(containerId = 'sidebar') {
@@ -721,13 +771,27 @@
             <i class="ph ph-bell"></i>
             ${getNotificationBadge()}
           </a>
-          <button class="sidebar-header-btn" title="Menu" style="width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; background: var(--bg-secondary, #f3f4f6); border-radius: 8px; border: none; cursor: pointer; color: var(--text-primary);">
-            <i class="ph ph-squares-four"></i>
+          <button class="sidebar-header-btn" id="sidebarSearchToggle" title="Search Menu" style="width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; background: var(--bg-secondary, #f3f4f6); border-radius: 8px; border: none; cursor: pointer; color: var(--text-primary);">
+            <i class="ph ph-magnifying-glass"></i>
+          </button>
+          <button class="sidebar-minimize" id="sidebarMinimize" title="Minimize Sidebar" style="width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; background: var(--bg-secondary, #f3f4f6); border-radius: 8px; border: none; cursor: pointer; color: var(--text-primary);">
+            <i class="ph ph-sidebar-simple"></i>
           </button>
         </div>
       </div>
+      <div id="sidebarSearchContainer" style="display: none; padding: 0.75rem; border-bottom: 1px solid var(--border-color, #e5e7eb);">
+        <div style="position: relative;">
+          <input type="text" id="sidebarSearchInput" placeholder="Search menu..." 
+            style="width: 100%; padding: 0.5rem 2.5rem 0.5rem 0.75rem; border: 1px solid var(--border-color, #e5e7eb); border-radius: 6px; font-size: 0.875rem; background: var(--bg-secondary, #f9fafb); color: var(--text-primary);"
+            autocomplete="off">
+          <i class="ph ph-magnifying-glass" style="position: absolute; right: 0.75rem; top: 50%; transform: translateY(-50%); color: var(--text-secondary); pointer-events: none;"></i>
+        </div>
+        <div id="sidebarSearchResults" style="display: none; margin-top: 0.5rem; max-height: 200px; overflow-y: auto;">
+          <!-- Search results will appear here -->
+        </div>
+      </div>
       <nav class="sidebar-nav">
-        <ul class="sidebar-menu">
+        <ul class="sidebar-menu" id="sidebarMenuList">
     `;
 
     // If no menu items, show a message with debugging info
@@ -884,12 +948,14 @@
               
               const grandchildIsActive = activeItemId === grandchild.id;
               const grandchildIcon = grandchild.icon || child.icon || '<i class="ph ph-file-text"></i>';
+              const grandchildBadgeCount = getBadgeCount(grandchild.id, currentUser);
               
               html += `
                 <li class="sidebar-menu-item ${grandchildIsActive ? 'active' : ''}">
-                  <a href="${grandchild.route}" class="sidebar-link" style="padding-left: 2rem;" title="${grandchild.label}">
+                  <a href="${grandchild.route}" class="sidebar-link" style="padding-left: 2rem; display: flex; align-items: center;" title="${grandchild.label}" data-menu-id="${grandchild.id}">
                     <span class="sidebar-icon">${grandchildIcon}</span>
                     <span class="sidebar-label">${grandchild.label}</span>
+                    ${renderBadge(grandchildBadgeCount)}
                   </a>
                 </li>
               `;
@@ -903,12 +969,14 @@
             // Regular child item
             const childIsActive = activeItemId === child.id;
             const childIcon = child.icon || item.icon || '<i class="ph ph-file-text"></i>';
+            const childBadgeCount = getBadgeCount(child.id, currentUser);
             
             html += `
               <li class="sidebar-menu-item ${childIsActive ? 'active' : ''}">
-                <a href="${child.route}" class="sidebar-link" style="padding-left: 2rem;" title="${child.label}">
+                <a href="${child.route}" class="sidebar-link" style="padding-left: 2rem; display: flex; align-items: center;" title="${child.label}" data-menu-id="${child.id}">
                   <span class="sidebar-icon">${childIcon}</span>
                   <span class="sidebar-label">${child.label}</span>
+                  ${renderBadge(childBadgeCount)}
                 </a>
               </li>
             `;
@@ -927,12 +995,14 @@
       const itemClass = item.isCategoryHeader ? 'sidebar-menu-category' : '';
       const indentStyle = item.indent ? 'padding-left: 2rem;' : '';
       const itemIcon = item.icon || '<i class="ph ph-file-text"></i>';
+      const itemBadgeCount = getBadgeCount(item.id, currentUser);
       
       html += `
         <li class="sidebar-menu-item ${isActive ? 'active' : ''} ${itemClass}">
-          <a href="${item.route}" class="sidebar-link" style="${indentStyle}" title="${item.label}">
+          <a href="${item.route}" class="sidebar-link" style="${indentStyle}; display: flex; align-items: center;" title="${item.label}" data-menu-id="${item.id}">
             <span class="sidebar-icon">${itemIcon}</span>
             <span class="sidebar-label">${item.label}</span>
+            ${renderBadge(itemBadgeCount)}
           </a>
         </li>
       `;
@@ -942,19 +1012,33 @@
         </ul>
       </nav>
       <div class="sidebar-footer" style="border-top: 1px solid var(--border-color, #e5e7eb); padding: 1rem; margin-top: auto;">
-        <div class="sidebar-user" style="display: flex; align-items: center; gap: 0.75rem; padding: 0.75rem; background: var(--bg-secondary, #f9fafb); border-radius: 8px; margin-bottom: 1rem;">
-          <div class="sidebar-user-avatar" style="width: 40px; height: 40px; background: var(--primary-color, #2563eb); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-weight: var(--font-weight-semibold, 600); font-size: 1rem; flex-shrink: 0;">
+        <div class="sidebar-user" style="display: flex; align-items: center; gap: 0.75rem; padding: 0.75rem; background: var(--bg-secondary, #f9fafb); border-radius: 8px; margin-bottom: 1rem; cursor: pointer; transition: background-color 0.2s;" onclick="Navigation.toggleUserMenu()" title="View Profile">
+          <div class="sidebar-user-avatar" style="width: 40px; height: 40px; background: var(--primary-color, #2563eb); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-weight: var(--font-weight-semibold, 600); font-size: 1rem; flex-shrink: 0; border: 2px solid var(--bg-primary, white);">
             ${(currentUser.name || currentUser.email || 'U')[0].toUpperCase()}
           </div>
           <div class="sidebar-user-info" style="flex: 1; min-width: 0;">
-            <div class="sidebar-user-name" style="font-weight: var(--font-weight-bold, 700); font-size: 0.875rem; color: var(--text-primary); margin-bottom: 0.25rem;">${currentUser.name || 'User'}</div>
+            <div class="sidebar-user-name" style="font-weight: var(--font-weight-bold, 700); font-size: 0.875rem; color: var(--text-primary); margin-bottom: 0.25rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${currentUser.name || 'User'}</div>
             <div class="sidebar-user-role-badge" style="display: inline-block; padding: 0.125rem 0.5rem; background: var(--bg-tertiary, #e5e7eb); border-radius: 4px; font-size: 0.75rem; font-weight: var(--font-weight-medium, 500); color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.025em;">
               ${(currentUser.role || 'guest').toUpperCase()}
             </div>
           </div>
+          <i class="ph ph-caret-down" style="color: var(--text-secondary); font-size: 0.875rem;"></i>
+        </div>
+        <div id="sidebarUserMenu" style="display: none; margin-bottom: 0.75rem; background: var(--bg-primary, white); border: 1px solid var(--border-color, #e5e7eb); border-radius: 8px; overflow: hidden;">
+          <a href="${basePath}profile/" class="sidebar-link" style="display: flex; align-items: center; gap: 0.75rem; padding: 0.75rem; border-bottom: 1px solid var(--border-color, #e5e7eb);" onclick="Navigation.handleNavClick(event, '${basePath}profile/');">
+            <i class="ph ph-user"></i> <span>Profile</span>
+          </a>
+          <a href="${basePath}settings/" class="sidebar-link" style="display: flex; align-items: center; gap: 0.75rem; padding: 0.75rem; border-bottom: 1px solid var(--border-color, #e5e7eb);" onclick="Navigation.handleNavClick(event, '${basePath}settings/');">
+            <i class="ph ph-gear"></i> <span>Settings</span>
+          </a>
+          ${currentUser.role === 'admin' || currentUser.role === 'platform_admin' ? `
+          <a href="${basePath}admin/" class="sidebar-link" style="display: flex; align-items: center; gap: 0.75rem; padding: 0.75rem;" onclick="Navigation.handleNavClick(event, '${basePath}admin/');">
+            <i class="ph ph-shield-check"></i> <span>Admin Portal</span>
+          </a>
+          ` : ''}
         </div>
         <button onclick="Navigation.logout()" class="sidebar-logout" style="width: 100%; padding: 0.75rem 1rem; background: var(--color-error, #dc2626); color: white; border: none; border-radius: 8px; font-weight: var(--font-weight-medium, 500); cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 0.5rem; transition: background-color 0.2s;">
-          <i class="ph ph-arrow-right"></i> <span>Logout</span>
+          <i class="ph ph-sign-out"></i> <span>Logout</span>
         </button>
       </div>
     `;
@@ -988,6 +1072,165 @@
     // Apply current minimized state
     if (sidebarMinimized) {
       applyMinimizedState();
+    }
+    
+    // Setup sidebar search
+    setupSidebarSearch();
+    
+    // Setup keyboard shortcuts
+    setupKeyboardShortcuts();
+  }
+
+  // ============================================
+  // Setup Sidebar Search
+  // ============================================
+  function setupSidebarSearch() {
+    const searchToggle = document.getElementById('sidebarSearchToggle');
+    const searchContainer = document.getElementById('sidebarSearchContainer');
+    const searchInput = document.getElementById('sidebarSearchInput');
+    const searchResults = document.getElementById('sidebarSearchResults');
+    const menuList = document.getElementById('sidebarMenuList');
+    
+    if (!searchToggle || !searchContainer || !searchInput) return;
+    
+    // Toggle search container
+    searchToggle.onclick = (e) => {
+      e.stopPropagation();
+      const isVisible = searchContainer.style.display !== 'none';
+      searchContainer.style.display = isVisible ? 'none' : 'block';
+      if (!isVisible && searchInput) {
+        setTimeout(() => searchInput.focus(), 100);
+      } else {
+        searchInput.value = '';
+        searchResults.style.display = 'none';
+        filterMenuItems('');
+      }
+    };
+    
+    // Search functionality
+    let searchTimeout;
+    searchInput.addEventListener('input', (e) => {
+      const query = e.target.value.trim().toLowerCase();
+      
+      clearTimeout(searchTimeout);
+      searchTimeout = setTimeout(() => {
+        if (query.length > 0) {
+          performSidebarSearch(query, searchResults, menuList);
+        } else {
+          searchResults.style.display = 'none';
+          filterMenuItems('');
+        }
+      }, 200);
+    });
+    
+    // Filter menu items on search
+    function filterMenuItems(query) {
+      if (!menuList) return;
+      const items = menuList.querySelectorAll('.sidebar-menu-item, .sidebar-menu-group');
+      items.forEach(item => {
+        const link = item.querySelector('.sidebar-link, .sidebar-group-toggle');
+        if (!link) return;
+        const text = link.textContent.toLowerCase();
+        if (query === '' || text.includes(query)) {
+          item.style.display = '';
+        } else {
+          item.style.display = 'none';
+        }
+      });
+    }
+  }
+
+  // ============================================
+  // Perform Sidebar Search
+  // ============================================
+  function performSidebarSearch(query, resultsContainer, menuList) {
+    if (!resultsContainer || !menuList) return;
+    
+    const results = [];
+    const menuItems = menuList.querySelectorAll('.sidebar-link, .sidebar-group-toggle');
+    
+    menuItems.forEach(item => {
+      const text = item.textContent.toLowerCase();
+      const href = item.getAttribute('href');
+      const title = item.getAttribute('title') || item.textContent;
+      
+      if (text.includes(query) && href && href !== '#') {
+        results.push({
+          title: title.trim(),
+          href: href,
+          icon: item.querySelector('.sidebar-icon')?.innerHTML || '<i class="ph ph-file-text"></i>'
+        });
+      }
+    });
+    
+    if (results.length === 0) {
+      resultsContainer.innerHTML = `
+        <div style="padding: 1rem; text-align: center; color: var(--text-secondary); font-size: 0.875rem;">
+          <i class="ph ph-magnifying-glass" style="font-size: 1.5rem; margin-bottom: 0.5rem; opacity: 0.5; display: block;"></i>
+          No results found
+        </div>
+      `;
+    } else {
+      let html = '<div style="padding: 0.25rem;">';
+      results.slice(0, 8).forEach(result => {
+        html += `
+          <a href="${result.href}" class="sidebar-link" style="display: flex; align-items: center; gap: 0.75rem; padding: 0.75rem; border-radius: 6px; margin-bottom: 0.25rem; background: var(--bg-secondary, #f9fafb);" 
+             onclick="Navigation.handleNavClick(event, '${result.href}');">
+            <span class="sidebar-icon">${result.icon}</span>
+            <span class="sidebar-label" style="font-size: 0.875rem;">${result.title}</span>
+          </a>
+        `;
+      });
+      html += '</div>';
+      resultsContainer.innerHTML = html;
+    }
+    
+    resultsContainer.style.display = 'block';
+  }
+
+  // ============================================
+  // Setup Keyboard Shortcuts
+  // ============================================
+  function setupKeyboardShortcuts() {
+    // Only setup if not already set up
+    if (window.sidebarKeyboardShortcutsSetup) return;
+    window.sidebarKeyboardShortcutsSetup = true;
+    
+    document.addEventListener('keydown', (e) => {
+      // Don't trigger shortcuts when typing in inputs
+      if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.isContentEditable) {
+        return;
+      }
+      
+      // Ctrl/Cmd + K: Open sidebar search
+      if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+        e.preventDefault();
+        const searchToggle = document.getElementById('sidebarSearchToggle');
+        const searchContainer = document.getElementById('sidebarSearchContainer');
+        if (searchToggle && searchContainer) {
+          searchToggle.click();
+        }
+      }
+      
+      // Escape: Close search
+      if (e.key === 'Escape') {
+        const searchContainer = document.getElementById('sidebarSearchContainer');
+        const searchInput = document.getElementById('sidebarSearchInput');
+        if (searchContainer && searchContainer.style.display !== 'none') {
+          searchContainer.style.display = 'none';
+          if (searchInput) searchInput.value = '';
+        }
+      }
+    });
+  }
+
+  // ============================================
+  // Toggle User Menu
+  // ============================================
+  function toggleUserMenu() {
+    const userMenu = document.getElementById('sidebarUserMenu');
+    if (userMenu) {
+      userMenu.style.display = userMenu.style.display === 'none' ? 'block' : 'none';
     }
   }
 
@@ -1301,6 +1544,7 @@
     minimizeSidebar,
     expandSidebar,
     toggleMenuGroup,
+    toggleUserMenu,
     logout,
     loadMenuItems,
     refreshMenuItems,

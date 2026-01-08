@@ -27,39 +27,53 @@
     SERVICE_REQUESTS: 'pmtwin_service_requests',
     SERVICE_OFFERS: 'pmtwin_service_offers',
     SERVICE_ENGAGEMENTS: 'pmtwin_service_engagements',
+    CONTRACTS: 'pmtwin_contracts',
+    ENGAGEMENTS: 'pmtwin_engagements',
+    MILESTONES: 'pmtwin_milestones',
     VERSION: 'pmtwin_data_version'
   };
 
-  const DATA_VERSION = '2.3.0'; // Updated for Service Providers implementation
+  const DATA_VERSION = '2.4.0'; // Updated for Contract-Driven Workflow implementation
 
   // ============================================
   // User Type & Role Mapping
   // ============================================
+  // User Type Constants
+  const USER_TYPE = {
+    BENEFICIARY: 'beneficiary',
+    VENDOR_CORPORATE: 'vendor_corporate',
+    VENDOR_INDIVIDUAL: 'vendor_individual',
+    SERVICE_PROVIDER: 'service_provider',
+    CONSULTANT: 'consultant',
+    SUB_CONTRACTOR: 'sub_contractor',
+    ADMIN: 'admin'
+  };
+
   function mapRoleToUserType(role, explicitUserType = null) {
     // If explicit userType is provided, use it (allows for individual type)
-    if (explicitUserType && ['company', 'consultant', 'individual', 'admin'].includes(explicitUserType)) {
+    if (explicitUserType && ['company', 'consultant', 'individual', 'admin', 'beneficiary', 'vendor_corporate', 'vendor_individual', 'service_provider', 'sub_contractor'].includes(explicitUserType)) {
       return explicitUserType;
     }
     
-      // Map new roles to user types
-      const mapping = {
-        'platform_admin': 'admin',
-        'admin': 'admin', // Legacy
-        'project_lead': 'company',
-        'entity': 'company',
-        'beneficiary': 'company', // Alias for entity
-        'vendor': 'company',
-        'supplier': 'company',
-        'service_provider': 'company', // Legacy - mapped to vendor
-        'skill_service_provider': 'service_provider', // New Service Provider entity type
-        'sub_contractor': 'individual',
-        'professional': 'individual', // Legacy
-        'consultant': 'consultant',
-        'mentor': 'individual',
-        'individual': 'consultant', // Legacy
-        'auditor': 'admin'
-      };
-    return mapping[role] || 'consultant';
+    // Map roles to new user types
+    const mapping = {
+      'platform_admin': USER_TYPE.ADMIN,
+      'admin': USER_TYPE.ADMIN, // Legacy
+      'project_lead': USER_TYPE.BENEFICIARY,
+      'entity': USER_TYPE.BENEFICIARY,
+      'beneficiary': USER_TYPE.BENEFICIARY,
+      'vendor': USER_TYPE.VENDOR_CORPORATE, // Default to corporate, can be overridden
+      'supplier': USER_TYPE.VENDOR_CORPORATE,
+      'service_provider': USER_TYPE.VENDOR_CORPORATE, // Legacy - mapped to vendor
+      'skill_service_provider': USER_TYPE.SERVICE_PROVIDER,
+      'sub_contractor': USER_TYPE.SUB_CONTRACTOR,
+      'professional': USER_TYPE.SUB_CONTRACTOR, // Legacy
+      'consultant': USER_TYPE.CONSULTANT,
+      'mentor': USER_TYPE.CONSULTANT,
+      'individual': USER_TYPE.CONSULTANT, // Legacy
+      'auditor': USER_TYPE.ADMIN
+    };
+    return mapping[role] || USER_TYPE.CONSULTANT;
   }
 
   function getUserTypeFromRole(role) {
@@ -121,6 +135,7 @@
     
     // Migrate Service Provider model
     migrateServiceProviderModel();
+    migrateToContractDrivenWorkflow();
   }
 
   // ============================================
@@ -7244,6 +7259,199 @@
       console.log('✅ Service Provider model migration completed');
     }
   }
+
+  // ============================================
+  // Migration: Contract-Driven Workflow
+  // ============================================
+  function migrateToContractDrivenWorkflow() {
+    const currentVersion = localStorage.getItem(STORAGE_KEYS.VERSION) || '0.0.0';
+    
+    // Only migrate if version is less than 2.4.0
+    if (compareVersions(currentVersion, '2.4.0') < 0) {
+      console.log('🔄 Migrating to Contract-Driven Workflow (v2.4.0)...');
+      
+      // Initialize new storage keys
+      if (!localStorage.getItem(STORAGE_KEYS.CONTRACTS)) {
+        localStorage.setItem(STORAGE_KEYS.CONTRACTS, JSON.stringify([]));
+      }
+      if (!localStorage.getItem(STORAGE_KEYS.ENGAGEMENTS)) {
+        localStorage.setItem(STORAGE_KEYS.ENGAGEMENTS, JSON.stringify([]));
+      }
+      if (!localStorage.getItem(STORAGE_KEYS.MILESTONES)) {
+        localStorage.setItem(STORAGE_KEYS.MILESTONES, JSON.stringify([]));
+      }
+
+      let contractsCreated = 0;
+      let engagementsCreated = 0;
+
+      // Step 1: Migrate Approved Proposals → Contracts
+      const approvedProposals = Proposals.getAll().filter(p => p.status === 'approved');
+      console.log(`📋 Found ${approvedProposals.length} approved proposals to migrate`);
+
+      approvedProposals.forEach(proposal => {
+        const project = Projects.getById(proposal.projectId);
+        if (!project) return;
+
+        // Determine contract type
+        const contractType = project.projectType === 'mega' 
+          ? 'MEGA_PROJECT_CONTRACT' 
+          : 'PROJECT_CONTRACT';
+
+        // Get provider party type
+        let providerPartyType = 'VENDOR_CORPORATE';
+        if (typeof Users !== 'undefined') {
+          const providerUser = Users.getById(proposal.providerId);
+          if (providerUser) {
+            const userType = mapRoleToUserType(providerUser.role, providerUser.userType);
+            if (userType === 'vendor_corporate') {
+              providerPartyType = 'VENDOR_CORPORATE';
+            } else if (userType === 'vendor_individual') {
+              providerPartyType = 'VENDOR_INDIVIDUAL';
+            }
+          }
+        }
+
+        // Create contract
+        const contract = Contracts.create({
+          contractType: contractType,
+          scopeType: project.projectType === 'mega' ? 'MEGA_PROJECT' : 'PROJECT',
+          scopeId: project.id,
+          buyerPartyId: project.creatorId,
+          buyerPartyType: 'BENEFICIARY',
+          providerPartyId: proposal.providerId,
+          providerPartyType: providerPartyType,
+          status: 'SIGNED', // Auto-sign migrated contracts
+          startDate: proposal.timeline?.startDate || proposal.createdAt || new Date().toISOString(),
+          endDate: proposal.timeline?.completionDate || null,
+          termsJSON: {
+            pricing: proposal.cashDetails || proposal.barterDetails || { amount: 0, currency: 'SAR' },
+            paymentTerms: project.paymentTerms || 'milestone_based',
+            deliverables: [],
+            milestones: []
+          },
+          sourceProposalId: proposal.id,
+          signedAt: proposal.approvedAt || proposal.createdAt || new Date().toISOString(),
+          signedBy: project.creatorId
+        });
+
+        // Create engagement
+        if (contract) {
+          contractsCreated++;
+          const engagement = Engagements.create({
+            contractId: contract.id,
+            engagementType: 'PROJECT_EXECUTION',
+            status: proposal.status === 'completed' ? 'COMPLETED' : 'ACTIVE',
+            startedAt: proposal.approvedAt || proposal.createdAt || new Date().toISOString()
+          });
+          if (engagement) {
+            engagementsCreated++;
+          }
+        }
+      });
+
+      // Step 2: Migrate Service Engagements → Contracts + Engagements
+      const serviceEngagements = ServiceEngagements.getAll();
+      console.log(`📋 Found ${serviceEngagements.length} service engagements to migrate`);
+
+      serviceEngagements.forEach(se => {
+        const serviceRequest = ServiceRequests.getById(se.serviceRequestId);
+        const serviceOffer = ServiceOffers.getById(se.serviceOfferId);
+
+        if (!serviceRequest || !serviceOffer) return;
+
+        // Determine buyer party type
+        let buyerPartyType = 'BENEFICIARY';
+        if (serviceRequest.requesterType === 'VENDOR') {
+          buyerPartyType = 'VENDOR_CORPORATE';
+        }
+
+        // Create service contract
+        const contract = Contracts.create({
+          contractType: 'SERVICE_CONTRACT',
+          scopeType: 'SERVICE_REQUEST',
+          scopeId: serviceRequest.id,
+          buyerPartyId: serviceRequest.requesterId,
+          buyerPartyType: buyerPartyType,
+          providerPartyId: se.serviceProviderUserId,
+          providerPartyType: 'SERVICE_PROVIDER',
+          status: 'SIGNED',
+          startDate: se.startedAt || new Date().toISOString(),
+          endDate: serviceRequest.requiredBy || null,
+          termsJSON: {
+            pricing: serviceOffer.proposedPricing || { amount: 0, currency: 'SAR' },
+            paymentTerms: 'milestone_based',
+            deliverables: [],
+            milestones: []
+          },
+          sourceServiceOfferId: se.serviceOfferId,
+          signedAt: se.startedAt || new Date().toISOString(),
+          signedBy: serviceRequest.requesterId
+        });
+
+        // Create engagement
+        if (contract) {
+          contractsCreated++;
+          const engagement = Engagements.create({
+            contractId: contract.id,
+            engagementType: 'SERVICE_DELIVERY',
+            status: se.status === 'COMPLETED' ? 'COMPLETED' : 'ACTIVE',
+            startedAt: se.startedAt,
+            assignedToScopeType: se.linkedSubProjectIds?.length > 0 ? 'SUB_PROJECT' : null,
+            assignedToScopeId: se.linkedSubProjectIds?.[0] || null
+          });
+          if (engagement) {
+            engagementsCreated++;
+          }
+        }
+      });
+
+      // Step 3: Migrate Vendor-SubContractor Relationships → SubContracts
+      const relationships = VendorSubContractorRelationships.getAll()
+        .filter(r => r.status === 'active');
+      console.log(`📋 Found ${relationships.length} active vendor-subcontractor relationships to migrate`);
+
+      relationships.forEach(rel => {
+        // Find vendor's active contracts
+        const vendorContracts = Contracts.getAll()
+          .filter(c => c.providerPartyId === rel.vendorId && 
+                       (c.status === 'SIGNED' || c.status === 'ACTIVE'));
+
+        // Create sub-contract for each vendor contract
+        vendorContracts.forEach(vendorContract => {
+          const subContract = Contracts.create({
+            contractType: 'SUB_CONTRACT',
+            scopeType: vendorContract.scopeType,
+            scopeId: vendorContract.scopeId,
+            buyerPartyId: rel.vendorId,
+            buyerPartyType: 'VENDOR_CORPORATE',
+            providerPartyId: rel.subContractorId,
+            providerPartyType: 'SUB_CONTRACTOR',
+            parentContractId: vendorContract.id,
+            status: 'SIGNED',
+            startDate: vendorContract.startDate,
+            endDate: vendorContract.endDate,
+            termsJSON: {
+              pricing: { amount: 0, currency: 'SAR' }, // To be filled by vendor
+              paymentTerms: 'milestone_based',
+              deliverables: [],
+              milestones: []
+            },
+            signedAt: rel.approvedAt || new Date().toISOString(),
+            signedBy: rel.vendorId
+          });
+          if (subContract) {
+            contractsCreated++;
+          }
+        });
+      });
+
+      // Update version
+      localStorage.setItem(STORAGE_KEYS.VERSION, '2.4.0');
+      console.log(`✅ Contract-Driven Workflow migration completed:`);
+      console.log(`   - ${contractsCreated} contracts created`);
+      console.log(`   - ${engagementsCreated} engagements created`);
+    }
+  }
   
   // Helper function to compare versions
   function compareVersions(v1, v2) {
@@ -7577,6 +7785,360 @@
       const engagements = this.getAll();
       const filtered = engagements.filter(e => e.id !== id);
       return set(STORAGE_KEYS.SERVICE_ENGAGEMENTS, filtered);
+    }
+  };
+
+  // ============================================
+  // Contracts CRUD
+  // ============================================
+  const Contracts = {
+    getAll() {
+      return get(STORAGE_KEYS.CONTRACTS);
+    },
+
+    getById(id) {
+      const contracts = this.getAll();
+      return contracts.find(c => c.id === id) || null;
+    },
+
+    getByScope(scopeType, scopeId) {
+      const contracts = this.getAll();
+      return contracts.filter(c => c.scopeType === scopeType && c.scopeId === scopeId);
+    },
+
+    getByBuyer(buyerPartyId) {
+      const contracts = this.getAll();
+      return contracts.filter(c => c.buyerPartyId === buyerPartyId);
+    },
+
+    getByProvider(providerPartyId) {
+      const contracts = this.getAll();
+      return contracts.filter(c => c.providerPartyId === providerPartyId);
+    },
+
+    getByContractType(contractType) {
+      const contracts = this.getAll();
+      return contracts.filter(c => c.contractType === contractType);
+    },
+
+    getByStatus(status) {
+      const contracts = this.getAll();
+      return contracts.filter(c => c.status === status);
+    },
+
+    getSubContracts(parentContractId) {
+      const contracts = this.getAll();
+      return contracts.filter(c => c.parentContractId === parentContractId);
+    },
+
+    getByParty(partyId) {
+      const contracts = this.getAll();
+      return contracts.filter(c => 
+        c.buyerPartyId === partyId || c.providerPartyId === partyId
+      );
+    },
+
+    create(contractData) {
+      const contracts = this.getAll();
+      const contract = {
+        id: contractData.id || generateId('contract'),
+        contractType: contractData.contractType, // PROJECT_CONTRACT, MEGA_PROJECT_CONTRACT, SERVICE_CONTRACT, ADVISORY_CONTRACT, SUB_CONTRACT
+        scopeType: contractData.scopeType, // PROJECT, MEGA_PROJECT, SUB_PROJECT, SERVICE_REQUEST
+        scopeId: contractData.scopeId,
+        buyerPartyId: contractData.buyerPartyId,
+        buyerPartyType: contractData.buyerPartyType, // BENEFICIARY, VENDOR_CORPORATE, VENDOR_INDIVIDUAL
+        providerPartyId: contractData.providerPartyId,
+        providerPartyType: contractData.providerPartyType, // VENDOR_CORPORATE, VENDOR_INDIVIDUAL, SERVICE_PROVIDER, CONSULTANT, SUB_CONTRACTOR
+        parentContractId: contractData.parentContractId || null, // For SUB_CONTRACT only
+        status: contractData.status || 'DRAFT', // DRAFT, SENT, SIGNED, ACTIVE, COMPLETED, TERMINATED
+        startDate: contractData.startDate || null,
+        endDate: contractData.endDate || null,
+        signedAt: contractData.signedAt || null,
+        signedBy: contractData.signedBy || null,
+        termsJSON: contractData.termsJSON || {
+          pricing: { amount: 0, currency: 'SAR' },
+          paymentTerms: 'milestone_based',
+          deliverables: [],
+          milestones: []
+        },
+        sourceProposalId: contractData.sourceProposalId || null,
+        sourceServiceOfferId: contractData.sourceServiceOfferId || null,
+        createdAt: contractData.createdAt || new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+        createdBy: contractData.createdBy || contractData.buyerPartyId
+      };
+      contracts.push(contract);
+      if (set(STORAGE_KEYS.CONTRACTS, contracts)) {
+        Audit.create({
+          type: 'contract_created',
+          entityId: contract.id,
+          userId: contract.createdBy,
+          description: `Contract created: ${contract.contractType}`,
+          metadata: {
+            contractType: contract.contractType,
+            scopeType: contract.scopeType,
+            scopeId: contract.scopeId,
+            buyerPartyId: contract.buyerPartyId,
+            providerPartyId: contract.providerPartyId
+          }
+        });
+        return contract;
+      }
+      return null;
+    },
+
+    update(id, updates) {
+      const contracts = this.getAll();
+      const index = contracts.findIndex(c => c.id === id);
+      if (index === -1) return null;
+
+      const oldContract = { ...contracts[index] };
+      contracts[index] = {
+        ...contracts[index],
+        ...updates,
+        updatedAt: new Date().toISOString()
+      };
+
+      // Set timestamps for status changes
+      if (updates.status === 'SIGNED' && oldContract.status !== 'SIGNED' && !contracts[index].signedAt) {
+        contracts[index].signedAt = new Date().toISOString();
+      }
+      if (updates.status === 'ACTIVE' && oldContract.status !== 'ACTIVE') {
+        // Contract becomes active after signing
+      }
+      if (updates.status === 'COMPLETED' && oldContract.status !== 'COMPLETED') {
+        // Contract completed
+      }
+      if (updates.status === 'TERMINATED' && oldContract.status !== 'TERMINATED') {
+        // Contract terminated
+      }
+
+      if (set(STORAGE_KEYS.CONTRACTS, contracts)) {
+        Audit.create({
+          type: 'contract_updated',
+          entityId: id,
+          userId: contracts[index].createdBy,
+          description: `Contract updated: ${contracts[index].contractType}`,
+          metadata: updates
+        });
+        return contracts[index];
+      }
+      return null;
+    },
+
+    delete(id) {
+      const contracts = this.getAll();
+      const filtered = contracts.filter(c => c.id !== id);
+      if (set(STORAGE_KEYS.CONTRACTS, filtered)) {
+        Audit.create({
+          type: 'contract_deleted',
+          entityId: id,
+          userId: null,
+          description: `Contract deleted: ${id}`
+        });
+        return true;
+      }
+      return false;
+    }
+  };
+
+  // ============================================
+  // Engagements CRUD (Unified - replaces ServiceEngagements)
+  // ============================================
+  const Engagements = {
+    getAll() {
+      return get(STORAGE_KEYS.ENGAGEMENTS);
+    },
+
+    getById(id) {
+      const engagements = this.getAll();
+      return engagements.find(e => e.id === id) || null;
+    },
+
+    getByContract(contractId) {
+      const engagements = this.getAll();
+      return engagements.filter(e => e.contractId === contractId);
+    },
+
+    getByEngagementType(engagementType) {
+      const engagements = this.getAll();
+      return engagements.filter(e => e.engagementType === engagementType);
+    },
+
+    getByStatus(status) {
+      const engagements = this.getAll();
+      return engagements.filter(e => e.status === status);
+    },
+
+    getByScope(scopeType, scopeId) {
+      const engagements = this.getAll();
+      return engagements.filter(e => 
+        e.assignedToScopeType === scopeType && e.assignedToScopeId === scopeId
+      );
+    },
+
+    create(engagementData) {
+      const engagements = this.getAll();
+      const engagement = {
+        id: engagementData.id || generateId('eng'),
+        contractId: engagementData.contractId, // REQUIRED - must have signed contract
+        engagementType: engagementData.engagementType, // PROJECT_EXECUTION, SERVICE_DELIVERY, ADVISORY
+        status: engagementData.status || 'PLANNED', // PLANNED, ACTIVE, PAUSED, COMPLETED, CANCELED
+        assignedToScopeType: engagementData.assignedToScopeType || null, // SUB_PROJECT, PHASE, WORK_PACKAGE
+        assignedToScopeId: engagementData.assignedToScopeId || null,
+        milestoneIds: engagementData.milestoneIds || [],
+        startedAt: engagementData.startedAt || null,
+        completedAt: engagementData.completedAt || null,
+        pausedAt: engagementData.pausedAt || null,
+        createdAt: engagementData.createdAt || new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      };
+      engagements.push(engagement);
+      if (set(STORAGE_KEYS.ENGAGEMENTS, engagements)) {
+        Audit.create({
+          type: 'engagement_created',
+          entityId: engagement.id,
+          userId: null,
+          description: `Engagement created: ${engagement.engagementType}`,
+          metadata: {
+            contractId: engagement.contractId,
+            engagementType: engagement.engagementType,
+            status: engagement.status
+          }
+        });
+        return engagement;
+      }
+      return null;
+    },
+
+    update(id, updates) {
+      const engagements = this.getAll();
+      const index = engagements.findIndex(e => e.id === id);
+      if (index === -1) return null;
+
+      const oldEngagement = { ...engagements[index] };
+      engagements[index] = {
+        ...engagements[index],
+        ...updates,
+        updatedAt: new Date().toISOString()
+      };
+
+      // Set timestamps for status changes
+      if (updates.status === 'ACTIVE' && oldEngagement.status !== 'ACTIVE' && !engagements[index].startedAt) {
+        engagements[index].startedAt = new Date().toISOString();
+      }
+      if (updates.status === 'COMPLETED' && oldEngagement.status !== 'COMPLETED') {
+        engagements[index].completedAt = new Date().toISOString();
+      }
+      if (updates.status === 'PAUSED' && oldEngagement.status !== 'PAUSED') {
+        engagements[index].pausedAt = new Date().toISOString();
+      }
+      if (updates.status === 'ACTIVE' && oldEngagement.status === 'PAUSED' && engagements[index].pausedAt) {
+        engagements[index].pausedAt = null; // Resume from pause
+      }
+
+      if (set(STORAGE_KEYS.ENGAGEMENTS, engagements)) {
+        return engagements[index];
+      }
+      return null;
+    },
+
+    delete(id) {
+      const engagements = this.getAll();
+      const filtered = engagements.filter(e => e.id !== id);
+      return set(STORAGE_KEYS.ENGAGEMENTS, filtered);
+    }
+  };
+
+  // ============================================
+  // Milestones CRUD
+  // ============================================
+  const Milestones = {
+    getAll() {
+      return get(STORAGE_KEYS.MILESTONES);
+    },
+
+    getById(id) {
+      const milestones = this.getAll();
+      return milestones.find(m => m.id === id) || null;
+    },
+
+    getByEngagement(engagementId) {
+      const milestones = this.getAll();
+      return milestones.filter(m => m.engagementId === engagementId);
+    },
+
+    getByContract(contractId) {
+      const milestones = this.getAll();
+      return milestones.filter(m => m.contractId === contractId);
+    },
+
+    getByStatus(status) {
+      const milestones = this.getAll();
+      return milestones.filter(m => m.status === status);
+    },
+
+    getByType(type) {
+      const milestones = this.getAll();
+      return milestones.filter(m => m.type === type);
+    },
+
+    create(milestoneData) {
+      const milestones = this.getAll();
+      const milestone = {
+        id: milestoneData.id || generateId('milestone'),
+        engagementId: milestoneData.engagementId, // FK
+        contractId: milestoneData.contractId, // FK (for reference)
+        title: milestoneData.title,
+        description: milestoneData.description || '',
+        type: milestoneData.type || 'MILESTONE', // MILESTONE, DELIVERABLE
+        status: milestoneData.status || 'PENDING', // PENDING, IN_PROGRESS, COMPLETED, APPROVED, REJECTED
+        dueDate: milestoneData.dueDate || null,
+        completedAt: milestoneData.completedAt || null,
+        approvedAt: milestoneData.approvedAt || null,
+        approvedBy: milestoneData.approvedBy || null,
+        paymentAmount: milestoneData.paymentAmount || 0,
+        paymentCurrency: milestoneData.paymentCurrency || 'SAR',
+        createdAt: milestoneData.createdAt || new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      };
+      milestones.push(milestone);
+      if (set(STORAGE_KEYS.MILESTONES, milestones)) {
+        return milestone;
+      }
+      return null;
+    },
+
+    update(id, updates) {
+      const milestones = this.getAll();
+      const index = milestones.findIndex(m => m.id === id);
+      if (index === -1) return null;
+
+      const oldMilestone = { ...milestones[index] };
+      milestones[index] = {
+        ...milestones[index],
+        ...updates,
+        updatedAt: new Date().toISOString()
+      };
+
+      // Set timestamps for status changes
+      if (updates.status === 'COMPLETED' && oldMilestone.status !== 'COMPLETED' && !milestones[index].completedAt) {
+        milestones[index].completedAt = new Date().toISOString();
+      }
+      if (updates.status === 'APPROVED' && oldMilestone.status !== 'APPROVED' && !milestones[index].approvedAt) {
+        milestones[index].approvedAt = new Date().toISOString();
+      }
+
+      if (set(STORAGE_KEYS.MILESTONES, milestones)) {
+        return milestones[index];
+      }
+      return null;
+    },
+
+    delete(id) {
+      const milestones = this.getAll();
+      const filtered = milestones.filter(m => m.id !== id);
+      return set(STORAGE_KEYS.MILESTONES, filtered);
     }
   };
 
@@ -8795,6 +9357,9 @@
     ServiceRequests,
     ServiceOffers,
     ServiceEngagements,
+    Contracts,
+    Engagements,
+    Milestones,
     IndexManager,
     generateId,
     generateDeviceFingerprint,

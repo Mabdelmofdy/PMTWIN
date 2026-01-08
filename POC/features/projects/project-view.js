@@ -201,6 +201,8 @@
         </div>
       ` : ''}
 
+      ${renderContractsSection(project, isMegaProject)}
+
       <div class="card" style="margin-bottom: 2rem;">
         <div class="card-body">
           <h2 style="margin-bottom: 1rem;">Scope & Requirements</h2>
@@ -403,6 +405,229 @@
     `;
 
     container.innerHTML = html;
+  }
+
+  function renderContractsSection(project, isMegaProject) {
+    if (typeof PMTwinData === 'undefined' || !PMTwinData.Contracts) {
+      return '';
+    }
+
+    const scopeType = isMegaProject ? 'MEGA_PROJECT' : 'PROJECT';
+    const contracts = PMTwinData.Contracts.getByScope(scopeType, project.id);
+
+    if (contracts.length === 0) {
+      return '';
+    }
+
+    // Group contracts by provider type
+    const contractsByProvider = {
+      VENDOR: [],
+      SERVICE_PROVIDER: [],
+      CONSULTANT: [],
+      SUB_CONTRACTOR: []
+    };
+
+    contracts.forEach(contract => {
+      if (contract.contractType === 'SUB_CONTRACT') {
+        contractsByProvider.SUB_CONTRACTOR.push(contract);
+      } else if (contract.providerPartyType === 'VENDOR_CORPORATE' || contract.providerPartyType === 'VENDOR_INDIVIDUAL') {
+        contractsByProvider.VENDOR.push(contract);
+      } else if (contract.providerPartyType === 'SERVICE_PROVIDER') {
+        contractsByProvider.SERVICE_PROVIDER.push(contract);
+      } else if (contract.providerPartyType === 'CONSULTANT') {
+        contractsByProvider.CONSULTANT.push(contract);
+      }
+    });
+
+    // Get engagements for each contract
+    const getEngagements = (contractId) => {
+      if (typeof PMTwinData !== 'undefined' && PMTwinData.Engagements) {
+        return PMTwinData.Engagements.getByContract(contractId);
+      }
+      return [];
+    };
+
+    // Get sub-contracts for vendor contracts
+    const getSubContracts = (contractId) => {
+      if (typeof PMTwinData !== 'undefined' && PMTwinData.Contracts) {
+        return PMTwinData.Contracts.getSubContracts(contractId);
+      }
+      return [];
+    };
+
+    const getPartyName = (partyId) => {
+      if (typeof PMTwinData !== 'undefined' && PMTwinData.Users) {
+        const user = PMTwinData.Users.getById(partyId);
+        if (user) {
+          return user.profile?.name || user.profile?.companyName || user.email || partyId;
+        }
+      }
+      return partyId;
+    };
+
+    const getStatusBadge = (status) => {
+      const badges = {
+        'DRAFT': '<span class="badge badge-secondary">Draft</span>',
+        'SENT': '<span class="badge badge-info">Sent</span>',
+        'SIGNED': '<span class="badge badge-success">Signed</span>',
+        'ACTIVE': '<span class="badge badge-primary">Active</span>',
+        'COMPLETED': '<span class="badge badge-success">Completed</span>',
+        'TERMINATED': '<span class="badge badge-danger">Terminated</span>'
+      };
+      return badges[status] || `<span class="badge">${status}</span>`;
+    };
+
+    let html = `
+      <div class="card" style="margin-bottom: 2rem;">
+        <div class="card-body">
+          <h2 style="margin-bottom: 1rem;">
+            <i class="ph ph-file-contract"></i> Contracts (${contracts.length})
+          </h2>
+    `;
+
+    // Vendor Contracts
+    if (contractsByProvider.VENDOR.length > 0) {
+      html += `
+        <div style="margin-bottom: 2rem;">
+          <h3 style="margin-bottom: 1rem; color: var(--color-primary);">
+            <i class="ph ph-buildings"></i> Vendor Contracts (${contractsByProvider.VENDOR.length})
+          </h3>
+          <div style="display: grid; gap: 1rem;">
+            ${contractsByProvider.VENDOR.map(contract => {
+              const engagements = getEngagements(contract.id);
+              const subContracts = getSubContracts(contract.id);
+              return `
+                <div class="card" style="background: var(--bg-secondary); padding: 1rem;">
+                  <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 0.75rem;">
+                    <div style="flex: 1;">
+                      <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem;">
+                        <strong>${contract.id}</strong>
+                        ${getStatusBadge(contract.status)}
+                      </div>
+                      <div style="color: var(--text-secondary); font-size: var(--font-size-sm);">
+                        Provider: ${getPartyName(contract.providerPartyId)}
+                      </div>
+                      ${contract.startDate ? `
+                        <div style="color: var(--text-secondary); font-size: var(--font-size-sm);">
+                          ${new Date(contract.startDate).toLocaleDateString()} - ${contract.endDate ? new Date(contract.endDate).toLocaleDateString() : 'Ongoing'}
+                        </div>
+                      ` : ''}
+                    </div>
+                  </div>
+                  ${engagements.length > 0 ? `
+                    <div style="margin-top: 0.75rem; padding-top: 0.75rem; border-top: 1px solid var(--border-color);">
+                      <div style="font-size: var(--font-size-sm); color: var(--text-secondary); margin-bottom: 0.5rem;">
+                        Engagements: ${engagements.length}
+                      </div>
+                      ${engagements.map(eng => `
+                        <div style="font-size: var(--font-size-sm);">
+                          ${eng.engagementType} - ${eng.status}
+                        </div>
+                      `).join('')}
+                    </div>
+                  ` : ''}
+                  ${subContracts.length > 0 ? `
+                    <div style="margin-top: 0.75rem; padding-top: 0.75rem; border-top: 1px solid var(--border-color);">
+                      <div style="font-size: var(--font-size-sm); color: var(--text-secondary); margin-bottom: 0.5rem;">
+                        Sub-Contracts: ${subContracts.length}
+                      </div>
+                      ${subContracts.map(sub => `
+                        <div style="font-size: var(--font-size-sm);">
+                          ${sub.id} - ${getPartyName(sub.providerPartyId)} (${sub.status})
+                        </div>
+                      `).join('')}
+                    </div>
+                  ` : ''}
+                </div>
+              `;
+            }).join('')}
+          </div>
+        </div>
+      `;
+    }
+
+    // Service Provider Contracts
+    if (contractsByProvider.SERVICE_PROVIDER.length > 0) {
+      html += `
+        <div style="margin-bottom: 2rem;">
+          <h3 style="margin-bottom: 1rem; color: var(--color-success);">
+            <i class="ph ph-handshake"></i> Service Provider Contracts (${contractsByProvider.SERVICE_PROVIDER.length})
+          </h3>
+          <div style="display: grid; gap: 1rem;">
+            ${contractsByProvider.SERVICE_PROVIDER.map(contract => {
+              const engagements = getEngagements(contract.id);
+              return `
+                <div class="card" style="background: var(--bg-secondary); padding: 1rem;">
+                  <div style="display: flex; justify-content: space-between; align-items: start;">
+                    <div style="flex: 1;">
+                      <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem;">
+                        <strong>${contract.id}</strong>
+                        ${getStatusBadge(contract.status)}
+                      </div>
+                      <div style="color: var(--text-secondary); font-size: var(--font-size-sm);">
+                        Provider: ${getPartyName(contract.providerPartyId)}
+                      </div>
+                    </div>
+                  </div>
+                  ${engagements.length > 0 ? `
+                    <div style="margin-top: 0.75rem; padding-top: 0.75rem; border-top: 1px solid var(--border-color);">
+                      <div style="font-size: var(--font-size-sm); color: var(--text-secondary);">
+                        Engagements: ${engagements.length}
+                      </div>
+                    </div>
+                  ` : ''}
+                </div>
+              `;
+            }).join('')}
+          </div>
+        </div>
+      `;
+    }
+
+    // Consultant Contracts
+    if (contractsByProvider.CONSULTANT.length > 0) {
+      html += `
+        <div style="margin-bottom: 2rem;">
+          <h3 style="margin-bottom: 1rem; color: var(--color-warning);">
+            <i class="ph ph-user-circle"></i> Consultant Contracts (${contractsByProvider.CONSULTANT.length})
+          </h3>
+          <div style="display: grid; gap: 1rem;">
+            ${contractsByProvider.CONSULTANT.map(contract => {
+              const engagements = getEngagements(contract.id);
+              return `
+                <div class="card" style="background: var(--bg-secondary); padding: 1rem;">
+                  <div style="display: flex; justify-content: space-between; align-items: start;">
+                    <div style="flex: 1;">
+                      <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem;">
+                        <strong>${contract.id}</strong>
+                        ${getStatusBadge(contract.status)}
+                      </div>
+                      <div style="color: var(--text-secondary); font-size: var(--font-size-sm);">
+                        Provider: ${getPartyName(contract.providerPartyId)}
+                      </div>
+                    </div>
+                  </div>
+                  ${engagements.length > 0 ? `
+                    <div style="margin-top: 0.75rem; padding-top: 0.75rem; border-top: 1px solid var(--border-color);">
+                      <div style="font-size: var(--font-size-sm); color: var(--text-secondary);">
+                        Engagements: ${engagements.length}
+                      </div>
+                    </div>
+                  ` : ''}
+                </div>
+              `;
+            }).join('')}
+          </div>
+        </div>
+      `;
+    }
+
+    html += `
+        </div>
+      </div>
+    `;
+
+    return html;
   }
 
   function showError(message) {

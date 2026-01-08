@@ -277,8 +277,26 @@
       updates.rejectionReason = reason;
     }
     
+    // If approving, set approvedAt timestamp
+    if (status === 'approved') {
+      updates.approvedAt = new Date().toISOString();
+    }
+    
     const updated = PMTwinData.Proposals.update(proposalId, updates);
     if (updated) {
+      // If proposal was approved, create contract
+      if (status === 'approved' && typeof ContractService !== 'undefined') {
+        const contractResult = ContractService.createContractFromProposal(proposalId);
+        if (contractResult.success) {
+          // Contract created successfully
+          // Engagement will be created separately when contract is signed
+          return { success: true, proposal: updated, contract: contractResult.contract };
+        } else {
+          // Log error but don't fail the proposal approval
+          console.warn('Failed to create contract from proposal:', contractResult.error);
+        }
+      }
+      
       return { success: true, proposal: updated };
     }
     

@@ -57,6 +57,15 @@
       }
     }
 
+    // Load statistics
+    loadStatistics();
+
+    // Load knowledge hub links
+    loadKnowledgeHubLinks();
+
+    // Load FAQ
+    loadFAQ();
+
     // Load projects preview (with delay to ensure siteData is loaded)
     setTimeout(() => {
       loadProjectsPreview();
@@ -67,6 +76,211 @@
       loadProjectsPreview();
     }, { once: true });
   }
+
+  function loadStatistics() {
+    const container = document.getElementById('statisticsContent');
+    if (!container) return;
+
+    let stats = {
+      activeProjects: 0,
+      totalUsers: 0,
+      totalProposals: 0,
+      activeCollaborations: 0
+    };
+
+    // Try to get real data if available
+    if (typeof PMTwinData !== 'undefined') {
+      try {
+        stats.activeProjects = PMTwinData.Projects.getActive().length;
+        stats.totalUsers = PMTwinData.Users.getAll().length;
+        stats.totalProposals = PMTwinData.Proposals.getAll().length;
+        stats.activeCollaborations = PMTwinData.CollaborationOpportunities.getAll().filter(o => o.status === 'active').length;
+      } catch (e) {
+        console.warn('Error loading statistics:', e);
+      }
+    }
+
+    // Use default values if no data
+    if (stats.activeProjects === 0) stats.activeProjects = 50;
+    if (stats.totalUsers === 0) stats.totalUsers = 250;
+    if (stats.totalProposals === 0) stats.totalProposals = 180;
+    if (stats.activeCollaborations === 0) stats.activeCollaborations = 35;
+
+    container.innerHTML = `
+      <div class="stat-card" style="text-align: center; padding: 2rem;">
+        <div class="stat-value" style="font-size: 3rem; font-weight: 700; color: var(--color-primary); margin-bottom: 0.5rem;">
+          <span class="counter" data-target="${stats.activeProjects}">0</span>+
+        </div>
+        <div class="stat-label" style="color: var(--text-secondary); font-size: 1.1rem;">Active Projects</div>
+      </div>
+      <div class="stat-card" style="text-align: center; padding: 2rem;">
+        <div class="stat-value" style="font-size: 3rem; font-weight: 700; color: var(--color-primary); margin-bottom: 0.5rem;">
+          <span class="counter" data-target="${stats.totalUsers}">0</span>+
+        </div>
+        <div class="stat-label" style="color: var(--text-secondary); font-size: 1.1rem;">Registered Users</div>
+      </div>
+      <div class="stat-card" style="text-align: center; padding: 2rem;">
+        <div class="stat-value" style="font-size: 3rem; font-weight: 700; color: var(--color-primary); margin-bottom: 0.5rem;">
+          <span class="counter" data-target="${stats.totalProposals}">0</span>+
+        </div>
+        <div class="stat-label" style="color: var(--text-secondary); font-size: 1.1rem;">Proposals Submitted</div>
+      </div>
+      <div class="stat-card" style="text-align: center; padding: 2rem;">
+        <div class="stat-value" style="font-size: 3rem; font-weight: 700; color: var(--color-primary); margin-bottom: 0.5rem;">
+          <span class="counter" data-target="${stats.activeCollaborations}">0</span>+
+        </div>
+        <div class="stat-label" style="color: var(--text-secondary); font-size: 1.1rem;">Active Collaborations</div>
+      </div>
+    `;
+
+    // Animate counters
+    animateCounters();
+  }
+
+  function animateCounters() {
+    const counters = document.querySelectorAll('.counter');
+    counters.forEach(counter => {
+      const target = parseInt(counter.getAttribute('data-target'));
+      const duration = 2000;
+      const increment = target / (duration / 16);
+      let current = 0;
+
+      const updateCounter = () => {
+        current += increment;
+        if (current < target) {
+          counter.textContent = Math.floor(current);
+          requestAnimationFrame(updateCounter);
+        } else {
+          counter.textContent = target;
+        }
+      };
+
+      // Start animation when element is visible
+      const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting) {
+            updateCounter();
+            observer.unobserve(entry.target);
+          }
+        });
+      }, { threshold: 0.5 });
+
+      observer.observe(counter);
+    });
+  }
+
+  function loadKnowledgeHubLinks() {
+    const container = document.getElementById('knowledgeHubContent');
+    if (!container) return;
+
+    container.innerHTML = `
+      <div class="card" style="padding: 2rem; transition: transform 0.3s ease;" 
+           onmouseover="this.style.transform='translateY(-8px)';" 
+           onmouseout="this.style.transform='';">
+        <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 1rem;">
+          <i class="ph ph-building-office" style="font-size: 2.5rem; color: var(--color-primary);"></i>
+          <h3 style="margin: 0;">What is an SPV?</h3>
+        </div>
+        <p style="color: var(--text-secondary); margin-bottom: 1.5rem; line-height: 1.6;">
+          Learn about Special Purpose Vehicles (SPVs) and how they're used in construction mega-projects for risk management and project structuring.
+        </p>
+        <a href="../knowledge/?article=spv" class="btn btn-outline" style="text-decoration: none; display: inline-block;">
+          Read Article <i class="ph ph-arrow-right"></i>
+        </a>
+      </div>
+      <div class="card" style="padding: 2rem; transition: transform 0.3s ease;" 
+           onmouseover="this.style.transform='translateY(-8px)';" 
+           onmouseout="this.style.transform='';">
+        <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 1rem;">
+          <i class="ph ph-arrows-clockwise" style="font-size: 2.5rem; color: var(--color-primary);"></i>
+          <h3 style="margin: 0;">Barter Guide</h3>
+        </div>
+        <p style="color: var(--text-secondary); margin-bottom: 1.5rem; line-height: 1.6;">
+          Discover how barter exchange works in construction, value equivalence calculation, and best practices for successful barter transactions.
+        </p>
+        <a href="../knowledge/?article=barter" class="btn btn-outline" style="text-decoration: none; display: inline-block;">
+          Read Guide <i class="ph ph-arrow-right"></i>
+        </a>
+      </div>
+      <div class="card" style="padding: 2rem; transition: transform 0.3s ease;" 
+           onmouseover="this.style.transform='translateY(-8px)';" 
+           onmouseout="this.style.transform='';">
+        <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 1rem;">
+          <i class="ph ph-question" style="font-size: 2.5rem; color: var(--color-primary);"></i>
+          <h3 style="margin: 0;">FAQ</h3>
+        </div>
+        <p style="color: var(--text-secondary); margin-bottom: 1.5rem; line-height: 1.6;">
+          Find answers to common questions about the platform, registration process, matching algorithm, and collaboration models.
+        </p>
+        <a href="../knowledge/?section=faq" class="btn btn-outline" style="text-decoration: none; display: inline-block;">
+          View FAQ <i class="ph ph-arrow-right"></i>
+        </a>
+      </div>
+    `;
+  }
+
+  function loadFAQ() {
+    const container = document.getElementById('faqContent');
+    if (!container) return;
+
+    const faqs = [
+      {
+        question: 'How does the matching algorithm work?',
+        answer: 'Our AI-powered matching algorithm analyzes project requirements, service provider capabilities, skills, experience, and location to find the best matches. Matches with scores above 80% are automatically highlighted.'
+      },
+      {
+        question: 'What collaboration models are available?',
+        answer: 'PMTwin offers 5 main collaboration models: Project-Based (Task-Based, Consortium, JV, SPV), Strategic Partnerships (Strategic JV, Alliance, Mentorship), Resource Pooling (Bulk Purchasing, Co-Ownership, Barter), Hiring (Professional, Consultant), and Competition/RFP.'
+      },
+      {
+        question: 'How do I get my account approved?',
+        answer: 'After registration, you\'ll need to upload required credentials (CR/VAT for entities, professional licenses for individuals). Our admin team reviews applications within 2-3 business days. You\'ll receive a notification once approved.'
+      },
+      {
+        question: 'Can I use barter instead of cash?',
+        answer: 'Yes! PMTwin supports barter transactions where you can exchange services instead of cash. The platform calculates value equivalence to ensure fair exchanges.'
+      },
+      {
+        question: 'What is an SPV and when is it used?',
+        answer: 'A Special Purpose Vehicle (SPV) is a separate legal entity created for a specific project. On PMTwin, SPVs are automatically suggested for projects with budgets exceeding 50M SAR to manage risk and provide legal separation.'
+      },
+      {
+        question: 'How do I create a mega-project?',
+        answer: 'After your account is approved, navigate to "Create Project" from your dashboard. Fill in project details, requirements, budget, and timeline. Once published, our matching algorithm will find suitable partners.'
+      }
+    ];
+
+    let html = '';
+    faqs.forEach((faq, index) => {
+      html += `
+        <div class="faq-item" style="margin-bottom: 1.5rem; border: 1px solid var(--border-color); border-radius: 8px; overflow: hidden;">
+          <button class="faq-question" onclick="toggleFAQ(${index})" style="width: 100%; padding: 1.5rem; background: var(--bg-primary); border: none; text-align: left; cursor: pointer; display: flex; justify-content: space-between; align-items: center; font-size: 1.1rem; font-weight: 600;">
+            <span>${faq.question}</span>
+            <i class="ph ph-caret-down faq-icon" id="faqIcon${index}" style="transition: transform 0.3s ease;"></i>
+          </button>
+          <div class="faq-answer" id="faqAnswer${index}" style="display: none; padding: 0 1.5rem 1.5rem 1.5rem; color: var(--text-secondary); line-height: 1.6;">
+            ${faq.answer}
+          </div>
+        </div>
+      `;
+    });
+
+    container.innerHTML = html;
+  }
+
+  // Global function for FAQ toggle
+  window.toggleFAQ = function(index) {
+    const answer = document.getElementById(`faqAnswer${index}`);
+    const icon = document.getElementById(`faqIcon${index}`);
+    
+    if (answer.style.display === 'none') {
+      answer.style.display = 'block';
+      icon.style.transform = 'rotate(180deg)';
+    } else {
+      answer.style.display = 'none';
+      icon.style.transform = 'rotate(0deg)';
+    }
+  };
 
   function loadProjectsPreview() {
     const container = document.getElementById('projectsPreview');

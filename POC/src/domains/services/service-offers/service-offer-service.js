@@ -131,17 +131,75 @@
       PMTwinData.ServiceRequests.update(offer.serviceRequestId, { status: 'APPROVED' });
     }
 
-    // Create engagement
-    if (PMTwinData.ServiceEngagements) {
-      const engagementData = {
-        serviceRequestId: offer.serviceRequestId,
-        serviceProviderUserId: offer.serviceProviderUserId,
-        serviceOfferId: offerId
-      };
+    // Create contract from service offer (contract-driven workflow)
+    if (typeof ContractService !== 'undefined') {
+      const contractResult = ContractService.createContractFromServiceOffer(offerId);
+      if (contractResult.success && contractResult.contract) {
+        // Sign the contract automatically (since offer was accepted)
+        const signResult = ContractService.signContract(contractResult.contract.id);
+        if (signResult.success) {
+          // Create engagement from signed contract
+          if (typeof EngagementService !== 'undefined') {
+            const engagementResult = EngagementService.createEngagement({
+              contractId: signResult.contract.id,
+              engagementType: 'SERVICE_DELIVERY',
+              status: 'ACTIVE',
+              startedAt: new Date().toISOString()
+            });
+            
+            if (engagementResult.success) {
+              return { 
+                success: true, 
+                offer: updated, 
+                contract: signResult.contract,
+                engagement: engagementResult.engagement 
+              };
+            }
+          }
+          
+          return { 
+            success: true, 
+            offer: updated, 
+            contract: signResult.contract 
+          };
+        }
+        
+        // Contract created but signing failed
+        return { 
+          success: true, 
+          offer: updated, 
+          contract: contractResult.contract,
+          warning: 'Contract created but signing failed' 
+        };
+      } else {
+        // Fallback to legacy ServiceEngagements if contract creation fails
+        console.warn('Failed to create contract from service offer, falling back to legacy engagement:', contractResult.error);
+        if (PMTwinData.ServiceEngagements) {
+          const engagementData = {
+            serviceRequestId: offer.serviceRequestId,
+            serviceProviderUserId: offer.serviceProviderUserId,
+            serviceOfferId: offerId
+          };
 
-      const engagement = PMTwinData.ServiceEngagements.create(engagementData);
-      if (engagement) {
-        return { success: true, offer: updated, engagement: engagement };
+          const engagement = PMTwinData.ServiceEngagements.create(engagementData);
+          if (engagement) {
+            return { success: true, offer: updated, engagement: engagement };
+          }
+        }
+      }
+    } else {
+      // Fallback to legacy ServiceEngagements if ContractService not available
+      if (PMTwinData.ServiceEngagements) {
+        const engagementData = {
+          serviceRequestId: offer.serviceRequestId,
+          serviceProviderUserId: offer.serviceProviderUserId,
+          serviceOfferId: offerId
+        };
+
+        const engagement = PMTwinData.ServiceEngagements.create(engagementData);
+        if (engagement) {
+          return { success: true, offer: updated, engagement: engagement };
+        }
       }
     }
 

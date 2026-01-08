@@ -77,6 +77,34 @@
             </div>
         </section>
 
+        <!-- Statistics Section -->
+        <section id="statistics" style="padding: 4rem 0; background: var(--bg-secondary);">
+            <div class="container">
+                <h2 style="text-align: center; margin-bottom: 3rem;">Platform Statistics</h2>
+                <div id="statisticsContent" class="stats-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 2rem;">
+                    <!-- Statistics will be loaded dynamically -->
+                </div>
+            </div>
+        </section>
+
+        <!-- PMTwin Wizard Entry -->
+        <section id="wizardEntry" style="padding: 4rem 0;">
+            <div class="container">
+                <div class="card" style="max-width: 900px; margin: 0 auto; padding: 3rem; background: linear-gradient(135deg, var(--color-primary-light, #e3f2fd) 0%, var(--bg-primary) 100%); border: 2px solid var(--color-primary, #3b82f6); border-radius: 16px;">
+                    <div style="text-align: center; margin-bottom: 2rem;">
+                        <i class="ph ph-magic-wand" style="font-size: 4rem; color: var(--color-primary); margin-bottom: 1rem;"></i>
+                        <h2 style="margin-bottom: 1rem;">Not sure where to start?</h2>
+                        <p style="color: var(--text-secondary); font-size: 1.1rem; margin-bottom: 2rem;">
+                            Our PMTwin Wizard will guide you to the perfect collaboration model based on your needs and goals.
+                        </p>
+                        <a href="../wizard/" class="btn btn-primary btn-lg" style="text-decoration: none; display: inline-block;">
+                            <i class="ph ph-sparkle"></i> Help me choose
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </section>
+
         <!-- Discovery Engine Preview -->
         <section class="container" style="padding: var(--spacing-16) var(--container-padding);">
             <h2 style="text-align: center; margin-bottom: var(--spacing-8);">Active Mega-Projects</h2>
@@ -85,6 +113,74 @@
             </div>
             <div style="text-align: center; margin-top: 2rem;">
                 <a href="../discovery/" class="btn btn-primary btn-lg">View All Projects</a>
+            </div>
+        </section>
+
+        <!-- Knowledge Hub Links -->
+        <section id="knowledgeHub" style="padding: 4rem 0; background: var(--bg-secondary);">
+            <div class="container">
+                <h2 style="text-align: center; margin-bottom: 3rem;">Knowledge Hub</h2>
+                <div id="knowledgeHubContent" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 2rem;">
+                    <!-- Knowledge Hub links will be loaded dynamically -->
+                </div>
+            </div>
+        </section>
+
+        <!-- Signup CTAs -->
+        <section id="signupCTAs" style="padding: 4rem 0;">
+            <div class="container">
+                <h2 style="text-align: center; margin-bottom: 1rem;">Join PMTwin Today</h2>
+                <p style="text-align: center; color: var(--text-secondary); margin-bottom: 3rem; font-size: 1.1rem;">
+                    Choose the account type that best fits your needs
+                </p>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 2rem; max-width: 900px; margin: 0 auto;">
+                    <div class="card" style="padding: 2.5rem; text-align: center; border: 2px solid var(--border-color); transition: all 0.3s ease;" 
+                         onmouseover="this.style.borderColor='var(--color-primary)'; this.style.transform='translateY(-8px)'; this.style.boxShadow='0 12px 24px rgba(0,0,0,0.1)';" 
+                         onmouseout="this.style.borderColor='var(--border-color)'; this.style.transform=''; this.style.boxShadow='';">
+                        <i class="ph ph-user" style="font-size: 3rem; color: var(--color-primary); margin-bottom: 1.5rem;"></i>
+                        <h3 style="margin-bottom: 1rem;">Individual Professional</h3>
+                        <p style="color: var(--text-secondary); margin-bottom: 2rem; line-height: 1.6;">
+                            Perfect for freelancers, consultants, and individual professionals looking for project opportunities and collaborations.
+                        </p>
+                        <ul style="text-align: left; margin-bottom: 2rem; color: var(--text-secondary); list-style: none; padding: 0;">
+                            <li style="margin-bottom: 0.75rem;"><i class="ph ph-check-circle" style="color: var(--color-success); margin-right: 0.5rem;"></i> Browse project opportunities</li>
+                            <li style="margin-bottom: 0.75rem;"><i class="ph ph-check-circle" style="color: var(--color-success); margin-right: 0.5rem;"></i> Submit proposals</li>
+                            <li style="margin-bottom: 0.75rem;"><i class="ph ph-check-circle" style="color: var(--color-success); margin-right: 0.5rem;"></i> Build your professional profile</li>
+                            <li><i class="ph ph-check-circle" style="color: var(--color-success); margin-right: 0.5rem;"></i> Access collaboration opportunities</li>
+                        </ul>
+                        <a href="../auth/signup/?type=individual" class="btn btn-primary" style="width: 100%; text-decoration: none; display: inline-block;">
+                            Join as Individual
+                        </a>
+                    </div>
+                    <div class="card" style="padding: 2.5rem; text-align: center; border: 2px solid var(--border-color); transition: all 0.3s ease;" 
+                         onmouseover="this.style.borderColor='var(--color-primary)'; this.style.transform='translateY(-8px)'; this.style.boxShadow='0 12px 24px rgba(0,0,0,0.1)';" 
+                         onmouseout="this.style.borderColor='var(--border-color)'; this.style.transform=''; this.style.boxShadow='';">
+                        <i class="ph ph-buildings" style="font-size: 3rem; color: var(--color-primary); margin-bottom: 1.5rem;"></i>
+                        <h3 style="margin-bottom: 1rem;">Company / Entity</h3>
+                        <p style="color: var(--text-secondary); margin-bottom: 2rem; line-height: 1.6;">
+                            Ideal for construction companies, contractors, and organizations looking to create projects and find partners.
+                        </p>
+                        <ul style="text-align: left; margin-bottom: 2rem; color: var(--text-secondary); list-style: none; padding: 0;">
+                            <li style="margin-bottom: 0.75rem;"><i class="ph ph-check-circle" style="color: var(--color-success); margin-right: 0.5rem;"></i> Create mega-projects</li>
+                            <li style="margin-bottom: 0.75rem;"><i class="ph ph-check-circle" style="color: var(--color-success); margin-right: 0.5rem;"></i> Find partners and service providers</li>
+                            <li style="margin-bottom: 0.75rem;"><i class="ph ph-check-circle" style="color: var(--color-success); margin-right: 0.5rem;"></i> Manage collaborations</li>
+                            <li><i class="ph ph-check-circle" style="color: var(--color-success); margin-right: 0.5rem;"></i> Access bulk purchasing and barter</li>
+                        </ul>
+                        <a href="../auth/signup/?type=entity" class="btn btn-primary" style="width: 100%; text-decoration: none; display: inline-block;">
+                            Join as Entity
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- FAQ Section -->
+        <section id="faq" style="padding: 4rem 0; background: var(--bg-secondary);">
+            <div class="container" style="max-width: 800px;">
+                <h2 style="text-align: center; margin-bottom: 3rem;">Frequently Asked Questions</h2>
+                <div id="faqContent">
+                    <!-- FAQ will be loaded dynamically -->
+                </div>
             </div>
         </section>
     </main>

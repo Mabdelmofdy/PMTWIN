@@ -39,11 +39,22 @@
                 </div>
             </div>
 
-            <!-- Filter Section -->
+            <!-- Filter and Sort Section -->
             <div class="content-section">
                 <div class="card filters-section">
                     <div class="card-body">
-                        <h3 class="section-title">Filter Projects</h3>
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 1rem;">
+                            <h3 class="section-title" style="margin: 0;">Filter Projects</h3>
+                            <div style="display: flex; gap: 1rem; align-items: center;">
+                                <label for="discoverySortFilter" class="form-label" style="margin: 0; white-space: nowrap;">Sort by:</label>
+                                <select id="discoverySortFilter" class="form-control" style="min-width: 180px;" onchange="discoveryComponent.applySort()">
+                                    <option value="newest">Newest First</option>
+                                    <option value="largest_budget">Largest Budget</option>
+                                    <option value="most_active">Most Active</option>
+                                    <option value="oldest">Oldest First</option>
+                                </select>
+                            </div>
+                        </div>
                         <form id="discoveryFiltersForm" onsubmit="return discoveryComponent.applyFilters(event)" class="filter-row">
                             <div class="form-group">
                                 <label for="discoveryCategoryFilter" class="form-label">Category</label>
@@ -53,11 +64,22 @@
                                     <option value="Residential">Residential</option>
                                     <option value="Commercial">Commercial</option>
                                     <option value="Industrial">Industrial</option>
+                                    <option value="Mixed">Mixed</option>
                                 </select>
                             </div>
                             <div class="form-group">
                                 <label for="discoveryLocationFilter" class="form-label">Location</label>
                                 <input type="text" id="discoveryLocationFilter" class="form-control" placeholder="City or Region">
+                            </div>
+                            <div class="form-group">
+                                <label for="discoverySizeFilter" class="form-label">Project Size</label>
+                                <select id="discoverySizeFilter" class="form-control">
+                                    <option value="">All Sizes</option>
+                                    <option value="small">Small (< 10M SAR)</option>
+                                    <option value="medium">Medium (10M - 50M SAR)</option>
+                                    <option value="large">Large (50M - 200M SAR)</option>
+                                    <option value="mega">Mega (200M+ SAR)</option>
+                                </select>
                             </div>
                             <div class="form-group">
                                 <label for="discoveryStatusFilter" class="form-label">Status</label>
@@ -80,6 +102,9 @@
             <div class="content-section">
                 <div id="discoveryProjectsList">
                     <!-- Projects will be loaded here -->
+                </div>
+                <div id="discoveryPagination" style="display: none; margin-top: 2rem; text-align: center;">
+                    <!-- Pagination will be loaded here -->
                 </div>
             </div>
         </div>

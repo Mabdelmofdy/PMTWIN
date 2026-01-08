@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Contract Management - PMTwin Admin</title>
+    <link rel="stylesheet" href="../../../assets/css/main.css">
+</head>
+<body>
+    <!-- Main Content - Sidebar and Navbar are automatically added by layout system -->
+    <main class="page-wrapper">
+        <div class="container container-padded">
+            <!-- Page Header -->
+            <div class="page-header">
+                <div class="page-header-content">
+                    <div>
+                        <h1>Contract Management</h1>
+                        <p>View and manage all contracts across the platform</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Statistics Section -->
+            <div class="content-section">
+                <div class="card enhanced-card">
+                    <div class="card-body">
+                        <h2 class="section-title">Contract Statistics</h2>
+                        <div id="contractsStatistics" class="stats-grid">
+                            <!-- Statistics will be loaded here -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Filters Section -->
+            <div class="content-section">
+                <div class="card filters-section">
+                    <div class="card-body">
+                        <h3 class="section-title">Filter Contracts</h3>
+                        <form id="contractsFilterForm" onsubmit="return false;" class="filter-row">
+                            <div class="form-group" style="position: relative;">
+                                <i class="ph ph-magnifying-glass" style="position: absolute; left: 0.75rem; top: 50%; transform: translateY(-50%); color: var(--text-secondary); pointer-events: none; z-index: 1;"></i>
+                                <label for="contractSearch" class="form-label">Search</label>
+                                <input type="text" id="contractSearch" class="form-control" placeholder="Search by ID, scope, or party..." style="padding-left: 2.5rem;">
+                            </div>
+                            <div class="form-group">
+                                <label for="contractTypeFilter" class="form-label">Contract Type</label>
+                                <select id="contractTypeFilter" class="form-control">
+                                    <option value="">All Types</option>
+                                    <option value="PROJECT_CONTRACT">Project Contract</option>
+                                    <option value="MEGA_PROJECT_CONTRACT">Mega Project Contract</option>
+                                    <option value="SERVICE_CONTRACT">Service Contract</option>
+                                    <option value="ADVISORY_CONTRACT">Advisory Contract</option>
+                                    <option value="SUB_CONTRACT">Sub-Contract</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="scopeTypeFilter" class="form-label">Scope Type</label>
+                                <select id="scopeTypeFilter" class="form-control">
+                                    <option value="">All Scopes</option>
+                                    <option value="PROJECT">Project</option>
+                                    <option value="MEGA_PROJECT">Mega Project</option>
+                                    <option value="SUB_PROJECT">Sub-Project</option>
+                                    <option value="SERVICE_REQUEST">Service Request</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="statusFilter" class="form-label">Status</label>
+                                <select id="statusFilter" class="form-control">
+                                    <option value="">All Statuses</option>
+                                    <option value="DRAFT">Draft</option>
+                                    <option value="SENT">Sent</option>
+                                    <option value="SIGNED">Signed</option>
+                                    <option value="ACTIVE">Active</option>
+                                    <option value="COMPLETED">Completed</option>
+                                    <option value="TERMINATED">Terminated</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="providerTypeFilter" class="form-label">Provider Type</label>
+                                <select id="providerTypeFilter" class="form-control">
+                                    <option value="">All Providers</option>
+                                    <option value="VENDOR_CORPORATE">Vendor Corporate</option>
+                                    <option value="VENDOR_INDIVIDUAL">Vendor Individual</option>
+                                    <option value="SERVICE_PROVIDER">Service Provider</option>
+                                    <option value="CONSULTANT">Consultant</option>
+                                    <option value="SUB_CONTRACTOR">Sub-Contractor</option>
+                                </select>
+                            </div>
+                            <div class="form-group" style="display: flex; gap: var(--spacing-3);">
+                                <button type="button" class="btn btn-secondary" id="applyFilters">
+                                    <i class="ph ph-funnel"></i> Apply
+                                </button>
+                                <button type="button" class="btn btn-outline" id="clearFilters">
+                                    <i class="ph ph-x"></i> Clear
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Contracts List -->
+            <div class="card">
+                <div class="card-body">
+                    <div class="flex justify-between align-center spacing-section">
+                        <h2 class="section-title">Contracts</h2>
+                        <div id="contractsCount" class="text-secondary"></div>
+                    </div>
+                    <div id="contractsList">
+                        <!-- Contracts will be loaded here -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Contract Details Modal -->
+    <div id="contractDetailsModal" class="modal" style="display: none;">
+        <div class="modal-content" style="max-width: 800px;">
+            <div class="modal-header">
+                <h2>Contract Details</h2>
+                <button type="button" class="modal-close" onclick="document.getElementById('contractDetailsModal').style.display='none'">
+                    <i class="ph ph-x"></i>
+                </button>
+            </div>
+            <div class="modal-body" id="contractDetailsContent">
+                <!-- Contract details will be loaded here -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Configuration (must load first) -->
+    <script src="../../../src/config/config.js"></script>
+    
+    <!-- API Layer -->
+    <script src="../../../src/core/api/api-client.js"></script>
+    <script src="../../../src/core/api/api-service.js"></script>
+    
+    <!-- Core Scripts -->
+    <script src="../../../src/core/data/data.js"></script>
+    <script src="../../../src/core/auth/auth.js"></script>
+    <script src="../../../src/core/auth/auth-check.js"></script>
+    <script src="../../../src/utils/demo-credentials.js"></script>
+    <script src="../../../src/services/services-loader.js"></script>
+    <script src="../../../data/data-loader.js"></script>
+    
+    <!-- Contract Domain -->
+    <script src="../../../src/domains/contracts/contract-validator.js"></script>
+    <script src="../../../src/domains/contracts/contract-service.js"></script>
+    <script src="../../../src/domains/contracts/engagement-validator.js"></script>
+    <script src="../../../src/domains/contracts/engagement-service.js"></script>
+    
+    <!-- Layout System -->
+    <script src="../../../src/core/layout/layout.js"></script>
+    <script src="../../../src/core/layout/navigation.js"></script>
+    <script src="../../../src/core/init/app-init.js"></script>
+    
+    <!-- Admin Services -->
+    <script src="../../../src/services/admin/admin-service.js"></script>
+    
+    <!-- Component Scripts -->
+    <script src="../../../features/admin/admin-contracts.js"></script>
+    
+    <!-- Initialize Component -->
+    <script>
+        document.addEventListener('DOMContentLoaded', async function() {
+            // Check authentication and admin role
+            const isAuth = await AuthCheck.checkAuth({ requireAuth: true, requireRole: 'admin' });
+            if (!isAuth) return;
+            
+            // Initialize contract management
+            if (window.admin && window.admin['admin-contracts']) {
+                window.admin['admin-contracts'].init();
+            }
+        });
+    </script>
+</body>
+</html>
+
