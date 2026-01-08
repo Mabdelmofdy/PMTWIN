@@ -7,7 +7,7 @@
   'use strict';
 
   let currentStep = 1;
-  const totalSteps = 3;
+  const totalSteps = 4;
   let formData = {
     documents: {},
     emailVerified: false,
@@ -16,27 +16,43 @@
   };
   let registrationResult = null;
 
-  // Sub-types for each user type
+  // Sub-types for each user type (aligned with golden seed data)
   const subTypes = {
-    individual: [
-      { value: 'consultant', label: 'Consultant' },
-      { value: 'engineer', label: 'Engineer' },
-      { value: 'project_manager', label: 'Project Manager' },
-      { value: 'architect', label: 'Architect' },
-      { value: 'contractor', label: 'Contractor' },
-      { value: 'specialist', label: 'Specialist' },
-      { value: 'other', label: 'Other Professional' }
+    beneficiary: [
+      { value: 'government_entity', label: 'Government Entity' },
+      { value: 'development_authority', label: 'Development Authority' },
+      { value: 'real_estate_company', label: 'Real Estate Company' },
+      { value: 'project_owner', label: 'Project Owner' },
+      { value: 'other', label: 'Other Beneficiary' }
     ],
-    entity: [
-      { value: 'contractor', label: 'Contractor' },
-      { value: 'supplier', label: 'Supplier' },
-      { value: 'consulting_firm', label: 'Consulting Firm' },
+    vendor: [
+      { value: 'general_contractor', label: 'General Contractor' },
+      { value: 'infrastructure_contractor', label: 'Infrastructure Contractor' },
       { value: 'construction_company', label: 'Construction Company' },
-      { value: 'engineering_firm', label: 'Engineering Firm' },
-      { value: 'architectural_firm', label: 'Architectural Firm' },
-      { value: 'joint_venture', label: 'Joint Venture' },
-      { value: 'consortium', label: 'Consortium' },
-      { value: 'other', label: 'Other Entity' }
+      { value: 'mega_project_contractor', label: 'MegaProject Contractor' },
+      { value: 'other', label: 'Other Vendor' }
+    ],
+    skill_service_provider: [
+      { value: 'bim_services', label: 'BIM Services' },
+      { value: 'qa_qc', label: 'QA/QC Services' },
+      { value: 'project_planning', label: 'Project Planning & Scheduling' },
+      { value: 'engineering_services', label: 'Engineering Services' },
+      { value: 'other', label: 'Other Service Provider' }
+    ],
+    sub_contractor: [
+      { value: 'mep', label: 'MEP (Mechanical, Electrical, Plumbing)' },
+      { value: 'steel_fabrication', label: 'Steel Fabrication' },
+      { value: 'electrical', label: 'Electrical' },
+      { value: 'plumbing', label: 'Plumbing' },
+      { value: 'hvac', label: 'HVAC' },
+      { value: 'other', label: 'Other Trade' }
+    ],
+    consultant: [
+      { value: 'sustainability', label: 'Sustainability Consultant' },
+      { value: 'leed', label: 'LEED Certification' },
+      { value: 'environmental', label: 'Environmental Compliance' },
+      { value: 'energy_efficiency', label: 'Energy Efficiency' },
+      { value: 'other', label: 'Other Consultant' }
     ]
   };
 
@@ -87,9 +103,9 @@
         updateProgressIndicator();
       }, 50);
 
-      // Special handling for step 3 (Review & Submit)
-      if (currentStep === 3) {
-        // Registration already handled in Step 1 during verification
+      // Special handling for step 4 (Review & Submit)
+      if (currentStep === 4) {
+        // Registration already handled in Step 2 during verification
         // Just show review page
       }
     }
@@ -146,8 +162,8 @@
       setTimeout(() => restoreLocationSelections(), 100);
     }
 
-    // Update verification status display in step 3
-    if (step === 3) {
+    // Update verification status display in step 4
+    if (step === 4) {
       updateVerificationStatusDisplay();
     }
   }
@@ -408,6 +424,8 @@
         return validateStep2();
       case 3:
         return validateStep3();
+      case 4:
+        return validateStep4();
       default:
         return true;
     }
@@ -436,19 +454,26 @@
   function validateStep2() {
     const userType = document.querySelector('input[name="userType"]:checked')?.value;
     
-    if (userType === 'individual') {
-      const name = document.getElementById('signupName').value.trim();
-      if (!name) {
-        showMessage('Please enter your full name', 'error');
-        return false;
-      }
-    } else {
-      const companyName = document.getElementById('signupCompanyName').value.trim();
+      // Validate role-specific required fields
+      const companyName = document.getElementById('signupCompanyName')?.value.trim();
       if (!companyName) {
-        showMessage('Please enter company name', 'error');
+        showMessage('Please enter company/organization name', 'error');
         return false;
       }
-    }
+      
+      if (userType === 'sub_contractor') {
+        const trade = document.getElementById('signupTrade')?.value.trim();
+        if (!trade) {
+          showMessage('Please enter your trade/specialty', 'error');
+          return false;
+        }
+      } else if (userType === 'consultant') {
+        const expertise = document.getElementById('signupExpertise')?.value.trim();
+        if (!expertise) {
+          showMessage('Please enter your expertise areas', 'error');
+          return false;
+        }
+      }
 
     const email = document.getElementById('signupEmail').value.trim();
     if (!email || !isValidEmail(email)) {
@@ -462,13 +487,15 @@
       return false;
     }
 
-    if (userType === 'entity') {
+    // Require mobile verification for certain roles
+    const requiresMobile = ['beneficiary', 'vendor', 'skill_service_provider', 'sub_contractor'].includes(userType);
+    if (requiresMobile) {
       const mobile = document.getElementById('signupMobile').value.trim();
       if (!mobile) {
-        showMessage('Mobile number is required for entities', 'error');
+        showMessage('Mobile number is required', 'error');
         return false;
       }
-      // Require mobile verification for entities
+      // Require mobile verification
       if (!formData.mobileVerified) {
         showMessage('Please verify your mobile number before proceeding', 'error');
         return false;
@@ -502,24 +529,11 @@
     return true;
   }
 
-  function validateStep2() {
+  function validateStep3() {
     // Validate documents based on user type
     const userType = document.querySelector('input[name="userType"]:checked')?.value;
     
-    if (userType === 'individual') {
-      const professionalLicense = formData.documents.professionalLicense;
-      const resume = formData.documents.resume;
-      
-      if (!professionalLicense || professionalLicense.length === 0) {
-        showMessage('Please upload your professional license/certification', 'error');
-        return false;
-      }
-      
-      if (!resume || resume.length === 0) {
-        showMessage('Please upload your CV/Resume', 'error');
-        return false;
-      }
-    } else {
+    if (userType === 'beneficiary' || userType === 'vendor') {
       const cr = formData.documents.cr;
       const vat = formData.documents.vat;
       const companyProfile = formData.documents.companyProfile;
@@ -538,6 +552,45 @@
         showMessage('Please upload Company Profile Document', 'error');
         return false;
       }
+    } else if (userType === 'skill_service_provider') {
+      const cr = formData.documents.cr;
+      const certifications = formData.documents.certifications;
+      const companyProfile = formData.documents.companyProfile;
+      
+      if (!cr || cr.length === 0) {
+        showMessage('Please upload Commercial Registration (CR)', 'error');
+        return false;
+      }
+      
+      if (!certifications || certifications.length === 0) {
+        showMessage('Please upload Service Certifications', 'error');
+        return false;
+      }
+      
+      if (!companyProfile || companyProfile.length === 0) {
+        showMessage('Please upload Company Profile Document', 'error');
+        return false;
+      }
+    } else if (userType === 'sub_contractor') {
+      const cr = formData.documents.cr;
+      const tradeLicense = formData.documents.tradeLicense;
+      
+      if (!cr || cr.length === 0) {
+        showMessage('Please upload Commercial Registration (CR)', 'error');
+        return false;
+      }
+      
+      if (!tradeLicense || tradeLicense.length === 0) {
+        showMessage('Please upload Trade License', 'error');
+        return false;
+      }
+    } else if (userType === 'consultant') {
+      const professionalLicense = formData.documents.professionalLicense;
+      
+      if (!professionalLicense || professionalLicense.length === 0) {
+        showMessage('Please upload your professional license/certification', 'error');
+        return false;
+      }
     }
 
     // Validate terms acceptance
@@ -549,8 +602,8 @@
     return true;
   }
 
-  function validateStep3() {
-    // Step 3 is just review, no validation needed
+  function validateStep4() {
+    // Step 4 is just review, no validation needed
     return true;
   }
 
@@ -576,12 +629,14 @@
       }
       
       // Save basic info from Step 1 (now includes user type + basic info)
-      if (userType === 'individual') {
-        formData.name = document.getElementById('signupName')?.value.trim();
-        formData.professionalTitle = document.getElementById('signupProfessionalTitle')?.value.trim();
-      } else {
-        formData.companyName = document.getElementById('signupCompanyName')?.value.trim();
-        formData.website = document.getElementById('signupWebsite')?.value.trim();
+      formData.companyName = document.getElementById('signupCompanyName')?.value.trim();
+      formData.website = document.getElementById('signupWebsite')?.value.trim();
+      
+      // Role-specific fields
+      if (userType === 'sub_contractor') {
+        formData.trade = document.getElementById('signupTrade')?.value.trim();
+      } else if (userType === 'consultant') {
+        formData.expertise = document.getElementById('signupExpertise')?.value.trim();
       }
       formData.email = document.getElementById('signupEmail')?.value.trim();
       formData.mobile = document.getElementById('signupMobile')?.value.trim();
@@ -600,7 +655,9 @@
         };
       }
     } else if (currentStep === 2) {
-      // Step 2 is documents and terms - data already saved during file uploads
+      // Step 2 is basic information - data saved during form filling
+    } else if (currentStep === 3) {
+      // Step 3 is documents and terms - data already saved during file uploads
       // Terms acceptance is validated but not saved here (saved on submit)
     }
   }
@@ -658,25 +715,54 @@
   function updateFormFieldsVisibility() {
     const userType = document.querySelector('input[name="userType"]:checked')?.value;
     
-    // Show/hide individual vs entity fields
-    const individualFields = document.getElementById('individualFields');
-    const entityFields = document.getElementById('entityFields');
-    const individualDocuments = document.getElementById('individualDocuments');
-    const entityDocuments = document.getElementById('entityDocuments');
-    const mobileRequired = document.getElementById('mobileRequired');
+    // Hide all fields first
+    const allFieldGroups = ['beneficiaryFields', 'vendorFields', 'serviceProviderFields', 'subContractorFields', 'consultantFields'];
+    const allDocumentGroups = ['beneficiaryDocuments', 'vendorDocuments', 'serviceProviderDocuments', 'subContractorDocuments', 'consultantDocuments'];
     
-    if (userType === 'individual') {
-      if (individualFields) individualFields.style.display = 'block';
-      if (entityFields) entityFields.style.display = 'none';
-      if (individualDocuments) individualDocuments.style.display = 'block';
-      if (entityDocuments) entityDocuments.style.display = 'none';
-      if (mobileRequired) mobileRequired.style.display = 'none';
-    } else {
-      if (individualFields) individualFields.style.display = 'none';
-      if (entityFields) entityFields.style.display = 'block';
-      if (individualDocuments) individualDocuments.style.display = 'none';
-      if (entityDocuments) entityDocuments.style.display = 'block';
-      if (mobileRequired) mobileRequired.style.display = 'inline';
+    allFieldGroups.forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.style.display = 'none';
+    });
+    
+    allDocumentGroups.forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.style.display = 'none';
+    });
+    
+    // Show relevant fields based on user type
+    const mobileRequired = document.getElementById('mobileRequired');
+    const requiresMobile = ['beneficiary', 'vendor', 'skill_service_provider', 'sub_contractor'].includes(userType);
+    
+    if (userType === 'beneficiary') {
+      const fields = document.getElementById('beneficiaryFields');
+      const docs = document.getElementById('beneficiaryDocuments');
+      if (fields) fields.style.display = 'block';
+      if (docs) docs.style.display = 'block';
+    } else if (userType === 'vendor') {
+      const fields = document.getElementById('vendorFields');
+      const docs = document.getElementById('vendorDocuments');
+      if (fields) fields.style.display = 'block';
+      if (docs) docs.style.display = 'block';
+    } else if (userType === 'skill_service_provider') {
+      const fields = document.getElementById('serviceProviderFields');
+      const docs = document.getElementById('serviceProviderDocuments');
+      if (fields) fields.style.display = 'block';
+      if (docs) docs.style.display = 'block';
+    } else if (userType === 'sub_contractor') {
+      const fields = document.getElementById('subContractorFields');
+      const docs = document.getElementById('subContractorDocuments');
+      if (fields) fields.style.display = 'block';
+      if (docs) docs.style.display = 'block';
+    } else if (userType === 'consultant') {
+      const fields = document.getElementById('consultantFields');
+      const docs = document.getElementById('consultantDocuments');
+      if (fields) fields.style.display = 'block';
+      if (docs) docs.style.display = 'block';
+    }
+    
+    // Update mobile requirement
+    if (mobileRequired) {
+      mobileRequired.style.display = requiresMobile ? 'inline' : 'none';
     }
     
     // Update sub-type dropdown
@@ -967,6 +1053,17 @@
         };
         
         PMTwinData.Users.update(formData.tempUserId, updates);
+        
+        // Assign RBAC role if available
+        if (typeof PMTwinRBAC !== 'undefined') {
+          try {
+            await PMTwinRBAC.assignRoleToUser(formData.tempUserId, role, 'system', formData.email);
+            console.log(`[Signup] Assigned RBAC role ${role} to user ${formData.email}`);
+          } catch (rbacError) {
+            console.warn('[Signup] Failed to assign RBAC role:', rbacError);
+          }
+        }
+        
         registrationResult = { success: true, userId: formData.tempUserId };
         showOTPMessage('Registration complete. Proceeding to document upload...', 'success');
         return;
@@ -975,11 +1072,25 @@
 
     // Prepare user data for new registration
     const userType = formData.userType;
+    // Map userType to role (aligned with golden seed data)
     const roleMapping = {
-      'individual': 'individual',
-      'entity': 'entity'
+      'beneficiary': 'beneficiary',
+      'vendor': 'vendor',
+      'skill_service_provider': 'skill_service_provider',
+      'sub_contractor': 'sub_contractor',
+      'consultant': 'consultant'
     };
-    const role = roleMapping[userType] || 'individual';
+    const role = roleMapping[userType] || userType;
+    
+    // Map role to userType for data layer
+    const userTypeMapping = {
+      'beneficiary': 'beneficiary',
+      'vendor': 'vendor_corporate',
+      'skill_service_provider': 'service_provider',
+      'sub_contractor': 'sub_contractor',
+      'consultant': 'consultant'
+    };
+    const finalUserType = userTypeMapping[role] || userType;
 
     // Ensure location data is saved with proper names
     await saveLocationData();
@@ -989,20 +1100,20 @@
       mobile: formData.mobile || null,
       password: formData.password,
       role: role,
-      userType: userType,
+      userType: finalUserType,
       subType: formData.subType || null,
       emailVerified: formData.emailVerified || false,
       mobileVerified: formData.mobileVerified || false,
       profile: {
-        name: userType === 'individual' ? formData.name : formData.companyName,
+        name: formData.companyName || formData.email.split('@')[0],
+        companyName: formData.companyName || null,
         status: 'pending',
         createdAt: new Date().toISOString(),
         location: formData.location || {},
         phone: formData.mobile || null,
-        ...(userType === 'individual' && formData.professionalTitle ? { professionalTitle: formData.professionalTitle } : {}),
-        ...(userType === 'entity' && formData.website ? { website: formData.website } : {}),
-        ...(userType === 'entity' && formData.companyName ? { companyName: formData.companyName } : {}),
-        ...(userType === 'individual' && formData.portfolioLink ? { portfolioLink: formData.portfolioLink } : {}),
+        ...(formData.website ? { website: formData.website } : {}),
+        ...(formData.trade ? { trade: formData.trade } : {}),
+        ...(formData.expertise ? { expertiseAreas: formData.expertise.split(',').map(e => e.trim()) } : {}),
         ...(formData.subType ? { subType: formData.subType } : {})
       },
       documents: formData.documents
@@ -1022,6 +1133,17 @@
 
       if (result.success) {
         registrationResult = result;
+        
+        // Assign RBAC role if available
+        if (typeof PMTwinRBAC !== 'undefined' && result.userId) {
+          try {
+            await PMTwinRBAC.assignRoleToUser(result.userId, role, 'system', formData.email);
+            console.log(`[Signup] Assigned RBAC role ${role} to user ${formData.email}`);
+          } catch (rbacError) {
+            console.warn('[Signup] Failed to assign RBAC role:', rbacError);
+          }
+        }
+        
         showOTPMessage('Verification codes have been sent to your email' + (formData.mobile ? ' and mobile' : '') + '.', 'success');
         
         // Pre-fill OTP if available (for demo/testing)
@@ -1217,10 +1339,13 @@
           // Create temporary user account for OTP verification
           const userType = document.querySelector('input[name="userType"]:checked')?.value;
           const roleMapping = {
-            'individual': 'individual',
-            'entity': 'entity'
+            'beneficiary': 'beneficiary',
+            'vendor': 'vendor',
+            'skill_service_provider': 'skill_service_provider',
+            'sub_contractor': 'sub_contractor',
+            'consultant': 'consultant'
           };
-          const role = roleMapping[userType] || 'individual';
+          const role = roleMapping[userType] || userType;
 
           // Create temporary user with minimal data
           const subTypeSelect = document.getElementById('signupSubType');

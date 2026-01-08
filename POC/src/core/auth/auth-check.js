@@ -44,17 +44,18 @@
         sessionStorage.setItem('loginRedirect', redirectTo);
         console.log('Stored redirect path:', redirectTo);
       }
-      // Determine correct login path based on current location
+        // Determine correct login path based on current location
       const currentPath = window.location.pathname;
       // Calculate depth from POC root (count /pages/... segments)
-      const pathSegments = currentPath.split('/').filter(p => p && p !== 'POC');
+      // Filter out POC, empty strings, and .html files
+      const pathSegments = currentPath.split('/').filter(p => p && p !== 'POC' && !p.endsWith('.html'));
       const pagesIndex = pathSegments.indexOf('pages');
       let loginPath = '../auth/login/';
       
       if (pagesIndex >= 0) {
         // Calculate how many levels up we need to go
-        const depth = pathSegments.length - pagesIndex - 1; // -1 for filename
-        loginPath = '../'.repeat(depth) + 'auth/login/';
+        const depth = pathSegments.length - pagesIndex - 1;
+        loginPath = depth > 0 ? '../'.repeat(depth) + 'auth/login/' : 'auth/login/';
       }
       
       if (currentPath.includes('/login/') || currentPath.includes('/auth/login/')) {
@@ -74,12 +75,13 @@
       if (!currentUser) {
         console.warn('No current user found, redirecting to login');
         const currentPath = window.location.pathname;
-        const pathSegments = currentPath.split('/').filter(p => p && p !== 'POC');
+        // Filter out POC, empty strings, and .html files
+        const pathSegments = currentPath.split('/').filter(p => p && p !== 'POC' && !p.endsWith('.html'));
         const pagesIndex = pathSegments.indexOf('pages');
         let loginPath = '../auth/login/';
         if (pagesIndex >= 0) {
           const depth = pathSegments.length - pagesIndex - 1;
-          loginPath = '../'.repeat(depth) + 'auth/login/';
+          loginPath = depth > 0 ? '../'.repeat(depth) + 'auth/login/' : 'auth/login/';
         }
         window.location.href = loginPath;
         return false;
@@ -92,10 +94,11 @@
           // Redirect based on user role
           const roleDef = await PMTwinRBAC.getRoleDefinition(userRole);
           const currentPath = window.location.pathname;
-          const pathSegments = currentPath.split('/').filter(p => p && p !== 'POC');
+          // Filter out POC, empty strings, and .html files
+          const pathSegments = currentPath.split('/').filter(p => p && p !== 'POC' && !p.endsWith('.html'));
           const pagesIndex = pathSegments.indexOf('pages');
           const depth = pagesIndex >= 0 ? pathSegments.length - pagesIndex - 1 : 1;
-          const basePath = '../'.repeat(depth);
+          const basePath = depth > 0 ? '../'.repeat(depth) : '';
           
           if (roleDef && roleDef.portals.includes('user_portal')) {
             window.location.href = basePath + 'dashboard/';
@@ -107,10 +110,11 @@
       } else if (currentUser.role !== requireRole) {
         // Fallback to direct role check
         const currentPath = window.location.pathname;
-        const pathSegments = currentPath.split('/').filter(p => p && p !== 'POC');
+        // Filter out POC, empty strings, and .html files
+        const pathSegments = currentPath.split('/').filter(p => p && p !== 'POC' && !p.endsWith('.html'));
         const pagesIndex = pathSegments.indexOf('pages');
         const depth = pagesIndex >= 0 ? pathSegments.length - pagesIndex - 1 : 1;
-        const basePath = '../'.repeat(depth);
+        const basePath = depth > 0 ? '../'.repeat(depth) : '';
         
         if (currentUser.role === 'entity' || currentUser.role === 'individual') {
           window.location.href = basePath + 'dashboard/';
@@ -141,10 +145,11 @@
         const userRole = await PMTwinRBAC.getCurrentUserRole();
         const roleDef = await PMTwinRBAC.getRoleDefinition(userRole);
         const currentPath = window.location.pathname;
-        const pathSegments = currentPath.split('/').filter(p => p && p !== 'POC');
+        // Filter out POC, empty strings, and .html files (like login.js does)
+        const pathSegments = currentPath.split('/').filter(p => p && p !== 'POC' && !p.endsWith('.html'));
         const pagesIndex = pathSegments.indexOf('pages');
         const depth = pagesIndex >= 0 ? pathSegments.length - pagesIndex - 1 : 1;
-        const basePath = '../'.repeat(depth);
+        const basePath = depth > 0 ? '../'.repeat(depth) : '';
         
         if (roleDef && roleDef.portals.includes('user_portal')) {
           window.location.href = basePath + 'dashboard/';
@@ -153,10 +158,12 @@
         }
       } else {
         const currentPath = window.location.pathname;
-        const pathSegments = currentPath.split('/').filter(p => p && p !== 'POC');
+        // Filter out POC, empty strings, and .html files (like login.js does)
+        const pathSegments = currentPath.split('/').filter(p => p && p !== 'POC' && !p.endsWith('.html'));
         const pagesIndex = pathSegments.indexOf('pages');
         const depth = pagesIndex >= 0 ? pathSegments.length - pagesIndex - 1 : 1;
-        window.location.href = '../'.repeat(depth) + 'auth/login/';
+        const basePath = depth > 0 ? '../'.repeat(depth) : '';
+        window.location.href = basePath + 'auth/login/';
       }
       return false;
     }

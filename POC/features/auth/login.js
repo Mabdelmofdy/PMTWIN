@@ -142,6 +142,26 @@
     });
   }
 
+  // ============================================
+  // Get Base Path Helper
+  // ============================================
+  function getBasePath() {
+    const currentPath = window.location.pathname;
+    // Calculate depth from POC root (count segments after 'pages')
+    const segments = currentPath.split('/').filter(p => p && !p.endsWith('.html') && p !== 'POC');
+    const pagesIndex = segments.indexOf('pages');
+    
+    if (pagesIndex >= 0) {
+      // Calculate depth: number of segments after 'pages' (excluding filename)
+      const depth = segments.length - pagesIndex - 1;
+      return depth > 0 ? '../'.repeat(depth) : '';
+    }
+    
+    // Fallback: if no 'pages' found, calculate based on total segments
+    const depth = segments.length - 1; // -1 for filename
+    return depth > 0 ? '../'.repeat(depth) : '';
+  }
+
   async function handleLogin(e) {
     e.preventDefault();
     
@@ -199,9 +219,11 @@
         
         console.log('✅ Login successful. User:', currentUser.email, 'Role:', currentUser.role);
         
+        // Get base path for proper navigation
+        const basePath = getBasePath();
+        
         // Determine redirect path based on user role
-        // From pages/auth/login/, we need ../../ to reach pages/ level
-        let redirectPath = '../../dashboard/'; // Default to dashboard
+        let redirectPath = `${basePath}dashboard/`; // Default to dashboard
         
         // Use the user from result if available, otherwise get from session
         const user = result.user || currentUser;
@@ -226,16 +248,16 @@
         const isAdmin = adminRoles.some(r => r.toLowerCase() === roleLower);
         
         if (isAdmin) {
-          redirectPath = '../../admin/';
+          redirectPath = `${basePath}admin/`;
           console.log('🔐 Admin user detected, redirecting to admin portal');
         } else if (role === 'beneficiary' || role === 'entity' || role === 'individual' || role === 'project_lead' || 
                    role === 'professional' || role === 'supplier' || role === 'service_provider' || 
                    role === 'skill_service_provider' || role === 'consultant' || role === 'mentor' ||
                    role === 'vendor' || role === 'sub_contractor') {
-          redirectPath = '../../dashboard/';
+          redirectPath = `${basePath}dashboard/`;
           console.log('👤 User detected, redirecting to user portal (dashboard)');
         } else {
-          redirectPath = '../../home/';
+          redirectPath = `${basePath}home/`;
           console.log('🏠 Unknown role "' + role + '", redirecting to home');
         }
         

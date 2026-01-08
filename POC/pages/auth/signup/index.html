@@ -11,16 +11,16 @@
     <nav class="navbar">
         <div class="container">
             <div class="navbar-content">
-                <a href="../home/" class="navbar-brand">PMTwin</a>
+                <a href="../../home/" class="navbar-brand">PMTwin</a>
                 <button class="navbar-toggle" id="navbarToggle" aria-label="Toggle navigation"><i class="ph ph-list"></i></button>
                 <ul class="navbar-nav" id="navbarNav">
-                    <li><a href="../home/" class="navbar-link">Home</a></li>
-                    <li><a href="../discovery/" class="navbar-link">Discover Projects</a></li>
-                    <li><a href="../wizard/" class="navbar-link">PMTwin Wizard</a></li>
-                    <li><a href="../knowledge/" class="navbar-link">Knowledge Hub</a></li>
-                    <li><a href="../service-providers/" class="navbar-link">Service Providers Directory</a></li>
-                    <li><a href="../auth/signup/" class="navbar-link active">Sign Up</a></li>
-                    <li><a href="../auth/login/" class="navbar-link">Login</a></li>
+                    <li><a href="../../home/" class="navbar-link">Home</a></li>
+                    <li><a href="../../discovery/" class="navbar-link">Discover Projects</a></li>
+                    <li><a href="../../wizard/" class="navbar-link">PMTwin Wizard</a></li>
+                    <li><a href="../../knowledge/" class="navbar-link">Knowledge Hub</a></li>
+                    <li><a href="../../service-providers/" class="navbar-link">Service Providers Directory</a></li>
+                    <li><a href="./" class="navbar-link active">Sign Up</a></li>
+                    <li><a href="../login/" class="navbar-link">Login</a></li>
                 </ul>
             </div>
         </div>
@@ -38,7 +38,7 @@
                         <div style="display: flex; align-items: center; gap: 0.5rem; justify-content: center; width: 100%;">
                             <div class="tab-step-number" style="display: flex; align-items: center; justify-content: center; width: 28px; height: 28px; border-radius: 50%; background: rgba(255, 255, 255, 0.2); font-weight: 600; font-size: 0.85rem; flex-shrink: 0;">1</div>
                             <i class="ph ph-user-circle" style="font-size: 1.1rem; flex-shrink: 0;"></i>
-                            <span style="font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: 0.9rem;">Account Setup</span>
+                            <span style="font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: 0.9rem;">Account Type</span>
                         </div>
                         <div class="tab-completion-indicator" style="display: none; position: absolute; right: 0.5rem; top: 50%; transform: translateY(-50%);">
                             <i class="ph ph-check" style="font-size: 1rem;"></i>
@@ -47,8 +47,8 @@
                     <button type="button" class="tab-nav-item" data-step="2" onclick="signupComponent.switchToStep(2)" style="position: relative; flex: 1; min-width: 0; max-width: 100%; padding: var(--spacing-3) var(--spacing-2);">
                         <div style="display: flex; align-items: center; gap: 0.5rem; justify-content: center; width: 100%;">
                             <div class="tab-step-number" style="display: flex; align-items: center; justify-content: center; width: 28px; height: 28px; border-radius: 50%; background: rgba(0, 0, 0, 0.05); font-weight: 600; font-size: 0.85rem; color: var(--color-gray-600); flex-shrink: 0;">2</div>
-                            <i class="ph ph-file-text" style="font-size: 1.1rem; flex-shrink: 0;"></i>
-                            <span style="font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: 0.9rem;">Documents & Terms</span>
+                            <i class="ph ph-identification-card" style="font-size: 1.1rem; flex-shrink: 0;"></i>
+                            <span style="font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: 0.9rem;">Basic Information</span>
                         </div>
                         <div class="tab-completion-indicator" style="display: none; position: absolute; right: 0.5rem; top: 50%; transform: translateY(-50%);">
                             <i class="ph ph-check" style="font-size: 1rem;"></i>
@@ -57,6 +57,16 @@
                     <button type="button" class="tab-nav-item" data-step="3" onclick="signupComponent.switchToStep(3)" style="position: relative; flex: 1; min-width: 0; max-width: 100%; padding: var(--spacing-3) var(--spacing-2);">
                         <div style="display: flex; align-items: center; gap: 0.5rem; justify-content: center; width: 100%;">
                             <div class="tab-step-number" style="display: flex; align-items: center; justify-content: center; width: 28px; height: 28px; border-radius: 50%; background: rgba(0, 0, 0, 0.05); font-weight: 600; font-size: 0.85rem; color: var(--color-gray-600); flex-shrink: 0;">3</div>
+                            <i class="ph ph-file-text" style="font-size: 1.1rem; flex-shrink: 0;"></i>
+                            <span style="font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: 0.9rem;">Documents & Terms</span>
+                        </div>
+                        <div class="tab-completion-indicator" style="display: none; position: absolute; right: 0.5rem; top: 50%; transform: translateY(-50%);">
+                            <i class="ph ph-check" style="font-size: 1rem;"></i>
+                        </div>
+                    </button>
+                    <button type="button" class="tab-nav-item" data-step="4" onclick="signupComponent.switchToStep(4)" style="position: relative; flex: 1; min-width: 0; max-width: 100%; padding: var(--spacing-3) var(--spacing-2);">
+                        <div style="display: flex; align-items: center; gap: 0.5rem; justify-content: center; width: 100%;">
+                            <div class="tab-step-number" style="display: flex; align-items: center; justify-content: center; width: 28px; height: 28px; border-radius: 50%; background: rgba(0, 0, 0, 0.05); font-weight: 600; font-size: 0.85rem; color: var(--color-gray-600); flex-shrink: 0;">4</div>
                             <i class="ph ph-check-circle" style="font-size: 1.1rem; flex-shrink: 0;"></i>
                             <span style="font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: 0.9rem;">Review & Submit</span>
                         </div>
@@ -68,11 +78,11 @@
                 <!-- Progress Bar -->
                 <div style="margin-top: 1rem; padding: 0 1rem;">
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
-                        <span id="progressText" style="font-size: 0.875rem; color: var(--color-gray-600); font-weight: 500;">Step 1 of 3</span>
-                        <span id="progressPercentage" style="font-size: 0.875rem; color: var(--color-primary); font-weight: 600;">33%</span>
+                        <span id="progressText" style="font-size: 0.875rem; color: var(--color-gray-600); font-weight: 500;">Step 1 of 4</span>
+                        <span id="progressPercentage" style="font-size: 0.875rem; color: var(--color-primary); font-weight: 600;">25%</span>
                     </div>
                     <div style="width: 100%; height: 6px; background: var(--color-gray-200); border-radius: 10px; overflow: hidden;">
-                        <div id="progressBar" style="height: 100%; width: 33.33%; background: linear-gradient(90deg, var(--color-primary) 0%, var(--color-primary-light) 100%); border-radius: 10px; transition: width 0.4s ease;"></div>
+                        <div id="progressBar" style="height: 100%; width: 25%; background: linear-gradient(90deg, var(--color-primary) 0%, var(--color-primary-light) 100%); border-radius: 10px; transition: width 0.4s ease;"></div>
                     </div>
                 </div>
             </div>
@@ -81,25 +91,43 @@
             <div class="card">
                 <div class="card-body">
                     <form id="signupForm">
-                        <!-- Step 1: Account Setup (User Type + Basic Info + Verification) -->
+                        <!-- Step 1: User Type Selection -->
                         <div class="onboarding-step" id="step1" data-step="1">
-                            <h2 style="margin-bottom: var(--spacing-4); text-align: center;">Create Your Account</h2>
+                            <h2 style="margin-bottom: var(--spacing-4); text-align: center;">Choose Your Account Type</h2>
                             
                             <!-- User Type Selection -->
                             <div style="margin-bottom: 2rem;">
                                 <label class="form-label" style="margin-bottom: 0.75rem; display: block;">I want to join as: *</label>
-                                <div class="user-type-selection" style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
-                                    <label class="user-type-card" style="cursor: pointer; border: 2px solid var(--color-gray-300); border-radius: var(--radius-md); padding: 1.5rem; text-align: center; transition: all 0.3s;">
-                                        <input type="radio" name="userType" value="individual" checked style="display: none;">
-                                        <div class="user-type-icon" style="font-size: 2.5rem; margin-bottom: 0.75rem;"><i class="ph ph-user"></i></div>
-                                        <div class="user-type-title" style="font-weight: 600; font-size: 1rem; margin-bottom: 0.5rem;">Individual Professional</div>
-                                        <div class="user-type-desc" style="color: var(--color-gray-600); font-size: 0.85rem;">For professionals, consultants, and experts</div>
+                                <div class="user-type-selection" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 1rem;">
+                                    <label class="user-type-card" style="cursor: pointer; border: 2px solid var(--color-gray-300); border-radius: var(--radius-md); padding: 1.25rem; text-align: center; transition: all 0.3s;">
+                                        <input type="radio" name="userType" value="beneficiary" checked style="display: none;">
+                                        <div class="user-type-icon" style="font-size: 2rem; margin-bottom: 0.5rem;"><i class="ph ph-buildings"></i></div>
+                                        <div class="user-type-title" style="font-weight: 600; font-size: 0.95rem; margin-bottom: 0.25rem;">Beneficiary</div>
+                                        <div class="user-type-desc" style="color: var(--color-gray-600); font-size: 0.75rem;">Create projects & service requests</div>
                                     </label>
-                                    <label class="user-type-card" style="cursor: pointer; border: 2px solid var(--color-gray-300); border-radius: var(--radius-md); padding: 1.5rem; text-align: center; transition: all 0.3s;">
-                                        <input type="radio" name="userType" value="entity" style="display: none;">
-                                        <div class="user-type-icon" style="font-size: 2.5rem; margin-bottom: 0.75rem;"><i class="ph ph-buildings"></i></div>
-                                        <div class="user-type-title" style="font-weight: 600; font-size: 1rem; margin-bottom: 0.5rem;">Company/Entity</div>
-                                        <div class="user-type-desc" style="color: var(--color-gray-600); font-size: 0.85rem;">For companies, contractors, and organizations</div>
+                                    <label class="user-type-card" style="cursor: pointer; border: 2px solid var(--color-gray-300); border-radius: var(--radius-md); padding: 1.25rem; text-align: center; transition: all 0.3s;">
+                                        <input type="radio" name="userType" value="vendor" style="display: none;">
+                                        <div class="user-type-icon" style="font-size: 2rem; margin-bottom: 0.5rem;"><i class="ph ph-hammer"></i></div>
+                                        <div class="user-type-title" style="font-weight: 600; font-size: 0.95rem; margin-bottom: 0.25rem;">Vendor</div>
+                                        <div class="user-type-desc" style="color: var(--color-gray-600); font-size: 0.75rem;">Execute contracts & manage teams</div>
+                                    </label>
+                                    <label class="user-type-card" style="cursor: pointer; border: 2px solid var(--color-gray-300); border-radius: var(--radius-md); padding: 1.25rem; text-align: center; transition: all 0.3s;">
+                                        <input type="radio" name="userType" value="skill_service_provider" style="display: none;">
+                                        <div class="user-type-icon" style="font-size: 2rem; margin-bottom: 0.5rem;"><i class="ph ph-wrench"></i></div>
+                                        <div class="user-type-title" style="font-weight: 600; font-size: 0.95rem; margin-bottom: 0.25rem;">Service Provider</div>
+                                        <div class="user-type-desc" style="color: var(--color-gray-600); font-size: 0.75rem;">Provide specialized services</div>
+                                    </label>
+                                    <label class="user-type-card" style="cursor: pointer; border: 2px solid var(--color-gray-300); border-radius: var(--radius-md); padding: 1.25rem; text-align: center; transition: all 0.3s;">
+                                        <input type="radio" name="userType" value="sub_contractor" style="display: none;">
+                                        <div class="user-type-icon" style="font-size: 2rem; margin-bottom: 0.5rem;"><i class="ph ph-users"></i></div>
+                                        <div class="user-type-title" style="font-weight: 600; font-size: 0.95rem; margin-bottom: 0.25rem;">Sub-Contractor</div>
+                                        <div class="user-type-desc" style="color: var(--color-gray-600); font-size: 0.75rem;">Work under vendors</div>
+                                    </label>
+                                    <label class="user-type-card" style="cursor: pointer; border: 2px solid var(--color-gray-300); border-radius: var(--radius-md); padding: 1.25rem; text-align: center; transition: all 0.3s;">
+                                        <input type="radio" name="userType" value="consultant" style="display: none;">
+                                        <div class="user-type-icon" style="font-size: 2rem; margin-bottom: 0.5rem;"><i class="ph ph-user-circle"></i></div>
+                                        <div class="user-type-title" style="font-weight: 600; font-size: 0.95rem; margin-bottom: 0.25rem;">Consultant</div>
+                                        <div class="user-type-desc" style="color: var(--color-gray-600); font-size: 0.75rem;">Provide advisory services</div>
                                     </label>
                                 </div>
                             </div>
@@ -114,23 +142,30 @@
                                     <small class="form-help">Please select the sub-type that best describes you</small>
                                 </div>
                             </div>
-                            
+
+                            <div class="step-actions" style="display: flex; justify-content: flex-end; gap: 1rem; margin-top: 2rem;">
+                                <button type="button" class="btn btn-primary" onclick="signupComponent.nextStep()">Continue</button>
+                            </div>
+                        </div>
+
+                        <!-- Step 2: Basic Information -->
+                        <div class="onboarding-step" id="step2" data-step="2" style="display: none;">
                             <h2 style="margin-bottom: var(--spacing-4); text-align: center;">Basic Information</h2>
                             
-                            <!-- Individual Fields -->
-                            <div id="individualFields">
+                            <!-- Beneficiary Fields -->
+                            <div id="beneficiaryFields" style="display: none;">
                                 <div class="form-group">
-                                    <label for="signupName" class="form-label">Full Name *</label>
-                                    <input type="text" id="signupName" class="form-control" required placeholder="Enter your full name">
+                                    <label for="signupCompanyName" class="form-label">Organization Name *</label>
+                                    <input type="text" id="signupCompanyName" class="form-control" required placeholder="Enter organization name">
                                 </div>
                                 <div class="form-group">
-                                    <label for="signupProfessionalTitle" class="form-label">Professional Title</label>
-                                    <input type="text" id="signupProfessionalTitle" class="form-control" placeholder="e.g., Project Manager, Engineer">
+                                    <label for="signupWebsite" class="form-label">Website</label>
+                                    <input type="url" id="signupWebsite" class="form-control" placeholder="https://example.com">
                                 </div>
                             </div>
 
-                            <!-- Entity Fields -->
-                            <div id="entityFields" style="display: none;">
+                            <!-- Vendor Fields -->
+                            <div id="vendorFields" style="display: none;">
                                 <div class="form-group">
                                     <label for="signupCompanyName" class="form-label">Company Name *</label>
                                     <input type="text" id="signupCompanyName" class="form-control" required placeholder="Enter company name">
@@ -138,6 +173,43 @@
                                 <div class="form-group">
                                     <label for="signupWebsite" class="form-label">Website</label>
                                     <input type="url" id="signupWebsite" class="form-control" placeholder="https://example.com">
+                                </div>
+                            </div>
+
+                            <!-- Service Provider Fields -->
+                            <div id="serviceProviderFields" style="display: none;">
+                                <div class="form-group">
+                                    <label for="signupCompanyName" class="form-label">Company Name *</label>
+                                    <input type="text" id="signupCompanyName" class="form-control" required placeholder="Enter company name">
+                                </div>
+                                <div class="form-group">
+                                    <label for="signupWebsite" class="form-label">Website</label>
+                                    <input type="url" id="signupWebsite" class="form-control" placeholder="https://example.com">
+                                </div>
+                            </div>
+
+                            <!-- Sub-Contractor Fields -->
+                            <div id="subContractorFields" style="display: none;">
+                                <div class="form-group">
+                                    <label for="signupCompanyName" class="form-label">Company Name *</label>
+                                    <input type="text" id="signupCompanyName" class="form-control" required placeholder="Enter company name">
+                                </div>
+                                <div class="form-group">
+                                    <label for="signupTrade" class="form-label">Trade/Specialty *</label>
+                                    <input type="text" id="signupTrade" class="form-control" required placeholder="e.g., MEP, Steel Fabrication, Electrical">
+                                </div>
+                            </div>
+
+                            <!-- Consultant Fields -->
+                            <div id="consultantFields" style="display: none;">
+                                <div class="form-group">
+                                    <label for="signupCompanyName" class="form-label">Company/Consultancy Name *</label>
+                                    <input type="text" id="signupCompanyName" class="form-control" required placeholder="Enter company or consultancy name">
+                                </div>
+                                <div class="form-group">
+                                    <label for="signupExpertise" class="form-label">Expertise Areas *</label>
+                                    <input type="text" id="signupExpertise" class="form-control" required placeholder="e.g., Sustainability, LEED, Environmental Compliance">
+                                    <small class="form-help">Comma-separated list of your expertise areas</small>
                                 </div>
                             </div>
 
@@ -233,55 +305,52 @@
                                 <input type="password" id="signupPasswordConfirm" class="form-control" required placeholder="Confirm your password">
                             </div>
 
-                            <div class="step-actions" style="display: flex; justify-content: flex-end; gap: 1rem; margin-top: 2rem;">
+                            <div class="step-actions" style="display: flex; justify-content: space-between; gap: 1rem; margin-top: 2rem;">
+                                <button type="button" class="btn btn-secondary" onclick="signupComponent.prevStep()">Back</button>
                                 <button type="button" class="btn btn-primary" onclick="signupComponent.nextStep()">Continue</button>
                             </div>
                         </div>
 
-                        <!-- Step 2: Documents & Terms -->
-                        <div class="onboarding-step" id="step2" data-step="2" style="display: none;">
+                        <!-- Step 3: Documents & Terms -->
+                        <div class="onboarding-step" id="step3" data-step="3" style="display: none;">
                             <h2 style="margin-bottom: var(--spacing-4); text-align: center;">Upload Documents & Accept Terms</h2>
                             
-                            <!-- Individual Documents -->
-                            <div id="individualDocuments">
+                            <!-- Beneficiary Documents -->
+                            <div id="beneficiaryDocuments" style="display: none;">
                                 <div class="form-group">
-                                    <label class="form-label">Professional License/Certification *</label>
-                                    <div class="file-upload-area" data-doc-type="professionalLicense" style="border: 2px dashed var(--color-gray-300); border-radius: var(--radius-md); padding: 2rem; text-align: center; cursor: pointer; transition: all 0.3s;">
-                                        <input type="file" id="professionalLicense" accept=".pdf,.jpg,.jpeg,.png" style="display: none;">
+                                    <label class="form-label">Commercial Registration (CR) *</label>
+                                    <div class="file-upload-area" data-doc-type="cr" style="border: 2px dashed var(--color-gray-300); border-radius: var(--radius-md); padding: 2rem; text-align: center; cursor: pointer; transition: all 0.3s;">
+                                        <input type="file" id="cr" accept=".pdf,.jpg,.jpeg,.png" style="display: none;">
                                         <div class="file-upload-icon" style="font-size: 2rem; margin-bottom: 0.5rem;"><i class="ph ph-file-text"></i></div>
                                         <div class="file-upload-text">Click to upload or drag and drop</div>
                                         <div class="file-upload-hint" style="color: var(--color-gray-600); font-size: 0.9rem; margin-top: 0.5rem;">PDF, JPG, PNG (Max 5MB)</div>
                                     </div>
-                                    <div class="file-preview" id="professionalLicensePreview" style="margin-top: 1rem; display: none;"></div>
+                                    <div class="file-preview" id="crPreview" style="margin-top: 1rem; display: none;"></div>
                                 </div>
                                 <div class="form-group">
-                                    <label class="form-label">CV/Resume *</label>
-                                    <div class="file-upload-area" data-doc-type="resume" style="border: 2px dashed var(--color-gray-300); border-radius: var(--radius-md); padding: 2rem; text-align: center; cursor: pointer; transition: all 0.3s;">
-                                        <input type="file" id="resume" accept=".pdf,.doc,.docx" style="display: none;">
+                                    <label class="form-label">VAT Certificate *</label>
+                                    <div class="file-upload-area" data-doc-type="vat" style="border: 2px dashed var(--color-gray-300); border-radius: var(--radius-md); padding: 2rem; text-align: center; cursor: pointer; transition: all 0.3s;">
+                                        <input type="file" id="vat" accept=".pdf,.jpg,.jpeg,.png" style="display: none;">
+                                        <div class="file-upload-icon" style="font-size: 2rem; margin-bottom: 0.5rem;"><i class="ph ph-file-text"></i></div>
+                                        <div class="file-upload-text">Click to upload or drag and drop</div>
+                                        <div class="file-upload-hint" style="color: var(--color-gray-600); font-size: 0.9rem; margin-top: 0.5rem;">PDF, JPG, PNG (Max 5MB)</div>
+                                    </div>
+                                    <div class="file-preview" id="vatPreview" style="margin-top: 1rem; display: none;"></div>
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">Organization Profile Document *</label>
+                                    <div class="file-upload-area" data-doc-type="companyProfile" style="border: 2px dashed var(--color-gray-300); border-radius: var(--radius-md); padding: 2rem; text-align: center; cursor: pointer; transition: all 0.3s;">
+                                        <input type="file" id="companyProfile" accept=".pdf,.doc,.docx" style="display: none;">
                                         <div class="file-upload-icon" style="font-size: 2rem; margin-bottom: 0.5rem;"><i class="ph ph-file-text"></i></div>
                                         <div class="file-upload-text">Click to upload or drag and drop</div>
                                         <div class="file-upload-hint" style="color: var(--color-gray-600); font-size: 0.9rem; margin-top: 0.5rem;">PDF, DOC, DOCX (Max 5MB)</div>
                                     </div>
-                                    <div class="file-preview" id="resumePreview" style="margin-top: 1rem; display: none;"></div>
-                                </div>
-                                <div class="form-group">
-                                    <label class="form-label">Portfolio Link (Optional)</label>
-                                    <input type="url" id="portfolioLink" class="form-control" placeholder="https://your-portfolio.com">
-                                </div>
-                                <div class="form-group">
-                                    <label class="form-label">Additional Certifications (Optional)</label>
-                                    <div class="file-upload-area" data-doc-type="additionalCerts" style="border: 2px dashed var(--color-gray-300); border-radius: var(--radius-md); padding: 2rem; text-align: center; cursor: pointer; transition: all 0.3s;">
-                                        <input type="file" id="additionalCerts" accept=".pdf,.jpg,.jpeg,.png" multiple style="display: none;">
-                                        <div class="file-upload-icon" style="font-size: 2rem; margin-bottom: 0.5rem;"><i class="ph ph-books"></i></div>
-                                        <div class="file-upload-text">Click to upload multiple files</div>
-                                        <div class="file-upload-hint" style="color: var(--color-gray-600); font-size: 0.9rem; margin-top: 0.5rem;">PDF, JPG, PNG (Max 5MB each)</div>
-                                    </div>
-                                    <div class="file-preview" id="additionalCertsPreview" style="margin-top: 1rem; display: none;"></div>
+                                    <div class="file-preview" id="companyProfilePreview" style="margin-top: 1rem; display: none;"></div>
                                 </div>
                             </div>
 
-                            <!-- Entity Documents -->
-                            <div id="entityDocuments" style="display: none;">
+                            <!-- Vendor Documents -->
+                            <div id="vendorDocuments" style="display: none;">
                                 <div class="form-group">
                                     <label class="form-label">Commercial Registration (CR) *</label>
                                     <div class="file-upload-area" data-doc-type="cr" style="border: 2px dashed var(--color-gray-300); border-radius: var(--radius-md); padding: 2rem; text-align: center; cursor: pointer; transition: all 0.3s;">
@@ -313,14 +382,106 @@
                                     <div class="file-preview" id="companyProfilePreview" style="margin-top: 1rem; display: none;"></div>
                                 </div>
                                 <div class="form-group">
-                                    <label class="form-label">Additional Licenses (Optional)</label>
-                                    <div class="file-upload-area" data-doc-type="additionalLicenses" style="border: 2px dashed var(--color-gray-300); border-radius: var(--radius-md); padding: 2rem; text-align: center; cursor: pointer; transition: all 0.3s;">
-                                        <input type="file" id="additionalLicenses" accept=".pdf,.jpg,.jpeg,.png" multiple style="display: none;">
+                                    <label class="form-label">Insurance Certificate (Optional)</label>
+                                    <div class="file-upload-area" data-doc-type="insurance" style="border: 2px dashed var(--color-gray-300); border-radius: var(--radius-md); padding: 2rem; text-align: center; cursor: pointer; transition: all 0.3s;">
+                                        <input type="file" id="insurance" accept=".pdf,.jpg,.jpeg,.png" style="display: none;">
+                                        <div class="file-upload-icon" style="font-size: 2rem; margin-bottom: 0.5rem;"><i class="ph ph-file-text"></i></div>
+                                        <div class="file-upload-text">Click to upload or drag and drop</div>
+                                        <div class="file-upload-hint" style="color: var(--color-gray-600); font-size: 0.9rem; margin-top: 0.5rem;">PDF, JPG, PNG (Max 5MB)</div>
+                                    </div>
+                                    <div class="file-preview" id="insurancePreview" style="margin-top: 1rem; display: none;"></div>
+                                </div>
+                            </div>
+
+                            <!-- Service Provider Documents -->
+                            <div id="serviceProviderDocuments" style="display: none;">
+                                <div class="form-group">
+                                    <label class="form-label">Commercial Registration (CR) *</label>
+                                    <div class="file-upload-area" data-doc-type="cr" style="border: 2px dashed var(--color-gray-300); border-radius: var(--radius-md); padding: 2rem; text-align: center; cursor: pointer; transition: all 0.3s;">
+                                        <input type="file" id="cr" accept=".pdf,.jpg,.jpeg,.png" style="display: none;">
+                                        <div class="file-upload-icon" style="font-size: 2rem; margin-bottom: 0.5rem;"><i class="ph ph-file-text"></i></div>
+                                        <div class="file-upload-text">Click to upload or drag and drop</div>
+                                        <div class="file-upload-hint" style="color: var(--color-gray-600); font-size: 0.9rem; margin-top: 0.5rem;">PDF, JPG, PNG (Max 5MB)</div>
+                                    </div>
+                                    <div class="file-preview" id="crPreview" style="margin-top: 1rem; display: none;"></div>
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">Service Certifications *</label>
+                                    <div class="file-upload-area" data-doc-type="certifications" style="border: 2px dashed var(--color-gray-300); border-radius: var(--radius-md); padding: 2rem; text-align: center; cursor: pointer; transition: all 0.3s;">
+                                        <input type="file" id="certifications" accept=".pdf,.jpg,.jpeg,.png" multiple style="display: none;">
                                         <div class="file-upload-icon" style="font-size: 2rem; margin-bottom: 0.5rem;"><i class="ph ph-books"></i></div>
                                         <div class="file-upload-text">Click to upload multiple files</div>
                                         <div class="file-upload-hint" style="color: var(--color-gray-600); font-size: 0.9rem; margin-top: 0.5rem;">PDF, JPG, PNG (Max 5MB each)</div>
                                     </div>
-                                    <div class="file-preview" id="additionalLicensesPreview" style="margin-top: 1rem; display: none;"></div>
+                                    <div class="file-preview" id="certificationsPreview" style="margin-top: 1rem; display: none;"></div>
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">Company Profile Document *</label>
+                                    <div class="file-upload-area" data-doc-type="companyProfile" style="border: 2px dashed var(--color-gray-300); border-radius: var(--radius-md); padding: 2rem; text-align: center; cursor: pointer; transition: all 0.3s;">
+                                        <input type="file" id="companyProfile" accept=".pdf,.doc,.docx" style="display: none;">
+                                        <div class="file-upload-icon" style="font-size: 2rem; margin-bottom: 0.5rem;"><i class="ph ph-file-text"></i></div>
+                                        <div class="file-upload-text">Click to upload or drag and drop</div>
+                                        <div class="file-upload-hint" style="color: var(--color-gray-600); font-size: 0.9rem; margin-top: 0.5rem;">PDF, DOC, DOCX (Max 5MB)</div>
+                                    </div>
+                                    <div class="file-preview" id="companyProfilePreview" style="margin-top: 1rem; display: none;"></div>
+                                </div>
+                            </div>
+
+                            <!-- Sub-Contractor Documents -->
+                            <div id="subContractorDocuments" style="display: none;">
+                                <div class="form-group">
+                                    <label class="form-label">Commercial Registration (CR) *</label>
+                                    <div class="file-upload-area" data-doc-type="cr" style="border: 2px dashed var(--color-gray-300); border-radius: var(--radius-md); padding: 2rem; text-align: center; cursor: pointer; transition: all 0.3s;">
+                                        <input type="file" id="cr" accept=".pdf,.jpg,.jpeg,.png" style="display: none;">
+                                        <div class="file-upload-icon" style="font-size: 2rem; margin-bottom: 0.5rem;"><i class="ph ph-file-text"></i></div>
+                                        <div class="file-upload-text">Click to upload or drag and drop</div>
+                                        <div class="file-upload-hint" style="color: var(--color-gray-600); font-size: 0.9rem; margin-top: 0.5rem;">PDF, JPG, PNG (Max 5MB)</div>
+                                    </div>
+                                    <div class="file-preview" id="crPreview" style="margin-top: 1rem; display: none;"></div>
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">Trade License *</label>
+                                    <div class="file-upload-area" data-doc-type="tradeLicense" style="border: 2px dashed var(--color-gray-300); border-radius: var(--radius-md); padding: 2rem; text-align: center; cursor: pointer; transition: all 0.3s;">
+                                        <input type="file" id="tradeLicense" accept=".pdf,.jpg,.jpeg,.png" style="display: none;">
+                                        <div class="file-upload-icon" style="font-size: 2rem; margin-bottom: 0.5rem;"><i class="ph ph-file-text"></i></div>
+                                        <div class="file-upload-text">Click to upload or drag and drop</div>
+                                        <div class="file-upload-hint" style="color: var(--color-gray-600); font-size: 0.9rem; margin-top: 0.5rem;">PDF, JPG, PNG (Max 5MB)</div>
+                                    </div>
+                                    <div class="file-preview" id="tradeLicensePreview" style="margin-top: 1rem; display: none;"></div>
+                                </div>
+                            </div>
+
+                            <!-- Consultant Documents -->
+                            <div id="consultantDocuments" style="display: none;">
+                                <div class="form-group">
+                                    <label class="form-label">Professional License/Certification *</label>
+                                    <div class="file-upload-area" data-doc-type="professionalLicense" style="border: 2px dashed var(--color-gray-300); border-radius: var(--radius-md); padding: 2rem; text-align: center; cursor: pointer; transition: all 0.3s;">
+                                        <input type="file" id="professionalLicense" accept=".pdf,.jpg,.jpeg,.png" style="display: none;">
+                                        <div class="file-upload-icon" style="font-size: 2rem; margin-bottom: 0.5rem;"><i class="ph ph-file-text"></i></div>
+                                        <div class="file-upload-text">Click to upload or drag and drop</div>
+                                        <div class="file-upload-hint" style="color: var(--color-gray-600); font-size: 0.9rem; margin-top: 0.5rem;">PDF, JPG, PNG (Max 5MB)</div>
+                                    </div>
+                                    <div class="file-preview" id="professionalLicensePreview" style="margin-top: 1rem; display: none;"></div>
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">Company Profile (if applicable)</label>
+                                    <div class="file-upload-area" data-doc-type="companyProfile" style="border: 2px dashed var(--color-gray-300); border-radius: var(--radius-md); padding: 2rem; text-align: center; cursor: pointer; transition: all 0.3s;">
+                                        <input type="file" id="companyProfile" accept=".pdf,.doc,.docx" style="display: none;">
+                                        <div class="file-upload-icon" style="font-size: 2rem; margin-bottom: 0.5rem;"><i class="ph ph-file-text"></i></div>
+                                        <div class="file-upload-text">Click to upload or drag and drop</div>
+                                        <div class="file-upload-hint" style="color: var(--color-gray-600); font-size: 0.9rem; margin-top: 0.5rem;">PDF, DOC, DOCX (Max 5MB)</div>
+                                    </div>
+                                    <div class="file-preview" id="companyProfilePreview" style="margin-top: 1rem; display: none;"></div>
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">Additional Certifications (Optional)</label>
+                                    <div class="file-upload-area" data-doc-type="additionalCerts" style="border: 2px dashed var(--color-gray-300); border-radius: var(--radius-md); padding: 2rem; text-align: center; cursor: pointer; transition: all 0.3s;">
+                                        <input type="file" id="additionalCerts" accept=".pdf,.jpg,.jpeg,.png" multiple style="display: none;">
+                                        <div class="file-upload-icon" style="font-size: 2rem; margin-bottom: 0.5rem;"><i class="ph ph-books"></i></div>
+                                        <div class="file-upload-text">Click to upload multiple files</div>
+                                        <div class="file-upload-hint" style="color: var(--color-gray-600); font-size: 0.9rem; margin-top: 0.5rem;">PDF, JPG, PNG (Max 5MB each)</div>
+                                    </div>
+                                    <div class="file-preview" id="additionalCertsPreview" style="margin-top: 1rem; display: none;"></div>
                                 </div>
                             </div>
 
@@ -359,8 +520,8 @@
                             </div>
                         </div>
 
-                        <!-- Step 3: Review & Submit -->
-                        <div class="onboarding-step" id="step3" data-step="3" style="display: none;">
+                        <!-- Step 4: Review & Submit -->
+                        <div class="onboarding-step" id="step4" data-step="4" style="display: none;">
                             <h2 style="margin-bottom: var(--spacing-4); text-align: center;">Review & Submit</h2>
                             <p style="text-align: center; color: var(--color-gray-600); margin-bottom: 2rem;">
                                 Please review your information before submitting your registration.
@@ -392,7 +553,7 @@
             </div>
 
             <p style="text-align: center; margin-top: var(--spacing-4);">
-                Already have an account? <a href="../auth/login/">Login here</a>
+                Already have an account? <a href="../login/">Login here</a>
             </p>
         </div>
     </main>

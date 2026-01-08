@@ -166,8 +166,6 @@
           }
         ]
       },
-      { id: 'profile', label: 'Profile', route: `${basePath}profile/`, icon: '<i class="ph ph-user"></i>', roles: ['admin', 'entity', 'individual', 'project_lead', 'supplier', 'service_provider', 'professional', 'consultant', 'mentor'] },
-      { id: 'settings', label: 'Settings', route: `${basePath}settings/`, icon: '<i class="ph ph-gear"></i>', roles: ['admin', 'entity', 'individual', 'project_lead', 'supplier', 'service_provider', 'professional', 'consultant', 'mentor'] },
       { id: 'notifications', label: 'Notifications', route: `${basePath}notifications/`, icon: '<i class="ph ph-bell"></i>', roles: ['admin', 'entity', 'individual', 'project_lead', 'supplier', 'service_provider', 'professional', 'consultant', 'mentor'] },
       { id: 'admin', label: 'Admin Dashboard', route: `${basePath}admin/`, icon: '<i class="ph ph-gear"></i>', roles: ['admin'] },
       { id: 'admin-vetting', label: 'User Vetting', route: `${basePath}admin-vetting/`, icon: '<i class="ph ph-check-circle"></i>', roles: ['admin'] },
@@ -241,95 +239,210 @@
       </li>
     `;
 
-    // Search bar
+    // Enhanced Search bar
     html += `
             <li style="margin-left: auto; margin-right: 1rem;">
               <div style="position: relative; display: flex; align-items: center;">
                 <input type="text" id="topbarSearch" placeholder="Search projects, users..." 
-                  style="padding: 0.5rem 2.5rem 0.5rem 1rem; border: 1px solid var(--border-color); border-radius: 20px; width: 300px; font-size: 0.9rem; background: var(--bg-secondary);"
-                  onfocus="this.style.width='400px'; this.style.borderColor='var(--color-primary)';"
-                  onblur="if(!this.value) {this.style.width='300px'; this.style.borderColor='var(--border-color)';}">
-                <i class="ph ph-magnifying-glass" style="position: absolute; right: 1rem; color: var(--text-secondary); pointer-events: none;"></i>
-                <div id="searchResults" style="display: none; position: absolute; top: 100%; left: 0; right: 0; margin-top: 0.5rem; background: var(--bg-primary); border: 1px solid var(--border-color); border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); max-height: 400px; overflow-y: auto; z-index: 1000;">
+                  style="padding: 0.625rem 3rem 0.625rem 1rem; border: 1px solid var(--border-color); border-radius: 24px; width: 320px; font-size: 0.9rem; background: var(--bg-secondary); transition: all 0.3s ease; outline: none;"
+                  onfocus="this.style.width='420px'; this.style.borderColor='var(--color-primary)'; this.style.boxShadow='0 0 0 3px rgba(var(--color-primary-rgb, 59, 130, 246), 0.1)';"
+                  onblur="if(!this.value) {this.style.width='320px'; this.style.borderColor='var(--border-color)'; this.style.boxShadow='none';}">
+                <i class="ph ph-magnifying-glass" style="position: absolute; right: 1rem; color: var(--text-secondary); pointer-events: none; font-size: 1.125rem;"></i>
+                <div style="position: absolute; right: 2.75rem; display: flex; align-items: center; gap: 0.25rem; pointer-events: none; opacity: 0.5;">
+                  <kbd style="padding: 0.125rem 0.375rem; background: var(--bg-primary); border: 1px solid var(--border-color); border-radius: 4px; font-size: 0.7rem; font-family: monospace; color: var(--text-secondary);">⌘</kbd>
+                  <kbd style="padding: 0.125rem 0.375rem; background: var(--bg-primary); border: 1px solid var(--border-color); border-radius: 4px; font-size: 0.7rem; font-family: monospace; color: var(--text-secondary);">K</kbd>
+                </div>
+                <div id="searchResults" style="display: none; position: absolute; top: 100%; left: 0; right: 0; margin-top: 0.5rem; background: var(--bg-primary); border: 1px solid var(--border-color); border-radius: 12px; box-shadow: 0 8px 24px rgba(0,0,0,0.15); max-height: 450px; overflow-y: auto; z-index: 1000;">
                   <!-- Search results will appear here -->
                 </div>
               </div>
             </li>
     `;
 
-    // Theme toggle
+    // Enhanced Theme toggle
     html += `
             <li>
-              <button id="themeToggleBtn" class="navbar-link" style="background: none; border: none; cursor: pointer; padding: 0.5rem;" title="Toggle theme">
-                <i class="ph ph-moon" id="themeIcon"></i>
+              <button id="themeToggleBtn" class="navbar-link" style="background: none; border: none; cursor: pointer; padding: 0.5rem; border-radius: 8px; transition: all 0.2s;" 
+                      title="Toggle theme (Ctrl+Shift+T)"
+                      onmouseover="this.style.background='var(--bg-secondary)'" 
+                      onmouseout="this.style.background='none'">
+                <i class="ph ph-moon" id="themeIcon" style="font-size: 1.25rem;"></i>
               </button>
             </li>
     `;
 
-    // Quick actions menu
+    // Enhanced Quick actions menu
     html += `
             <li>
               <div style="position: relative;">
-                <button id="quickActionsBtn" class="navbar-link" style="background: none; border: none; cursor: pointer; padding: 0.5rem;" title="Quick Actions">
-                  <i class="ph ph-lightning"></i>
+                <button id="quickActionsBtn" class="navbar-link" style="background: none; border: none; cursor: pointer; padding: 0.5rem; border-radius: 8px; transition: all 0.2s;" 
+                        title="Quick Actions"
+                        onmouseover="this.style.background='var(--bg-secondary)'" 
+                        onmouseout="this.style.background='none'">
+                  <i class="ph ph-lightning" style="font-size: 1.25rem;"></i>
                 </button>
-                <div id="quickActionsDropdown" style="display: none; position: absolute; top: 100%; right: 0; margin-top: 0.5rem; background: var(--bg-primary); border: 1px solid var(--border-color); border-radius: var(--radius); box-shadow: 0 4px 6px rgba(0,0,0,0.1); min-width: 220px; z-index: 1000;">
-                  <div style="padding: 0.75rem 1rem; border-bottom: 1px solid var(--border-color); font-weight: 600; font-size: 0.9rem;">Quick Actions</div>
-                  <a href="${basePath}projects/create/" class="navbar-link" style="display: flex; align-items: center; gap: 0.75rem; padding: 0.75rem 1rem; border-bottom: 1px solid var(--border-color);" onclick="Navigation.handleNavClick(event, '${basePath}projects/create/');">
-                    <i class="ph ph-plus-circle"></i> <span>Create Project</span>
-                  </a>
-                  <a href="${basePath}create-proposal/" class="navbar-link" style="display: flex; align-items: center; gap: 0.75rem; padding: 0.75rem 1rem; border-bottom: 1px solid var(--border-color);" onclick="Navigation.handleNavClick(event, '${basePath}create-proposal/');">
-                    <i class="ph ph-file-text"></i> <span>Create Proposal</span>
-                  </a>
-                  <a href="${basePath}collaboration/" class="navbar-link" style="display: flex; align-items: center; gap: 0.75rem; padding: 0.75rem 1rem; border-bottom: 1px solid var(--border-color);" onclick="Navigation.handleNavClick(event, '${basePath}collaboration/');">
-                    <i class="ph ph-handshake"></i> <span>New Collaboration</span>
-                  </a>
-                  <a href="${basePath}wizard/" class="navbar-link" style="display: flex; align-items: center; gap: 0.75rem; padding: 0.75rem 1rem;" onclick="Navigation.handleNavClick(event, '${basePath}wizard/');">
-                    <i class="ph ph-magic-wand"></i> <span>AI Wizard</span>
-                  </a>
+                <div id="quickActionsDropdown" style="display: none; position: absolute; top: 100%; right: 0; margin-top: 0.5rem; background: var(--bg-primary); border: 1px solid var(--border-color); border-radius: 12px; box-shadow: 0 8px 24px rgba(0,0,0,0.15); min-width: 240px; z-index: 1000; overflow: hidden;">
+                  <div style="padding: 1rem; border-bottom: 1px solid var(--border-color); font-weight: 600; font-size: 0.95rem; background: var(--bg-secondary);">Quick Actions</div>
+                  <div style="padding: 0.5rem 0;">
+                    <a href="${basePath}projects/create/" class="navbar-link" style="display: flex; align-items: center; gap: 0.75rem; padding: 0.875rem 1rem; transition: background 0.2s;" 
+                       onmouseover="this.style.background='var(--bg-secondary)'" 
+                       onmouseout="this.style.background='transparent'"
+                       onclick="Navigation.handleNavClick(event, '${basePath}projects/create/');">
+                      <i class="ph ph-plus-circle" style="font-size: 1.25rem; color: var(--color-primary);"></i> 
+                      <div style="flex: 1;">
+                        <div style="font-weight: 500; font-size: 0.875rem;">Create Project</div>
+                        <div style="font-size: 0.75rem; color: var(--text-secondary);">Start a new project</div>
+                      </div>
+                    </a>
+                    <a href="${basePath}proposals/create/" class="navbar-link" style="display: flex; align-items: center; gap: 0.75rem; padding: 0.875rem 1rem; transition: background 0.2s;" 
+                       onmouseover="this.style.background='var(--bg-secondary)'" 
+                       onmouseout="this.style.background='transparent'"
+                       onclick="Navigation.handleNavClick(event, '${basePath}proposals/create/');">
+                      <i class="ph ph-file-text" style="font-size: 1.25rem; color: var(--color-primary);"></i> 
+                      <div style="flex: 1;">
+                        <div style="font-weight: 500; font-size: 0.875rem;">Create Proposal</div>
+                        <div style="font-size: 0.75rem; color: var(--text-secondary);">Submit a proposal</div>
+                      </div>
+                    </a>
+                    <a href="${basePath}collaboration/" class="navbar-link" style="display: flex; align-items: center; gap: 0.75rem; padding: 0.875rem 1rem; transition: background 0.2s;" 
+                       onmouseover="this.style.background='var(--bg-secondary)'" 
+                       onmouseout="this.style.background='transparent'"
+                       onclick="Navigation.handleNavClick(event, '${basePath}collaboration/');">
+                      <i class="ph ph-handshake" style="font-size: 1.25rem; color: var(--color-primary);"></i> 
+                      <div style="flex: 1;">
+                        <div style="font-weight: 500; font-size: 0.875rem;">New Collaboration</div>
+                        <div style="font-size: 0.75rem; color: var(--text-secondary);">Start collaborating</div>
+                      </div>
+                    </a>
+                    <a href="${basePath}wizard/" class="navbar-link" style="display: flex; align-items: center; gap: 0.75rem; padding: 0.875rem 1rem; transition: background 0.2s;" 
+                       onmouseover="this.style.background='var(--bg-secondary)'" 
+                       onmouseout="this.style.background='transparent'"
+                       onclick="Navigation.handleNavClick(event, '${basePath}wizard/');">
+                      <i class="ph ph-magic-wand" style="font-size: 1.25rem; color: var(--color-primary);"></i> 
+                      <div style="flex: 1;">
+                        <div style="font-weight: 500; font-size: 0.875rem;">AI Wizard</div>
+                        <div style="font-size: 0.75rem; color: var(--text-secondary);">Get recommendations</div>
+                      </div>
+                    </a>
+                  </div>
                 </div>
               </div>
             </li>
     `;
 
-    // User menu
+    // Enhanced Notifications with dropdown
+    const unreadNotifications = typeof PMTwinData !== 'undefined' && currentUser?.id 
+      ? (PMTwinData.Notifications.getUnread(currentUser.id) || [])
+      : [];
+    const unreadCount = unreadNotifications.length;
+    
     html += `
             <li>
-              <div style="display: flex; align-items: center; gap: 1rem;">
-                <a href="${basePath}notifications/" class="navbar-link" style="position: relative; padding: 0.5rem;" onclick="event.preventDefault(); Navigation.handleNotificationClick(event);">
-                  <i class="ph ph-bell"></i>
+              <div style="position: relative;">
+                <button id="notificationsBtn" class="navbar-link" style="background: none; border: none; cursor: pointer; position: relative; padding: 0.5rem; border-radius: 8px; transition: all 0.2s;" 
+                        onmouseover="this.style.background='var(--bg-secondary)'" 
+                        onmouseout="this.style.background='none'"
+                        title="Notifications (${unreadCount} unread)">
+                  <i class="ph ph-bell" style="font-size: 1.25rem;"></i>
                   ${getNotificationBadge()}
-                </a>
-                <div style="position: relative;">
-                  <button id="userMenuBtn" class="navbar-link" style="background: none; border: none; cursor: pointer; display: flex; align-items: center; gap: 0.5rem; padding: 0.5rem 1rem;">
-                    <span>${currentUser.name || currentUser.email}</span>
-                    <i class="ph ph-caret-down"></i>
-                  </button>
-                  <div id="userMenuDropdown" style="display: none; position: absolute; top: 100%; right: 0; margin-top: 0.5rem; background: var(--bg-primary); border: 1px solid var(--border-color); border-radius: var(--radius); box-shadow: 0 4px 6px rgba(0,0,0,0.1); min-width: 220px; z-index: 1000;">
-                    <div style="padding: 0.75rem 1rem; border-bottom: 1px solid var(--border-color);">
-                      <div style="font-weight: 600; font-size: 0.9rem;">${currentUser.name || 'User'}</div>
-                      <div style="font-size: 0.8rem; color: var(--text-secondary);">${currentUser.email || ''}</div>
+                </button>
+                <div id="notificationsDropdown" style="display: none; position: absolute; top: 100%; right: 0; margin-top: 0.5rem; background: var(--bg-primary); border: 1px solid var(--border-color); border-radius: 12px; box-shadow: 0 8px 24px rgba(0,0,0,0.15); min-width: 360px; max-width: 420px; max-height: 500px; overflow: hidden; z-index: 1000;">
+                  <div style="padding: 1rem; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; background: var(--bg-secondary);">
+                    <div style="font-weight: 600; font-size: 1rem;">Notifications</div>
+                    ${unreadCount > 0 ? `<span style="font-size: 0.75rem; color: var(--color-primary); font-weight: 600;">${unreadCount} new</span>` : ''}
+                  </div>
+                  <div id="notificationsList" style="max-height: 400px; overflow-y: auto;">
+                    ${renderNotificationsDropdown(unreadNotifications.slice(0, 5))}
+                  </div>
+                  <div style="padding: 0.75rem 1rem; border-top: 1px solid var(--border-color); text-align: center; background: var(--bg-secondary);">
+                    <a href="${basePath}notifications/" class="navbar-link" style="color: var(--color-primary); font-weight: 500; font-size: 0.875rem;" onclick="Navigation.handleNavClick(event, '${basePath}notifications/');">
+                      View All Notifications
+                    </a>
+                  </div>
+                </div>
+              </div>
+            </li>
+    `;
+
+    // Enhanced User menu with avatar
+    const userInitials = getInitials(currentUser.name || currentUser.email);
+    const userAvatar = currentUser.avatar || null;
+    
+    html += `
+            <li>
+              <div style="position: relative;">
+                <button id="userMenuBtn" class="navbar-link" style="background: none; border: none; cursor: pointer; display: flex; align-items: center; gap: 0.75rem; padding: 0.375rem 0.75rem; border-radius: 24px; transition: all 0.2s; border: 1px solid transparent;" 
+                        onmouseover="this.style.background='var(--bg-secondary)'; this.style.borderColor='var(--border-color)';" 
+                        onmouseout="this.style.background='none'; this.style.borderColor='transparent';">
+                  ${userAvatar ? `
+                    <img src="${userAvatar}" alt="${currentUser.name || 'User'}" style="width: 32px; height: 32px; border-radius: 50%; object-fit: cover; border: 2px solid var(--border-color);">
+                  ` : `
+                    <div style="width: 32px; height: 32px; border-radius: 50%; background: linear-gradient(135deg, var(--color-primary), var(--color-primary-light)); display: flex; align-items: center; justify-content: center; color: white; font-weight: 600; font-size: 0.875rem; border: 2px solid var(--border-color);">
+                      ${userInitials}
                     </div>
-                    <a href="${basePath}profile/" class="navbar-link" style="display: flex; align-items: center; gap: 0.75rem; padding: 0.75rem 1rem; border-bottom: 1px solid var(--border-color);" onclick="Navigation.handleNavClick(event, '${basePath}profile/');">
-                      <i class="ph ph-user"></i> <span>Profile</span>
+                  `}
+                  <div style="display: flex; flex-direction: column; align-items: flex-start; line-height: 1.2;">
+                    <span style="font-weight: 500; font-size: 0.875rem; color: var(--text-primary);">${currentUser.name || 'User'}</span>
+                    <span style="font-size: 0.75rem; color: var(--text-secondary);">${getUserRoleLabel(currentUser.role)}</span>
+                  </div>
+                  <i class="ph ph-caret-down" style="font-size: 0.875rem; color: var(--text-secondary);"></i>
+                </button>
+                <div id="userMenuDropdown" style="display: none; position: absolute; top: 100%; right: 0; margin-top: 0.5rem; background: var(--bg-primary); border: 1px solid var(--border-color); border-radius: 12px; box-shadow: 0 8px 24px rgba(0,0,0,0.15); min-width: 260px; z-index: 1000; overflow: hidden;">
+                  <div style="padding: 1rem; border-bottom: 1px solid var(--border-color); background: var(--bg-secondary);">
+                    <div style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.5rem;">
+                      ${userAvatar ? `
+                        <img src="${userAvatar}" alt="${currentUser.name || 'User'}" style="width: 48px; height: 48px; border-radius: 50%; object-fit: cover; border: 2px solid var(--border-color);">
+                      ` : `
+                        <div style="width: 48px; height: 48px; border-radius: 50%; background: linear-gradient(135deg, var(--color-primary), var(--color-primary-light)); display: flex; align-items: center; justify-content: center; color: white; font-weight: 600; font-size: 1.125rem; border: 2px solid var(--border-color);">
+                          ${userInitials}
+                        </div>
+                      `}
+                      <div style="flex: 1;">
+                        <div style="font-weight: 600; font-size: 0.95rem; margin-bottom: 0.125rem;">${currentUser.name || 'User'}</div>
+                        <div style="font-size: 0.8rem; color: var(--text-secondary);">${currentUser.email || ''}</div>
+                        <div style="font-size: 0.75rem; color: var(--color-primary); margin-top: 0.25rem;">${getUserRoleLabel(currentUser.role)}</div>
+                      </div>
+                    </div>
+                  </div>
+                  <div style="padding: 0.5rem 0;">
+                    <a href="${basePath}profile/" class="navbar-link" style="display: flex; align-items: center; gap: 0.75rem; padding: 0.75rem 1rem; transition: background 0.2s;" 
+                       onmouseover="this.style.background='var(--bg-secondary)'" 
+                       onmouseout="this.style.background='transparent'"
+                       onclick="Navigation.handleNavClick(event, '${basePath}profile/');">
+                      <i class="ph ph-user" style="font-size: 1.125rem;"></i> <span>My Profile</span>
                     </a>
-                    <a href="${basePath}settings/" class="navbar-link" style="display: flex; align-items: center; gap: 0.75rem; padding: 0.75rem 1rem; border-bottom: 1px solid var(--border-color);" onclick="Navigation.handleNavClick(event, '${basePath}settings/');">
-                      <i class="ph ph-gear"></i> <span>Settings</span>
+                    <a href="${basePath}settings/" class="navbar-link" style="display: flex; align-items: center; gap: 0.75rem; padding: 0.75rem 1rem; transition: background 0.2s;" 
+                       onmouseover="this.style.background='var(--bg-secondary)'" 
+                       onmouseout="this.style.background='transparent'"
+                       onclick="Navigation.handleNavClick(event, '${basePath}settings/');">
+                      <i class="ph ph-gear" style="font-size: 1.125rem;"></i> <span>Settings</span>
                     </a>
-                    <a href="${basePath}notifications/" class="navbar-link" style="display: flex; align-items: center; gap: 0.75rem; padding: 0.75rem 1rem; border-bottom: 1px solid var(--border-color);" onclick="Navigation.handleNavClick(event, '${basePath}notifications/');">
-                      <i class="ph ph-bell"></i> <span>Notifications</span>
+                    <a href="${basePath}notifications/" class="navbar-link" style="display: flex; align-items: center; gap: 0.75rem; padding: 0.75rem 1rem; transition: background 0.2s;" 
+                       onmouseover="this.style.background='var(--bg-secondary)'" 
+                       onmouseout="this.style.background='transparent'"
+                       onclick="Navigation.handleNavClick(event, '${basePath}notifications/');">
+                      <i class="ph ph-bell" style="font-size: 1.125rem;"></i> <span>Notifications</span>
+                      ${unreadCount > 0 ? `<span style="margin-left: auto; background: var(--color-primary); color: white; padding: 0.125rem 0.5rem; border-radius: 12px; font-size: 0.75rem; font-weight: 600;">${unreadCount > 99 ? '99+' : unreadCount}</span>` : ''}
                     </a>
                     ${currentUser.role === 'admin' || currentUser.role === 'platform_admin' ? `
-                    <a href="${basePath}admin/" class="navbar-link" style="display: flex; align-items: center; gap: 0.75rem; padding: 0.75rem 1rem; border-bottom: 1px solid var(--border-color);" onclick="Navigation.handleNavClick(event, '${basePath}admin/');">
-                      <i class="ph ph-gear"></i> <span>Admin Portal</span>
+                    <a href="${basePath}admin/" class="navbar-link" style="display: flex; align-items: center; gap: 0.75rem; padding: 0.75rem 1rem; transition: background 0.2s; border-top: 1px solid var(--border-color); margin-top: 0.25rem; padding-top: 0.875rem;" 
+                       onmouseover="this.style.background='var(--bg-secondary)'" 
+                       onmouseout="this.style.background='transparent'"
+                       onclick="Navigation.handleNavClick(event, '${basePath}admin/');">
+                      <i class="ph ph-shield-check" style="font-size: 1.125rem; color: var(--color-primary);"></i> <span style="font-weight: 500;">Admin Portal</span>
                     </a>
                     ` : ''}
-                    <a href="${basePath}knowledge/" class="navbar-link" style="display: flex; align-items: center; gap: 0.75rem; padding: 0.75rem 1rem; border-bottom: 1px solid var(--border-color);" onclick="Navigation.handleNavClick(event, '${basePath}knowledge/');">
-                      <i class="ph ph-book"></i> <span>Help & Support</span>
+                    <a href="${basePath}knowledge/" class="navbar-link" style="display: flex; align-items: center; gap: 0.75rem; padding: 0.75rem 1rem; transition: background 0.2s;" 
+                       onmouseover="this.style.background='var(--bg-secondary)'" 
+                       onmouseout="this.style.background='transparent'"
+                       onclick="Navigation.handleNavClick(event, '${basePath}knowledge/');">
+                      <i class="ph ph-question" style="font-size: 1.125rem;"></i> <span>Help & Support</span>
                     </a>
                     <hr style="margin: 0.5rem 0; border: none; border-top: 1px solid var(--border-color);">
-                    <button onclick="Navigation.logout()" class="navbar-link logout-link" style="display: flex; align-items: center; gap: 0.75rem; width: 100%; text-align: left; padding: 0.75rem 1rem; background: none; border: none; cursor: pointer;">
-                      <i class="ph ph-sign-out"></i> <span>Logout</span>
+                    <button onclick="Navigation.logout()" class="navbar-link logout-link" style="display: flex; align-items: center; gap: 0.75rem; width: 100%; text-align: left; padding: 0.75rem 1rem; background: none; border: none; cursor: pointer; color: var(--color-error, #dc2626); transition: background 0.2s;" 
+                            onmouseover="this.style.background='var(--bg-secondary)'" 
+                            onmouseout="this.style.background='transparent'">
+                      <i class="ph ph-sign-out" style="font-size: 1.125rem;"></i> <span style="font-weight: 500;">Logout</span>
                     </button>
                   </div>
                 </div>
@@ -345,6 +458,7 @@
     // Setup mobile toggle
     setupMobileToggle();
     setupUserMenu();
+    setupNotifications();
     setupQuickActions();
     setupSearch();
     setupNavLinks();
@@ -379,13 +493,107 @@
         const unreadNotifications = PMTwinData.Notifications.getUnread(currentUser.id);
         const unreadCount = unreadNotifications ? unreadNotifications.length : 0;
         if (unreadCount > 0) {
-          return `<span class="notification-badge" style="position: absolute; top: -4px; right: -4px; width: 18px; height: 18px; background: var(--color-error, #dc2626); color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.625rem; font-weight: var(--font-weight-bold, 700); border: 2px solid var(--bg-primary, white);">${unreadCount > 99 ? '99+' : unreadCount}</span>`;
+          return `<span class="notification-badge" style="position: absolute; top: -2px; right: -2px; min-width: 18px; height: 18px; padding: 0 4px; background: var(--color-error, #dc2626); color: white; border-radius: 9px; display: flex; align-items: center; justify-content: center; font-size: 0.625rem; font-weight: var(--font-weight-bold, 700); border: 2px solid var(--bg-primary, white); box-shadow: 0 2px 4px rgba(0,0,0,0.2);">${unreadCount > 99 ? '99+' : unreadCount}</span>`;
         }
       } catch (error) {
         console.warn('Error getting notification count:', error);
       }
     }
     return '';
+  }
+
+  function getInitials(name) {
+    if (!name) return 'U';
+    const parts = name.trim().split(/\s+/);
+    if (parts.length >= 2) {
+      return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+    }
+    return name.substring(0, 2).toUpperCase();
+  }
+
+  function getUserRoleLabel(role) {
+    const roleLabels = {
+      'admin': 'Administrator',
+      'platform_admin': 'Platform Admin',
+      'beneficiary': 'Beneficiary',
+      'vendor': 'Vendor',
+      'service_provider': 'Service Provider',
+      'skill_service_provider': 'Service Provider',
+      'sub_contractor': 'Sub-Contractor',
+      'consultant': 'Consultant',
+      'individual': 'Individual',
+      'entity': 'Entity',
+      'project_lead': 'Project Lead',
+      'professional': 'Professional',
+      'supplier': 'Supplier'
+    };
+    return roleLabels[role] || role || 'User';
+  }
+
+  function renderNotificationsDropdown(notifications) {
+    if (!notifications || notifications.length === 0) {
+      return `
+        <div style="padding: 2rem; text-align: center; color: var(--text-secondary);">
+          <i class="ph ph-bell-slash" style="font-size: 2rem; margin-bottom: 0.5rem; opacity: 0.5;"></i>
+          <div style="font-size: 0.875rem;">No new notifications</div>
+        </div>
+      `;
+    }
+
+    let html = '';
+    notifications.forEach(notif => {
+      const timeAgo = getTimeAgo(notif.createdAt || notif.timestamp);
+      const icon = getNotificationIcon(notif.type);
+      html += `
+        <a href="${notif.url || '#'}" class="notification-item" 
+           style="display: flex; align-items: flex-start; gap: 0.75rem; padding: 0.875rem 1rem; border-bottom: 1px solid var(--border-color); transition: background 0.2s; text-decoration: none; color: inherit;"
+           onmouseover="this.style.background='var(--bg-secondary)'" 
+           onmouseout="this.style.background='transparent'"
+           onclick="event.preventDefault(); Navigation.handleNavClick(event, '${notif.url || '#'}');">
+          <div style="width: 40px; height: 40px; border-radius: 50%; background: var(--bg-secondary); display: flex; align-items: center; justify-content: center; flex-shrink: 0; color: var(--color-primary);">
+            <i class="ph ${icon}" style="font-size: 1.25rem;"></i>
+          </div>
+          <div style="flex: 1; min-width: 0;">
+            <div style="font-weight: 500; font-size: 0.875rem; margin-bottom: 0.25rem; line-height: 1.3;">${notif.title || 'Notification'}</div>
+            <div style="font-size: 0.75rem; color: var(--text-secondary); line-height: 1.4; margin-bottom: 0.25rem;">${notif.message || notif.body || ''}</div>
+            <div style="font-size: 0.7rem; color: var(--text-secondary);">${timeAgo}</div>
+          </div>
+          ${!notif.read ? `<div style="width: 8px; height: 8px; border-radius: 50%; background: var(--color-primary); flex-shrink: 0; margin-top: 0.25rem;"></div>` : ''}
+        </a>
+      `;
+    });
+    return html;
+  }
+
+  function getNotificationIcon(type) {
+    const icons = {
+      'project': 'ph-buildings',
+      'proposal': 'ph-file-text',
+      'match': 'ph-link',
+      'collaboration': 'ph-handshake',
+      'message': 'ph-chat-circle',
+      'system': 'ph-bell',
+      'alert': 'ph-warning',
+      'success': 'ph-check-circle',
+      'info': 'ph-info'
+    };
+    return icons[type] || 'ph-bell';
+  }
+
+  function getTimeAgo(timestamp) {
+    if (!timestamp) return 'Just now';
+    const now = new Date();
+    const time = new Date(timestamp);
+    const diffMs = now - time;
+    const diffMins = Math.floor(diffMs / 60000);
+    const diffHours = Math.floor(diffMs / 3600000);
+    const diffDays = Math.floor(diffMs / 86400000);
+
+    if (diffMins < 1) return 'Just now';
+    if (diffMins < 60) return `${diffMins}m ago`;
+    if (diffHours < 24) return `${diffHours}h ago`;
+    if (diffDays < 7) return `${diffDays}d ago`;
+    return time.toLocaleDateString();
   }
 
   function setupMobileToggle() {
@@ -412,6 +620,34 @@
       document.addEventListener('click', (e) => {
         if (!btn.contains(e.target) && !menu.contains(e.target)) {
           menu.style.display = 'none';
+        }
+      });
+    }
+  }
+
+  function setupNotifications() {
+    const btn = document.getElementById('notificationsBtn');
+    const dropdown = document.getElementById('notificationsDropdown');
+    if (btn && dropdown) {
+      btn.onclick = (e) => {
+        e.stopPropagation();
+        // Close other dropdowns
+        closeAllDropdowns();
+        dropdown.style.display = dropdown.style.display === 'none' ? 'block' : 'none';
+        
+        // Refresh notifications when opened
+        if (dropdown.style.display === 'block' && typeof PMTwinData !== 'undefined' && currentUser?.id) {
+          const notifications = PMTwinData.Notifications.getUnread(currentUser.id) || [];
+          const list = document.getElementById('notificationsList');
+          if (list) {
+            list.innerHTML = renderNotificationsDropdown(notifications.slice(0, 5));
+          }
+        }
+      };
+      // Close on outside click
+      document.addEventListener('click', (e) => {
+        if (!btn.contains(e.target) && !dropdown.contains(e.target)) {
+          dropdown.style.display = 'none';
         }
       });
     }
@@ -643,10 +879,12 @@
     const userMenu = document.getElementById('userMenuDropdown');
     const quickActions = document.getElementById('quickActionsDropdown');
     const searchResults = document.getElementById('searchResults');
+    const notifications = document.getElementById('notificationsDropdown');
     
     if (userMenu) userMenu.style.display = 'none';
     if (quickActions) quickActions.style.display = 'none';
     if (searchResults) searchResults.style.display = 'none';
+    if (notifications) notifications.style.display = 'none';
   }
 
   // ============================================

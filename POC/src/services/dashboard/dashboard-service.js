@@ -1059,13 +1059,7 @@
       { id: 'pipeline', label: 'Pipeline', route: `${basePath}pipeline/`, feature: 'pipeline_management', icon: '<i class="ph ph-trend-up"></i>' },
       
       // 8. My Services
-      { id: 'my-services', label: 'My Services', route: `${basePath}my-services/`, feature: 'service_portfolio', icon: '<i class="ph ph-briefcase"></i>', alternativeFeatures: ['service_providers'] },
-      
-      // 9. Profile
-      { id: 'profile', label: 'Profile', route: `${basePath}profile/`, feature: 'profile_management', icon: '<i class="ph ph-user"></i>' },
-      
-      // 10. Settings
-      { id: 'settings', label: 'Settings', route: `${basePath}settings/`, feature: 'profile_management', icon: '<i class="ph ph-gear"></i>' }
+      { id: 'my-services', label: 'My Services', route: `${basePath}my-services/`, feature: 'service_portfolio', icon: '<i class="ph ph-briefcase"></i>', alternativeFeatures: ['service_providers'] }
     ];
     
     // Additional menu items (for admin or future expansion)
@@ -1079,9 +1073,6 @@
       { id: 'skills-search', label: 'Search Provider Skills', route: `${basePath}service-providers/skills-search.html`, feature: 'search_service_provider_skills', icon: '<i class="ph ph-magnifying-glass"></i>', roles: ['vendor', 'entity', 'beneficiary'] },
       { id: 'service-engagements', label: 'Service Engagements', route: `${basePath}service-engagements/`, feature: 'service_engagements_view', icon: '<i class="ph ph-handshake"></i>' },
       
-      // Profile & Settings
-      { id: 'profile', label: 'Profile', route: `${basePath}profile/`, feature: 'profile_management', icon: '<i class="ph ph-user"></i>' },
-      { id: 'settings', label: 'Settings', route: `${basePath}settings/`, feature: 'profile_management', icon: '<i class="ph ph-gear"></i>' },
       { id: 'notifications', label: 'Notifications', route: `${basePath}notifications/`, feature: 'notifications', icon: '<i class="ph ph-bell"></i>' },
       
       // Admin Section (will be filtered by RBAC)
