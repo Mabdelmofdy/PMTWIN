@@ -21,7 +21,7 @@
     'project': 'pages/projects/view/',
     'opportunities': 'pages/opportunities/',
     'matches': 'pages/matches/',
-    'proposals': 'pages/proposals/list/',
+    'proposals': 'pages/proposals/',
     'create-proposal': 'pages/proposals/create/',
     'pipeline': 'pages/pipeline/',
     'collaboration': 'pages/collaboration/',

@@ -9,6 +9,18 @@
 
   function init(params) {
     loadProposals();
+    
+    // Add search input listener for real-time filtering
+    const searchInput = document.getElementById('proposalSearch');
+    if (searchInput) {
+      let searchTimeout;
+      searchInput.addEventListener('input', function() {
+        clearTimeout(searchTimeout);
+        searchTimeout = setTimeout(() => {
+          applyFilters();
+        }, 300); // Debounce search
+      });
+    }
   }
 
   // ============================================
@@ -58,19 +70,44 @@
         if (currentFilters.status) {
           proposals = proposals.filter(p => p.status === currentFilters.status);
         }
+        if (currentFilters.category) {
+          proposals = proposals.filter(p => p.type === currentFilters.category);
+        }
         if (currentFilters.projectId) {
           proposals = proposals.filter(p => p.projectId === currentFilters.projectId);
+        }
+        if (currentFilters.search) {
+          const searchTerm = currentFilters.search.toLowerCase();
+          proposals = proposals.filter(p => {
+            const project = PMTwinData?.Projects.getById(p.projectId);
+            const title = (project?.title || '').toLowerCase();
+            const description = (p.serviceDescription || '').toLowerCase();
+            return title.includes(searchTerm) || description.includes(searchTerm);
+          });
+        }
+        if (currentFilters.dateFrom) {
+          proposals = proposals.filter(p => {
+            if (!p.submittedAt) return false;
+            const submittedDate = new Date(p.submittedAt);
+            const fromDate = new Date(currentFilters.dateFrom);
+            return submittedDate >= fromDate;
+          });
+        }
+        if (currentFilters.dateTo) {
+          proposals = proposals.filter(p => {
+            if (!p.submittedAt) return false;
+            const submittedDate = new Date(p.submittedAt);
+            const toDate = new Date(currentFilters.dateTo);
+            toDate.setHours(23, 59, 59, 999); // End of day
+            return submittedDate <= toDate;
+          });
         }
       } else {
         container.innerHTML = '<p class="alert alert-error">Data service not available. Please refresh the page.</p>';
         return;
       }
 
-      if (proposals.length > 0 || !currentFilters.status) {
-        renderProposals(container, proposals);
-      } else {
-        renderProposals(container, proposals);
-      }
+      renderProposals(container, proposals);
     } catch (error) {
       console.error('Error loading proposals:', error);
       container.innerHTML = '<p class="alert alert-error">Error loading proposals. Please try again.</p>';
@@ -79,15 +116,27 @@
 
   // Trigger: getProposals(filters) - Apply filters
   async function applyFilters(event) {
-    event.preventDefault();
+    if (event) event.preventDefault();
     
     const filters = {};
     
     const status = document.getElementById('proposalStatusFilter')?.value;
     if (status) filters.status = status;
     
+    const category = document.getElementById('proposalCategoryFilter')?.value;
+    if (category) filters.category = category;
+    
+    const search = document.getElementById('proposalSearch')?.value;
+    if (search) filters.search = search;
+    
     const projectId = document.getElementById('proposalProjectFilter')?.value;
     if (projectId) filters.projectId = projectId;
+    
+    const dateFrom = document.getElementById('proposalDateFromFilter')?.value;
+    if (dateFrom) filters.dateFrom = dateFrom;
+    
+    const dateTo = document.getElementById('proposalDateToFilter')?.value;
+    if (dateTo) filters.dateTo = dateTo;
     
     currentFilters = filters;
     await loadProposals();
@@ -96,7 +145,19 @@
   function clearFilters() {
     currentFilters = {};
     document.getElementById('proposalFiltersForm')?.reset();
+    const advancedFilters = document.getElementById('advancedFilters');
+    if (advancedFilters) {
+      advancedFilters.style.display = 'none';
+    }
     loadProposals();
+  }
+
+  function toggleAdvancedFilters() {
+    const advancedFilters = document.getElementById('advancedFilters');
+    if (advancedFilters) {
+      const isVisible = advancedFilters.style.display !== 'none';
+      advancedFilters.style.display = isVisible ? 'none' : 'block';
+    }
   }
 
   // Trigger: updateProposalStatus(proposalId, status, reason) - Approve proposal
@@ -159,8 +220,8 @@
       container.innerHTML = `
         <div class="card">
           <div class="card-body" style="text-align: center; padding: 3rem;">
-            <p>No proposals found.</p>
-            <a href="../create-proposal/" class="btn btn-primary" style="margin-top: 1rem;">Create Your First Proposal</a>
+            <p style="margin-bottom: 1rem;">You haven't created any proposals yet.</p>
+            <a href="create/" class="btn btn-primary">Create Your First Proposal</a>
           </div>
         </div>
       `;
@@ -265,6 +326,7 @@
     loadProposals,
     applyFilters,
     clearFilters,
+    toggleAdvancedFilters,
     approveProposal,
     rejectProposal,
     viewProposal

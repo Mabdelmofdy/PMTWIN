@@ -45,11 +45,27 @@
       "destination": "/pages/auth/login/index.html"
     },
     {
+      "source": "/auth/login",
+      "destination": "/pages/auth/login/index.html"
+    },
+    {
+      "source": "/auth/login/",
+      "destination": "/pages/auth/login/index.html"
+    },
+    {
       "source": "/signup",
       "destination": "/pages/auth/signup/index.html"
     },
     {
       "source": "/signup/",
+      "destination": "/pages/auth/signup/index.html"
+    },
+    {
+      "source": "/auth/signup",
+      "destination": "/pages/auth/signup/index.html"
+    },
+    {
+      "source": "/auth/signup/",
       "destination": "/pages/auth/signup/index.html"
     },
     {
@@ -110,11 +126,11 @@
     },
     {
       "source": "/proposals",
-      "destination": "/pages/proposals/list/index.html"
+      "destination": "/pages/proposals/index.html"
     },
     {
       "source": "/proposals/",
-      "destination": "/pages/proposals/list/index.html"
+      "destination": "/pages/proposals/index.html"
     },
     {
       "source": "/create-proposal",

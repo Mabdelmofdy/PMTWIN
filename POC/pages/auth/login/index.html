@@ -4,6 +4,29 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Login - PMTwin</title>
+    <script>
+        // Set base path dynamically based on current location
+        // This fixes path resolution when accessed via Vercel rewrites (/auth/login/ -> /POC/pages/auth/login/index.html)
+        (function() {
+            const currentPath = window.location.pathname;
+            let basePath;
+            
+            // If accessed via /auth/login/ or /login/, set base to actual file location
+            if (currentPath.match(/^\/(auth\/)?login\/?$/)) {
+                basePath = '/POC/pages/auth/login/';
+            } else if (currentPath.includes('/pages/auth/login')) {
+                // Already in correct path structure - use current path as base
+                basePath = currentPath.endsWith('/') ? currentPath : currentPath + '/';
+            } else {
+                // Default fallback
+                basePath = '/POC/pages/auth/login/';
+            }
+            
+            const base = document.createElement('base');
+            base.href = basePath;
+            document.head.insertBefore(base, document.head.firstChild);
+        })();
+    </script>
     <link rel="stylesheet" href="../../../assets/css/main.css">
 </head>
 <body class="login-page">
