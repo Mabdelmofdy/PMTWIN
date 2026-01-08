@@ -6,6 +6,23 @@
 (function() {
   'use strict';
 
+  // ============================================
+  // Get Base Path Helper
+  // ============================================
+  function getBasePath() {
+    const currentPath = window.location.pathname;
+    const segments = currentPath.split('/').filter(p => p && !p.endsWith('.html') && p !== 'POC');
+    const pagesIndex = segments.indexOf('pages');
+    
+    if (pagesIndex >= 0) {
+      const depth = segments.length - pagesIndex - 1;
+      return depth > 0 ? '../'.repeat(depth) : '';
+    }
+    
+    const depth = segments.length - 1;
+    return depth > 0 ? '../'.repeat(depth) : '';
+  }
+
   const AdminServiceRequests = {
     async init() {
       await this.loadRequests();
@@ -117,7 +134,7 @@
                       <td>${request.budget?.min || 0} - ${request.budget?.max || 0} ${request.budget?.currency || 'SAR'}</td>
                       <td>${new Date(request.createdAt).toLocaleDateString()}</td>
                       <td>
-                        <a href="../../../service-requests/view/?id=${request.id}" class="btn btn-sm btn-primary">View</a>
+                        <a href="${getBasePath()}service-requests/view/?id=${request.id}" class="btn btn-sm btn-primary">View</a>
                       </td>
                     </tr>
                   `;

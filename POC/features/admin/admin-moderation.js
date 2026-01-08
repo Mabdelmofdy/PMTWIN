@@ -7,6 +7,23 @@
 
   let currentFilters = {};
 
+  // ============================================
+  // Get Base Path Helper
+  // ============================================
+  function getBasePath() {
+    const currentPath = window.location.pathname;
+    const segments = currentPath.split('/').filter(p => p && !p.endsWith('.html') && p !== 'POC');
+    const pagesIndex = segments.indexOf('pages');
+    
+    if (pagesIndex >= 0) {
+      const depth = segments.length - pagesIndex - 1;
+      return depth > 0 ? '../'.repeat(depth) : '';
+    }
+    
+    const depth = segments.length - 1;
+    return depth > 0 ? '../'.repeat(depth) : '';
+  }
+
   function init(params) {
     loadProjects();
   }
@@ -139,7 +156,7 @@
             <p style="margin-bottom: 1rem;">${(project.description || '').substring(0, 200)}...</p>
             
             <div style="display: flex; gap: 1rem;">
-              <a href="../project/?id=${project.id}" class="btn btn-primary btn-sm">View Details</a>
+              <a href="${getBasePath()}project/?id=${project.id}" class="btn btn-primary btn-sm">View Details</a>
               ${project.status !== 'active' ? `
                 <button onclick="adminModerationComponent.moderateProject('${project.id}', 'approve')" class="btn btn-success btn-sm">
                   Approve

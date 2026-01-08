@@ -93,6 +93,14 @@
       "destination": "/pages/projects/index.html"
     },
     {
+      "source": "/my-projects",
+      "destination": "/pages/my-projects/index.html"
+    },
+    {
+      "source": "/my-projects/",
+      "destination": "/pages/my-projects/index.html"
+    },
+    {
       "source": "/create-project",
       "destination": "/pages/projects/create/index.html"
     },
@@ -339,6 +347,14 @@
     {
       "source": "/service-requests/",
       "destination": "/pages/service-requests/index.html"
+    },
+    {
+      "source": "/service-requests/view",
+      "destination": "/pages/service-requests/view/index.html"
+    },
+    {
+      "source": "/service-requests/view/",
+      "destination": "/pages/service-requests/view/index.html"
     },
     {
       "source": "/services-marketplace",

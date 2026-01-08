@@ -6,8 +6,11 @@
   'use strict';
 
   let currentFilters = {};
+  let currentTab = 'mySubmitted';
 
   function init(params) {
+    // Check if user can view incoming proposals (Beneficiary)
+    checkIncomingTabAccess();
     loadProposals();
     
     // Add search input listener for real-time filtering
@@ -23,6 +26,32 @@
     }
   }
 
+  function checkIncomingTabAccess() {
+    if (typeof PMTwinData === 'undefined') return;
+    
+    const currentUser = PMTwinData.Sessions.getCurrentUser();
+    if (!currentUser) return;
+    
+    const userRole = currentUser.role || currentUser.userType;
+    const canViewIncoming = userRole === 'beneficiary' || userRole === 'entity' || userRole === 'project_lead';
+    
+    const incomingTabBtn = document.getElementById('incomingTabBtn');
+    if (incomingTabBtn) {
+      incomingTabBtn.style.display = canViewIncoming ? 'block' : 'none';
+    }
+  }
+
+  function showTab(tabName) {
+    currentTab = tabName;
+    
+    // Update tab buttons
+    document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+    event.target.classList.add('active');
+    
+    // Reload proposals for the selected tab
+    loadProposals();
+  }
+
   // ============================================
   // HTML Triggers for ProposalService Functions
   // ============================================
@@ -36,12 +65,29 @@
       container.innerHTML = '<p>Loading proposals...</p>';
 
       let proposals = [];
+      let result;
       
       // Try ProposalService first
       if (typeof ProposalService !== 'undefined') {
-        const result = await ProposalService.getProposals(currentFilters);
+        if (currentTab === 'mySubmitted') {
+          result = await ProposalService.getMyProposals();
+        } else if (currentTab === 'incoming') {
+          result = await ProposalService.getIncomingProposals();
+        } else {
+          result = await ProposalService.getProposals(currentFilters);
+        }
+        
         if (result.success && result.proposals) {
           proposals = result.proposals;
+          
+          // Update counts
+          if (currentTab === 'mySubmitted') {
+            const countEl = document.getElementById('mySubmittedCount');
+            if (countEl) countEl.textContent = proposals.length;
+          } else if (currentTab === 'incoming') {
+            const countEl = document.getElementById('incomingCount');
+            if (countEl) countEl.textContent = proposals.length;
+          }
         } else {
           container.innerHTML = `<p class="alert alert-error">${result.error || 'Failed to load proposals'}</p>`;
           return;
@@ -197,7 +243,7 @@
         return;
       }
 
-      const result = await ProposalService.updateProposalStatus(proposalId, 'rejected', reason);
+      const result = await ProposalService.updateProposalStatus(proposalId, 'REJECTED', null, reason);
       
       if (result.success) {
         alert('Proposal rejected');
@@ -208,6 +254,53 @@
     } catch (error) {
       console.error('Error rejecting proposal:', error);
       alert('Error rejecting proposal');
+    }
+  }
+
+  // Update proposal status
+  async function updateStatus(proposalId, status) {
+    try {
+      if (typeof ProposalService === 'undefined') {
+        alert('Proposal service not available');
+        return;
+      }
+
+      const result = await ProposalService.updateProposalStatus(proposalId, status);
+      
+      if (result.success) {
+        await loadProposals();
+      } else {
+        alert(result.error || 'Failed to update proposal status');
+      }
+    } catch (error) {
+      console.error('Error updating proposal status:', error);
+      alert('Error updating proposal status');
+    }
+  }
+
+  // Award proposal
+  async function awardProposal(proposalId) {
+    if (!confirm('Are you sure you want to award this proposal? This will create a contract and engagement.')) {
+      return;
+    }
+
+    try {
+      if (typeof ProposalAwardService === 'undefined') {
+        alert('Proposal award service not available');
+        return;
+      }
+
+      const result = await ProposalAwardService.awardProposal(proposalId);
+      
+      if (result.success) {
+        alert('Proposal awarded successfully! Contract and engagement created.');
+        await loadProposals();
+      } else {
+        alert(result.error || 'Failed to award proposal');
+      }
+    } catch (error) {
+      console.error('Error awarding proposal:', error);
+      alert('Error awarding proposal');
     }
   }
 
@@ -231,13 +324,28 @@
     let html = '<div style="display: grid; gap: 1.5rem;">';
     
     proposals.forEach(proposal => {
-      const project = PMTwinData?.Projects.getById(proposal.projectId);
-      const provider = PMTwinData?.Users.getById(proposal.providerId);
+      // Get target opportunity
+      let target = null;
+      if (proposal.targetType === 'PROJECT' || proposal.targetType === 'MEGA_PROJECT') {
+        target = PMTwinData?.Projects.getById(proposal.targetId || proposal.projectId);
+      } else if (proposal.targetType === 'SERVICE_REQUEST') {
+        target = PMTwinData?.ServiceRequests.getById(proposal.targetId);
+      }
+      
+      const provider = PMTwinData?.Users.getById(proposal.bidderCompanyId || proposal.providerId);
+      const currentUser = PMTwinData?.Sessions.getCurrentUser();
+      const isOwner = currentUser && proposal.ownerCompanyId === currentUser.id;
+      const isBidder = currentUser && (proposal.bidderCompanyId || proposal.providerId) === currentUser.id;
+      
       const statusColors = {
-        'approved': 'success',
-        'rejected': 'error',
-        'in_review': 'warning',
-        'completed': 'info'
+        'DRAFT': 'secondary',
+        'SUBMITTED': 'info',
+        'UNDER_REVIEW': 'warning',
+        'SHORTLISTED': 'info',
+        'NEGOTIATION': 'warning',
+        'AWARDED': 'success',
+        'REJECTED': 'error',
+        'WITHDRAWN': 'secondary'
       };
       
       // Format dates
@@ -249,18 +357,19 @@
           <div class="card-body">
             <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 1rem;">
               <div style="flex: 1;">
-                <h3 style="margin: 0 0 0.5rem 0;">${project?.title || 'Project ' + proposal.projectId}</h3>
+                <h3 style="margin: 0 0 0.5rem 0;">${target?.title || proposal.targetType + ' ' + (proposal.targetId || proposal.projectId)}</h3>
                 <p style="margin: 0; color: var(--text-secondary); font-size: 0.9rem;">
-                  <strong>Type:</strong> ${proposal.type || 'N/A'} • 
+                  <strong>Type:</strong> ${proposal.proposalType || proposal.type || 'N/A'} • 
+                  <strong>Target:</strong> ${proposal.targetType || 'N/A'} • 
                   <strong>Total:</strong> ${proposal.total ? proposal.total.toLocaleString() + ' ' + (proposal.currency || 'SAR') : 'N/A'} • 
                   <strong>Submitted:</strong> ${submittedDate}
                 </p>
-                ${provider ? `<p style="margin: 0.25rem 0 0 0; color: var(--text-secondary); font-size: 0.85rem;">
-                  <strong>Provider:</strong> ${provider.profile?.name || provider.email || 'Unknown'}
+                ${currentTab === 'incoming' && provider ? `<p style="margin: 0.25rem 0 0 0; color: var(--text-secondary); font-size: 0.85rem;">
+                  <strong>Bidder:</strong> ${provider.profile?.name || provider.email || 'Unknown'}
                 </p>` : ''}
               </div>
               <span class="badge badge-${statusColors[proposal.status] || 'secondary'}" style="margin-left: 1rem;">
-                ${(proposal.status || 'unknown').replace('_', ' ').toUpperCase()}
+                ${(proposal.status || 'unknown').replace('_', ' ')}
               </span>
             </div>
             
@@ -296,13 +405,36 @@
               <button onclick="proposalsListComponent.viewProposal('${proposal.id}')" class="btn btn-primary btn-sm">
                 <i class="ph ph-eye"></i> View Details
               </button>
-              ${proposal.status === 'in_review' && (typeof PMTwinData !== 'undefined' && PMTwinData.Sessions.getCurrentUser()?.id === project?.creatorId) ? `
-                <button onclick="proposalsListComponent.approveProposal('${proposal.id}')" class="btn btn-success btn-sm">
-                  <i class="ph ph-check"></i> Approve
-                </button>
-                <button onclick="proposalsListComponent.rejectProposal('${proposal.id}')" class="btn btn-danger btn-sm">
-                  <i class="ph ph-x"></i> Reject
-                </button>
+              ${currentTab === 'incoming' && isOwner ? `
+                ${proposal.status === 'SUBMITTED' || proposal.status === 'UNDER_REVIEW' ? `
+                  <button onclick="proposalsListComponent.updateStatus('${proposal.id}', 'SHORTLISTED')" class="btn btn-info btn-sm">
+                    <i class="ph ph-star"></i> Shortlist
+                  </button>
+                ` : ''}
+                ${proposal.status === 'SHORTLISTED' ? `
+                  <button onclick="proposalsListComponent.updateStatus('${proposal.id}', 'NEGOTIATION')" class="btn btn-warning btn-sm">
+                    <i class="ph ph-handshake"></i> Negotiate
+                  </button>
+                  <button onclick="proposalsListComponent.awardProposal('${proposal.id}')" class="btn btn-success btn-sm">
+                    <i class="ph ph-trophy"></i> Award
+                  </button>
+                ` : ''}
+                ${proposal.status === 'NEGOTIATION' ? `
+                  <button onclick="proposalsListComponent.awardProposal('${proposal.id}')" class="btn btn-success btn-sm">
+                    <i class="ph ph-trophy"></i> Award
+                  </button>
+                ` : ''}
+                ${['SUBMITTED', 'UNDER_REVIEW', 'SHORTLISTED', 'NEGOTIATION'].includes(proposal.status) ? `
+                  <button onclick="proposalsListComponent.updateStatus('${proposal.id}', 'REJECTED')" class="btn btn-danger btn-sm">
+                    <i class="ph ph-x"></i> Reject
+                  </button>
+                ` : ''}
+              ` : currentTab === 'mySubmitted' && isBidder ? `
+                ${['DRAFT', 'SUBMITTED', 'UNDER_REVIEW'].includes(proposal.status) ? `
+                  <button onclick="proposalsListComponent.updateStatus('${proposal.id}', 'WITHDRAWN')" class="btn btn-secondary btn-sm">
+                    <i class="ph ph-arrow-arc-left"></i> Withdraw
+                  </button>
+                ` : ''}
               ` : ''}
             </div>
           </div>
@@ -323,12 +455,15 @@
   if (!window.proposals) window.proposals = {};
   window.proposals['proposals-list'] = {
     init,
+    showTab,
     loadProposals,
     applyFilters,
     clearFilters,
     toggleAdvancedFilters,
     approveProposal,
     rejectProposal,
+    updateStatus,
+    awardProposal,
     viewProposal,
     renderProposals
   };

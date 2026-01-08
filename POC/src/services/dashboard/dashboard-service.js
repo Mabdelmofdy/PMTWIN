@@ -1040,8 +1040,10 @@
       // 1. Dashboard
       { id: 'dashboard', label: 'Dashboard', route: `${basePath}dashboard/`, feature: 'user_dashboard', icon: '<i class="ph ph-gauge"></i>' },
       
-      // 2. My Projects
-      { id: 'projects', label: 'My Projects', route: `${basePath}projects/`, feature: 'project_management', icon: '<i class="ph ph-buildings"></i>', alternativeFeatures: ['project_browsing'] },
+      // 2. My Projects (new page)
+      { id: 'my-projects', label: 'My Projects', route: `${basePath}my-projects/`, feature: 'view_my_projects', icon: '<i class="ph ph-folder"></i>', alternativeFeatures: ['project_management'] },
+      // 2b. Projects (legacy, for browsing)
+      { id: 'projects', label: 'Projects', route: `${basePath}projects/`, feature: 'project_browsing', icon: '<i class="ph ph-buildings"></i>', alternativeFeatures: ['project_management'] },
       
       // 3. Create Project
       { id: 'create-project', label: 'Create Project', route: `${basePath}projects/create/`, feature: 'project_creation', icon: '<i class="ph ph-plus-circle"></i>' },
@@ -1049,8 +1051,12 @@
       // 4. Opportunities
       { id: 'opportunities', label: 'Opportunities', route: `${basePath}opportunities/`, feature: 'matches_view', icon: '<i class="ph ph-sparkle"></i>' },
       
-      // 5. Matches
-      { id: 'matches', label: 'Matches', route: `${basePath}matches/`, feature: 'matches_view', icon: '<i class="ph ph-link"></i>' },
+      // 5. Matches / Opportunities
+      { id: 'matches', label: 'Matches', route: `${basePath}matches/`, feature: 'view_matches', icon: '<i class="ph ph-link"></i>', alternativeFeatures: ['matches_view'] },
+      // 6. Proposals
+      { id: 'proposals', label: 'Proposals', route: `${basePath}proposals/`, feature: 'proposal_management', icon: '<i class="ph ph-file-text"></i>', alternativeFeatures: ['view_own_proposals', 'view_incoming_proposals'] },
+      // 7. Pipeline
+      { id: 'pipeline', label: 'Pipeline', route: `${basePath}pipeline/`, feature: 'pipeline_management', icon: '<i class="ph ph-git-branch"></i>', alternativeFeatures: ['proposal_management'] },
       
       // 6. Proposals
       { id: 'proposals', label: 'Proposals', route: `${basePath}proposals/`, feature: 'proposal_management', icon: '<i class="ph ph-file-text"></i>', alternativeFeatures: ['proposal_creation', 'proposal_review'] },

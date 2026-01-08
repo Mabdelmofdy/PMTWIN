@@ -5,6 +5,23 @@
 (function() {
   'use strict';
 
+  // ============================================
+  // Get Base Path Helper
+  // ============================================
+  function getBasePath() {
+    const currentPath = window.location.pathname;
+    const segments = currentPath.split('/').filter(p => p && !p.endsWith('.html') && p !== 'POC');
+    const pagesIndex = segments.indexOf('pages');
+    
+    if (pagesIndex >= 0) {
+      const depth = segments.length - pagesIndex - 1;
+      return depth > 0 ? '../'.repeat(depth) : '';
+    }
+    
+    const depth = segments.length - 1;
+    return depth > 0 ? '../'.repeat(depth) : '';
+  }
+
   function init(params) {
     loadOpportunities();
   }
@@ -91,7 +108,7 @@
               </div>
               
               <div style="display: flex; gap: 1rem;">
-                <a href="../project/?id=${project.id}" class="btn btn-primary btn-sm">View Project</a>
+                <a href="${getBasePath()}project/?id=${project.id}" class="btn btn-primary btn-sm">View Project</a>
                 <a href="../create-proposal/?projectId=${project.id}" class="btn btn-success btn-sm">Submit Proposal</a>
                 <a href="../matches/" class="btn btn-secondary btn-sm">View All Matches</a>
               </div>

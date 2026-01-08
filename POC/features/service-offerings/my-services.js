@@ -17,6 +17,23 @@
   let engagements = [];
 
   // ============================================
+  // Get Base Path Helper
+  // ============================================
+  function getBasePath() {
+    const currentPath = window.location.pathname;
+    const segments = currentPath.split('/').filter(p => p && !p.endsWith('.html') && p !== 'POC');
+    const pagesIndex = segments.indexOf('pages');
+    
+    if (pagesIndex >= 0) {
+      const depth = segments.length - pagesIndex - 1;
+      return depth > 0 ? '../'.repeat(depth) : '';
+    }
+    
+    const depth = segments.length - 1;
+    return depth > 0 ? '../'.repeat(depth) : '';
+  }
+
+  // ============================================
   // Initialization
   // ============================================
   async function init() {
@@ -480,7 +497,7 @@
             
             <div style="display: flex; gap: 0.5rem; margin-top: 1rem; flex-wrap: wrap;">
               ${request ? `
-                <a href="../service-requests/view.html?id=${request.id}" class="btn btn-primary btn-sm">
+                <a href="${getBasePath()}service-requests/view/?id=${request.id}" class="btn btn-primary btn-sm">
                   <i class="ph ph-eye"></i> View Request
                 </a>
               ` : ''}
@@ -640,7 +657,7 @@
             
             <div style="display: flex; gap: 0.5rem; margin-top: 1rem; flex-wrap: wrap;">
               ${request ? `
-                <a href="../service-requests/view.html?id=${request.id}" class="btn btn-primary btn-sm">
+                <a href="${getBasePath()}service-requests/view/?id=${request.id}" class="btn btn-primary btn-sm">
                   <i class="ph ph-eye"></i> View Request
                 </a>
               ` : ''}

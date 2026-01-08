@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Projects - PMTwin</title>
+    <link rel="stylesheet" href="../../assets/css/main.css">
+</head>
+<body>
+    <!-- Main Content - Sidebar and Navbar are automatically added by layout system -->
+    <main class="page-wrapper">
+        <div class="container">
+            <!-- Page Header -->
+            <div class="page-header">
+                <div class="page-header-content">
+                    <div>
+                        <h1>My Projects</h1>
+                        <p>Manage your projects, mega-projects, and service requests</p>
+                    </div>
+                    <div class="page-actions">
+                        <a href="../projects/create/" class="btn btn-primary">
+                            <i class="ph ph-plus"></i> Create Project
+                        </a>
+                        <a href="../service-requests/create/" class="btn btn-secondary">
+                            <i class="ph ph-plus"></i> Create Service Request
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tabs -->
+            <div class="content-section">
+                <div class="tabs">
+                    <button class="tab-btn active" onclick="myProjectsComponent.showTab('projects')">
+                        Projects <span id="projectsCount" class="badge">0</span>
+                    </button>
+                    <button class="tab-btn" onclick="myProjectsComponent.showTab('megaProjects')">
+                        Mega Projects <span id="megaProjectsCount" class="badge">0</span>
+                    </button>
+                    <button class="tab-btn" onclick="myProjectsComponent.showTab('serviceRequests')">
+                        Service Requests <span id="serviceRequestsCount" class="badge">0</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Projects Tab Content -->
+            <div id="projectsTab" class="content-section tab-content active">
+                <div id="projectsList">
+                    <!-- Projects will be loaded here -->
+                </div>
+            </div>
+
+            <!-- Mega Projects Tab Content -->
+            <div id="megaProjectsTab" class="content-section tab-content" style="display: none;">
+                <div id="megaProjectsList">
+                    <!-- Mega Projects will be loaded here -->
+                </div>
+            </div>
+
+            <!-- Service Requests Tab Content -->
+            <div id="serviceRequestsTab" class="content-section tab-content" style="display: none;">
+                <div id="serviceRequestsList">
+                    <!-- Service Requests will be loaded here -->
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Configuration (must load first) -->
+    <script src="../../src/config/config.js"></script>
+    
+    <!-- API Layer (for future Java backend integration) -->
+    <script src="../../src/core/api/api-client.js"></script>
+    <script src="../../src/core/api/api-service.js"></script>
+    
+    <!-- Core Scripts -->
+    <script src="../../src/core/data/golden-seed-data.js"></script>
+    <script src="../../src/core/data/data.js"></script>
+    <script src="../../src/core/auth/auth.js"></script>
+    <script src="../../src/core/auth/auth-check.js"></script>
+    <script src="../../src/utils/demo-credentials.js"></script>
+    <script src="../../src/services/services-loader.js"></script>
+    <script src="../../data/data-loader.js"></script>
+    
+    <!-- Services -->
+    <script src="../../src/services/projects/my-projects-service.js"></script>
+    
+    <!-- Layout System (automatically includes sidebar and navbar) -->
+    <script src="../../src/core/layout/layout.js"></script>
+    <script src="../../src/core/layout/navigation.js"></script>
+    <script src="../../src/core/init/app-init.js"></script>
+    
+    <!-- Component Scripts -->
+    <script src="../../features/projects/my-projects.js"></script>
+    
+    <!-- Initialize Component -->
+    <script>
+        async function initializeMyProjects() {
+            if (typeof myProjectsComponent !== 'undefined') {
+                await myProjectsComponent.init();
+            } else {
+                console.error('myProjectsComponent not available');
+            }
+        }
+        
+        // Initialize when DOM is ready
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', initializeMyProjects);
+        } else {
+            initializeMyProjects();
+        }
+    </script>
+</body>
+</html>

@@ -41,19 +41,79 @@
       }
     }
     
-    // Set provider ID and proposal type
+    // Set provider ID and bidder company ID
     proposalData.providerId = currentUser.id;
+    proposalData.bidderCompanyId = currentUser.id; // Users represent companies
     
-    // Set proposal type based on role
-    if (!proposalData.proposalType) {
-      if (userRole === 'sub_contractor') {
-        proposalData.proposalType = 'sub_contractor_to_vendor';
-      } else if (userRole === 'vendor' || userRole === 'service_provider') {
-        proposalData.proposalType = 'vendor_to_entity';
+    // Determine target opportunity and validate role constraints
+    let targetOpportunity = null;
+    let targetType = proposalData.targetType;
+    let targetId = proposalData.targetId;
+    
+    // Backward compatibility: use projectId if targetId not provided
+    if (!targetId && proposalData.projectId) {
+      targetId = proposalData.projectId;
+      targetType = 'PROJECT';
+      const project = PMTwinData.Projects.getById(targetId);
+      if (project && project.projectType === 'mega') {
+        targetType = 'MEGA_PROJECT';
       }
+      targetOpportunity = project;
+    } else if (targetId && targetType === 'PROJECT') {
+      targetOpportunity = PMTwinData.Projects.getById(targetId);
+    } else if (targetId && targetType === 'MEGA_PROJECT') {
+      targetOpportunity = PMTwinData.Projects.getById(targetId);
+    } else if (targetId && targetType === 'SERVICE_REQUEST') {
+      targetOpportunity = PMTwinData.ServiceRequests.getById(targetId);
     }
     
-    // Set scope type if not provided
+    // Validate role constraints
+    if (userRole === 'skill_service_provider' || userRole === 'service_provider') {
+      // Service Provider: can only propose to SERVICE_REQUEST
+      if (targetType !== 'SERVICE_REQUEST') {
+        return { success: false, error: 'Service Providers can only submit proposals to Service Requests, not Projects or Mega-Projects' };
+      }
+      if (!proposalData.proposalType) {
+        proposalData.proposalType = 'SERVICE_OFFER';
+      }
+    } else if (userRole === 'vendor' || userRole === 'project_lead' || userRole === 'service_provider') {
+      // Vendor: can only propose to PROJECT/MEGA_PROJECT
+      if (targetType !== 'PROJECT' && targetType !== 'MEGA_PROJECT') {
+        return { success: false, error: 'Vendors can only submit proposals to Projects or Mega-Projects' };
+      }
+      if (!proposalData.proposalType) {
+        proposalData.proposalType = 'PROJECT_BID';
+      }
+    } else if (userRole === 'consultant') {
+      // Consultant: can only propose to ADVISORY_REQUEST or SERVICE_REQUEST (requestType=ADVISORY)
+      if (targetType === 'SERVICE_REQUEST' && targetOpportunity) {
+        if (targetOpportunity.requestType !== 'ADVISORY' && targetOpportunity.requestType !== 'advisory') {
+          return { success: false, error: 'Consultants can only submit proposals to Advisory requests' };
+        }
+      } else if (targetType !== 'ADVISORY_REQUEST') {
+        return { success: false, error: 'Consultants can only submit proposals to Advisory requests' };
+      }
+      if (!proposalData.proposalType) {
+        proposalData.proposalType = 'ADVISORY_OFFER';
+      }
+    } else if (userRole === 'beneficiary' || userRole === 'entity') {
+      return { success: false, error: 'Beneficiaries cannot submit proposals. They only receive proposals.' };
+    }
+    
+    // Validate: bidderCompanyId must not equal ownerCompanyId
+    if (targetOpportunity) {
+      const ownerCompanyId = targetOpportunity.ownerCompanyId || targetOpportunity.creatorId || targetOpportunity.requesterId;
+      if (proposalData.bidderCompanyId === ownerCompanyId) {
+        return { success: false, error: 'Cannot submit proposal to your own opportunity' };
+      }
+      proposalData.ownerCompanyId = ownerCompanyId;
+    }
+    
+    // Set targetType and targetId
+    proposalData.targetType = targetType;
+    proposalData.targetId = targetId;
+    
+    // Set scope type if not provided (backward compatibility)
     if (!proposalData.scopeType) {
       if (userRole === 'sub_contractor') {
         proposalData.scopeType = 'minor_scope';
@@ -62,6 +122,11 @@
       } else {
         proposalData.scopeType = 'full_project';
       }
+    }
+    
+    // Set status (default to SUBMITTED, allow DRAFT)
+    if (!proposalData.status) {
+      proposalData.status = 'SUBMITTED';
     }
     
     const proposal = PMTwinData.Proposals.create(proposalData);
@@ -208,16 +273,15 @@
       if (canViewAll) {
         proposals = PMTwinData.Proposals.getAll();
       } else if (canViewOwn) {
-        proposals = PMTwinData.Proposals.getByProvider(currentUser.id);
+        // Use new model: get by bidderCompanyId
+        proposals = PMTwinData.Proposals.getByBidderCompany(currentUser.id);
       } else if (canViewReceived) {
-        // Get proposals for projects created by this user
-        const userProjects = PMTwinData.Projects.getByCreator(currentUser.id);
-        const projectIds = userProjects.map(p => p.id);
-        proposals = PMTwinData.Proposals.getAll().filter(p => projectIds.includes(p.projectId));
+        // Use new model: get by ownerCompanyId
+        proposals = PMTwinData.Proposals.getByOwnerCompany(currentUser.id);
       }
     } else {
-      // Fallback to legacy behavior
-      proposals = PMTwinData.Proposals.getByProvider(currentUser.id);
+      // Fallback: use new model
+      proposals = PMTwinData.Proposals.getByBidderCompany(currentUser.id);
     }
     
     // Apply filters
@@ -225,13 +289,63 @@
       proposals = proposals.filter(p => p.status === filters.status);
     }
     if (filters.projectId) {
-      proposals = proposals.filter(p => p.projectId === filters.projectId);
+      proposals = proposals.filter(p => p.projectId === filters.projectId || p.targetId === filters.projectId);
+    }
+    if (filters.targetType) {
+      proposals = proposals.filter(p => p.targetType === filters.targetType);
     }
     
     return { success: true, proposals: proposals };
   }
 
-  async function updateProposalStatus(proposalId, status, reason = null) {
+  // ============================================
+  // Get My Proposals (submitted by current company)
+  // ============================================
+  async function getMyProposals(companyId = null) {
+    if (typeof PMTwinData === 'undefined') {
+      return { success: false, error: 'Data service not available' };
+    }
+    
+    const currentUser = PMTwinData.Sessions.getCurrentUser();
+    if (!currentUser) {
+      return { success: false, error: 'User not authenticated' };
+    }
+    
+    const bidderCompanyId = companyId || currentUser.id; // Users represent companies
+    const proposals = PMTwinData.Proposals.getByBidderCompany(bidderCompanyId);
+    
+    return { success: true, proposals: proposals };
+  }
+
+  // ============================================
+  // Get Incoming Proposals (for Beneficiary)
+  // ============================================
+  async function getIncomingProposals(companyId = null) {
+    if (typeof PMTwinData === 'undefined') {
+      return { success: false, error: 'Data service not available' };
+    }
+    
+    const currentUser = PMTwinData.Sessions.getCurrentUser();
+    if (!currentUser) {
+      return { success: false, error: 'User not authenticated' };
+    }
+    
+    // Check if user is Beneficiary
+    const userRole = currentUser.role || currentUser.userType;
+    if (userRole !== 'beneficiary' && userRole !== 'entity' && userRole !== 'project_lead') {
+      return { success: false, error: 'Only Beneficiaries can view incoming proposals' };
+    }
+    
+    const ownerCompanyId = companyId || currentUser.id; // Users represent companies
+    const proposals = PMTwinData.Proposals.getByOwnerCompany(ownerCompanyId);
+    
+    return { success: true, proposals: proposals };
+  }
+
+  // ============================================
+  // Update Proposal Status (Role-aware)
+  // ============================================
+  async function updateProposalStatus(proposalId, status, companyId = null, reason = null) {
     if (typeof PMTwinData === 'undefined') {
       return { success: false, error: 'Data service not available' };
     }
@@ -260,16 +374,51 @@
         return { success: false, error: 'You do not have permission to reject proposals' };
       }
       
-      // Check if user owns the project
-      const project = PMTwinData.Projects.getById(proposal.projectId);
-      if (project && project.creatorId !== currentUser.id && !canApprove) {
-        return { success: false, error: 'You can only approve/reject proposals for your own projects' };
+      // Check if user owns the opportunity (using ownerCompanyId)
+      const ownerCompanyId = proposal.ownerCompanyId;
+      if (ownerCompanyId && ownerCompanyId !== currentUser.id && !canApprove) {
+        return { success: false, error: 'You can only approve/reject proposals for your own opportunities' };
       }
-    } else {
-      // Editing own proposal
-      if (proposal.providerId !== currentUser.id) {
-        return { success: false, error: 'You can only edit your own proposals' };
+      
+      // Backward compatibility: check project creatorId
+      if (!ownerCompanyId && proposal.projectId) {
+        const project = PMTwinData.Projects.getById(proposal.projectId);
+        if (project && project.creatorId !== currentUser.id && project.ownerCompanyId !== currentUser.id && !canApprove) {
+          return { success: false, error: 'You can only approve/reject proposals for your own projects' };
+        }
       }
+    // Normalize status to uppercase
+    status = status.toUpperCase();
+    
+    // Get company IDs
+    const ownerCompanyId = proposal.ownerCompanyId;
+    const bidderCompanyId = proposal.bidderCompanyId || proposal.providerId;
+    const currentCompanyId = companyId || currentUser.id; // Users represent companies
+    
+    // Determine who is making the change
+    const isOwner = ownerCompanyId === currentCompanyId;
+    const isBidder = bidderCompanyId === currentCompanyId;
+    
+    if (!isOwner && !isBidder) {
+      return { success: false, error: 'You can only update proposals you own or submitted' };
+    }
+    
+    // Owner can: UNDER_REVIEW, SHORTLISTED, NEGOTIATION, AWARDED, REJECTED
+    if (isOwner) {
+      const ownerAllowedStatuses = ['UNDER_REVIEW', 'SHORTLISTED', 'NEGOTIATION', 'AWARDED', 'REJECTED'];
+      if (!ownerAllowedStatuses.includes(status)) {
+        return { success: false, error: `Owner cannot set status to: ${status}. Allowed: ${ownerAllowedStatuses.join(', ')}` };
+      }
+    }
+    
+    // Bidder can: WITHDRAW (only if status allows)
+    if (isBidder && status === 'WITHDRAWN') {
+      const allowedStatuses = ['DRAFT', 'SUBMITTED', 'UNDER_REVIEW'];
+      if (!allowedStatuses.includes(proposal.status)) {
+        return { success: false, error: `Cannot withdraw proposal with status: ${proposal.status}` };
+      }
+    } else if (isBidder && status !== 'WITHDRAWN') {
+      return { success: false, error: 'Bidders can only withdraw proposals, not change status to: ' + status };
     }
     
     const updates = { status: status };
@@ -277,26 +426,17 @@
       updates.rejectionReason = reason;
     }
     
-    // If approving, set approvedAt timestamp
-    if (status === 'approved') {
-      updates.approvedAt = new Date().toISOString();
+    // Set timestamps for status changes
+    if (status === 'AWARDED') {
+      updates.awardedAt = new Date().toISOString();
+    } else if (status === 'REJECTED') {
+      updates.rejectedAt = new Date().toISOString();
+    } else if (status === 'WITHDRAWN') {
+      updates.withdrawnAt = new Date().toISOString();
     }
     
     const updated = PMTwinData.Proposals.update(proposalId, updates);
     if (updated) {
-      // If proposal was approved, create contract
-      if (status === 'approved' && typeof ContractService !== 'undefined') {
-        const contractResult = ContractService.createContractFromProposal(proposalId);
-        if (contractResult.success) {
-          // Contract created successfully
-          // Engagement will be created separately when contract is signed
-          return { success: true, proposal: updated, contract: contractResult.contract };
-        } else {
-          // Log error but don't fail the proposal approval
-          console.warn('Failed to create contract from proposal:', contractResult.error);
-        }
-      }
-      
       return { success: true, proposal: updated };
     }
     
@@ -474,6 +614,8 @@
     createProposalFromOffering,
     createSubContractorProposal,
     getProposals,
+    getMyProposals,
+    getIncomingProposals,
     updateProposalStatus,
     getVendorSubContractors,
     linkSubContractorToVendor,

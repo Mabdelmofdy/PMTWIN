@@ -33,16 +33,16 @@
   }
 
   // Find projects matching user skills
-  function findProjectsBySkills(userSkills, excludeCreatorId = null) {
+  function findProjectsBySkills(userSkills, excludeCompanyId = null) {
     if (!userSkills || userSkills.length === 0) {
       return [];
     }
     
-    // Get all active public projects (exclude projects created by the user)
+    // Get all active public projects (exclude projects owned by the company)
     const allProjects = PMTwinData.Projects.getAll().filter(p => 
       p.status === 'active' && 
       p.visibility === 'public' &&
-      (!excludeCreatorId || p.creatorId !== excludeCreatorId)
+      (!excludeCompanyId || (p.ownerCompanyId !== excludeCompanyId && p.creatorId !== excludeCompanyId))
     );
     
     const skillMatches = [];

@@ -5,6 +5,26 @@
 (function() {
   'use strict';
 
+  // ============================================
+  // Get Base Path Helper
+  // ============================================
+  function getBasePath() {
+    const currentPath = window.location.pathname;
+    // Calculate depth from POC root (count segments after 'pages')
+    const segments = currentPath.split('/').filter(p => p && !p.endsWith('.html') && p !== 'POC');
+    const pagesIndex = segments.indexOf('pages');
+    
+    if (pagesIndex >= 0) {
+      // Calculate depth: number of segments after 'pages' (excluding filename)
+      const depth = segments.length - pagesIndex - 1;
+      return depth > 0 ? '../'.repeat(depth) : '';
+    }
+    
+    // Fallback: if no 'pages' found, calculate based on total segments
+    const depth = segments.length - 1; // -1 for filename
+    return depth > 0 ? '../'.repeat(depth) : '';
+  }
+
   async function init(params) {
     // Load category configuration
     if (typeof ProjectFormBuilder !== 'undefined') {
@@ -215,7 +235,7 @@
     if (result.success) {
       showMessage('Project created successfully!', 'success');
       setTimeout(() => {
-        window.location.href = `../project/?id=${result.project.id}`;
+        window.location.href = `${getBasePath()}project/?id=${result.project.id}`;
       }, 1500);
     } else {
       showMessage(result.error || 'Failed to create project', 'error');
@@ -342,7 +362,7 @@
     if (result.success) {
       showMessage(`Mega-project created successfully with ${subProjects.length} sub-project(s)!`, 'success');
       setTimeout(() => {
-        window.location.href = `../project/?id=${result.project.id}`;
+        window.location.href = `${getBasePath()}project/?id=${result.project.id}`;
       }, 1500);
     } else {
       showMessage(result.error || 'Failed to create mega-project', 'error');

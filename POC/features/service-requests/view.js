@@ -72,62 +72,116 @@
       if (isRequester && offers.length > 0) {
         offersHtml = `
           <div class="card">
-            <div class="card-header">
-              <h3>Offers (${offers.length})</h3>
+            <div class="card-header" style="display: flex; justify-content: space-between; align-items: center;">
+              <h3 style="margin: 0; font-size: 1.25rem;">
+                <i class="ph ph-handshake"></i> Service Offers (${offers.length})
+              </h3>
             </div>
-            <div class="card-body">
-              ${offers.map(offer => {
-                const provider = PMTwinData?.Users?.getById?.(offer.serviceProviderUserId);
-                return `
-                  <div class="offer-item">
-                    <div class="offer-header">
-                      <strong>${provider?.profile?.name || provider?.email || 'Provider'}</strong>
-                      <span class="status-badge ${offer.status.toLowerCase()}">${offer.status}</span>
-                    </div>
-                    <p>${offer.message || 'No message provided'}</p>
-                    <div class="offer-pricing">
-                      <strong>Pricing:</strong> ${offer.proposedPricing?.amount || 0} ${offer.proposedPricing?.currency || 'SAR'} (${offer.proposedPricing?.model || 'N/A'})
-                    </div>
-                    ${offer.status === 'SUBMITTED' && isRequester ? `
-                      <div class="offer-actions">
-                        <button class="btn btn-success btn-sm" onclick="ServiceRequestView.acceptOffer('${offer.id}')">Accept</button>
-                        <button class="btn btn-danger btn-sm" onclick="ServiceRequestView.rejectOffer('${offer.id}')">Reject</button>
+            <div class="card-body" style="padding: 1.5rem;">
+              <div style="display: grid; gap: 1.5rem;">
+                ${offers.map(offer => {
+                  const provider = PMTwinData?.Users?.getById?.(offer.serviceProviderUserId);
+                  const offerStatusClass = {
+                    'SUBMITTED': 'badge-info',
+                    'ACCEPTED': 'badge-success',
+                    'REJECTED': 'badge-danger',
+                    'WITHDRAWN': 'badge-secondary'
+                  }[offer.status] || 'badge-secondary';
+                  
+                  return `
+                    <div class="card" style="border-left: 3px solid var(--color-primary); background: var(--bg-secondary, #f5f7fa);">
+                      <div class="card-body" style="padding: 1.25rem;">
+                        <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 1rem; flex-wrap: wrap; gap: 1rem;">
+                          <div style="flex: 1;">
+                            <div style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.5rem;">
+                              <i class="ph ph-user" style="color: var(--color-primary); font-size: 1.25rem;"></i>
+                              <strong style="font-size: 1.125rem; color: var(--text-primary);">${provider?.profile?.name || provider?.email || 'Provider'}</strong>
+                            </div>
+                            <span class="badge ${offerStatusClass}" style="font-size: 0.8125rem;">
+                              ${offer.status}
+                            </span>
+                          </div>
+                        </div>
+                        ${offer.message ? `
+                          <div style="margin-bottom: 1rem; padding: 0.875rem; background: white; border-radius: var(--radius, 6px); border-left: 3px solid var(--color-primary);">
+                            <p style="margin: 0; line-height: 1.6; color: var(--text-primary);">${offer.message}</p>
+                          </div>
+                        ` : ''}
+                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 1rem;">
+                          <div style="padding: 0.75rem; background: white; border-radius: var(--radius, 6px);">
+                            <div style="font-size: 0.8125rem; color: var(--text-secondary); margin-bottom: 0.25rem;">Pricing Model</div>
+                            <div style="font-weight: 600; color: var(--text-primary);">${offer.proposedPricing?.model || 'N/A'}</div>
+                          </div>
+                          <div style="padding: 0.75rem; background: white; border-radius: var(--radius, 6px);">
+                            <div style="font-size: 0.8125rem; color: var(--text-secondary); margin-bottom: 0.25rem;">Amount</div>
+                            <div style="font-weight: 600; color: var(--text-primary); font-size: 1.125rem;">
+                              ${(offer.proposedPricing?.amount || 0).toLocaleString()} ${offer.proposedPricing?.currency || 'SAR'}
+                            </div>
+                          </div>
+                        </div>
+                        ${offer.status === 'SUBMITTED' && isRequester ? `
+                          <div style="display: flex; gap: 0.75rem; flex-wrap: wrap; padding-top: 1rem; border-top: 1px solid var(--border-color, #e0e0e0);">
+                            <button class="btn btn-success btn-sm" onclick="ServiceRequestView.acceptOffer('${offer.id}')" style="flex: 1; min-width: 120px;">
+                              <i class="ph ph-check"></i> Accept Offer
+                            </button>
+                            <button class="btn btn-danger btn-sm" onclick="ServiceRequestView.rejectOffer('${offer.id}')" style="flex: 1; min-width: 120px;">
+                              <i class="ph ph-x"></i> Reject
+                            </button>
+                          </div>
+                        ` : ''}
                       </div>
-                    ` : ''}
-                  </div>
-                `;
-              }).join('')}
+                    </div>
+                  `;
+                }).join('')}
+              </div>
             </div>
           </div>
         `;
       } else if (isServiceProvider && request.status === 'OPEN') {
         offersHtml = `
-          <div class="card">
-            <div class="card-header">
-              <h3>Submit Offer</h3>
+          <div class="card" style="border-left: 4px solid var(--color-success, #28a745);">
+            <div class="card-header" style="display: flex; align-items: center; gap: 0.75rem;">
+              <i class="ph ph-paper-plane-tilt" style="color: var(--color-success); font-size: 1.5rem;"></i>
+              <h3 style="margin: 0; font-size: 1.25rem;">Submit Service Offer</h3>
             </div>
-            <div class="card-body">
+            <div class="card-body" style="padding: 1.5rem;">
+              <p style="margin-bottom: 1.5rem; color: var(--text-secondary); line-height: 1.6;">
+                Submit your offer for this service request. Include your pricing and a message explaining your approach.
+              </p>
               <form id="submitOfferForm">
-                <div class="form-group">
-                  <label for="offerMessage">Message</label>
-                  <textarea id="offerMessage" name="message" rows="4"></textarea>
+                <div class="form-group" style="margin-bottom: 1.25rem;">
+                  <label for="offerMessage" style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem;">
+                    <i class="ph ph-message-text"></i>
+                    <span>Message</span>
+                  </label>
+                  <textarea id="offerMessage" name="message" rows="5" placeholder="Describe your approach, experience, and why you're the best fit for this service request..." style="width: 100%; padding: 0.75rem; border: 1px solid var(--border-color, #ddd); border-radius: var(--radius, 6px); font-family: inherit; resize: vertical;"></textarea>
                 </div>
-                <div class="form-row">
+                <div class="form-row" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.25rem; margin-bottom: 1.5rem;">
                   <div class="form-group">
-                    <label for="pricingModel">Pricing Model *</label>
-                    <select id="pricingModel" name="pricingModel" required>
-                      <option value="HOURLY">Hourly</option>
-                      <option value="FIXED">Fixed</option>
+                    <label for="pricingModel" style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem;">
+                      <i class="ph ph-currency-circle-dollar"></i>
+                      <span>Pricing Model *</span>
+                    </label>
+                    <select id="pricingModel" name="pricingModel" required style="width: 100%; padding: 0.75rem; border: 1px solid var(--border-color, #ddd); border-radius: var(--radius, 6px);">
+                      <option value="">Select pricing model...</option>
+                      <option value="HOURLY">Hourly Rate</option>
+                      <option value="FIXED">Fixed Price</option>
                       <option value="RETAINER">Retainer</option>
                     </select>
                   </div>
                   <div class="form-group">
-                    <label for="pricingAmount">Amount (SAR) *</label>
-                    <input type="number" id="pricingAmount" name="amount" min="0" step="0.01" required>
+                    <label for="pricingAmount" style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem;">
+                      <i class="ph ph-money"></i>
+                      <span>Amount (SAR) *</span>
+                    </label>
+                    <input type="number" id="pricingAmount" name="amount" min="0" step="0.01" required placeholder="0.00" style="width: 100%; padding: 0.75rem; border: 1px solid var(--border-color, #ddd); border-radius: var(--radius, 6px);">
                   </div>
                 </div>
-                <div class="form-actions">
-                  <button type="submit" class="btn btn-primary">Submit Offer</button>
+                <div class="form-actions" style="display: flex; gap: 1rem; justify-content: flex-end; padding-top: 1rem; border-top: 1px solid var(--border-color, #e0e0e0);">
+                  <button type="button" class="btn btn-secondary" onclick="window.history.back()">Cancel</button>
+                  <button type="submit" class="btn btn-primary" style="min-width: 150px;">
+                    <i class="ph ph-paper-plane-tilt"></i> Submit Offer
+                  </button>
                 </div>
               </form>
             </div>
@@ -139,25 +193,38 @@
       let biddingHtml = '';
       if (canBid && request.status === 'OPEN') {
         biddingHtml = `
-          <div class="card">
-            <div class="card-header">
-              <h3>Bid on This Request</h3>
-              <p style="margin: 0.5rem 0 0 0; font-size: 0.9rem; color: var(--text-secondary);">
-                As an Entity or Vendor, you can bid on this service request if you need these services.
-              </p>
+          <div class="card" style="border-left: 4px solid var(--color-info, #17a2b8);">
+            <div class="card-header" style="display: flex; align-items: center; gap: 0.75rem;">
+              <i class="ph ph-gavel" style="color: var(--color-info); font-size: 1.5rem;"></i>
+              <h3 style="margin: 0; font-size: 1.25rem;">Bid on This Request</h3>
             </div>
-            <div class="card-body">
+            <div class="card-body" style="padding: 1.5rem;">
+              <p style="margin-bottom: 1.5rem; color: var(--text-secondary); line-height: 1.6;">
+                As an Entity or Vendor, you can bid on this service request if you need these services for your project.
+              </p>
               <form id="bidOnRequestForm">
-                <div class="form-group">
-                  <label for="bidMessage">Message *</label>
-                  <textarea id="bidMessage" name="message" rows="4" placeholder="Explain why you need this service and how it will help your project..." required></textarea>
+                <div class="form-group" style="margin-bottom: 1.25rem;">
+                  <label for="bidMessage" style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem;">
+                    <i class="ph ph-message-text"></i>
+                    <span>Message *</span>
+                  </label>
+                  <textarea id="bidMessage" name="message" rows="5" placeholder="Explain why you need this service and how it will help your project..." required style="width: 100%; padding: 0.75rem; border: 1px solid var(--border-color, #ddd); border-radius: var(--radius, 6px); font-family: inherit; resize: vertical;"></textarea>
                 </div>
-                <div class="form-group">
-                  <label for="bidRequirements">Your Requirements</label>
-                  <textarea id="bidRequirements" name="requirements" rows="3" placeholder="Describe any specific requirements or preferences..."></textarea>
+                <div class="form-group" style="margin-bottom: 1.5rem;">
+                  <label for="bidRequirements" style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem;">
+                    <i class="ph ph-list-checks"></i>
+                    <span>Your Requirements</span>
+                  </label>
+                  <textarea id="bidRequirements" name="requirements" rows="4" placeholder="Describe any specific requirements or preferences..." style="width: 100%; padding: 0.75rem; border: 1px solid var(--border-color, #ddd); border-radius: var(--radius, 6px); font-family: inherit; resize: vertical;"></textarea>
+                  <small style="display: block; margin-top: 0.5rem; color: var(--text-secondary); font-size: 0.875rem;">
+                    Optional: Specify any particular requirements or preferences you have for this service.
+                  </small>
                 </div>
-                <div class="form-actions">
-                  <button type="submit" class="btn btn-primary">Submit Bid</button>
+                <div class="form-actions" style="display: flex; gap: 1rem; justify-content: flex-end; padding-top: 1rem; border-top: 1px solid var(--border-color, #e0e0e0);">
+                  <button type="button" class="btn btn-secondary" onclick="window.history.back()">Cancel</button>
+                  <button type="submit" class="btn btn-primary" style="min-width: 150px;">
+                    <i class="ph ph-gavel"></i> Submit Bid
+                  </button>
                 </div>
               </form>
             </div>
@@ -170,51 +237,134 @@
       if (isRequester && bids.length > 0) {
         bidsHtml = `
           <div class="card">
-            <div class="card-header">
-              <h3>Bids from Entities/Vendors (${bids.length})</h3>
+            <div class="card-header" style="display: flex; justify-content: space-between; align-items: center;">
+              <h3 style="margin: 0; font-size: 1.25rem;">
+                <i class="ph ph-gavel"></i> Bids from Entities/Vendors (${bids.length})
+              </h3>
             </div>
-            <div class="card-body">
-              ${bids.map(bid => {
-                const bidder = PMTwinData?.Users?.getById?.(bid.bidderId);
-                return `
-                  <div class="offer-item" style="border-left: 3px solid var(--color-primary); padding-left: 1rem; margin-bottom: 1rem;">
-                    <div class="offer-header">
-                      <strong>${bidder?.profile?.name || bidder?.email || 'Bidder'}</strong>
-                      <span class="badge badge-info">Bid</span>
+            <div class="card-body" style="padding: 1.5rem;">
+              <div style="display: grid; gap: 1.5rem;">
+                ${bids.map(bid => {
+                  const bidder = PMTwinData?.Users?.getById?.(bid.bidderId);
+                  return `
+                    <div class="card" style="border-left: 3px solid var(--color-info, #17a2b8); background: var(--bg-secondary, #f5f7fa);">
+                      <div class="card-body" style="padding: 1.25rem;">
+                        <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 1rem; flex-wrap: wrap; gap: 1rem;">
+                          <div style="flex: 1;">
+                            <div style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.5rem;">
+                              <i class="ph ph-buildings" style="color: var(--color-info); font-size: 1.25rem;"></i>
+                              <strong style="font-size: 1.125rem; color: var(--text-primary);">${bidder?.profile?.name || bidder?.email || 'Bidder'}</strong>
+                            </div>
+                            <span class="badge badge-info" style="font-size: 0.8125rem;">
+                              <i class="ph ph-gavel"></i> Bid
+                            </span>
+                          </div>
+                          <div style="font-size: 0.875rem; color: var(--text-secondary);">
+                            <i class="ph ph-calendar"></i> ${new Date(bid.submittedAt).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })}
+                          </div>
+                        </div>
+                        ${bid.message ? `
+                          <div style="margin-bottom: 1rem; padding: 0.875rem; background: white; border-radius: var(--radius, 6px);">
+                            <p style="margin: 0; line-height: 1.6; color: var(--text-primary);">${bid.message}</p>
+                          </div>
+                        ` : ''}
+                        ${bid.requirements ? `
+                          <div style="padding: 0.875rem; background: white; border-radius: var(--radius, 6px); border-left: 3px solid var(--color-warning, #ffc107);">
+                            <div style="font-size: 0.8125rem; color: var(--text-secondary); margin-bottom: 0.5rem; font-weight: 600;">
+                              <i class="ph ph-list-checks"></i> Requirements
+                            </div>
+                            <p style="margin: 0; line-height: 1.6; color: var(--text-primary);">${bid.requirements}</p>
+                          </div>
+                        ` : ''}
+                      </div>
                     </div>
-                    <p>${bid.message || 'No message provided'}</p>
-                    ${bid.requirements ? `<div><strong>Requirements:</strong> ${bid.requirements}</div>` : ''}
-                    <div style="font-size: 0.85rem; color: var(--text-secondary); margin-top: 0.5rem;">
-                      Submitted: ${new Date(bid.submittedAt).toLocaleDateString()}
-                    </div>
-                  </div>
-                `;
-              }).join('')}
+                  `;
+                }).join('')}
+              </div>
             </div>
           </div>
         `;
       }
 
       contentEl.innerHTML = `
-        <div class="card">
-          <div class="card-header">
-            <h2>${request.title}</h2>
-            <span class="status-badge ${statusClass}">${request.status}</span>
-          </div>
-          <div class="card-body">
-            <p>${request.description}</p>
-            <div class="request-details">
-              <div><strong>Required Skills:</strong> ${(request.requiredSkills || []).join(', ')}</div>
-              <div><strong>Budget:</strong> ${request.budget?.min || 0} - ${request.budget?.max || 0} ${request.budget?.currency || 'SAR'}</div>
-              <div><strong>Timeline:</strong> ${request.timeline?.startDate ? new Date(request.timeline.startDate).toLocaleDateString() : 'Not specified'} 
-                ${request.timeline?.duration ? `(${request.timeline.duration} days)` : ''}</div>
-              <div><strong>Created:</strong> ${new Date(request.createdAt).toLocaleDateString()}</div>
+        <div style="display: grid; gap: 1.5rem;">
+          <!-- Main Service Request Card -->
+          <div class="card" style="border-left: 4px solid var(--color-primary, #0066cc);">
+            <div class="card-header" style="display: flex; justify-content: space-between; align-items: start; flex-wrap: wrap; gap: 1rem;">
+              <div style="flex: 1; min-width: 250px;">
+                <h2 style="margin: 0 0 0.5rem 0; color: var(--text-primary); font-size: 1.75rem;">${request.title}</h2>
+                <div style="display: flex; align-items: center; gap: 0.75rem; flex-wrap: wrap;">
+                  <span class="status-badge ${statusClass}" style="font-size: 0.875rem; padding: 0.375rem 0.75rem;">
+                    <i class="ph ph-circle-fill" style="font-size: 0.5rem; vertical-align: middle; margin-right: 0.25rem;"></i>
+                    ${request.status}
+                  </span>
+                  <span style="color: var(--text-secondary); font-size: 0.875rem;">
+                    <i class="ph ph-calendar"></i> Created ${new Date(request.createdAt).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}
+                  </span>
+                </div>
+              </div>
+            </div>
+            <div class="card-body" style="padding: 1.5rem;">
+              <!-- Description -->
+              <div style="margin-bottom: 2rem;">
+                <h3 style="font-size: 1rem; color: var(--text-secondary); margin-bottom: 0.75rem; text-transform: uppercase; letter-spacing: 0.5px;">Description</h3>
+                <p style="margin: 0; line-height: 1.7; color: var(--text-primary); font-size: 1rem;">${request.description}</p>
+              </div>
+
+              <!-- Details Grid -->
+              <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1.5rem; margin-bottom: 1.5rem;">
+                <!-- Required Skills -->
+                <div style="padding: 1rem; background: var(--bg-secondary, #f5f7fa); border-radius: var(--radius, 8px);">
+                  <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem;">
+                    <i class="ph ph-wrench" style="color: var(--color-primary); font-size: 1.25rem;"></i>
+                    <strong style="color: var(--text-secondary); font-size: 0.875rem; text-transform: uppercase; letter-spacing: 0.5px;">Required Skills</strong>
+                  </div>
+                  <div style="display: flex; flex-wrap: wrap; gap: 0.5rem;">
+                    ${(request.requiredSkills || []).map(skill => `
+                      <span class="badge badge-secondary" style="font-size: 0.8125rem; padding: 0.375rem 0.625rem;">
+                        ${skill.trim()}
+                      </span>
+                    `).join('')}
+                  </div>
+                </div>
+
+                <!-- Budget -->
+                <div style="padding: 1rem; background: var(--bg-secondary, #f5f7fa); border-radius: var(--radius, 8px);">
+                  <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem;">
+                    <i class="ph ph-currency-circle-dollar" style="color: var(--color-primary); font-size: 1.25rem;"></i>
+                    <strong style="color: var(--text-secondary); font-size: 0.875rem; text-transform: uppercase; letter-spacing: 0.5px;">Budget</strong>
+                  </div>
+                  <div style="font-size: 1.125rem; font-weight: 600; color: var(--text-primary);">
+                    ${(request.budget?.min || 0).toLocaleString()} - ${(request.budget?.max || 0).toLocaleString()} ${request.budget?.currency || 'SAR'}
+                  </div>
+                </div>
+
+                <!-- Timeline -->
+                <div style="padding: 1rem; background: var(--bg-secondary, #f5f7fa); border-radius: var(--radius, 8px);">
+                  <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem;">
+                    <i class="ph ph-clock" style="color: var(--color-primary); font-size: 1.25rem;"></i>
+                    <strong style="color: var(--text-secondary); font-size: 0.875rem; text-transform: uppercase; letter-spacing: 0.5px;">Timeline</strong>
+                  </div>
+                  <div style="font-size: 1rem; color: var(--text-primary);">
+                    ${request.timeline?.startDate ? `
+                      <div><i class="ph ph-calendar-check"></i> ${new Date(request.timeline.startDate).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })}</div>
+                      ${request.timeline?.duration ? `<div style="margin-top: 0.25rem; font-size: 0.875rem; color: var(--text-secondary);"><i class="ph ph-hourglass"></i> ${request.timeline.duration} days</div>` : ''}
+                    ` : '<span style="color: var(--text-secondary);">Not specified</span>'}
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
+
+          <!-- Bidding Section -->
+          ${biddingHtml}
+
+          <!-- Bids Section -->
+          ${bidsHtml}
+
+          <!-- Offers Section -->
+          ${offersHtml}
         </div>
-        ${biddingHtml}
-        ${bidsHtml}
-        ${offersHtml}
       `;
 
       // Setup offer form if present

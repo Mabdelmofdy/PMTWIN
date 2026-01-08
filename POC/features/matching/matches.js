@@ -7,18 +7,35 @@
 
   let currentFilters = {};
 
+  // ============================================
+  // Get Base Path Helper
+  // ============================================
+  function getBasePath() {
+    const currentPath = window.location.pathname;
+    const segments = currentPath.split('/').filter(p => p && !p.endsWith('.html') && p !== 'POC');
+    const pagesIndex = segments.indexOf('pages');
+    
+    if (pagesIndex >= 0) {
+      const depth = segments.length - pagesIndex - 1;
+      return depth > 0 ? '../'.repeat(depth) : '';
+    }
+    
+    const depth = segments.length - 1;
+    return depth > 0 ? '../'.repeat(depth) : '';
+  }
+
   async function init(params) {
-    // Wait for MatchingService to be available
-    if (typeof MatchingService === 'undefined') {
+    // Wait for MatchesService to be available
+    if (typeof MatchesService === 'undefined') {
       // Wait a bit for services to load
       await new Promise(resolve => {
-        if (typeof MatchingService !== 'undefined') {
+        if (typeof MatchesService !== 'undefined') {
           resolve();
           return;
         }
         
         const checkInterval = setInterval(() => {
-          if (typeof MatchingService !== 'undefined') {
+          if (typeof MatchesService !== 'undefined') {
             clearInterval(checkInterval);
             resolve();
           }
@@ -44,7 +61,7 @@
   // HTML Triggers for MatchingService Functions
   // ============================================
 
-  // Trigger: getMatches() - Load all matches
+  // Trigger: getMatchesForCurrentUser() - Load all matches
   async function loadMatches() {
     const container = document.getElementById('matchesList');
     if (!container) return;
@@ -53,15 +70,24 @@
       container.innerHTML = '<p>Loading matches...</p>';
 
       let result;
-      if (typeof MatchingService !== 'undefined') {
-        result = await MatchingService.getMatches(currentFilters);
+      if (typeof MatchesService !== 'undefined') {
+        result = await MatchesService.getMatchesForCurrentUser();
       } else {
-        container.innerHTML = '<p class="alert alert-error">Matching service not available</p>';
+        container.innerHTML = '<p class="alert alert-error">Matches service not available</p>';
         return;
       }
 
       if (result.success && result.matches) {
-        renderMatches(container, result.matches);
+        // Apply filters
+        let filteredMatches = result.matches;
+        if (currentFilters.minScore) {
+          filteredMatches = filteredMatches.filter(m => m.matchScore >= currentFilters.minScore);
+        }
+        if (currentFilters.projectId) {
+          filteredMatches = filteredMatches.filter(m => m.targetId === currentFilters.projectId);
+        }
+        
+        renderMatches(container, filteredMatches);
       } else {
         container.innerHTML = `<p class="alert alert-error">${result.error || 'Failed to load matches'}</p>`;
       }
@@ -169,8 +195,12 @@
     let html = '<div style="display: grid; gap: 1.5rem;">';
     
     matches.forEach(match => {
-      const project = PMTwinData?.Projects.getById(match.projectId);
-      const isMegaProject = match.isMegaProject || project?.projectType === 'mega' || project?.subProjects;
+      const target = match.target;
+      const targetType = match.targetType;
+      const targetId = match.targetId;
+      const matchScore = match.matchScore;
+      const matchedSkills = match.matchedSkills || [];
+      const missingSkills = match.missingSkills || [];
       
       // Escape HTML to prevent XSS
       const escapeHtml = (text) => {
@@ -180,102 +210,79 @@
         return div.innerHTML;
       };
       
+      const title = target?.title || `Opportunity ${targetId}`;
+      const description = target?.description || '';
+      const isMegaProject = targetType === 'MEGA_PROJECT' || target?.projectType === 'mega';
+      const isServiceRequest = targetType === 'SERVICE_REQUEST';
+      
       html += `
         <div class="card">
           <div class="card-body">
             <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 1rem;">
               <div style="flex: 1;">
                 <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem;">
-                  <h3 style="margin: 0;">${escapeHtml(project?.title || 'Project ' + match.projectId)}</h3>
+                  <h3 style="margin: 0;">${escapeHtml(title)}</h3>
                   ${isMegaProject ? `
                     <span class="badge badge-info" title="Mega-Project">
                       <i class="ph ph-stack"></i> Mega-Project
                     </span>
                   ` : ''}
-                  ${match.isSkillBased ? `
-                    <span class="badge badge-secondary" title="Skill-based match">
-                      <i class="ph ph-lightning"></i> Skills Match
+                  ${isServiceRequest ? `
+                    <span class="badge badge-secondary" title="Service Request">
+                      <i class="ph ph-wrench"></i> Service Request
                     </span>
                   ` : ''}
                 </div>
                 <p style="margin: 0; color: var(--text-secondary);">
-                  ${project?.category || 'General'} • ${project?.location?.city || 'Location TBD'}
+                  ${target?.category || 'General'} • ${target?.location?.city || 'Location TBD'}
                 </p>
               </div>
-              <span class="badge badge-${match.score >= 80 ? 'success' : match.score >= 50 ? 'warning' : 'secondary'}" style="font-size: 1.1rem; padding: 0.5rem 1rem;">
-                ${match.score}% Match
+              <span class="badge badge-${matchScore >= 80 ? 'success' : matchScore >= 50 ? 'warning' : 'secondary'}" style="font-size: 1.1rem; padding: 0.5rem 1rem;">
+                ${matchScore}% Match
               </span>
             </div>
             
-            ${match.isSkillBased ? `
-              <div style="background: var(--color-info-light, #e3f2fd); padding: 1rem; border-radius: var(--border-radius); margin-bottom: 1rem;">
-                <p style="margin: 0 0 0.5rem 0; font-weight: var(--font-weight-semibold);">
-                  <i class="ph ph-lightning"></i> Skills Match: ${match.score}%
+            <div style="background: var(--color-info-light, #e3f2fd); padding: 1rem; border-radius: var(--border-radius); margin-bottom: 1rem;">
+              <p style="margin: 0 0 0.5rem 0; font-weight: var(--font-weight-semibold);">
+                <i class="ph ph-lightning"></i> Skills Match: ${matchScore}%
+              </p>
+              ${matchedSkills.length > 0 ? `
+                <p style="margin: 0 0 0.5rem 0; font-size: 0.9rem;">
+                  <strong>Matched Skills:</strong>
+                  <div style="display: flex; flex-wrap: wrap; gap: 0.25rem; margin-top: 0.25rem;">
+                    ${matchedSkills.map(skill => `
+                      <span class="badge badge-success" style="font-size: 0.85rem;">${escapeHtml(skill)}</span>
+                    `).join('')}
+                  </div>
                 </p>
-                ${match.matchedSkills && match.matchedSkills.length > 0 ? `
-                  <p style="margin: 0 0 0.5rem 0; font-size: 0.9rem;">
-                    <strong>Matched Skills:</strong>
-                    <div style="display: flex; flex-wrap: wrap; gap: 0.25rem; margin-top: 0.25rem;">
-                      ${match.matchedSkills.map(skill => `
-                        <span class="badge badge-success" style="font-size: 0.85rem;">${escapeHtml(skill)}</span>
-                      `).join('')}
-                    </div>
-                  </p>
-                ` : ''}
-                ${match.requiredSkills && match.requiredSkills.length > match.matchedSkills?.length ? `
-                  <p style="margin: 0; font-size: 0.9rem; color: var(--text-secondary);">
-                    <strong>Required Skills:</strong> ${match.requiredSkills.length} total
-                    ${match.matchedSkills ? `(${match.matchedSkills.length} matched)` : ''}
-                  </p>
-                ` : ''}
-              </div>
-            ` : `
-              <div style="margin-bottom: 1rem;">
-                <p><strong>Category Match:</strong> ${match.criteria?.categoryMatch || 'N/A'}%</p>
-                <p><strong>Skills Match:</strong> ${match.criteria?.skillsMatch || 'N/A'}%</p>
-                <p><strong>Experience Match:</strong> ${match.criteria?.experienceMatch || 'N/A'}%</p>
-                <p><strong>Location Match:</strong> ${match.criteria?.locationMatch || 'N/A'}%</p>
-              </div>
-            `}
-            
-            ${isMegaProject && match.subProjectMatches && match.subProjectMatches.length > 0 ? `
-              <div style="background: var(--color-background-secondary, #f5f5f5); padding: 1rem; border-radius: var(--border-radius); margin-bottom: 1rem;">
-                <p style="margin: 0 0 0.75rem 0; font-weight: var(--font-weight-semibold);">
-                  <i class="ph ph-stack"></i> Matching Sub-Projects (${match.matchingSubProjects} of ${match.totalSubProjects}):
+              ` : ''}
+              ${missingSkills.length > 0 ? `
+                <p style="margin: 0; font-size: 0.9rem; color: var(--text-secondary);">
+                  <strong>Missing Skills:</strong>
+                  <div style="display: flex; flex-wrap: wrap; gap: 0.25rem; margin-top: 0.25rem;">
+                    ${missingSkills.map(skill => `
+                      <span class="badge badge-secondary" style="font-size: 0.85rem;">${escapeHtml(skill)}</span>
+                    `).join('')}
+                  </div>
                 </p>
-                <div style="display: grid; gap: 0.75rem;">
-                  ${match.subProjectMatches.map(subMatch => `
-                    <div style="background: white; padding: 0.75rem; border-radius: var(--border-radius); border-left: 3px solid var(--color-primary);">
-                      <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 0.5rem;">
-                        <strong style="font-size: 0.95rem;">${escapeHtml(subMatch.title)}</strong>
-                        <span class="badge badge-${subMatch.matchPercentage >= 80 ? 'success' : subMatch.matchPercentage >= 50 ? 'warning' : 'secondary'}" style="font-size: 0.85rem;">
-                          ${subMatch.matchPercentage}% Match
-                        </span>
-                      </div>
-                      ${subMatch.matchedSkills && subMatch.matchedSkills.length > 0 ? `
-                        <div style="display: flex; flex-wrap: wrap; gap: 0.25rem; margin-top: 0.25rem;">
-                          ${subMatch.matchedSkills.map(skill => `
-                            <span class="badge badge-success" style="font-size: 0.8rem;">${escapeHtml(skill)}</span>
-                          `).join('')}
-                        </div>
-                      ` : ''}
-                    </div>
-                  `).join('')}
-                </div>
-              </div>
-            ` : ''}
+              ` : ''}
+            </div>
             
             <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
-              <a href="../project/?id=${match.projectId}" class="btn btn-primary btn-sm">
-                <i class="ph ph-eye"></i> View Project
-              </a>
-              <a href="../create-proposal/?projectId=${match.projectId}" class="btn btn-success btn-sm">
-                <i class="ph ph-paper-plane-tilt"></i> Submit Proposal
-              </a>
-              ${match.isExistingMatch && !match.viewed ? `
-                <button onclick="matchesComponent.markAsViewed('${match.id}')" class="btn btn-secondary btn-sm">
-                  <i class="ph ph-check"></i> Mark as Viewed
-                </button>
+              ${targetType === 'PROJECT' || targetType === 'MEGA_PROJECT' ? `
+                <a href="${getBasePath()}projects/view/?id=${targetId}" class="btn btn-primary btn-sm">
+                  <i class="ph ph-eye"></i> View Project
+                </a>
+                <a href="../proposals/create/?targetType=${targetType}&targetId=${targetId}" class="btn btn-success btn-sm">
+                  <i class="ph ph-paper-plane-tilt"></i> Create Proposal
+                </a>
+              ` : targetType === 'SERVICE_REQUEST' ? `
+                <a href="${getBasePath()}service-requests/view/?id=${targetId}" class="btn btn-primary btn-sm">
+                  <i class="ph ph-eye"></i> View Request
+                </a>
+                <a href="../proposals/create/?targetType=${targetType}&targetId=${targetId}" class="btn btn-success btn-sm">
+                  <i class="ph ph-paper-plane-tilt"></i> Create Offer
+                </a>
               ` : ''}
             </div>
           </div>
@@ -401,7 +408,7 @@
           ${criteriaHtml}
           ${megaProjectHtml}
           <div style="margin-top: 1.5rem; display: flex; gap: 1rem; flex-wrap: wrap;">
-            <a href="../project/?id=${match.projectId}" class="btn btn-primary">
+            <a href="${getBasePath()}project/?id=${match.projectId}" class="btn btn-primary">
               <i class="ph ph-eye"></i> View Full Project
             </a>
             <a href="../create-proposal/?projectId=${match.projectId}" class="btn btn-success">

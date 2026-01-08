@@ -25,6 +25,36 @@
         return;
       }
 
+      // Reload user from storage to get latest profile data (in case it was updated)
+      if (PMTwinData?.Users?.getById) {
+        const latestUser = PMTwinData.Users.getById(currentUser.id);
+        if (latestUser) {
+          currentUser = latestUser;
+          // Update session with latest data
+          if (PMTwinData.Sessions.updateSession) {
+            PMTwinData.Sessions.updateSession(currentUser.id, currentUser);
+          }
+        }
+      }
+
+      // Recalculate profile completion score to ensure it's up to date
+      if (PMTwinData?.calculateProfileCompletionScore) {
+        const scoreData = PMTwinData.calculateProfileCompletionScore(currentUser);
+        if (scoreData && typeof scoreData === 'object') {
+          const newScore = scoreData.score;
+          if (currentUser.profileCompletionScore !== newScore) {
+            // Update the user's score if it has changed
+            PMTwinData.Users.update(currentUser.id, {
+              profileCompletionScore: newScore
+            });
+            // Update current user object
+            currentUser.profileCompletionScore = newScore;
+            // Update session
+            PMTwinData.Sessions.updateSession(currentUser.id, currentUser);
+          }
+        }
+      }
+
       renderProfile(container, currentUser);
 
       // Initialize location dropdowns after rendering
@@ -42,7 +72,9 @@
   function renderProfile(container, user) {
     const profile = user.profile || {};
     const userType = user.userType || (user.role === 'entity' || user.role === 'project_lead' || user.role === 'service_provider' ? 'company' : 'individual');
-    const isEntity = userType === 'company' || userType === 'entity';
+    // Treat vendors, beneficiaries, and other company-like types as entities
+    const isEntity = userType === 'company' || userType === 'entity' || userType === 'beneficiary' || 
+                     userType === 'vendor_corporate' || user.role === 'vendor' || user.role === 'beneficiary';
 
     let html = `
       <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
@@ -1210,7 +1242,31 @@
     `;
 
     // Credentials Section
-    html += renderCredentialsSection(profile.credentials || user.documents || []);
+    // Convert documents object to array format for rendering
+    let credentialsArray = [];
+    if (profile.credentials && Array.isArray(profile.credentials)) {
+      credentialsArray = profile.credentials;
+    } else if (user.documents) {
+      if (Array.isArray(user.documents)) {
+        credentialsArray = user.documents;
+      } else if (typeof user.documents === 'object') {
+        // Convert object structure to array
+        Object.keys(user.documents).forEach(key => {
+          if (Array.isArray(user.documents[key])) {
+            user.documents[key].forEach(doc => {
+              credentialsArray.push({
+                type: key,
+                fileName: doc.name || doc.fileName,
+                fileSize: doc.size || doc.fileSize,
+                uploadedAt: doc.uploadedAt,
+                verified: user.documentVerifications?.[key]?.verified || doc.verified || false
+              });
+            });
+          }
+        });
+      }
+    }
+    html += renderCredentialsSection(credentialsArray);
 
     // Portfolio Section
     html += `
@@ -1471,7 +1527,31 @@
     `;
 
     // Credentials Section
-    html += renderCredentialsSection(profile.credentials || user.documents || []);
+    // Convert documents object to array format for rendering
+    let credentialsArray = [];
+    if (profile.credentials && Array.isArray(profile.credentials)) {
+      credentialsArray = profile.credentials;
+    } else if (user.documents) {
+      if (Array.isArray(user.documents)) {
+        credentialsArray = user.documents;
+      } else if (typeof user.documents === 'object') {
+        // Convert object structure to array
+        Object.keys(user.documents).forEach(key => {
+          if (Array.isArray(user.documents[key])) {
+            user.documents[key].forEach(doc => {
+              credentialsArray.push({
+                type: key,
+                fileName: doc.name || doc.fileName,
+                fileSize: doc.size || doc.fileSize,
+                uploadedAt: doc.uploadedAt,
+                verified: user.documentVerifications?.[key]?.verified || doc.verified || false
+              });
+            });
+          }
+        });
+      }
+    }
+    html += renderCredentialsSection(credentialsArray);
 
     // Key Projects Section
     html += `

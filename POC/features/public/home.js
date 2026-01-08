@@ -5,6 +5,23 @@
 (function() {
   'use strict';
 
+  // ============================================
+  // Get Base Path Helper
+  // ============================================
+  function getBasePath() {
+    const currentPath = window.location.pathname;
+    const segments = currentPath.split('/').filter(p => p && !p.endsWith('.html') && p !== 'POC');
+    const pagesIndex = segments.indexOf('pages');
+    
+    if (pagesIndex >= 0) {
+      const depth = segments.length - pagesIndex - 1;
+      return depth > 0 ? '../'.repeat(depth) : '';
+    }
+    
+    const depth = segments.length - 1;
+    return depth > 0 ? '../'.repeat(depth) : '';
+  }
+
   function init(params) {
     loadHomeContent();
   }
@@ -400,7 +417,7 @@
               <p style="margin-bottom: 1.5rem; color: var(--text-secondary); line-height: 1.6;">
                 ${(project.description || 'No description available.').substring(0, 150)}${project.description && project.description.length > 150 ? '...' : ''}
               </p>
-              <a href="../project/?id=${project.id}" class="btn btn-primary btn-sm" style="text-decoration: none; width: 100%;">View Details</a>
+              <a href="${getBasePath()}project/?id=${project.id}" class="btn btn-primary btn-sm" style="text-decoration: none; width: 100%;">View Details</a>
             </div>
           </div>
         `;

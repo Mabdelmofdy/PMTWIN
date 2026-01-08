@@ -6,6 +6,23 @@
 (function() {
   'use strict';
 
+  // ============================================
+  // Get Base Path Helper
+  // ============================================
+  function getBasePath() {
+    const currentPath = window.location.pathname;
+    const segments = currentPath.split('/').filter(p => p && !p.endsWith('.html') && p !== 'POC');
+    const pagesIndex = segments.indexOf('pages');
+    
+    if (pagesIndex >= 0) {
+      const depth = segments.length - pagesIndex - 1;
+      return depth > 0 ? '../'.repeat(depth) : '';
+    }
+    
+    const depth = segments.length - 1;
+    return depth > 0 ? '../'.repeat(depth) : '';
+  }
+
   const ServiceRequests = {
     async init() {
       await this.loadRequests();
@@ -70,7 +87,7 @@
                 <div><strong>Created:</strong> ${new Date(request.createdAt).toLocaleDateString()}</div>
               </div>
               <div class="card-actions">
-                <a href="view/?id=${request.id}" class="btn btn-primary">View Details</a>
+                <a href="${getBasePath()}service-requests/view/?id=${request.id}" class="btn btn-primary">View Details</a>
               </div>
             </div>
           </div>

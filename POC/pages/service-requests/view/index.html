@@ -3,7 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin - Service Providers - PMTwin</title>
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self' 'unsafe-inline' 'unsafe-eval' data: blob: http://127.0.0.1:* http://localhost:* ws://127.0.0.1:* ws://localhost:*; connect-src 'self' http://127.0.0.1:* http://localhost:* ws://127.0.0.1:* ws://localhost:*; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline';">
+    <title>Service Request Details - PMTwin</title>
     <link rel="stylesheet" href="../../../assets/css/main.css">
 </head>
 <body>
@@ -12,15 +13,14 @@
             <div class="page-header">
                 <div class="page-header-content">
                     <div>
-                        <h1>Service Providers Management</h1>
-                        <p>Manage all service providers on the platform.</p>
+                        <h1>Service Request Details</h1>
                     </div>
                 </div>
             </div>
 
             <div class="content-section">
-                <div id="adminServiceProvidersContent">
-                    <!-- Admin content will be loaded here -->
+                <div id="serviceRequestViewContent">
+                    <!-- Request details and offers will be loaded here -->
                 </div>
             </div>
         </div>
@@ -40,8 +40,22 @@
     <script src="../../../src/core/auth/auth.js"></script>
     <script src="../../../src/core/auth/auth-check.js"></script>
     
+    <!-- Track Guards -->
+    <script src="../../../src/domains/auth/guards/track-guards.js"></script>
+    <script src="../../../src/domains/auth/guards/service-track-guards.js"></script>
+    
+    <!-- Validators -->
+    <script src="../../../src/domains/services/service-requests/service-request-validator.js"></script>
+    <script src="../../../src/domains/services/service-offers/service-offer-validator.js"></script>
+    
+    <!-- Matching Services -->
+    <script src="../../../src/domains/matching/service-matching/skill-matcher.js"></script>
+    <script src="../../../src/domains/matching/service-matching/match-scorer.js"></script>
+    <script src="../../../src/domains/matching/service-matching/service-matching-service.js"></script>
+    
     <!-- Services -->
-    <script src="../../../src/domains/services/service-providers/service-provider-service.js"></script>
+    <script src="../../../src/domains/services/service-requests/service-request-service.js"></script>
+    <script src="../../../src/domains/services/service-offers/service-offer-service.js"></script>
     
     <!-- Services Loader -->
     <script src="../../../src/services/services-loader.js"></script>
@@ -53,7 +67,7 @@
     <script src="../../../src/core/init/app-init.js"></script>
     
     <!-- Feature Script -->
-    <script src="../../../features/admin/admin-service-providers.js"></script>
+    <script src="../../../features/service-requests/view.js"></script>
     
     <!-- Initialize -->
     <script>
@@ -61,11 +75,10 @@
             const isAuth = await AuthCheck.checkAuth({ requireAuth: true });
             if (!isAuth) return;
             
-            if (window.AdminServiceProviders && window.AdminServiceProviders.init) {
-                window.AdminServiceProviders.init();
+            if (window.ServiceRequestView && window.ServiceRequestView.init) {
+                window.ServiceRequestView.init();
             }
         });
     </script>
 </body>
 </html>
-

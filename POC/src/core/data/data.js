@@ -143,6 +143,193 @@
     // Migrate Service Provider model
     migrateServiceProviderModel();
     migrateToContractDrivenWorkflow();
+    
+    // Migrate creatorId to ownerCompanyId
+    migrateCreatorIdToOwnerCompanyId();
+    
+    // Migrate proposals to new model
+    migrateProposalsToNewModel();
+    
+    // Ensure golden seed projects are public
+    migrateGoldenSeedProjectsVisibility();
+    
+    // Run workflow validation (after data is loaded)
+    setTimeout(() => {
+      if (typeof WorkflowValidator !== 'undefined') {
+        WorkflowValidator.validate();
+      }
+    }, 3000);
+  }
+
+  // ============================================
+  // Migration: Add ownerCompanyId to Opportunities
+  // ============================================
+  function migrateCreatorIdToOwnerCompanyId() {
+    try {
+      let projectsUpdated = 0;
+      let serviceRequestsUpdated = 0;
+      
+      // Migrate Projects and MegaProjects
+      const projects = Projects.getAll();
+      projects.forEach(project => {
+        if (!project.ownerCompanyId && project.creatorId) {
+          // Users represent companies, so ownerCompanyId = creatorId
+          project.ownerCompanyId = project.creatorId;
+          Projects.update(project.id, { ownerCompanyId: project.ownerCompanyId });
+          projectsUpdated++;
+        }
+      });
+      
+      // Migrate ServiceRequests
+      const serviceRequests = ServiceRequests.getAll();
+      serviceRequests.forEach(request => {
+        if (!request.ownerCompanyId && request.requesterId) {
+          // requesterId is the company owner
+          request.ownerCompanyId = request.requesterId;
+          ServiceRequests.update(request.id, { ownerCompanyId: request.ownerCompanyId });
+          serviceRequestsUpdated++;
+        }
+      });
+      
+      if (projectsUpdated > 0 || serviceRequestsUpdated > 0) {
+        console.log(`✅ Migrated ownerCompanyId: ${projectsUpdated} projects, ${serviceRequestsUpdated} service requests`);
+      }
+    } catch (error) {
+      console.error('Error migrating ownerCompanyId:', error);
+    }
+  }
+
+  // ============================================
+  // Migration: Update Proposals to New Model
+  // ============================================
+  function migrateProposalsToNewModel() {
+    try {
+      let proposalsUpdated = 0;
+      const proposals = Proposals.getAll();
+      
+      // Status mapping from old to new enum
+      const statusMapping = {
+        'in_review': 'UNDER_REVIEW',
+        'evaluation': 'UNDER_REVIEW',
+        'approved': 'AWARDED',
+        'rejected': 'REJECTED',
+        'completed': 'COMPLETED',
+        'draft': 'DRAFT',
+        'submitted': 'SUBMITTED',
+        'shortlisted': 'SHORTLISTED',
+        'negotiation': 'NEGOTIATION',
+        'withdrawn': 'WITHDRAWN'
+      };
+      
+      proposals.forEach(proposal => {
+        let needsUpdate = false;
+        const updates = {};
+        
+        // Migrate status to new enum
+        if (proposal.status && statusMapping[proposal.status.toLowerCase()]) {
+          const newStatus = statusMapping[proposal.status.toLowerCase()];
+          if (proposal.status !== newStatus) {
+            updates.status = newStatus;
+            needsUpdate = true;
+          }
+        } else if (proposal.status && !['DRAFT', 'SUBMITTED', 'UNDER_REVIEW', 'SHORTLISTED', 'NEGOTIATION', 'AWARDED', 'REJECTED', 'WITHDRAWN'].includes(proposal.status)) {
+          // Default to SUBMITTED if unknown status
+          updates.status = 'SUBMITTED';
+          needsUpdate = true;
+        }
+        
+        // Add proposalType if missing
+        if (!proposal.proposalType) {
+          if (proposal.projectId) {
+            const project = Projects.getById(proposal.projectId);
+            if (project && project.projectType === 'mega') {
+              updates.proposalType = 'PROJECT_BID';
+            } else {
+              updates.proposalType = 'PROJECT_BID';
+            }
+          } else if (proposal.serviceRequestId || proposal.serviceOfferingId) {
+            updates.proposalType = 'SERVICE_OFFER';
+          } else {
+            updates.proposalType = 'PROJECT_BID'; // Default
+          }
+          needsUpdate = true;
+        }
+        
+        // Add targetType and targetId if missing
+        if (!proposal.targetType || !proposal.targetId) {
+          if (proposal.projectId) {
+            const project = Projects.getById(proposal.projectId);
+            updates.targetType = project && project.projectType === 'mega' ? 'MEGA_PROJECT' : 'PROJECT';
+            updates.targetId = proposal.projectId;
+          } else if (proposal.serviceRequestId) {
+            updates.targetType = 'SERVICE_REQUEST';
+            updates.targetId = proposal.serviceRequestId;
+          }
+          needsUpdate = true;
+        }
+        
+        // Add bidderCompanyId if missing
+        if (!proposal.bidderCompanyId && proposal.providerId) {
+          updates.bidderCompanyId = proposal.providerId;
+          needsUpdate = true;
+        }
+        
+        // Add ownerCompanyId if missing
+        if (!proposal.ownerCompanyId) {
+          if (proposal.targetId && proposal.targetType) {
+            if (proposal.targetType === 'PROJECT' || proposal.targetType === 'MEGA_PROJECT') {
+              const project = Projects.getById(proposal.targetId);
+              updates.ownerCompanyId = project?.ownerCompanyId || project?.creatorId;
+            } else if (proposal.targetType === 'SERVICE_REQUEST') {
+              const serviceRequest = ServiceRequests.getById(proposal.targetId);
+              updates.ownerCompanyId = serviceRequest?.ownerCompanyId || serviceRequest?.requesterId;
+            }
+          } else if (proposal.projectId) {
+            const project = Projects.getById(proposal.projectId);
+            updates.ownerCompanyId = project?.ownerCompanyId || project?.creatorId;
+          }
+          if (updates.ownerCompanyId) {
+            needsUpdate = true;
+          }
+        }
+        
+        if (needsUpdate) {
+          Proposals.update(proposal.id, updates);
+          proposalsUpdated++;
+        }
+      });
+      
+      if (proposalsUpdated > 0) {
+        console.log(`✅ Migrated ${proposalsUpdated} proposals to new model`);
+      }
+    } catch (error) {
+      console.error('Error migrating proposals:', error);
+    }
+  }
+
+  // ============================================
+  // Migration: Ensure golden seed projects are public
+  // ============================================
+  function migrateGoldenSeedProjectsVisibility() {
+    try {
+      const projects = PMTwinData.Projects.getAll();
+      const goldenProjectIds = ['megaproject_neom_001', 'project_residential_001'];
+      let updated = 0;
+      
+      projects.forEach(project => {
+        if (goldenProjectIds.includes(project.id) && project.visibility !== 'public') {
+          project.visibility = 'public';
+          PMTwinData.Projects.update(project.id, project);
+          updated++;
+        }
+      });
+      
+      if (updated > 0) {
+        console.log(`✅ Updated ${updated} golden seed project(s) to be public`);
+      }
+    } catch (error) {
+      console.error('Error migrating golden seed projects visibility:', error);
+    }
   }
 
   // ============================================
@@ -1152,8 +1339,31 @@
     const userType = user.userType || mapRoleToUserType(user.role);
     const profileSections = user.profileSections || {};
     const identity = user.identity || {};
-    const documents = Array.isArray(user.documents) ? user.documents : [];
+    
+    // Handle documents as both array and object structure
+    let documents = [];
+    if (Array.isArray(user.documents)) {
+      documents = user.documents;
+    } else if (user.documents && typeof user.documents === 'object') {
+      // Convert object structure to array for compatibility
+      Object.keys(user.documents).forEach(key => {
+        if (Array.isArray(user.documents[key])) {
+          user.documents[key].forEach(doc => {
+            documents.push({
+              type: key,
+              ...doc,
+              verified: user.documentVerifications?.[key]?.verified || false
+            });
+          });
+        }
+      });
+    }
+    
+    const documentVerifications = user.documentVerifications || {};
     const profile = user.profile || {};
+
+    // Determine if user is company-like (beneficiary, vendor, entity, etc.)
+    const isCompanyType = ['company', 'beneficiary', 'vendor_corporate', 'entity'].includes(userType);
 
     // ============================================
     // COMPLETION SCORE (60% weight)
@@ -1162,7 +1372,7 @@
     let completionCompletedWeight = 0;
 
     // Basic Information (15%)
-    if (userType === 'company') {
+    if (isCompanyType) {
       const basicFields = ['legalEntityName', 'companyName', 'phone', 'website'];
       const basicWeight = 15 / basicFields.length;
       basicFields.forEach(field => {
@@ -1179,12 +1389,12 @@
     }
 
     // Professional Details (20%)
-    if (userType === 'company') {
-      const professionalFields = ['services', 'yearsInBusiness', 'teamSize'];
+    if (isCompanyType) {
+      const professionalFields = ['services', 'yearsInBusiness', 'employeeCount'];
       const professionalWeight = 20 / professionalFields.length;
       professionalFields.forEach(field => {
         completionTotalWeight += professionalWeight;
-        if (profile[field]) completionCompletedWeight += professionalWeight;
+        if (profile[field] || (field === 'employeeCount' && profile.teamSize)) completionCompletedWeight += professionalWeight;
       });
     } else {
       const professionalFields = ['skills', 'experienceLevel', 'certifications'];
@@ -1223,7 +1433,7 @@
     // Additional Information (15%)
     const additionalWeight = 15;
     completionTotalWeight += additionalWeight;
-    if (profile.bio || profile.description || profileSections.additional?.completed) {
+    if (profile.bio || profile.description || profile.companyDescription || profileSections.additional?.completed) {
       completionCompletedWeight += additionalWeight;
     }
 
@@ -1240,16 +1450,20 @@
     // Identity Verification (30%)
     const identityWeight = 30;
     verificationTotalWeight += identityWeight;
-    if (userType === 'company') {
-      // Entity: CR verification
-      const crDoc = documents.find(doc => doc.type === 'cr' && doc.verified);
-      if (crDoc || (identity.crNumber && identity.crVerified)) {
+    if (isCompanyType) {
+      // Entity: CR verification - check documentVerifications or identity
+      const crVerified = documentVerifications.cr?.verified || 
+                        (identity.crNumber && identity.crVerified) ||
+                        documents.some(doc => doc.type === 'cr' && doc.verified);
+      if (crVerified) {
         verificationCompletedWeight += identityWeight;
       }
     } else {
       // Individual: National ID verification
-      const idDoc = documents.find(doc => (doc.type === 'national_id' || doc.type === 'passport') && doc.verified);
-      if (idDoc || (identity.nationalId && identity.nationalIdVerified)) {
+      const idVerified = documentVerifications.nationalId?.verified ||
+                         (identity.nationalId && identity.nationalIdVerified) ||
+                         documents.some(doc => (doc.type === 'national_id' || doc.type === 'passport') && doc.verified);
+      if (idVerified) {
         verificationCompletedWeight += identityWeight;
       }
     }
@@ -1257,30 +1471,35 @@
     // Professional Certifications (30%)
     const profCertWeight = 30;
     verificationTotalWeight += profCertWeight;
-    const verifiedCerts = documents.filter(doc => 
-      (doc.type === 'certification' || doc.type === 'license') && doc.verified
-    );
-    if (verifiedCerts.length > 0) {
+    const verifiedCerts = documentVerifications.professionalLicense?.verified ||
+                         documentVerifications.additionalCerts?.verified ||
+                         documents.some(doc => 
+                           (doc.type === 'certification' || doc.type === 'license' || doc.type === 'professionalLicense') && doc.verified
+                         );
+    if (verifiedCerts) {
       verificationCompletedWeight += profCertWeight;
     }
 
     // Portfolio Documents (20%)
     const portfolioDocWeight = 20;
     verificationTotalWeight += portfolioDocWeight;
-    const verifiedPortfolio = documents.filter(doc => 
-      (doc.type === 'portfolio' || doc.type === 'case_study') && doc.verified
-    );
-    if (verifiedPortfolio.length > 0) {
+    const verifiedPortfolio = documentVerifications.portfolio?.verified ||
+                             documentVerifications.companyProfile?.verified ||
+                             documents.some(doc => 
+                               (doc.type === 'portfolio' || doc.type === 'case_study' || doc.type === 'companyProfile') && doc.verified
+                             );
+    if (verifiedPortfolio) {
       verificationCompletedWeight += portfolioDocWeight;
     }
 
     // Safety Certifications (20%)
     const safetyWeight = 20;
     verificationTotalWeight += safetyWeight;
-    const verifiedSafety = documents.filter(doc => 
-      doc.type === 'safety_certification' && doc.verified
-    );
-    if (verifiedSafety.length > 0) {
+    const verifiedSafety = documentVerifications.safetyCertification?.verified ||
+                          documents.some(doc => 
+                            doc.type === 'safety_certification' && doc.verified
+                          );
+    if (verifiedSafety) {
       verificationCompletedWeight += safetyWeight;
     }
 
@@ -3215,6 +3434,18 @@
   }
 
   // ============================================
+  // Company Skills Helper
+  // ============================================
+  function getCompanySkills(companyId) {
+    // Users represent companies, so get user skills
+    const user = Users.getById(companyId);
+    if (!user) return [];
+    
+    // Return skills from user profile
+    return user.profile?.skills || [];
+  }
+
+  // ============================================
   // Projects CRUD
   // ============================================
   const Projects = {
@@ -3230,6 +3461,11 @@
     getByCreator(creatorId) {
       const projects = this.getAll();
       return projects.filter(p => p.creatorId === creatorId);
+    },
+
+    getByOwnerCompany(ownerCompanyId) {
+      const projects = this.getAll();
+      return projects.filter(p => p.ownerCompanyId === ownerCompanyId);
     },
 
     getByStatus(status) {
@@ -3251,6 +3487,8 @@
         matchesGenerated: 0,
         proposalsReceived: 0,
         proposalsApproved: 0,
+        // Set ownerCompanyId from creatorId if not provided (users represent companies)
+        ownerCompanyId: projectData.ownerCompanyId || projectData.creatorId,
         createdAt: new Date().toISOString()
       };
       projects.push(project);
@@ -3399,7 +3637,17 @@
 
     getByProvider(providerId) {
       const proposals = this.getAll();
-      return proposals.filter(p => p.providerId === providerId);
+      return proposals.filter(p => p.providerId === providerId || p.bidderCompanyId === providerId);
+    },
+
+    getByBidderCompany(bidderCompanyId) {
+      const proposals = this.getAll();
+      return proposals.filter(p => p.bidderCompanyId === bidderCompanyId);
+    },
+
+    getByOwnerCompany(ownerCompanyId) {
+      const proposals = this.getAll();
+      return proposals.filter(p => p.ownerCompanyId === ownerCompanyId);
     },
 
     getByStatus(status) {
@@ -3409,26 +3657,62 @@
 
     create(proposalData) {
       const proposals = this.getAll();
+      
+      // Determine ownerCompanyId from target opportunity
+      let ownerCompanyId = proposalData.ownerCompanyId;
+      if (!ownerCompanyId && proposalData.targetId) {
+        if (proposalData.targetType === 'PROJECT' || proposalData.targetType === 'MEGA_PROJECT') {
+          const project = Projects.getById(proposalData.targetId);
+          ownerCompanyId = project?.ownerCompanyId || project?.creatorId;
+        } else if (proposalData.targetType === 'SERVICE_REQUEST') {
+          const serviceRequest = ServiceRequests.getById(proposalData.targetId);
+          ownerCompanyId = serviceRequest?.ownerCompanyId || serviceRequest?.requesterId;
+        }
+      }
+      
+      // Fallback: use projectId for backward compatibility
+      if (!ownerCompanyId && proposalData.projectId) {
+        const project = Projects.getById(proposalData.projectId);
+        ownerCompanyId = project?.ownerCompanyId || project?.creatorId;
+      }
+      
       const proposal = {
         id: generateId('proposal'),
         ...proposalData,
         serviceOfferingId: proposalData.serviceOfferingId || null, // Link to service offering
-        status: 'in_review',
-        submittedAt: new Date().toISOString()
+        // New fields for role-aware proposals
+        proposalType: proposalData.proposalType || (proposalData.projectId ? 'PROJECT_BID' : 'SERVICE_OFFER'),
+        targetType: proposalData.targetType || (proposalData.projectId ? 'PROJECT' : 'SERVICE_REQUEST'),
+        targetId: proposalData.targetId || proposalData.projectId,
+        bidderCompanyId: proposalData.bidderCompanyId || proposalData.providerId,
+        ownerCompanyId: ownerCompanyId,
+        // Status: DRAFT | SUBMITTED | UNDER_REVIEW | SHORTLISTED | NEGOTIATION | AWARDED | REJECTED | WITHDRAWN
+        status: proposalData.status || 'SUBMITTED',
+        submittedAt: proposalData.status === 'DRAFT' ? null : (proposalData.submittedAt || new Date().toISOString())
       };
+      
+      // Validate: bidderCompanyId must not equal ownerCompanyId
+      if (proposal.bidderCompanyId === proposal.ownerCompanyId) {
+        console.error('Cannot create proposal: bidderCompanyId cannot equal ownerCompanyId');
+        return null;
+      }
+      
       proposals.push(proposal);
       if (set(STORAGE_KEYS.PROPOSALS, proposals)) {
-        // Update project proposal count
-        const project = Projects.getById(proposal.projectId);
-        if (project) {
-          project.proposalsReceived = (project.proposalsReceived || 0) + 1;
-          Projects.update(proposal.projectId, { proposalsReceived: project.proposalsReceived });
+        // Update project proposal count (backward compatibility)
+        if (proposal.projectId || proposal.targetType === 'PROJECT' || proposal.targetType === 'MEGA_PROJECT') {
+          const projectId = proposal.projectId || proposal.targetId;
+          const project = Projects.getById(projectId);
+          if (project) {
+            project.proposalsReceived = (project.proposalsReceived || 0) + 1;
+            Projects.update(projectId, { proposalsReceived: project.proposalsReceived });
+          }
         }
         this.createAuditLog('proposal_submission', proposal.id, {
-          description: `Proposal submitted for project: ${project?.title || proposal.projectId}`,
-          projectId: proposal.projectId,
-          providerId: proposal.providerId,
-          type: proposal.type
+          description: `Proposal submitted: ${proposal.proposalType} for ${proposal.targetType}`,
+          projectId: proposal.projectId || proposal.targetId,
+          providerId: proposal.providerId || proposal.bidderCompanyId,
+          type: proposal.type || proposal.proposalType
         });
         return proposal;
       }
@@ -7559,6 +7843,11 @@
       return requests.filter(r => r.requesterId === requesterId);
     },
 
+    getByOwnerCompany(ownerCompanyId) {
+      const requests = this.getAll();
+      return requests.filter(r => r.ownerCompanyId === ownerCompanyId);
+    },
+
     getByStatus(status) {
       const requests = this.getAll();
       return requests.filter(r => r.status === status);
@@ -7577,6 +7866,11 @@
         budget: requestData.budget || { min: 0, max: 0, currency: 'SAR' },
         timeline: requestData.timeline || { startDate: null, duration: 0 },
         bids: requestData.bids || [], // Array of bids from entities/vendors
+        // Set ownerCompanyId from requesterId if not provided (users represent companies)
+        ownerCompanyId: requestData.ownerCompanyId || requestData.requesterId,
+        requestType: requestData.requestType || 'NORMAL', // NORMAL | ADVISORY
+        scopeType: requestData.scopeType || null, // PROJECT | MEGA_PROJECT | SUB_PROJECT
+        scopeId: requestData.scopeId || null,
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString()
       };
@@ -9367,6 +9661,7 @@
     Contracts,
     Engagements,
     Milestones,
+    getCompanySkills,
     IndexManager,
     generateId,
     generateDeviceFingerprint,

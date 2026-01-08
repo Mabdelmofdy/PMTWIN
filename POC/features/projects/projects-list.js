@@ -7,6 +7,26 @@
 
   let currentFilters = {};
 
+  // ============================================
+  // Get Base Path Helper
+  // ============================================
+  function getBasePath() {
+    const currentPath = window.location.pathname;
+    // Calculate depth from POC root (count segments after 'pages')
+    const segments = currentPath.split('/').filter(p => p && !p.endsWith('.html') && p !== 'POC');
+    const pagesIndex = segments.indexOf('pages');
+    
+    if (pagesIndex >= 0) {
+      // Calculate depth: number of segments after 'pages' (excluding filename)
+      const depth = segments.length - pagesIndex - 1;
+      return depth > 0 ? '../'.repeat(depth) : '';
+    }
+    
+    // Fallback: if no 'pages' found, calculate based on total segments
+    const depth = segments.length - 1; // -1 for filename
+    return depth > 0 ? '../'.repeat(depth) : '';
+  }
+
   function init(params) {
     setupEventListeners();
     loadProjects();
@@ -66,7 +86,16 @@
       } else if (typeof PMTwinData !== 'undefined') {
         const currentUser = PMTwinData.Sessions.getCurrentUser();
         if (currentUser) {
+          // Get user's own projects
           let projects = PMTwinData.Projects.getByCreator(currentUser.id);
+          
+          // Also include public projects for beneficiaries/entities
+          if (currentUser.role === 'beneficiary' || currentUser.role === 'entity' || currentUser.role === 'project_lead') {
+            const publicProjects = PMTwinData.Projects.getAll().filter(p => 
+              p.visibility === 'public' && p.creatorId !== currentUser.id
+            );
+            projects = [...projects, ...publicProjects];
+          }
           
           // Apply filters
           if (currentFilters.status) {
@@ -176,7 +205,7 @@
         <div class="card">
           <div class="card-body" style="text-align: center; padding: 3rem;">
             <p style="margin-bottom: 1rem;">You haven't created any projects yet.</p>
-            <a href="../projects/create/" class="btn btn-primary">Create Your First Project</a>
+            <a href="${getBasePath()}projects/create/" class="btn btn-primary">Create Your First Project</a>
           </div>
         </div>
       `;
@@ -237,10 +266,10 @@
               </div>
             ` : ''}
             <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
-              <a href="../project/?id=${project.id}" class="btn btn-primary btn-sm">
+              <a href="${getBasePath()}project/?id=${project.id}" class="btn btn-primary btn-sm">
                 <i class="ph ph-eye"></i> View Details
               </a>
-              <a href="../projects/create/?id=${project.id}" class="btn btn-secondary btn-sm">
+              <a href="${getBasePath()}projects/create/?id=${project.id}" class="btn btn-secondary btn-sm">
                 <i class="ph ph-pencil"></i> Edit
               </a>
             </div>
