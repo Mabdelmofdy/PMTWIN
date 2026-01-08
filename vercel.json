@@ -45,11 +45,27 @@
       "destination": "/POC/pages/auth/login/index.html"
     },
     {
+      "source": "/auth/login",
+      "destination": "/POC/pages/auth/login/index.html"
+    },
+    {
+      "source": "/auth/login/",
+      "destination": "/POC/pages/auth/login/index.html"
+    },
+    {
       "source": "/signup",
       "destination": "/POC/pages/auth/signup/index.html"
     },
     {
       "source": "/signup/",
+      "destination": "/POC/pages/auth/signup/index.html"
+    },
+    {
+      "source": "/auth/signup",
+      "destination": "/POC/pages/auth/signup/index.html"
+    },
+    {
+      "source": "/auth/signup/",
       "destination": "/POC/pages/auth/signup/index.html"
     },
     {
