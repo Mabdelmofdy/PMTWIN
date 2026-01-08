@@ -1,0 +1,379 @@
+{
+  "rewrites": [
+    {
+      "source": "/",
+      "destination": "/pages/home/index.html"
+    },
+    {
+      "source": "/home",
+      "destination": "/pages/home/index.html"
+    },
+    {
+      "source": "/home/",
+      "destination": "/pages/home/index.html"
+    },
+    {
+      "source": "/discovery",
+      "destination": "/pages/discovery/index.html"
+    },
+    {
+      "source": "/discovery/",
+      "destination": "/pages/discovery/index.html"
+    },
+    {
+      "source": "/wizard",
+      "destination": "/pages/wizard/index.html"
+    },
+    {
+      "source": "/wizard/",
+      "destination": "/pages/wizard/index.html"
+    },
+    {
+      "source": "/knowledge",
+      "destination": "/pages/knowledge/index.html"
+    },
+    {
+      "source": "/knowledge/",
+      "destination": "/pages/knowledge/index.html"
+    },
+    {
+      "source": "/login",
+      "destination": "/pages/auth/login/index.html"
+    },
+    {
+      "source": "/login/",
+      "destination": "/pages/auth/login/index.html"
+    },
+    {
+      "source": "/signup",
+      "destination": "/pages/auth/signup/index.html"
+    },
+    {
+      "source": "/signup/",
+      "destination": "/pages/auth/signup/index.html"
+    },
+    {
+      "source": "/dashboard",
+      "destination": "/pages/dashboard/index.html"
+    },
+    {
+      "source": "/dashboard/",
+      "destination": "/pages/dashboard/index.html"
+    },
+    {
+      "source": "/merchant-portal",
+      "destination": "/pages/merchant-portal/index.html"
+    },
+    {
+      "source": "/merchant-portal/",
+      "destination": "/pages/merchant-portal/index.html"
+    },
+    {
+      "source": "/projects",
+      "destination": "/pages/projects/index.html"
+    },
+    {
+      "source": "/projects/",
+      "destination": "/pages/projects/index.html"
+    },
+    {
+      "source": "/create-project",
+      "destination": "/pages/projects/create/index.html"
+    },
+    {
+      "source": "/create-project/",
+      "destination": "/pages/projects/create/index.html"
+    },
+    {
+      "source": "/project",
+      "destination": "/pages/projects/view/index.html"
+    },
+    {
+      "source": "/project/",
+      "destination": "/pages/projects/view/index.html"
+    },
+    {
+      "source": "/opportunities",
+      "destination": "/pages/opportunities/index.html"
+    },
+    {
+      "source": "/opportunities/",
+      "destination": "/pages/opportunities/index.html"
+    },
+    {
+      "source": "/matches",
+      "destination": "/pages/matches/index.html"
+    },
+    {
+      "source": "/matches/",
+      "destination": "/pages/matches/index.html"
+    },
+    {
+      "source": "/proposals",
+      "destination": "/pages/proposals/list/index.html"
+    },
+    {
+      "source": "/proposals/",
+      "destination": "/pages/proposals/list/index.html"
+    },
+    {
+      "source": "/create-proposal",
+      "destination": "/pages/proposals/create/index.html"
+    },
+    {
+      "source": "/create-proposal/",
+      "destination": "/pages/proposals/create/index.html"
+    },
+    {
+      "source": "/pipeline",
+      "destination": "/pages/pipeline/index.html"
+    },
+    {
+      "source": "/pipeline/",
+      "destination": "/pages/pipeline/index.html"
+    },
+    {
+      "source": "/collaboration",
+      "destination": "/pages/collaboration/index.html"
+    },
+    {
+      "source": "/collaboration/",
+      "destination": "/pages/collaboration/index.html"
+    },
+    {
+      "source": "/collab-task-based",
+      "destination": "/pages/collaboration/task-based/index.html"
+    },
+    {
+      "source": "/collab-task-based/",
+      "destination": "/pages/collaboration/task-based/index.html"
+    },
+    {
+      "source": "/collab-consortium",
+      "destination": "/pages/collaboration/consortium/index.html"
+    },
+    {
+      "source": "/collab-consortium/",
+      "destination": "/pages/collaboration/consortium/index.html"
+    },
+    {
+      "source": "/collab-jv",
+      "destination": "/pages/collaboration/joint-venture/index.html"
+    },
+    {
+      "source": "/collab-jv/",
+      "destination": "/pages/collaboration/joint-venture/index.html"
+    },
+    {
+      "source": "/collab-spv",
+      "destination": "/pages/collaboration/spv/index.html"
+    },
+    {
+      "source": "/collab-spv/",
+      "destination": "/pages/collaboration/spv/index.html"
+    },
+    {
+      "source": "/collab-strategic-jv",
+      "destination": "/pages/collaboration/strategic-jv/index.html"
+    },
+    {
+      "source": "/collab-strategic-jv/",
+      "destination": "/pages/collaboration/strategic-jv/index.html"
+    },
+    {
+      "source": "/collab-strategic-alliance",
+      "destination": "/pages/collaboration/strategic-alliance/index.html"
+    },
+    {
+      "source": "/collab-strategic-alliance/",
+      "destination": "/pages/collaboration/strategic-alliance/index.html"
+    },
+    {
+      "source": "/collab-mentorship",
+      "destination": "/pages/collaboration/mentorship/index.html"
+    },
+    {
+      "source": "/collab-mentorship/",
+      "destination": "/pages/collaboration/mentorship/index.html"
+    },
+    {
+      "source": "/collab-bulk-purchasing",
+      "destination": "/pages/collaboration/bulk-purchasing/index.html"
+    },
+    {
+      "source": "/collab-bulk-purchasing/",
+      "destination": "/pages/collaboration/bulk-purchasing/index.html"
+    },
+    {
+      "source": "/collab-co-ownership",
+      "destination": "/pages/collaboration/co-ownership/index.html"
+    },
+    {
+      "source": "/collab-co-ownership/",
+      "destination": "/pages/collaboration/co-ownership/index.html"
+    },
+    {
+      "source": "/collab-resource-exchange",
+      "destination": "/pages/collaboration/resource-exchange/index.html"
+    },
+    {
+      "source": "/collab-resource-exchange/",
+      "destination": "/pages/collaboration/resource-exchange/index.html"
+    },
+    {
+      "source": "/collab-professional-hiring",
+      "destination": "/pages/collaboration/professional-hiring/index.html"
+    },
+    {
+      "source": "/collab-professional-hiring/",
+      "destination": "/pages/collaboration/professional-hiring/index.html"
+    },
+    {
+      "source": "/collab-consultant-hiring",
+      "destination": "/pages/collaboration/consultant-hiring/index.html"
+    },
+    {
+      "source": "/collab-consultant-hiring/",
+      "destination": "/pages/collaboration/consultant-hiring/index.html"
+    },
+    {
+      "source": "/collab-competition",
+      "destination": "/pages/collaboration/competition/index.html"
+    },
+    {
+      "source": "/collab-competition/",
+      "destination": "/pages/collaboration/competition/index.html"
+    },
+    {
+      "source": "/profile",
+      "destination": "/pages/profile/index.html"
+    },
+    {
+      "source": "/profile/",
+      "destination": "/pages/profile/index.html"
+    },
+    {
+      "source": "/onboarding",
+      "destination": "/pages/onboarding/index.html"
+    },
+    {
+      "source": "/onboarding/",
+      "destination": "/pages/onboarding/index.html"
+    },
+    {
+      "source": "/notifications",
+      "destination": "/pages/notifications/index.html"
+    },
+    {
+      "source": "/notifications/",
+      "destination": "/pages/notifications/index.html"
+    },
+    {
+      "source": "/admin",
+      "destination": "/pages/admin/index.html"
+    },
+    {
+      "source": "/admin/",
+      "destination": "/pages/admin/index.html"
+    },
+    {
+      "source": "/admin-vetting",
+      "destination": "/pages/admin-vetting/index.html"
+    },
+    {
+      "source": "/admin-vetting/",
+      "destination": "/pages/admin-vetting/index.html"
+    },
+    {
+      "source": "/admin-moderation",
+      "destination": "/pages/admin-moderation/index.html"
+    },
+    {
+      "source": "/admin-moderation/",
+      "destination": "/pages/admin-moderation/index.html"
+    },
+    {
+      "source": "/admin-audit",
+      "destination": "/pages/admin-audit/index.html"
+    },
+    {
+      "source": "/admin-audit/",
+      "destination": "/pages/admin-audit/index.html"
+    },
+    {
+      "source": "/admin-reports",
+      "destination": "/pages/admin-reports/index.html"
+    },
+    {
+      "source": "/admin-reports/",
+      "destination": "/pages/admin-reports/index.html"
+    },
+    {
+      "source": "/service-providers",
+      "destination": "/pages/service-providers/index.html"
+    },
+    {
+      "source": "/service-providers/",
+      "destination": "/pages/service-providers/index.html"
+    },
+    {
+      "source": "/service-requests",
+      "destination": "/pages/service-requests/index.html"
+    },
+    {
+      "source": "/service-requests/",
+      "destination": "/pages/service-requests/index.html"
+    },
+    {
+      "source": "/services-marketplace",
+      "destination": "/pages/services-marketplace/index.html"
+    },
+    {
+      "source": "/services-marketplace/",
+      "destination": "/pages/services-marketplace/index.html"
+    },
+    {
+      "source": "/my-services",
+      "destination": "/pages/my-services/index.html"
+    },
+    {
+      "source": "/my-services/",
+      "destination": "/pages/my-services/index.html"
+    },
+    {
+      "source": "/service-engagements",
+      "destination": "/pages/service-engagements/index.html"
+    },
+    {
+      "source": "/service-engagements/",
+      "destination": "/pages/service-engagements/index.html"
+    },
+    {
+      "source": "/settings",
+      "destination": "/pages/settings/index.html"
+    },
+    {
+      "source": "/settings/",
+      "destination": "/pages/settings/index.html"
+    }
+  ],
+  "headers": [
+    {
+      "source": "/(.*)",
+      "headers": [
+        {
+          "key": "X-Content-Type-Options",
+          "value": "nosniff"
+        },
+        {
+          "key": "X-Frame-Options",
+          "value": "DENY"
+        },
+        {
+          "key": "X-XSS-Protection",
+          "value": "1; mode=block"
+        }
+      ]
+    }
+  ]
+}

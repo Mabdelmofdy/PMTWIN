@@ -1,0 +1,107 @@
+{
+  "rewrites": [
+    {
+      "source": "/",
+      "destination": "/POC/pages/home/index.html"
+    },
+    {
+      "source": "/home",
+      "destination": "/POC/pages/home/index.html"
+    },
+    {
+      "source": "/home/",
+      "destination": "/POC/pages/home/index.html"
+    },
+    {
+      "source": "/discovery",
+      "destination": "/POC/pages/discovery/index.html"
+    },
+    {
+      "source": "/discovery/",
+      "destination": "/POC/pages/discovery/index.html"
+    },
+    {
+      "source": "/wizard",
+      "destination": "/POC/pages/wizard/index.html"
+    },
+    {
+      "source": "/wizard/",
+      "destination": "/POC/pages/wizard/index.html"
+    },
+    {
+      "source": "/knowledge",
+      "destination": "/POC/pages/knowledge/index.html"
+    },
+    {
+      "source": "/knowledge/",
+      "destination": "/POC/pages/knowledge/index.html"
+    },
+    {
+      "source": "/login",
+      "destination": "/POC/pages/auth/login/index.html"
+    },
+    {
+      "source": "/login/",
+      "destination": "/POC/pages/auth/login/index.html"
+    },
+    {
+      "source": "/signup",
+      "destination": "/POC/pages/auth/signup/index.html"
+    },
+    {
+      "source": "/signup/",
+      "destination": "/POC/pages/auth/signup/index.html"
+    },
+    {
+      "source": "/dashboard",
+      "destination": "/POC/pages/dashboard/index.html"
+    },
+    {
+      "source": "/dashboard/",
+      "destination": "/POC/pages/dashboard/index.html"
+    },
+    {
+      "source": "/admin",
+      "destination": "/POC/pages/admin/index.html"
+    },
+    {
+      "source": "/admin/",
+      "destination": "/POC/pages/admin/index.html"
+    },
+    {
+      "source": "/projects",
+      "destination": "/POC/pages/projects/index.html"
+    },
+    {
+      "source": "/projects/",
+      "destination": "/POC/pages/projects/index.html"
+    },
+    {
+      "source": "/service-providers",
+      "destination": "/POC/pages/service-providers/index.html"
+    },
+    {
+      "source": "/service-providers/",
+      "destination": "/POC/pages/service-providers/index.html"
+    }
+  ],
+  "headers": [
+    {
+      "source": "/(.*)",
+      "headers": [
+        {
+          "key": "X-Content-Type-Options",
+          "value": "nosniff"
+        },
+        {
+          "key": "X-Frame-Options",
+          "value": "DENY"
+        },
+        {
+          "key": "X-XSS-Protection",
+          "value": "1; mode=block"
+        }
+      ]
+    }
+  ]
+}
