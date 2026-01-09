@@ -14,13 +14,13 @@
   // ============================================
   function getDataBasePath() {
     // Calculate relative path from current page to POC root
+    // For local development: count all path segments to determine depth
     const currentPath = window.location.pathname;
-    // Remove leading/trailing slashes and split
-    const segments = currentPath.split('/').filter(p => p && !p.endsWith('.html') && p !== 'POC' && p !== '');
+    // Remove leading/trailing slashes and split, filter out empty strings and HTML files
+    const segments = currentPath.split('/').filter(p => p && !p.endsWith('.html'));
     
-    // Count how many directory levels deep we are (excluding POC root and filename)
-    // For example: /POC/admin/users-management/ = 2 levels deep, need ../../ to reach POC root
-    // For example: /POC/dashboard/ = 1 level deep, need ../ to reach POC root
+    // Count how many directory levels deep we are
+    // For example: /pages/auth/login/ = 3 levels deep, need ../../../ to reach POC root
     const depth = segments.length;
     
     // Generate the appropriate number of ../ to reach POC root

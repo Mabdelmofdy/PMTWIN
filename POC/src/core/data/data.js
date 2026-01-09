@@ -2766,11 +2766,12 @@
 
   // Helper: Get base path for data files
   function getDataBasePath() {
+    // For local development: count all path segments to determine depth
     const currentPath = window.location.pathname;
-    // Remove leading/trailing slashes and split
-    const segments = currentPath.split('/').filter(p => p && !p.endsWith('.html') && p !== 'POC' && p !== '');
+    // Remove leading/trailing slashes and split, filter out empty strings and HTML files
+    const segments = currentPath.split('/').filter(p => p && !p.endsWith('.html'));
     
-    // Count how many directory levels deep we are (excluding POC root and filename)
+    // Count how many directory levels deep we are
     const depth = segments.length;
     
     // Generate the appropriate number of ../ to reach POC root

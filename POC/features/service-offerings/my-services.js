@@ -20,16 +20,15 @@
   // Get Base Path Helper
   // ============================================
   function getBasePath() {
+    // For local development: count all path segments to determine depth
     const currentPath = window.location.pathname;
-    const segments = currentPath.split('/').filter(p => p && !p.endsWith('.html') && p !== 'POC');
-    const pagesIndex = segments.indexOf('pages');
+    // Remove leading/trailing slashes and split, filter out empty strings and HTML files
+    const segments = currentPath.split('/').filter(p => p && !p.endsWith('.html'));
     
-    if (pagesIndex >= 0) {
-      const depth = segments.length - pagesIndex - 1;
-      return depth > 0 ? '../'.repeat(depth) : '';
-    }
+    // Count how many directory levels deep we are
+    const depth = segments.length;
     
-    const depth = segments.length - 1;
+    // Generate the appropriate number of ../ to reach POC root
     return depth > 0 ? '../'.repeat(depth) : '';
   }
 
