@@ -343,6 +343,10 @@
         'UNDER_REVIEW': 'warning',
         'SHORTLISTED': 'info',
         'NEGOTIATION': 'warning',
+        'CHANGES_REQUESTED': 'warning',
+        'ACCEPTED_BY_OWNER': 'success',
+        'ACCEPTED_BY_OTHER': 'success',
+        'FINAL_ACCEPTED': 'success',
         'AWARDED': 'success',
         'REJECTED': 'error',
         'WITHDRAWN': 'secondary'

@@ -118,14 +118,14 @@
     // 6. Validate: Proposal type matches target type
     proposals.forEach(proposal => {
       if (proposal.proposalType === 'PROJECT_BID' && 
-          proposal.targetType !== 'PROJECT' && proposal.targetType !== 'MEGA_PROJECT') {
-        errors.push(`Proposal ${proposal.id}: PROJECT_BID must target PROJECT or MEGA_PROJECT, not ${proposal.targetType}`);
+          proposal.targetType !== 'PROJECT' && proposal.targetType !== 'MEGA_PROJECT' && proposal.targetType !== 'OPPORTUNITY') {
+        errors.push(`Proposal ${proposal.id}: PROJECT_BID must target PROJECT, MEGA_PROJECT, or OPPORTUNITY, not ${proposal.targetType}`);
       }
-      if (proposal.proposalType === 'SERVICE_OFFER' && proposal.targetType !== 'SERVICE_REQUEST') {
-        errors.push(`Proposal ${proposal.id}: SERVICE_OFFER must target SERVICE_REQUEST, not ${proposal.targetType}`);
+      if (proposal.proposalType === 'SERVICE_OFFER' && proposal.targetType !== 'SERVICE_REQUEST' && proposal.targetType !== 'OPPORTUNITY') {
+        errors.push(`Proposal ${proposal.id}: SERVICE_OFFER must target SERVICE_REQUEST or OPPORTUNITY, not ${proposal.targetType}`);
       }
-      if (proposal.proposalType === 'ADVISORY_OFFER' && proposal.targetType !== 'SERVICE_REQUEST' && proposal.targetType !== 'ADVISORY_REQUEST') {
-        warnings.push(`Proposal ${proposal.id}: ADVISORY_OFFER typically targets SERVICE_REQUEST with requestType=ADVISORY`);
+      if (proposal.proposalType === 'ADVISORY_OFFER' && proposal.targetType !== 'SERVICE_REQUEST' && proposal.targetType !== 'ADVISORY_REQUEST' && proposal.targetType !== 'OPPORTUNITY') {
+        warnings.push(`Proposal ${proposal.id}: ADVISORY_OFFER typically targets SERVICE_REQUEST with requestType=ADVISORY or OPPORTUNITY`);
       }
     });
 

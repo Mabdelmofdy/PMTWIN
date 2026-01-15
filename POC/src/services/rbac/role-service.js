@@ -191,8 +191,23 @@
     
     // If still not found, check if user exists in PMTwinData
     if (!userRole && typeof PMTwinData !== 'undefined') {
-      const user = PMTwinData.Users.getById(userId) || 
-                   (email ? PMTwinData.Users.getByEmail(email) : null);
+      // Try multiple lookup strategies
+      let user = PMTwinData.Users.getById(userId);
+      
+      // Try alternative ID formats
+      if (!user) {
+        const allUsers = PMTwinData.Users.getAll();
+        user = allUsers.find(u => 
+          u.userId === userId ||
+          String(u.id) === String(userId) ||
+          String(u.userId) === String(userId)
+        );
+      }
+      
+      // Try by email if still not found
+      if (!user && email) {
+        user = PMTwinData.Users.getByEmail(email);
+      }
       
       console.log('[RBAC] User from PMTwinData:', user);
       
@@ -225,6 +240,31 @@
         }
         
         return roleId;
+      } else {
+        // User not found in PMTwinData - check if we have session with role
+        const session = PMTwinData.Sessions.getCurrentSession();
+        if (session && session.userId === userId && session.role) {
+          console.log('[RBAC] User not found but session has role, using session role:', session.role);
+          // Map session role using same mapping
+          const roleMapping = {
+            'admin': 'admin',
+            'platform_admin': 'platform_admin',
+            'entity': 'entity',
+            'project_lead': 'project_lead',
+            'beneficiary': 'project_lead',
+            'vendor': 'vendor',
+            'service_provider': 'vendor',
+            'skill_service_provider': 'service_provider',
+            'sub_contractor': 'sub_contractor',
+            'individual': 'professional',
+            'professional': 'professional',
+            'consultant': 'consultant',
+            'supplier': 'supplier'
+          };
+          const roleId = roleMapping[session.role] || session.role;
+          console.log('[RBAC] Using session role:', roleId);
+          return roleId;
+        }
       }
     }
     
@@ -422,7 +462,33 @@
       return 'guest';
     }
     
-    const currentUser = PMTwinData.Sessions.getCurrentUser();
+    let currentUser = PMTwinData.Sessions.getCurrentUser();
+    
+    // If user not found but session exists, try to find user or use session role
+    if (!currentUser) {
+      const session = PMTwinData.Sessions.getCurrentSession();
+      if (session) {
+        // Try to find user by session userId with different formats
+        const allUsers = PMTwinData.Users.getAll();
+        currentUser = allUsers.find(u => 
+          u.id === session.userId || 
+          u.userId === session.userId ||
+          String(u.id) === String(session.userId)
+        );
+        
+        // If found by email
+        if (!currentUser && session.userEmail) {
+          currentUser = PMTwinData.Users.getByEmail(session.userEmail);
+        }
+        
+        // If still not found but we have role in session, use session role directly
+        if (!currentUser && session.role) {
+          console.log('[RBAC] User object not found, using session role:', session.role);
+          return session.role; // Return session role directly instead of guest
+        }
+      }
+    }
+    
     if (!currentUser) {
       console.log('[RBAC] No current user found, returning guest');
       return 'guest';
@@ -465,7 +531,55 @@
       return await getAvailableFeatures(null);
     }
     
-    const currentUser = PMTwinData.Sessions.getCurrentUser();
+    let currentUser = PMTwinData.Sessions.getCurrentUser();
+    
+    // If user not found but session exists, try to find user or use session role
+    if (!currentUser) {
+      const session = PMTwinData.Sessions.getCurrentSession();
+      if (session) {
+        // Try to find user by session userId with different formats
+        const allUsers = PMTwinData.Users.getAll();
+        currentUser = allUsers.find(u => 
+          u.id === session.userId || 
+          u.userId === session.userId ||
+          String(u.id) === String(session.userId)
+        );
+        
+        // Try by email if still not found
+        if (!currentUser && session.userEmail) {
+          currentUser = PMTwinData.Users.getByEmail(session.userEmail);
+        }
+        
+        // If still not found but we have role in session, get features by role
+        if (!currentUser && session.role) {
+          console.log('[RBAC] User object not found, getting features by session role:', session.role);
+          // Map session role to roleId
+          const roleMapping = {
+            'admin': 'admin',
+            'platform_admin': 'platform_admin',
+            'beneficiary': 'project_lead',
+            'entity': 'entity',
+            'project_lead': 'project_lead',
+            'vendor': 'vendor',
+            'service_provider': 'vendor',
+            'skill_service_provider': 'service_provider',
+            'sub_contractor': 'sub_contractor',
+            'individual': 'professional',
+            'professional': 'professional',
+            'consultant': 'consultant',
+            'supplier': 'supplier'
+          };
+          const roleId = roleMapping[session.role] || session.role;
+          const roleDef = await getRoleDefinition(roleId);
+          if (roleDef) {
+            const features = roleDef.features || [];
+            console.log('[RBAC] Features from session role:', features);
+            return features;
+          }
+        }
+      }
+    }
+    
     if (!currentUser) {
       console.log('[RBAC] No current user, returning guest features');
       return await getAvailableFeatures(null);

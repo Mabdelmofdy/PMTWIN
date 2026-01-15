@@ -3,342 +3,26 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- Very permissive CSP for local development - MUST be first to prevent CSP errors -->
+    <meta http-equiv="Content-Security-Policy" content="default-src * 'unsafe-inline' 'unsafe-eval' data: blob:; connect-src * 'unsafe-inline' 'unsafe-eval' ws: wss: http://127.0.0.1:* http://localhost:*; script-src * 'unsafe-inline' 'unsafe-eval'; style-src * 'unsafe-inline'; font-src * data:; img-src * data: blob:; frame-src *; object-src *; media-src *;">
     <title>Create Opportunity - PMTwin</title>
     <link rel="stylesheet" href="../../../assets/css/main.css">
-    <style>
-        .wizard-container {
-            width: 100%;
-            max-width: 100%;
-        }
-
-        /* Tab Navigation Container */
-        .tab-container {
-            background: var(--bg-primary);
-            border-radius: var(--border-radius);
-            padding: var(--spacing-4);
-            margin-bottom: var(--spacing-6);
-        }
-
-        /* Tab Navigation (like signup) */
-        .tab-container {
-            margin-bottom: var(--spacing-6);
-        }
-
-        .tab-nav {
-            display: flex;
-            gap: var(--spacing-2);
-            justify-content: center;
-            flex-wrap: nowrap;
-            overflow-x: auto;
-            padding: var(--spacing-3) var(--spacing-2);
-            background: var(--bg-secondary);
-            border-radius: 16px;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
-        }
-
-        .tab-nav-item {
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            cursor: pointer;
-            min-width: 120px;
-        }
-
-        .tab-nav-item:hover:not(.active):not(.disabled) {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-        }
-
-        .tab-nav-item.active {
-            transform: translateY(-2px);
-        }
-
-        .tab-nav-item.disabled {
-            cursor: not-allowed;
-        }
-
-        /* Responsive tab navigation */
-        @media (max-width: 768px) {
-            .tab-nav {
-                gap: var(--spacing-1);
-                padding: var(--spacing-2);
+    <script>
+        // CRITICAL: Set CSP via meta tag immediately to prevent browser default CSP
+        (function() {
+            // Remove any existing CSP meta tags
+            const existingCSP = document.querySelector('meta[http-equiv="Content-Security-Policy"]');
+            if (existingCSP) {
+                existingCSP.remove();
             }
             
-            .tab-nav-item {
-                padding: var(--spacing-2) var(--spacing-2) !important;
-                min-width: 80px;
-            }
-            
-            .tab-nav-item span {
-                font-size: 0.75rem !important;
-            }
-            
-            .tab-nav-item i {
-                font-size: 1.25rem !important;
-            }
-        }
-
-        /* Step Header */
-        .wizard-step-header {
-            text-align: center;
-            margin: 2rem 0 2rem;
-        }
-
-        .wizard-step-header .section-title {
-            font-size: 1.75rem;
-            font-weight: 600;
-            margin-bottom: 0.5rem;
-            color: var(--text-primary, #111827);
-        }
-
-        .wizard-step-header .section-description {
-            font-size: 1rem;
-            color: var(--text-secondary, #6b7280);
-            line-height: 1.6;
-        }
-
-        /* Wizard Content */
-        .wizard-content {
-            min-height: 450px;
-            padding: 0;
-            background: transparent;
-            border-radius: 0;
-            margin-bottom: 0;
-            box-shadow: none;
-        }
-
-        .wizard-panel {
-            animation: fadeIn 0.3s ease-in;
-        }
-
-        @keyframes fadeIn {
-            from {
-                opacity: 0;
-                transform: translateY(10px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        @keyframes slideDown {
-            from {
-                opacity: 0;
-                transform: translateY(-10px);
-                max-height: 0;
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-                max-height: 200px;
-            }
-        }
-
-        /* Wizard Actions */
-        .wizard-actions {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            gap: var(--spacing-4);
-            padding: var(--spacing-6) 0 0;
-            margin-top: var(--spacing-6);
-            border-top: 1px solid var(--border-color);
-        }
-
-        .wizard-actions .btn {
-            display: inline-flex;
-            align-items: center;
-            gap: var(--spacing-2);
-        }
-
-        /* Intent Cards */
-        .intent-card {
-            border: 2px solid var(--border-color, #e5e7eb);
-            border-radius: 12px;
-            padding: 2.5rem;
-            text-align: center;
-            cursor: pointer;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            background: var(--bg-primary, white);
-            position: relative;
-            overflow: hidden;
-        }
-
-        .intent-card::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 4px;
-            background: var(--color-primary, #2563eb);
-            transform: scaleX(0);
-            transition: transform 0.3s ease;
-        }
-
-        .intent-card:hover {
-            border-color: var(--color-primary, #2563eb);
-            transform: translateY(-4px);
-            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
-        }
-
-        .intent-card:hover::before {
-            transform: scaleX(1);
-        }
-
-        .intent-card.selected {
-            border-color: var(--color-primary, #2563eb);
-            background: linear-gradient(135deg, rgba(37, 99, 235, 0.05) 0%, rgba(59, 130, 246, 0.05) 100%);
-            box-shadow: 0 4px 12px rgba(37, 99, 235, 0.15);
-        }
-
-        .intent-card.selected::before {
-            transform: scaleX(1);
-        }
-
-        .intent-card-header {
-            position: relative;
-        }
-
-        .intent-badge {
-            position: absolute;
-            top: -0.5rem;
-            right: -0.5rem;
-            background: var(--color-success, #10b981);
-            color: white;
-            padding: 0.25rem 0.75rem;
-            border-radius: 12px;
-            font-size: 0.75rem;
-            font-weight: 600;
-            display: flex;
-            align-items: center;
-            gap: 0.25rem;
-            box-shadow: 0 2px 4px rgba(16, 185, 129, 0.3);
-        }
-
-        .intent-icon {
-            transition: all 0.3s ease;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            width: 100%;
-            min-height: 80px;
-            margin-bottom: 1rem;
-            padding: var(--spacing-2);
-        }
-
-        .intent-icon i {
-            display: block;
-            width: 100%;
-            height: 100%;
-            line-height: 1;
-        }
-
-        .intent-card:hover .intent-icon {
-            transform: scale(1.05);
-        }
-
-        .intent-card.selected .intent-icon {
-            transform: scale(1.1);
-            animation: iconPulse 0.6s ease-out;
-        }
-
-        .intent-card.selected .intent-icon i {
-            filter: drop-shadow(0 4px 8px rgba(37, 99, 235, 0.3));
-        }
-
-        @keyframes iconPulse {
-            0% {
-                transform: scale(1);
-            }
-            50% {
-                transform: scale(1.15);
-            }
-            100% {
-                transform: scale(1.1);
-            }
-        }
-
-        /* Review Section */
-        .review-section {
-            margin-bottom: 2rem;
-            padding-bottom: 1.5rem;
-            border-bottom: 1px solid var(--border-color, #e5e7eb);
-        }
-
-        .review-section:last-child {
-            border-bottom: none;
-        }
-
-        .review-section h3 {
-            margin-bottom: 1rem;
-            color: var(--color-primary, #2563eb);
-            font-size: 1.25rem;
-            font-weight: 600;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-
-        /* Service Item Cards */
-        .service-item-card {
-            border: 1px solid var(--border-color, #e5e7eb);
-            padding: 1.5rem;
-            margin-bottom: 1rem;
-            border-radius: 8px;
-            background: var(--bg-primary, white);
-            transition: all 0.2s ease;
-        }
-
-        .service-item-card:hover {
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-            border-color: var(--color-primary, #2563eb);
-        }
-
-        /* Responsive */
-        @media (max-width: 768px) {
-            .tab-nav {
-                gap: var(--spacing-2);
-                padding: var(--spacing-2) 0;
-            }
-            
-            .tab-nav-item {
-                padding: var(--spacing-2) var(--spacing-2) !important;
-                font-size: var(--font-size-xs) !important;
-                min-width: auto;
-            }
-            
-            .tab-nav-item span {
-                display: none;
-            }
-            
-            .tab-nav-item .tab-step-number {
-                width: 24px !important;
-                height: 24px !important;
-                font-size: 0.75rem !important;
-            }
-
-            .intent-options {
-                grid-template-columns: 1fr !important;
-            }
-
-            .wizard-content {
-                padding: 1.5rem;
-            }
-
-            .wizard-actions {
-                flex-direction: column;
-            }
-
-            .wizard-actions > div {
-                width: 100%;
-            }
-
-            .wizard-actions .btn {
-                width: 100%;
-                justify-content: center;
-            }
-        }
-    </style>
+            // Create new permissive CSP meta tag
+            const cspMeta = document.createElement('meta');
+            cspMeta.setAttribute('http-equiv', 'Content-Security-Policy');
+            cspMeta.setAttribute('content', "default-src * 'unsafe-inline' 'unsafe-eval' data: blob:; connect-src * 'unsafe-inline' 'unsafe-eval' ws: wss: http://127.0.0.1:* http://localhost:*; script-src * 'unsafe-inline' 'unsafe-eval'; style-src * 'unsafe-inline'; font-src * data:; img-src * data: blob:; frame-src *;");
+            document.head.insertBefore(cspMeta, document.head.firstChild);
+        })();
+    </script>
 </head>
 <body>
     <!-- Main Content - Sidebar and Navbar are automatically added by layout system -->
@@ -349,90 +33,17 @@
                 <div class="page-header-content">
                     <div>
                         <h1>Create Opportunity</h1>
-                        <p>Create a new opportunity with intent, service items, payment terms, and location</p>
+                        <p>Create a new opportunity for collaboration or service exchange</p>
                     </div>
                 </div>
             </div>
             
-            <!-- Basic Info (Title & Description + Location) -->
-            <div class="content-section">
-                <div class="card enhanced-card">
-                    <div class="card-body">
-                        <h2 class="section-title spacing-section">Basic Information</h2>
-                        
-                        <!-- Title and Description -->
-                        <div class="form-group">
-                            <label for="opportunityTitle" class="form-label">Opportunity Title *</label>
-                            <input type="text" id="opportunityTitle" class="form-control" required 
-                                   placeholder="e.g. Structural Engineering Review for Metro Station">
-                        </div>
-                        <div class="form-group">
-                            <label for="opportunityDescription" class="form-label">Description *</label>
-                            <textarea id="opportunityDescription" class="form-control" rows="4" required
-                                      placeholder="Provide a detailed description of the opportunity..."></textarea>
-                        </div>
-                        
-                        <!-- Location Section -->
-                        <div style="border-top: 1px solid var(--border-color); margin-top: 2rem; padding-top: 2rem;">
-                            <h3 class="subsection-title" style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 1.5rem;">
-                                <i class="ph ph-map-pin" style="color: var(--color-primary);"></i>
-                                Location
-                            </h3>
-                            
-                            <div class="content-grid-2">
-                                <div class="form-group">
-                                    <label for="basicInfoCountry" class="form-label">Country *</label>
-                                    <select id="basicInfoCountry" class="form-control" required
-                                            onchange="if(window.opportunityCreate) { window.opportunityCreate.onCountryChange(this.value); updateBasicInfoLocationDisplay(); }">
-                                        <option value="">Select Country</option>
-                                    </select>
-                                </div>
-                                
-                                <div class="form-group">
-                                    <label for="basicInfoCity" class="form-label">City *</label>
-                                    <select id="basicInfoCity" class="form-control" required
-                                            onchange="if(window.opportunityCreate) { window.opportunityCreate.updateLocation('city', this.value); window.opportunityCreate.updateCityAreas(this.value); updateBasicInfoLocationDisplay(); }">
-                                        <option value="">Select City</option>
-                                    </select>
-                                </div>
-                            </div>
-                            
-                            <div class="content-grid-2" style="margin-top: 1rem;">
-                                <div class="form-group">
-                                    <label for="basicInfoArea" class="form-label">Area (Optional)</label>
-                                    <select id="basicInfoArea" class="form-control"
-                                            onchange="if(window.opportunityCreate) { window.opportunityCreate.updateLocation('area', this.value); }">
-                                        <option value="">Select Area</option>
-                                    </select>
-                                </div>
-                                
-                                <div class="form-group">
-                                    <label for="basicInfoAddress" class="form-label">Address (Optional)</label>
-                                    <input type="text" id="basicInfoAddress" class="form-control"
-                                           placeholder="Enter full address"
-                                           onchange="if(window.opportunityCreate) { window.opportunityCreate.updateLocation('address', this.value); }">
-                                </div>
-                            </div>
-                            
-                            <div class="form-group" style="margin-top: 1rem;">
-                                <label class="checkbox-label">
-                                    <input type="checkbox" id="basicInfoRemoteAllowed"
-                                           onchange="if(window.opportunityCreate) { window.opportunityCreate.updateLocation('isRemoteAllowed', this.checked); }">
-                                    <span>Remote work allowed</span>
-                                </label>
-                                <small class="form-text">Check this if the work can be done remotely</small>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- Opportunity Wizard -->
+            <!-- Wizard Container -->
             <div class="content-section">
                 <div class="card enhanced-card">
                     <div class="card-body">
                         <div id="opportunityWizardContainer">
-                            <!-- Wizard will be rendered here -->
+                            <!-- Wizard will be rendered here by opportunity-create.js -->
                         </div>
                     </div>
                 </div>
@@ -444,108 +55,67 @@
     <script src="../../../src/config/config.js"></script>
     <script src="../../../src/core/config/location.config.js"></script>
     
-    <!-- API Layer -->
+    <!-- Unified Storage Adapter (must load before data.js) -->
+    <script src="../../../src/core/storage/storage-adapter.js"></script>
+    
+    <!-- API Layer (for future Java backend integration) -->
     <script src="../../../src/core/api/api-client.js"></script>
     <script src="../../../src/core/api/api-service.js"></script>
     
     <!-- Core Scripts -->
     <script src="../../../src/core/data/golden-seed-data.js"></script>
     <script src="../../../src/core/data/data.js"></script>
+    <script src="../../../src/core/auth/user-manager.js"></script>
     <script src="../../../src/core/auth/auth.js"></script>
     <script src="../../../src/core/auth/auth-check.js"></script>
     <script src="../../../src/utils/demo-credentials.js"></script>
     <script src="../../../src/services/services-loader.js"></script>
     <script src="../../../data/data-loader.js"></script>
     
-    <!-- Service Item Model -->
-    <script src="../../../src/business-logic/models/service-item-model.js"></script>
+    <!-- Navigation Routes (must load before navigation.js) -->
+    <script src="../../../src/core/routes/nav-routes.js"></script>
     
-    <!-- Collaboration Models Scripts -->
-    <script src="../../../src/business-logic/models/collaboration-model-definitions.js"></script>
-    <script src="../../../src/business-logic/models/collaboration-models.js"></script>
-    
-    <!-- Layout System -->
+    <!-- Layout System (automatically includes sidebar and navbar) -->
     <script src="../../../src/core/layout/layout.js"></script>
     <script src="../../../src/core/layout/navigation.js"></script>
     <script src="../../../src/core/init/app-init.js"></script>
     
-    <!-- Component Scripts -->
+    <!-- Business Logic (for collaboration models) -->
+    <script src="../../../src/business-logic/models/collaboration-model-definitions.js"></script>
+    <script src="../../../src/business-logic/models/collaboration-models.js"></script>
+    <script src="../../../src/business-logic/collab-init.js"></script>
+    
+    <!-- Collaboration Model Components -->
     <script src="../../../features/projects/collaboration-models-selector.js"></script>
     <script src="../../../features/projects/collaboration-model-fields.js"></script>
+    
+    <!-- Component Scripts -->
     <script src="../../../features/opportunities/opportunity-create.js"></script>
     
     <!-- Initialize Component -->
     <script>
-        // Function to update location dropdowns in Basic Information section
-        function updateBasicInfoLocationDisplay() {
-            if (typeof window.LocationConfig === 'undefined' || !window.opportunityCreate) return;
-            
-            const countrySelect = document.getElementById('basicInfoCountry');
-            const citySelect = document.getElementById('basicInfoCity');
-            const areaSelect = document.getElementById('basicInfoArea');
-            
-            if (!countrySelect || !citySelect || !areaSelect) return;
-            
-            const selectedCountry = countrySelect.value;
-            const formData = window.opportunityCreate.getFormData ? window.opportunityCreate.getFormData() : null;
-            
-            // Update city dropdown based on selected country
-            if (selectedCountry) {
-                const cities = window.LocationConfig.getCitiesByCountry(selectedCountry);
-                citySelect.innerHTML = '<option value="">Select City</option>' + 
-                    cities.map(city => `<option value="${city}" ${formData && formData.location && formData.location.city === city ? 'selected' : ''}>${city}</option>`).join('');
-                citySelect.disabled = false;
-            } else {
-                citySelect.innerHTML = '<option value="">Select City</option>';
-                citySelect.disabled = true;
-            }
-        }
-        
-        // Function to initialize Basic Information location fields
-        function initBasicInfoLocation() {
-            if (typeof window.LocationConfig === 'undefined' || !window.opportunityCreate) {
-                setTimeout(initBasicInfoLocation, 100);
-                return;
-            }
-            
-            const countrySelect = document.getElementById('basicInfoCountry');
-            const citySelect = document.getElementById('basicInfoCity');
-            
-            if (!countrySelect || !citySelect) {
-                setTimeout(initBasicInfoLocation, 100);
-                return;
-            }
-            
-            // Populate countries
-            const countries = window.LocationConfig.getAllowedCountries();
-            const defaultCountry = window.LocationConfig.getDefaultCountry();
-            countrySelect.innerHTML = '<option value="">Select Country</option>' + 
-                countries.map(country => `<option value="${country}" ${country === defaultCountry ? 'selected' : ''}>${country}</option>`).join('');
-            
-            // Set default country if available
-            if (defaultCountry) {
-                countrySelect.value = defaultCountry;
-                updateBasicInfoLocationDisplay();
-            }
-            
-            // Sync with wizard location data using the sync function
-            if (window.opportunityCreate.syncBasicInfoLocationFields) {
-                window.opportunityCreate.syncBasicInfoLocationFields();
-            }
-        }
-        
         document.addEventListener('DOMContentLoaded', async function() {
             // Check authentication
             const isAuth = await AuthCheck.checkAuth({ requireAuth: true });
             if (!isAuth) return;
             
-            // Initialize opportunity creation wizard
+            // Check if editing existing opportunity (from query parameter)
+            const urlParams = new URLSearchParams(window.location.search);
+            const editId = urlParams.get('edit');
+            
+            // Initialize opportunity create wizard
+            // Note: Sidebar and navbar are automatically initialized by app-init.js
             if (window.opportunityCreate) {
                 window.opportunityCreate.init();
+                
+                // If editing, load the opportunity data
+                if (editId) {
+                    // TODO: Load opportunity data for editing
+                    console.log('Edit mode for opportunity:', editId);
+                }
+            } else {
+                console.error('opportunityCreate component not found');
             }
-            
-            // Initialize Basic Information location fields
-            setTimeout(initBasicInfoLocation, 200);
         });
     </script>
 </body>

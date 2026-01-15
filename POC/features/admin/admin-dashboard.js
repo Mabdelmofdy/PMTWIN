@@ -560,13 +560,6 @@
           color: 'primary'
         },
         {
-          title: 'Analytics',
-          icon: 'ph-chart-line',
-          href: getRouteForAction('admin-analytics', 'admin/analytics/'),
-          badge: null,
-          color: 'primary'
-        },
-        {
           title: 'Settings',
           icon: 'ph-gear',
           href: getRouteForAction('admin-settings', 'admin/settings/'),

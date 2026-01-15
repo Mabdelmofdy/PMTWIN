@@ -45,6 +45,9 @@
     <script src="../../src/config/config.js"></script>
     <script src="../../src/core/config/location.config.js"></script>
     
+    <!-- Unified Storage Adapter (must load before data.js) -->
+    <script src="../../src/core/storage/storage-adapter.js"></script>
+    
     <!-- API Layer (for future Java backend integration) -->
     <script src="../../src/core/api/api-client.js"></script>
     <script src="../../src/core/api/api-service.js"></script>
@@ -52,16 +55,23 @@
     <!-- Core Scripts -->
     <script src="../../src/core/data/golden-seed-data.js"></script>
     <script src="../../src/core/data/data.js"></script>
+    <script src="../../src/core/auth/user-manager.js"></script>
     <script src="../../src/core/auth/auth.js"></script>
     <script src="../../src/core/auth/auth-check.js"></script>
     <script src="../../src/utils/demo-credentials.js"></script>
     <script src="../../src/services/services-loader.js"></script>
     <script src="../../data/data-loader.js"></script>
     
+    <!-- Navigation Routes (must load before navigation.js) -->
+    <script src="../../src/core/routes/nav-routes.js"></script>
+    
     <!-- Layout System (automatically includes sidebar and navbar) -->
     <script src="../../src/core/layout/layout.js"></script>
     <script src="../../src/core/layout/navigation.js"></script>
     <script src="../../src/core/init/app-init.js"></script>
+    
+    <!-- Load renderer -->
+    <script src="../../src/core/renderer/renderer.js"></script>
     
     <!-- Component Scripts -->
     <script src="../../features/opportunities/opportunities-list.js"></script>

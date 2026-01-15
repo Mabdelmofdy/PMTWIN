@@ -324,7 +324,8 @@
         "service_requests_browse",
         "service_offers_manage",
         "service_engagements_view",
-        "search_service_provider_skills"
+        "search_service_provider_skills",
+        "contract_management"
       ],
       "portals": ["user_portal"],
       "availableModels": ["1.1", "1.2", "1.3", "1.4", "2.1", "2.2", "3.1", "3.2", "3.3", "4.1", "4.2", "5.1"],
@@ -367,7 +368,8 @@
         "collaboration_applications",
         "pipeline_management",
         "profile_management",
-        "notifications"
+        "notifications",
+        "contract_management"
       ],
       "portals": ["user_portal"],
       "availableModels": ["2.2", "3.1", "3.2", "3.3"],
@@ -462,7 +464,8 @@
         "collaboration_applications",
         "pipeline_management",
         "profile_management",
-        "notifications"
+        "notifications",
+        "contract_management"
       ],
       "portals": ["user_portal"],
       "availableModels": ["1.1", "1.2", "2.3", "4.1"],
@@ -595,7 +598,8 @@
         "reports",
         "analytics",
         "data_export",
-        "notifications"
+        "notifications",
+        "contract_management"
       ],
       "portals": ["admin_portal"],
       "availableModels": ["1.1", "1.2", "1.3", "1.4", "2.1", "2.2", "2.3", "3.1", "3.2", "3.3", "4.1", "4.2", "5.1"],
@@ -683,6 +687,7 @@
     "proposal_management": "Manage own proposals",
     "proposal_review": "Review proposals received for own projects",
     "proposal_viewing": "View all proposals (read-only)",
+    "contract_management": "View and manage contracts",
     "sub_contractor_management": "Manage sub_contractors under vendor",
     "submit_proposals_to_vendors": "Submit proposals to vendors (sub_contractors only)",
     "view_vendor_opportunities": "View opportunities from vendors",

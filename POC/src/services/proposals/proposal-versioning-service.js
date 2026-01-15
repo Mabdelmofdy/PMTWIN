@@ -9,7 +9,7 @@
   /**
    * Create a new version of a proposal
    * @param {string} proposalId - Original proposal ID
-   * @param {Object} updates - Updates to apply
+   * @param {Object} updates - Updates to apply (must include comment)
    * @param {string} updatedBy - User ID making the update
    * @returns {Object} - Result { success: boolean, proposal: Object, error: string }
    */
@@ -23,8 +23,14 @@
       return { success: false, error: 'Original proposal not found' };
     }
 
+    // Validate comment is required (min 10 characters)
+    const comment = updates.comment || updates.commentText || '';
+    if (!comment || typeof comment !== 'string' || comment.trim().length < 10) {
+      return { success: false, error: 'Comment is required and must be at least 10 characters long' };
+    }
+
     // Determine new version number
-    const currentVersion = originalProposal.version || 1;
+    const currentVersion = originalProposal.currentVersion || originalProposal.version || originalProposal.versions?.length || 1;
     const newVersion = currentVersion + 1;
 
     // Get version history
@@ -307,6 +313,67 @@
   }
 
   /**
+   * Create a new version with payment terms changes and comment
+   * @param {string} proposalId - Proposal ID
+   * @param {Object} paymentTermsUpdates - Updated payment terms
+   * @param {string} comment - MANDATORY comment explaining changes (min 10 chars)
+   * @param {Array} serviceItems - Optional service items overrides
+   * @returns {Object} - Result { success: boolean, proposal: Object, error: string }
+   */
+  function createVersionWithChanges(proposalId, paymentTermsUpdates, comment, serviceItems = null) {
+    if (typeof PMTwinData === 'undefined' || !PMTwinData.Proposals) {
+      return { success: false, error: 'Data service not available' };
+    }
+
+    const proposal = PMTwinData.Proposals.getById(proposalId);
+    if (!proposal) {
+      return { success: false, error: 'Proposal not found' };
+    }
+
+    // Validate comment is required (min 10 characters)
+    if (!comment || typeof comment !== 'string' || comment.trim().length < 10) {
+      return { success: false, error: 'Comment is required and must be at least 10 characters long' };
+    }
+
+    // Get current version payment terms
+    const currentVersion = proposal.versions && proposal.versions.length > 0 
+      ? proposal.versions[proposal.versions.length - 1] 
+      : null;
+    const currentPaymentTerms = currentVersion?.paymentTerms || {};
+
+    // Merge payment terms updates
+    const updatedPaymentTerms = {
+      ...currentPaymentTerms,
+      ...paymentTermsUpdates
+    };
+
+    // Prepare updates for new version
+    const updates = {
+      paymentTerms: updatedPaymentTerms,
+      comment: comment.trim(),
+      status: 'CHANGES_REQUESTED'
+    };
+
+    if (serviceItems) {
+      updates.serviceItems = serviceItems;
+    }
+
+    // Use Proposals.createVersion if available
+    const currentUser = PMTwinData.Sessions.getCurrentUser();
+    const updatedBy = currentUser?.id || 'system';
+
+    if (PMTwinData.Proposals.createVersion) {
+      const updated = PMTwinData.Proposals.createVersion(proposalId, updates, updatedBy);
+      if (updated) {
+        return { success: true, proposal: updated };
+      }
+    }
+
+    // Fallback: use createProposalVersion
+    return createProposalVersion(proposalId, updates, updatedBy);
+  }
+
+  /**
    * Get negotiation thread for a proposal
    * @param {string} proposalId - Proposal ID
    * @returns {Array} - Negotiation thread entries
@@ -324,13 +391,17 @@
   // Export
   // ============================================
 
-  window.ProposalVersioning = {
+  window.ProposalVersioningService = {
     createVersion: createProposalVersion,
     createCounteroffer: createCounteroffer,
+    createVersionWithChanges: createVersionWithChanges,
     getVersions: getProposalVersions,
     getLatestVersion: getLatestProposalVersion,
     compareVersions: compareProposalVersions,
     getNegotiationThread: getNegotiationThread
   };
+
+  // Backward compatibility alias
+  window.ProposalVersioning = window.ProposalVersioningService;
 
 })();

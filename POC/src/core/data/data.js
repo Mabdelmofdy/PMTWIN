@@ -124,15 +124,56 @@
     if (typeof GoldenSeedData !== 'undefined') {
       GoldenSeedData.load();
     } else {
-      // Fallback: Load script dynamically if not in template
-      const script = document.createElement('script');
-      script.src = getDataBasePath() + 'src/core/data/golden-seed-data.js';
-      script.onload = function() {
-        if (typeof GoldenSeedData !== 'undefined') {
-          GoldenSeedData.load();
-        }
-      };
-      document.head.appendChild(script);
+      // Check if script tag already exists (might be loading)
+      const existingScript = Array.from(document.getElementsByTagName('script')).find(
+        s => s.src && s.src.includes('golden-seed-data.js')
+      );
+      
+      if (existingScript) {
+        // Script tag exists, wait for it to load
+        const checkInterval = setInterval(function() {
+          if (typeof GoldenSeedData !== 'undefined') {
+            clearInterval(checkInterval);
+            GoldenSeedData.load();
+          }
+        }, 50);
+        
+        // Stop checking after 2 seconds
+        setTimeout(function() {
+          clearInterval(checkInterval);
+          if (typeof GoldenSeedData === 'undefined') {
+            console.warn('[Data] GoldenSeedData script tag found but failed to load. Check browser console for errors.');
+          }
+        }, 2000);
+      } else {
+        // Fallback: Load script dynamically if not in template
+        // Wait a bit to see if script loads from HTML first
+        setTimeout(function() {
+          if (typeof GoldenSeedData !== 'undefined') {
+            GoldenSeedData.load();
+            return;
+          }
+          
+          // Only load dynamically if still not available
+          const basePath = getDataBasePath();
+          const scriptPath = basePath + 'src/core/data/golden-seed-data.js';
+          console.warn('[Data] GoldenSeedData not found, attempting to load from:', scriptPath);
+          
+          const script = document.createElement('script');
+          script.src = scriptPath;
+          script.onload = function() {
+            if (typeof GoldenSeedData !== 'undefined') {
+              GoldenSeedData.load();
+            } else {
+              console.warn('GoldenSeedData not available. Make sure golden-seed-data.js is loaded.');
+            }
+          };
+          script.onerror = function() {
+            console.warn('[Data] Failed to load golden-seed-data.js from:', scriptPath, '- Make sure the file exists and path is correct.');
+          };
+          document.head.appendChild(script);
+        }, 100);
+      }
     }
     
     // Load sample collaboration opportunities if none exist (UNIFIED - uses Opportunities model)
@@ -162,10 +203,22 @@
     
     // Remove legacy storage keys
     if (typeof UnifiedStorage !== 'undefined') {
-      UnifiedStorage.removeLegacyKeys();
+      // Use the comprehensive cleanup function
+      UnifiedStorage.migrateAndCleanupLegacyWorkflowData();
     } else {
       // Fallback: remove legacy keys directly
-      const legacyKeys = ['pmtwin_projects', 'pmtwin_service_requests', 'pmtwin_service_offers'];
+      const legacyKeys = [
+        'pmtwin_projects',
+        'pmtwin_tasks',
+        'pmtwin_requests',
+        'pmtwin_service_requests',
+        'pmtwin_offers',
+        'pmtwin_service_offers',
+        'pmtwin_matches',
+        'pmtwin_matches_old',
+        'pmtwin_pipeline',
+        'pmtwin_pipeline_old'
+      ];
       legacyKeys.forEach(key => {
         if (localStorage.getItem(key)) {
           localStorage.removeItem(key);
@@ -2833,15 +2886,49 @@
 
   // Helper: Get base path for data files
   function getDataBasePath() {
-    // For local development: count all path segments to determine depth
+    // Try to determine base path from current script location first (most reliable)
+    const scripts = document.getElementsByTagName('script');
+    for (let i = scripts.length - 1; i >= 0; i--) {
+      const script = scripts[i];
+      if (script.src && script.src.includes('/src/core/data/data.js')) {
+        try {
+          // Extract base path from script src
+          const url = new URL(script.src, window.location.href);
+          const pathname = url.pathname;
+          const match = pathname.match(/^(.*?)\/src\/core\/data\/data\.js$/);
+          if (match && match[1]) {
+            const basePath = match[1];
+            // Calculate relative path from current location
+            const currentPath = window.location.pathname;
+            const currentDir = currentPath.substring(0, currentPath.lastIndexOf('/') + 1);
+            
+            // If basePath is absolute, convert to relative
+            if (basePath.startsWith('/')) {
+              // Count segments from basePath to current location
+              const baseSegments = basePath.split('/').filter(p => p);
+              const currentSegments = currentDir.split('/').filter(p => p && p !== 'index.html');
+              const depth = currentSegments.length;
+              return depth > 0 ? '../'.repeat(depth) : '';
+            }
+            return basePath + '/';
+          }
+        } catch (e) {
+          // If URL parsing fails, fall through to fallback method
+        }
+      }
+    }
+    
+    // Fallback: For local development: count all path segments to determine depth
     const currentPath = window.location.pathname;
     // Remove leading/trailing slashes and split, filter out empty strings and HTML files
-    const segments = currentPath.split('/').filter(p => p && !p.endsWith('.html'));
+    const segments = currentPath.split('/').filter(p => p && !p.endsWith('.html') && p !== 'index');
     
     // Count how many directory levels deep we are
     const depth = segments.length;
     
     // Generate the appropriate number of ../ to reach POC root
+    // If we're at root (/), depth will be 0, so return empty string (correct for root)
+    // If we're in pages/home/, depth will be 2, so return ../../
     return depth > 0 ? '../'.repeat(depth) : '';
   }
 
@@ -3427,7 +3514,26 @@
     getCurrentUser() {
       const session = this.getCurrentSession();
       if (!session) return null;
-      return Users.getById(session.userId);
+      
+      // Try to get user by userId first
+      let user = Users.getById(session.userId);
+      
+      // If not found and session has email, try by email
+      if (!user && session.userEmail) {
+        user = Users.getByEmail(session.userEmail);
+      }
+      
+      // If still not found, try alternative ID formats
+      if (!user) {
+        const allUsers = Users.getAll();
+        user = allUsers.find(u => 
+          u.userId === session.userId ||
+          String(u.id) === String(session.userId) ||
+          String(u.userId) === String(session.userId)
+        );
+      }
+      
+      return user;
     },
 
     create(userId, role, userType = null, onboardingStage = null) {
@@ -3440,6 +3546,7 @@
       const user = Users.getById(userId);
       const finalUserType = userType || (user ? user.userType : mapRoleToUserType(role));
       const finalOnboardingStage = onboardingStage || (user ? user.onboardingStage : null);
+      const userEmail = user ? user.email : null;
 
       const expiresAt = new Date();
       expiresAt.setHours(expiresAt.getHours() + 24); // 24 hour expiry
@@ -3450,6 +3557,7 @@
         role: role, // Keep for backward compatibility
         userType: finalUserType,
         onboardingStage: finalOnboardingStage,
+        userEmail: userEmail, // Store email for fallback user object creation
         createdAt: new Date().toISOString(),
         expiresAt: expiresAt.toISOString()
       };
@@ -3817,9 +3925,46 @@
       const currentUser = Sessions.getCurrentUser();
       const createdBy = proposalData.createdBy || providerId || currentUser?.id || 'system';
       
-      // Create initial version
+      // Determine initiatorId (who sent the proposal) and receiverId (opportunity owner)
+      const initiatorId = proposalData.initiatorId || providerId || createdBy;
+      const receiverId = proposalData.receiverId || ownerCompanyId;
+      
+      // Extract payment terms from proposalData (proposed payment terms for this engagement request)
+      const proposedPaymentTerms = proposalData.paymentTerms || proposalData.proposedPaymentTerms || null;
+      
+      // Extract comment (MANDATORY for engagement requests)
+      const comment = proposalData.comment || proposalData.commentText || '';
+      
+      // Validate: Comment is MANDATORY for engagement requests (min 10 characters)
+      // Exception: DRAFT proposals can have empty comment
+      const isDraft = (proposalData.status || 'SUBMITTED') === 'DRAFT';
+      if (!isDraft && (!comment || comment.trim().length < 10)) {
+        console.error('Cannot create proposal: Comment is required and must be at least 10 characters for non-draft proposals');
+        return null;
+      }
+      
+      // Determine initial status (map legacy statuses to new workflow)
+      let status = proposalData.status || 'SUBMITTED';
+      // Map legacy statuses to new workflow statuses
+      const statusMapping = {
+        'DRAFT': 'DRAFT',
+        'SUBMITTED': 'SUBMITTED',
+        'UNDER_REVIEW': 'CHANGES_REQUESTED', // Legacy UNDER_REVIEW maps to CHANGES_REQUESTED
+        'NEGOTIATION': 'CHANGES_REQUESTED', // Legacy NEGOTIATION maps to CHANGES_REQUESTED
+        'AWARDED': 'FINAL_ACCEPTED', // Legacy AWARDED maps to FINAL_ACCEPTED
+        'REJECTED': 'REJECTED',
+        'ACCEPTED_BY_OWNER': 'ACCEPTED_BY_OWNER',
+        'ACCEPTED_BY_OTHER': 'ACCEPTED_BY_OTHER',
+        'FINAL_ACCEPTED': 'FINAL_ACCEPTED',
+        'CHANGES_REQUESTED': 'CHANGES_REQUESTED'
+      };
+      status = statusMapping[status] || status;
+      
+      // Create initial version with paymentTerms and comment
       const initialVersion = {
         version: 1,
+        paymentTerms: proposedPaymentTerms, // Proposed payment terms for this version
+        comment: comment, // MANDATORY comment explaining the engagement request
         proposalData: {
           ...proposalData,
           // Remove versioning fields from proposalData
@@ -3827,11 +3972,15 @@
           versions: undefined,
           versionHistory: undefined,
           currentVersion: undefined,
-          acceptance: undefined
+          acceptance: undefined,
+          paymentTerms: undefined, // Moved to version level
+          comment: undefined, // Moved to version level
+          proposedPaymentTerms: undefined
         },
+        serviceItems: proposalData.serviceItems || [], // Optional service item overrides
         createdAt: proposalData.createdAt || new Date().toISOString(),
         createdBy: createdBy,
-        status: proposalData.status || 'SUBMITTED',
+        status: status,
         changes: [] // No changes for initial version
       };
       
@@ -3840,14 +3989,21 @@
         proposalId: proposalData.proposalId || generateId('proposal'), // Alias for clarity
         opportunityId: opportunityId,
         providerId: providerId,
+        // Engagement Request fields (new)
+        initiatorId: initiatorId, // Who sent the proposal
+        receiverId: receiverId, // Opportunity owner (who receives the proposal)
         // Versioning (immutable list)
         versions: [initialVersion],
         currentVersion: 1,
-        // Acceptance states
+        // Acceptance states (updated structure)
         acceptance: {
+          ownerAcceptedVersion: null, // Version number owner accepted
+          otherPartyAcceptedVersion: null, // Version number other party accepted
+          mutuallyAcceptedVersion: null, // Version both parties accepted (null until both accept)
+          finalAcceptedAt: null, // Timestamp when FINAL_ACCEPTED
+          // Legacy fields for backward compatibility
           providerAccepted: false,
           ownerAccepted: false,
-          mutuallyAcceptedVersion: null,
           acceptedAt: null
         },
         // Legacy fields for backward compatibility
@@ -3856,9 +4012,9 @@
         targetType: proposalData.targetType || (proposalData.projectId ? 'PROJECT' : 'SERVICE_REQUEST'),
         targetId: opportunityId,
         projectId: proposalData.projectId || opportunityId, // Backward compatibility
-        bidderCompanyId: providerId,
-        ownerCompanyId: ownerCompanyId,
-        status: proposalData.status || 'SUBMITTED',
+        bidderCompanyId: providerId, // Backward compatibility
+        ownerCompanyId: ownerCompanyId, // Backward compatibility alias for receiverId
+        status: status,
         submittedAt: proposalData.status === 'DRAFT' ? null : (proposalData.submittedAt || new Date().toISOString()),
         version: 1, // Current version number
         parentProposalId: null, // Root proposal ID (same as id for first version)
@@ -3919,12 +4075,50 @@
           ...updates.acceptance
         };
         
-        // Check if mutually accepted
-        if (proposals[index].acceptance.providerAccepted && 
-            proposals[index].acceptance.ownerAccepted &&
+        // Check if both parties accepted the same version (FINAL_ACCEPTED)
+        const ownerAcceptedVersion = proposals[index].acceptance.ownerAcceptedVersion;
+        const otherPartyAcceptedVersion = proposals[index].acceptance.otherPartyAcceptedVersion;
+        
+        if (ownerAcceptedVersion && otherPartyAcceptedVersion && 
+            ownerAcceptedVersion === otherPartyAcceptedVersion &&
             !proposals[index].acceptance.mutuallyAcceptedVersion) {
-          proposals[index].acceptance.mutuallyAcceptedVersion = proposals[index].currentVersion;
-          proposals[index].acceptance.acceptedAt = new Date().toISOString();
+          proposals[index].acceptance.mutuallyAcceptedVersion = ownerAcceptedVersion;
+          proposals[index].acceptance.finalAcceptedAt = new Date().toISOString();
+          // Update status to FINAL_ACCEPTED
+          proposals[index].status = 'FINAL_ACCEPTED';
+          
+          // Auto-generate contract when FINAL_ACCEPTED
+          try {
+            if (typeof Contracts !== 'undefined' && proposals[index].opportunityId) {
+              const contractData = {
+                proposalId: proposals[index].id,
+                opportunityId: proposals[index].opportunityId,
+                generatedFromProposalVersionId: `${proposals[index].id}_v${ownerAcceptedVersion}`
+              };
+              const contract = Contracts.create(contractData);
+              if (contract) {
+                console.log(`[Proposals] Auto-generated contract ${contract.id} for FINAL_ACCEPTED proposal ${proposals[index].id}`);
+                // Link contract ID to proposal
+                proposals[index].contractId = contract.id;
+              } else {
+                console.warn(`[Proposals] Failed to auto-generate contract for proposal ${proposals[index].id}`);
+              }
+            }
+          } catch (error) {
+            console.error(`[Proposals] Error auto-generating contract for proposal ${proposals[index].id}:`, error);
+            // Don't fail the proposal update if contract generation fails
+          }
+        }
+        
+        // Backward compatibility: sync legacy fields
+        if (updates.acceptance.ownerAcceptedVersion) {
+          proposals[index].acceptance.ownerAccepted = true;
+        }
+        if (updates.acceptance.otherPartyAcceptedVersion) {
+          proposals[index].acceptance.providerAccepted = true;
+        }
+        if (proposals[index].acceptance.mutuallyAcceptedVersion) {
+          proposals[index].acceptance.acceptedAt = proposals[index].acceptance.finalAcceptedAt;
         }
       }
       
@@ -3946,19 +4140,59 @@
         updatedAt: new Date().toISOString()
       };
       
-      // Sync legacy fields
+      // Sync legacy fields and map status
       if (updates.status) {
-        proposals[index].status = updates.status;
+        // Map status to new workflow if needed
+        const statusMapping = {
+          'DRAFT': 'DRAFT',
+          'SUBMITTED': 'SUBMITTED',
+          'UNDER_REVIEW': 'CHANGES_REQUESTED',
+          'NEGOTIATION': 'CHANGES_REQUESTED',
+          'AWARDED': 'FINAL_ACCEPTED',
+          'REJECTED': 'REJECTED',
+          'ACCEPTED_BY_OWNER': 'ACCEPTED_BY_OWNER',
+          'ACCEPTED_BY_OTHER': 'ACCEPTED_BY_OTHER',
+          'FINAL_ACCEPTED': 'FINAL_ACCEPTED',
+          'CHANGES_REQUESTED': 'CHANGES_REQUESTED'
+        };
+        const mappedStatus = statusMapping[updates.status] || updates.status;
+        proposals[index].status = mappedStatus;
         // Update current version status
         if (proposals[index].versions && proposals[index].versions.length > 0) {
           const currentVersionIndex = proposals[index].versions.length - 1;
-          proposals[index].versions[currentVersionIndex].status = updates.status;
+          proposals[index].versions[currentVersionIndex].status = mappedStatus;
         }
       }
 
       // Set timestamps for status changes
-      if (updates.status === 'AWARDED' && oldProposal.status !== 'AWARDED') {
+      if ((updates.status === 'AWARDED' || updates.status === 'FINAL_ACCEPTED') && 
+          oldProposal.status !== 'AWARDED' && oldProposal.status !== 'FINAL_ACCEPTED') {
         proposals[index].awardedAt = new Date().toISOString();
+        
+        // Auto-generate contract when status changes to FINAL_ACCEPTED (if not already generated)
+        if (updates.status === 'FINAL_ACCEPTED' && !proposals[index].contractId) {
+          try {
+            if (typeof Contracts !== 'undefined' && proposals[index].opportunityId) {
+              const acceptedVersion = proposals[index].acceptance?.mutuallyAcceptedVersion || 
+                                     proposals[index].currentVersion || 1;
+              const contractData = {
+                proposalId: proposals[index].id,
+                opportunityId: proposals[index].opportunityId,
+                generatedFromProposalVersionId: `${proposals[index].id}_v${acceptedVersion}`
+              };
+              const contract = Contracts.create(contractData);
+              if (contract) {
+                console.log(`[Proposals] Auto-generated contract ${contract.id} for FINAL_ACCEPTED proposal ${proposals[index].id}`);
+                proposals[index].contractId = contract.id;
+              } else {
+                console.warn(`[Proposals] Failed to auto-generate contract for proposal ${proposals[index].id}`);
+              }
+            }
+          } catch (error) {
+            console.error(`[Proposals] Error auto-generating contract for proposal ${proposals[index].id}:`, error);
+            // Don't fail the proposal update if contract generation fails
+          }
+        }
       }
       if (updates.status === 'REJECTED' && oldProposal.status !== 'REJECTED') {
         proposals[index].rejectedAt = new Date().toISOString();
@@ -3995,7 +4229,20 @@
       const newVersion = currentVersion + 1;
       
       // Get current version data
-      const currentVersionData = proposal.versions[proposal.versions.length - 1]?.proposalData || {};
+      const latestVersion = proposal.versions[proposal.versions.length - 1];
+      const currentVersionData = latestVersion?.proposalData || {};
+      const currentPaymentTerms = latestVersion?.paymentTerms || null;
+      const currentComment = latestVersion?.comment || '';
+      
+      // Extract payment terms and comment from updates (for new version)
+      const newPaymentTerms = updates.paymentTerms || updates.proposedPaymentTerms || currentPaymentTerms;
+      const newComment = updates.comment || updates.commentText || '';
+      
+      // Validate: Comment is MANDATORY for new versions (min 10 characters)
+      if (!newComment || newComment.trim().length < 10) {
+        console.error('Cannot create proposal version: Comment is required and must be at least 10 characters');
+        return null;
+      }
       
       // Create new version with updates
       const newVersionData = {
@@ -4003,21 +4250,34 @@
         ...updates
       };
       
+      // Remove version-level fields from proposalData
+      delete newVersionData.paymentTerms;
+      delete newVersionData.comment;
+      delete newVersionData.proposedPaymentTerms;
+      delete newVersionData.commentText;
+      
       // Determine what changed
       const changes = [];
       Object.keys(updates).forEach(key => {
-        if (key !== 'updatedAt' && key !== 'createdAt' && currentVersionData[key] !== updates[key]) {
+        if (key !== 'updatedAt' && key !== 'createdAt' && 
+            key !== 'paymentTerms' && key !== 'comment' && key !== 'proposedPaymentTerms' && key !== 'commentText' &&
+            currentVersionData[key] !== updates[key]) {
           changes.push(key);
         }
       });
+      if (newPaymentTerms !== currentPaymentTerms) changes.push('paymentTerms');
+      if (newComment !== currentComment && newComment) changes.push('comment');
       
-      // Create version snapshot
+      // Create version snapshot with paymentTerms and comment
       const versionSnapshot = {
         version: newVersion,
+        paymentTerms: newPaymentTerms, // Proposed payment terms for this version
+        comment: newComment, // MANDATORY comment explaining changes
         proposalData: newVersionData,
+        serviceItems: updates.serviceItems || latestVersion?.serviceItems || [], // Optional service item overrides
         createdAt: new Date().toISOString(),
-        createdBy: updatedBy || proposal.providerId,
-        status: updates.status || proposal.status || 'NEGOTIATION',
+        createdBy: updatedBy || proposal.initiatorId || proposal.providerId,
+        status: updates.status || proposal.status || 'CHANGES_REQUESTED',
         changes: changes
       };
       
@@ -4036,9 +4296,21 @@
         changes: v.changes
       }));
       
-      // Update status if provided
+        // Update status if provided (map legacy statuses)
       if (updates.status) {
-        proposal.status = updates.status;
+        const statusMapping = {
+          'DRAFT': 'DRAFT',
+          'SUBMITTED': 'SUBMITTED',
+          'UNDER_REVIEW': 'CHANGES_REQUESTED',
+          'NEGOTIATION': 'CHANGES_REQUESTED',
+          'AWARDED': 'FINAL_ACCEPTED',
+          'REJECTED': 'REJECTED',
+          'ACCEPTED_BY_OWNER': 'ACCEPTED_BY_OWNER',
+          'ACCEPTED_BY_OTHER': 'ACCEPTED_BY_OTHER',
+          'FINAL_ACCEPTED': 'FINAL_ACCEPTED',
+          'CHANGES_REQUESTED': 'CHANGES_REQUESTED'
+        };
+        proposal.status = statusMapping[updates.status] || updates.status;
       }
       
       // Update proposal
@@ -4913,11 +5185,12 @@
         subModel = opportunityData.modelId;
       }
       
-      // Payment Terms structure
-      let paymentTerms = opportunityData.paymentTerms;
-      if (!paymentTerms || typeof paymentTerms !== 'object') {
+      // Preferred Payment Terms structure (renamed from paymentTerms)
+      // Support both preferredPaymentTerms (new) and paymentTerms (legacy) for backward compatibility
+      let preferredPaymentTerms = opportunityData.preferredPaymentTerms || opportunityData.paymentTerms;
+      if (!preferredPaymentTerms || typeof preferredPaymentTerms !== 'object') {
         // Build from legacy fields
-        let mode = opportunityData.paymentMode || opportunityData.paymentTerms?.mode;
+        let mode = opportunityData.paymentMode || opportunityData.paymentTerms?.mode || opportunityData.preferredPaymentTerms?.mode;
         if (!mode) {
           if (opportunityData.exchangeType === 'Barter' || opportunityData.barterOffer) {
             mode = 'BARTER';
@@ -4929,7 +5202,7 @@
           }
         }
         
-        paymentTerms = {
+        preferredPaymentTerms = {
           mode: mode.toUpperCase(),
           barterRule: null,
           cashSettlement: 0,
@@ -4938,17 +5211,20 @@
         
         // Set barter rule if BARTER or HYBRID
         if (mode === 'BARTER' || mode === 'HYBRID') {
-          paymentTerms.barterRule = opportunityData.barterSettlementRule || 
+          preferredPaymentTerms.barterRule = opportunityData.barterSettlementRule || 
                                     opportunityData.barterRule || 
                                     'ALLOW_DIFFERENCE_CASH';
           if (opportunityData.cashComponent) {
-            paymentTerms.cashSettlement = parseFloat(opportunityData.cashComponent) || 0;
+            preferredPaymentTerms.cashSettlement = parseFloat(opportunityData.cashComponent) || 0;
           }
           if (opportunityData.acknowledgedDifference) {
-            paymentTerms.acknowledgedDifference = true;
+            preferredPaymentTerms.acknowledgedDifference = true;
           }
         }
       }
+      
+      // Keep paymentTerms for backward compatibility (deprecated)
+      const paymentTerms = preferredPaymentTerms;
       
       // Location structure (standardize)
       let location = opportunityData.location;
@@ -5000,7 +5276,8 @@
         status: opportunityData.status || 'draft',
         skills: skills,
         serviceItems: serviceItems,
-        paymentTerms: paymentTerms,
+        preferredPaymentTerms: preferredPaymentTerms,
+        paymentTerms: paymentTerms, // Backward compatibility (deprecated)
         location: location,
         createdBy: opportunityData.createdBy || opportunityData.creatorId || null,
         createdAt: opportunityData.createdAt || new Date().toISOString(),
@@ -5056,12 +5333,29 @@
       if (updates.intent && !updates.intentType) {
         updates.intentType = updates.intent;
       }
-      if (updates.paymentTerms && !updates.paymentMode) {
-        updates.paymentMode = updates.paymentTerms.mode;
-        if (updates.paymentTerms.barterRule) {
+      
+      // Handle preferredPaymentTerms and paymentTerms (backward compatibility)
+      // Priority: preferredPaymentTerms (new) > paymentTerms (legacy)
+      if (updates.preferredPaymentTerms) {
+        // New preferredPaymentTerms provided - use it and sync to paymentTerms
+        updates.paymentTerms = updates.preferredPaymentTerms;
+        if (!updates.paymentMode) {
+          updates.paymentMode = updates.preferredPaymentTerms.mode;
+        }
+        if (updates.preferredPaymentTerms.barterRule && !updates.barterSettlementRule) {
+          updates.barterSettlementRule = updates.preferredPaymentTerms.barterRule;
+        }
+      } else if (updates.paymentTerms) {
+        // Legacy paymentTerms provided - map to preferredPaymentTerms
+        updates.preferredPaymentTerms = updates.paymentTerms;
+        if (!updates.paymentMode) {
+          updates.paymentMode = updates.paymentTerms.mode;
+        }
+        if (updates.paymentTerms.barterRule && !updates.barterSettlementRule) {
           updates.barterSettlementRule = updates.paymentTerms.barterRule;
         }
       }
+      
       if (updates.subModel && !updates.modelType && !updates.modelId) {
         updates.modelType = updates.subModel;
         updates.modelId = updates.subModel;
@@ -5144,12 +5438,13 @@
         const intentFilter = filters.intent || filters.intentType;
         opportunities = opportunities.filter(o => o.intent === intentFilter || o.intentType === intentFilter);
       }
-      if (filters.paymentMode || filters.paymentTerms) {
-        const paymentFilter = filters.paymentMode || filters.paymentTerms?.mode;
-        opportunities = opportunities.filter(o => 
-          o.paymentTerms?.mode === paymentFilter || 
-          o.paymentMode === paymentFilter
-        );
+      if (filters.paymentMode || filters.paymentTerms || filters.preferredPaymentTerms) {
+        const paymentFilter = filters.paymentMode || filters.preferredPaymentTerms?.mode || filters.paymentTerms?.mode;
+        opportunities = opportunities.filter(o => {
+          // Check preferredPaymentTerms first (new), then paymentTerms (legacy), then paymentMode
+          const oppPaymentMode = o.preferredPaymentTerms?.mode || o.paymentTerms?.mode || o.paymentMode;
+          return oppPaymentMode === paymentFilter;
+        });
       }
       // Location filters
       if (filters.country) {
@@ -5178,10 +5473,11 @@
     
     getByPaymentMode(paymentMode) {
       const opportunities = this.getAll();
-      return opportunities.filter(o => 
-        o.paymentTerms?.mode === paymentMode || 
-        o.paymentMode === paymentMode
-      );
+      return opportunities.filter(o => {
+        // Check preferredPaymentTerms first (new), then paymentTerms (legacy), then paymentMode
+        const oppPaymentMode = o.preferredPaymentTerms?.mode || o.paymentTerms?.mode || o.paymentMode;
+        return oppPaymentMode === paymentMode;
+      });
     },
     
     getByLocation(country, city) {
@@ -5238,8 +5534,8 @@
         const intent = opp.intent || opp.intentType || 'BOTH';
         stats.byIntent[intent] = (stats.byIntent[intent] || 0) + 1;
         
-        // Count by payment mode
-        const paymentMode = opp.paymentTerms?.mode || opp.paymentMode || 'CASH';
+        // Count by payment mode (check preferredPaymentTerms first, then paymentTerms for backward compatibility)
+        const paymentMode = opp.preferredPaymentTerms?.mode || opp.paymentTerms?.mode || opp.paymentMode || 'CASH';
         stats.byPaymentMode[paymentMode] = (stats.byPaymentMode[paymentMode] || 0) + 1;
         
         // Calculate value from serviceItems or attributes
@@ -5309,6 +5605,45 @@
         metadata: {}
       });
       set(STORAGE_KEYS.AUDIT, auditLogs);
+    },
+
+    /**
+     * Migrate existing opportunities from paymentTerms to preferredPaymentTerms
+     * This function should be called once to migrate existing data
+     * Ensures all opportunities have preferredPaymentTerms set (from paymentTerms if needed)
+     */
+    migratePaymentTermsToPreferred() {
+      const opportunities = this.getAll();
+      let migratedCount = 0;
+      
+      opportunities.forEach(opp => {
+        // If preferredPaymentTerms doesn't exist but paymentTerms does, migrate it
+        if (!opp.preferredPaymentTerms && opp.paymentTerms) {
+          opp.preferredPaymentTerms = opp.paymentTerms;
+          migratedCount++;
+        }
+        // If both exist but they're different, prefer preferredPaymentTerms and sync paymentTerms
+        else if (opp.preferredPaymentTerms && opp.paymentTerms && 
+                 JSON.stringify(opp.preferredPaymentTerms) !== JSON.stringify(opp.paymentTerms)) {
+          // Sync paymentTerms to match preferredPaymentTerms for consistency
+          opp.paymentTerms = opp.preferredPaymentTerms;
+          migratedCount++;
+        }
+        // If only preferredPaymentTerms exists, ensure paymentTerms is set for backward compatibility
+        else if (opp.preferredPaymentTerms && !opp.paymentTerms) {
+          opp.paymentTerms = opp.preferredPaymentTerms;
+          migratedCount++;
+        }
+      });
+      
+      if (migratedCount > 0) {
+        set(STORAGE_KEYS.OPPORTUNITIES, opportunities);
+        console.log(`[Opportunities] Migrated ${migratedCount} opportunities from paymentTerms to preferredPaymentTerms`);
+      } else {
+        console.log(`[Opportunities] No migration needed - all opportunities already have preferredPaymentTerms`);
+      }
+      
+      return migratedCount;
     }
   };
   
@@ -8464,7 +8799,9 @@
       // 1. Migrate existing CollaborationOpportunities
       const existingOpportunities = CollaborationOpportunities.getAll();
       existingOpportunities.forEach(opp => {
-        if (!opp.intent || !opp.paymentTerms || !opp.location || !opp.serviceItems) {
+        // Check preferredPaymentTerms first (new), then paymentTerms (legacy)
+        const hasPaymentTerms = opp.preferredPaymentTerms || opp.paymentTerms;
+        if (!opp.intent || !hasPaymentTerms || !opp.location || !opp.serviceItems) {
           // Convert to new structure
           const updates = {};
           
@@ -8480,10 +8817,10 @@
             updates.model = subModel.split('.')[0];
           }
           
-          // Payment Terms
-          if (!opp.paymentTerms || typeof opp.paymentTerms !== 'object') {
+          // Payment Terms - prefer preferredPaymentTerms, fallback to paymentTerms
+          if (!opp.preferredPaymentTerms && (!opp.paymentTerms || typeof opp.paymentTerms !== 'object')) {
             const mode = opp.paymentMode || 'CASH';
-            updates.paymentTerms = {
+            updates.preferredPaymentTerms = {
               mode: mode.toUpperCase(),
               barterRule: (mode === 'BARTER' || mode === 'HYBRID') 
                 ? (opp.barterSettlementRule || 'ALLOW_DIFFERENCE_CASH') 
@@ -8491,6 +8828,11 @@
               cashSettlement: opp.cashComponent || 0,
               acknowledgedDifference: opp.acknowledgedDifference || false
             };
+            // Also set paymentTerms for backward compatibility
+            updates.paymentTerms = updates.preferredPaymentTerms;
+          } else if (opp.paymentTerms && !opp.preferredPaymentTerms) {
+            // Migrate paymentTerms to preferredPaymentTerms
+            updates.preferredPaymentTerms = opp.paymentTerms;
           }
           
           // Location
@@ -9176,13 +9518,38 @@
       let proposalId = contractData.proposalId || contractData.sourceProposalId;
       let opportunityId = contractData.opportunityId || contractData.scopeId;
       
-      // If proposalId provided, try to get version info
-      if (proposalId && !generatedFromProposalVersionId) {
+      // If proposalId provided, validate it's FINAL_ACCEPTED and get version info
+      if (proposalId) {
         const proposal = Proposals.getById(proposalId);
-        if (proposal && proposal.acceptance && proposal.acceptance.mutuallyAcceptedVersion) {
-          generatedFromProposalVersionId = `${proposalId}_v${proposal.acceptance.mutuallyAcceptedVersion}`;
-        } else if (proposal && proposal.currentVersion) {
-          generatedFromProposalVersionId = `${proposalId}_v${proposal.currentVersion}`;
+        if (proposal) {
+          // Validate proposal is FINAL_ACCEPTED before generating contract
+          // Map legacy AWARDED status to FINAL_ACCEPTED for backward compatibility
+          const isFinalAccepted = proposal.status === 'FINAL_ACCEPTED' || proposal.status === 'AWARDED';
+          if (!isFinalAccepted) {
+            console.error(`Cannot generate contract: Proposal ${proposalId} must be FINAL_ACCEPTED (current status: ${proposal.status})`);
+            return null;
+          }
+          
+          // Ensure both parties have accepted (mutuallyAcceptedVersion is set)
+          if (!proposal.acceptance?.mutuallyAcceptedVersion && 
+              !(proposal.acceptance?.ownerAcceptedVersion && proposal.acceptance?.otherPartyAcceptedVersion &&
+                proposal.acceptance.ownerAcceptedVersion === proposal.acceptance.otherPartyAcceptedVersion)) {
+            console.error(`Cannot generate contract: Proposal ${proposalId} must have both parties accepted the same version`);
+            return null;
+          }
+          
+          // Get the accepted version (prioritize mutuallyAcceptedVersion)
+          const acceptedVersion = proposal.acceptance?.mutuallyAcceptedVersion || 
+                                 (proposal.acceptance?.ownerAcceptedVersion && 
+                                  proposal.acceptance?.otherPartyAcceptedVersion &&
+                                  proposal.acceptance.ownerAcceptedVersion === proposal.acceptance.otherPartyAcceptedVersion
+                                    ? proposal.acceptance.ownerAcceptedVersion
+                                    : null) ||
+                                 proposal.currentVersion || 1;
+          
+          if (!generatedFromProposalVersionId && acceptedVersion) {
+            generatedFromProposalVersionId = `${proposalId}_v${acceptedVersion}`;
+          }
         }
       }
       
@@ -9210,23 +9577,44 @@
         }
       }
       
-      // Build paymentTerms from opportunity or proposal
+      // Build paymentTerms from proposal version (preferred) or opportunity (fallback)
+      // IMPORTANT: Contract paymentTerms should come from the accepted proposal version, not opportunity's preferredPaymentTerms
       let paymentTerms = contractData.paymentTerms;
-      if (!paymentTerms && opportunityId) {
-        if (typeof Opportunities !== 'undefined') {
-          const opportunity = Opportunities.getById(opportunityId);
-          if (opportunity && opportunity.paymentTerms) {
-            paymentTerms = opportunity.paymentTerms;
-          }
-        }
-      }
+      
+      // First priority: Get paymentTerms from accepted proposal version
+      // IMPORTANT: Contract paymentTerms MUST come from the accepted proposal version, not opportunity's preferredPaymentTerms
       if (!paymentTerms && proposalId) {
         const proposal = Proposals.getById(proposalId);
         if (proposal) {
-          const version = proposal.acceptance?.mutuallyAcceptedVersion || proposal.currentVersion || 1;
-          const versionData = proposal.versions?.find(v => v.version === version);
-          if (versionData && versionData.proposalData && versionData.proposalData.paymentTerms) {
-            paymentTerms = versionData.proposalData.paymentTerms;
+          // Get the mutually accepted version (both parties accepted the same version)
+          const acceptedVersion = proposal.acceptance?.mutuallyAcceptedVersion || 
+                                 (proposal.acceptance?.ownerAcceptedVersion && 
+                                  proposal.acceptance?.otherPartyAcceptedVersion &&
+                                  proposal.acceptance.ownerAcceptedVersion === proposal.acceptance.otherPartyAcceptedVersion
+                                    ? proposal.acceptance.ownerAcceptedVersion
+                                    : null) ||
+                                 proposal.currentVersion || 1;
+          const versionData = proposal.versions?.find(v => v.version === acceptedVersion);
+          if (versionData) {
+            // Check version-level paymentTerms first (new structure)
+            if (versionData.paymentTerms) {
+              paymentTerms = versionData.paymentTerms;
+            } 
+            // Fallback to proposalData.paymentTerms (legacy structure)
+            else if (versionData.proposalData && versionData.proposalData.paymentTerms) {
+              paymentTerms = versionData.proposalData.paymentTerms;
+            }
+          }
+        }
+      }
+      
+      // Fallback: Use opportunity's preferredPaymentTerms only if no proposal version paymentTerms found
+      if (!paymentTerms && opportunityId) {
+        if (typeof Opportunities !== 'undefined') {
+          const opportunity = Opportunities.getById(opportunityId);
+          if (opportunity) {
+            // Check preferredPaymentTerms first (new), then paymentTerms (legacy)
+            paymentTerms = opportunity.preferredPaymentTerms || opportunity.paymentTerms;
           }
         }
       }

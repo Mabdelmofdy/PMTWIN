@@ -1962,7 +1962,7 @@
         },
         isRemoteAllowed: false
       },
-      createdBy: beneficiaryA.id,
+      createdBy: projectLeadA.id,
       createdAt: baseDate.toISOString(),
       updatedAt: baseDate.toISOString(),
       attributes: {
@@ -2023,7 +2023,7 @@
         },
         isRemoteAllowed: false
       },
-      createdBy: beneficiaryB.id,
+      createdBy: projectLeadB.id,
       createdAt: new Date(baseDate.getTime() + 3 * 24 * 60 * 60 * 1000).toISOString(),
       updatedAt: new Date(baseDate.getTime() + 3 * 24 * 60 * 60 * 1000).toISOString(),
       attributes: {
@@ -2215,7 +2215,7 @@
         },
         isRemoteAllowed: false
       },
-      createdBy: beneficiaryA.id,
+      createdBy: projectLeadA.id,
       createdAt: baseDate.toISOString(),
       updatedAt: baseDate.toISOString(),
       attributes: {
@@ -2321,12 +2321,14 @@
       return PMTwinData.Contracts.create(contractData);
     }
 
-    // Step 2: Create/Update KSA Users
-    const adminUser = getOrCreateUser({
-      id: 'user-admin-001',
-      email: 'admin@pmtwin.com',
+    // Step 2: Create/Update KSA Users (All 8 Roles)
+    
+    // 1. Platform Admin
+    const platformAdmin = getOrCreateUser({
+      id: 'user-platform-admin-001',
+      email: 'platform.admin@pmtwin.com',
       password: btoa('Admin123'),
-      role: 'admin',
+      role: 'platform_admin',
       userType: 'admin',
       onboardingStage: 'approved',
       emailVerified: true,
@@ -2345,10 +2347,11 @@
       createdAt: baseDate.toISOString()
     });
 
-    const beneficiaryA = getOrCreateUser({
-      email: 'beneficiary.riyadh@pmtwin.com',
-      password: btoa('Beneficiary123'),
-      role: 'beneficiary',
+    // 2. Project Lead (was beneficiary)
+    const projectLeadA = getOrCreateUser({
+      email: 'project.lead.riyadh@pmtwin.com',
+      password: btoa('ProjectLead123'),
+      role: 'project_lead',
       userType: 'beneficiary',
       onboardingStage: 'approved',
       emailVerified: true,
@@ -2507,11 +2510,49 @@
       createdAt: baseDate.toISOString()
     });
 
-    const individual1 = getOrCreateUser({
-      email: 'individual.khobar@pmtwin.com',
-      password: btoa('Individual123'),
-      role: 'service_provider',
-      userType: 'vendor_individual',
+    // 3. Supplier
+    const supplier1 = getOrCreateUser({
+      email: 'supplier.riyadh@pmtwin.com',
+      password: btoa('Supplier123'),
+      role: 'supplier',
+      userType: 'vendor_corporate',
+      onboardingStage: 'approved',
+      emailVerified: true,
+      mobile: '+966507890123',
+      mobileVerified: true,
+      identity: {
+        legalEntityName: 'Riyadh Materials Supply Co',
+        crNumber: 'CR-RMSC-006',
+        crVerified: true,
+        authorizedRepresentativeName: 'Fahad Al-Supplier'
+      },
+      profile: {
+        name: 'Riyadh Materials Supply Co',
+        companyName: 'Riyadh Materials Supply Co',
+        status: 'approved',
+        location: {
+          headquarters: {
+            city: 'Riyadh',
+            area: 'Al Malaz',
+            region: 'Riyadh Province',
+            country: 'Saudi Arabia'
+          }
+        },
+        createdAt: baseDate.toISOString()
+      },
+      createdAt: baseDate.toISOString()
+    });
+
+    // 4. Service Provider (already exists as providerCorp1, providerCorp2)
+    
+    // 5. Consultant (already exists as consultant1)
+    
+    // 6. Professional
+    const professional1 = getOrCreateUser({
+      email: 'professional.khobar@pmtwin.com',
+      password: btoa('Professional123'),
+      role: 'professional',
+      userType: 'sub_contractor',
       onboardingStage: 'approved',
       emailVerified: true,
       mobile: '+966506789012',
@@ -2566,7 +2607,7 @@
         geo: { lat: 24.7136, lng: 46.6753 },
         isRemoteAllowed: false
       },
-      createdBy: beneficiaryA.id,
+      createdBy: projectLeadA.id,
       createdAt: baseDate.toISOString(),
       updatedAt: baseDate.toISOString()
     });
@@ -2597,7 +2638,7 @@
         geo: { lat: 21.5433, lng: 39.1728 },
         isRemoteAllowed: true
       },
-      createdBy: beneficiaryB.id,
+      createdBy: projectLeadB.id,
       createdAt: new Date(baseDate.getTime() + 2 * 24 * 60 * 60 * 1000).toISOString(),
       updatedAt: new Date(baseDate.getTime() + 2 * 24 * 60 * 60 * 1000).toISOString()
     });
@@ -2680,7 +2721,8 @@
         { id: 'item_8', name: 'Sustainability Assessment', description: 'Comprehensive sustainability assessment', unit: 'assessment', qty: 1, unitPriceRef: 60000, totalRef: 60000, currency: 'SAR' },
         { id: 'item_9', name: 'LEED Certification Support', description: 'LEED certification guidance and documentation', unit: 'project', qty: 1, unitPriceRef: 80000, totalRef: 80000, currency: 'SAR' }
       ],
-      paymentTerms: { mode: 'HYBRID', barterRule: 'ALLOW_DIFFERENCE_CASH', cashSettlement: 20000, acknowledgedDifference: false },
+      preferredPaymentTerms: { mode: 'HYBRID', barterRule: 'ALLOW_DIFFERENCE_CASH', cashSettlement: 20000, acknowledgedDifference: false },
+      paymentTerms: { mode: 'HYBRID', barterRule: 'ALLOW_DIFFERENCE_CASH', cashSettlement: 20000, acknowledgedDifference: false }, // Backward compatibility
       location: {
         country: 'Saudi Arabia',
         city: 'Khobar',
@@ -2720,7 +2762,7 @@
         geo: { lat: 21.3891, lng: 39.8579 },
         isRemoteAllowed: false
       },
-      createdBy: beneficiaryA.id,
+      createdBy: projectLeadA.id,
       createdAt: new Date(baseDate.getTime() + 10 * 24 * 60 * 60 * 1000).toISOString(),
       updatedAt: new Date(baseDate.getTime() + 10 * 24 * 60 * 60 * 1000).toISOString()
     });
@@ -2752,7 +2794,7 @@
         geo: { lat: 28.0339, lng: 35.0000 },
         isRemoteAllowed: false
       },
-      createdBy: beneficiaryA.id,
+      createdBy: projectLeadA.id,
       createdAt: baseDate.toISOString(),
       updatedAt: baseDate.toISOString(),
       attributes: {
@@ -2826,7 +2868,7 @@
         geo: { lat: 30.0444, lng: 31.2357 },
         isRemoteAllowed: false
       },
-      createdBy: beneficiaryB.id,
+      createdBy: projectLeadB.id,
       createdAt: new Date(baseDate.getTime() + 14 * 24 * 60 * 60 * 1000).toISOString(),
       updatedAt: new Date(baseDate.getTime() + 14 * 24 * 60 * 60 * 1000).toISOString()
     });
@@ -2838,7 +2880,10 @@
     if (opp1 && providerCorp1) {
       const prop1_v1 = createProposalIfNotExists({
         id: 'prop_ksa_001_v1',
+        proposalType: 'SERVICE_OFFER',
         opportunityId: opp1.id,
+        initiatorId: providerCorp1.id,
+        receiverId: projectLeadA.id,
         providerId: providerCorp1.id,
         bidderCompanyId: providerCorp1.id,
         ownerCompanyId: beneficiaryA.id,
@@ -2848,76 +2893,111 @@
         total: 175000,
         currency: 'SAR',
         serviceDescription: 'Initial proposal for HVAC and MEP design services',
+        paymentTerms: { mode: 'HYBRID', barterRule: 'ALLOW_DIFFERENCE_CASH', cashSettlement: 50000, acknowledgedDifference: false },
+        comment: 'Proposing hybrid payment with cash component for flexibility in service delivery',
         timeline: { startDate: '2024-03-01', duration: 60, endDate: '2024-04-30' },
         submittedAt: new Date(baseDate.getTime() + 12 * 24 * 60 * 60 * 1000).toISOString(),
         createdAt: new Date(baseDate.getTime() + 12 * 24 * 60 * 60 * 1000).toISOString(),
         versions: [{
           version: 1,
+          paymentTerms: { mode: 'HYBRID', barterRule: 'ALLOW_DIFFERENCE_CASH', cashSettlement: 50000, acknowledgedDifference: false },
+          comment: 'Proposing hybrid payment with cash component for flexibility in service delivery',
           proposalData: { total: 175000, serviceDescription: 'Initial proposal' },
           createdAt: new Date(baseDate.getTime() + 12 * 24 * 60 * 60 * 1000).toISOString(),
+          createdBy: providerCorp1.id,
           status: 'SUBMITTED'
         }],
-        currentVersion: 1
+        currentVersion: 1,
+        acceptance: {
+          ownerAcceptedVersion: null,
+          otherPartyAcceptedVersion: null,
+          mutuallyAcceptedVersion: null,
+          finalAcceptedAt: null
+        }
       });
       if (prop1_v1) {
-        // Create V2
+        // Create V2 (after owner requests changes)
         const prop1_v2_data = {
           ...prop1_v1,
-          id: 'prop_ksa_001_v2',
           total: 165000,
-          serviceDescription: 'Revised proposal with updated pricing',
+          paymentTerms: { mode: 'CASH', barterRule: null, cashSettlement: 0, acknowledgedDifference: false },
+          serviceDescription: 'Updated to cash-only payment as requested',
           versions: [
             ...prop1_v1.versions,
             {
               version: 2,
-              proposalData: { total: 165000, serviceDescription: 'Revised proposal with updated pricing' },
+              paymentTerms: { mode: 'CASH', barterRule: null, cashSettlement: 0, acknowledgedDifference: false },
+              comment: 'Updated to cash-only payment as requested by opportunity owner',
+              proposalData: { total: 165000, serviceDescription: 'Updated to cash-only payment as requested' },
               createdAt: new Date(baseDate.getTime() + 14 * 24 * 60 * 60 * 1000).toISOString(),
-              status: 'NEGOTIATION'
+              createdBy: providerCorp1.id,
+              status: 'CHANGES_REQUESTED'
             }
           ],
           currentVersion: 2,
-          status: 'NEGOTIATION',
+          status: 'CHANGES_REQUESTED',
           updatedAt: new Date(baseDate.getTime() + 14 * 24 * 60 * 60 * 1000).toISOString()
         };
         PMTwinData.Proposals.update(prop1_v1.id, prop1_v2_data);
         
-        // Create V3 (accepted)
+        // Create V3 (final accepted - both parties accepted V2)
         const prop1_v3_data = {
           ...prop1_v2_data,
           total: 160000,
-          serviceDescription: 'Final accepted proposal',
+          serviceDescription: 'Final accepted proposal with cash payment',
           versions: [
             ...prop1_v2_data.versions,
             {
               version: 3,
-              proposalData: { total: 160000, serviceDescription: 'Final accepted proposal' },
+              paymentTerms: { mode: 'CASH', barterRule: null, cashSettlement: 0, acknowledgedDifference: false },
+              comment: 'Final accepted proposal with cash payment terms',
+              proposalData: { total: 160000, serviceDescription: 'Final accepted proposal with cash payment' },
               createdAt: new Date(baseDate.getTime() + 16 * 24 * 60 * 60 * 1000).toISOString(),
-              status: 'AWARDED'
+              createdBy: providerCorp1.id,
+              status: 'FINAL_ACCEPTED'
             }
           ],
           currentVersion: 3,
-          status: 'AWARDED',
+          status: 'FINAL_ACCEPTED',
           acceptance: {
-            providerAccepted: true,
-            ownerAccepted: true,
+            ownerAcceptedVersion: 3,
+            otherPartyAcceptedVersion: 3,
             mutuallyAcceptedVersion: 3,
-            acceptedAt: new Date(baseDate.getTime() + 16 * 24 * 60 * 60 * 1000).toISOString()
+            finalAcceptedAt: new Date(baseDate.getTime() + 16 * 24 * 60 * 60 * 1000).toISOString(),
+            providerAccepted: true, // Backward compatibility
+            ownerAccepted: true, // Backward compatibility
+            acceptedAt: new Date(baseDate.getTime() + 16 * 24 * 60 * 60 * 1000).toISOString() // Backward compatibility
           },
           updatedAt: new Date(baseDate.getTime() + 16 * 24 * 60 * 60 * 1000).toISOString()
         };
         PMTwinData.Proposals.update(prop1_v1.id, prop1_v3_data);
         createdProps.push(prop1_v1.id);
+        
+        // Auto-generate contract from FINAL_ACCEPTED proposal
+        if (typeof PMTwinData.Contracts !== 'undefined') {
+          const contractData = {
+            proposalId: prop1_v1.id,
+            opportunityId: opp1.id,
+            generatedFromProposalVersionId: `${prop1_v1.id}_v3`
+          };
+          const autoContract = PMTwinData.Contracts.create(contractData);
+          if (autoContract) {
+            createdContracts.push(autoContract.id);
+            console.log(`✅ Auto-generated contract ${autoContract.id} from FINAL_ACCEPTED proposal ${prop1_v1.id}`);
+          }
+        }
       }
     }
 
-    // Proposal 2: Consultant1 → Opp2 (BIM) - with versioning
+    // Proposal 2: Consultant1 → Opp2 (BIM) - with versioning V1→V2→V3
     if (opp2 && consultant1) {
       const prop2_v1 = createProposalIfNotExists({
         id: 'prop_ksa_002_v1',
+        proposalType: 'SERVICE_OFFER',
         opportunityId: opp2.id,
         providerId: consultant1.id,
         bidderCompanyId: consultant1.id,
-        ownerCompanyId: beneficiaryB.id,
+        ownerCompanyId: projectLeadB.id,
         targetType: 'OPPORTUNITY',
         targetId: opp2.id,
         status: 'SUBMITTED',
@@ -2959,15 +3039,16 @@
 
     // Step 5: Create Contracts
     
-    // Contract 1: From accepted proposal (prop1_v3)
-    if (opp1 && providerCorp1 && beneficiaryA) {
+    // Contract 1: Auto-generated from FINAL_ACCEPTED proposal (already created above)
+    // Additional manual contract for demonstration
+    if (opp1 && providerCorp1 && projectLeadA) {
       const contract1 = createContractIfNotExists({
         id: 'contract_ksa_001',
         contractType: 'SERVICE_CONTRACT',
         scopeType: 'OPPORTUNITY',
         scopeId: opp1.id,
         opportunityId: opp1.id,
-        buyerPartyId: beneficiaryA.id,
+        buyerPartyId: projectLeadA.id,
         buyerPartyType: 'BENEFICIARY',
         providerPartyId: providerCorp1.id,
         providerPartyType: 'VENDOR_CORPORATE',
@@ -2975,7 +3056,7 @@
         startDate: '2024-03-01',
         endDate: '2024-04-30',
         signedAt: new Date(baseDate.getTime() + 17 * 24 * 60 * 60 * 1000).toISOString(),
-        signedBy: beneficiaryA.id,
+        signedBy: projectLeadA.id,
         sourceProposalId: 'prop_ksa_001_v1',
         termsJSON: {
           pricing: { amount: 160000, currency: 'SAR' },
@@ -2992,7 +3073,7 @@
     }
 
     // Contract 2: Mega work package contract
-    if (opp7 && providerCorp1 && beneficiaryA) {
+    if (opp7 && providerCorp1 && projectLeadA) {
       const contract2 = createContractIfNotExists({
         id: 'contract_ksa_002',
         contractType: 'MEGA_PROJECT_CONTRACT',
@@ -3023,12 +3104,24 @@
     }
 
     console.log(`✅ Seed v2 Complete:`);
-    console.log(`   - Opportunities: ${createdOpps.length}`);
-    console.log(`   - Proposals: ${createdProps.length}`);
-    console.log(`   - Contracts: ${createdContracts.length}`);
+    console.log(`   - Users: All 8 roles created (project_lead, supplier, service_provider, consultant, professional, mentor, platform_admin, auditor)`);
+    console.log(`   - Opportunities: ${createdOpps.length} (REQUEST_SERVICE, OFFER_SERVICE, MEGA)`);
+    console.log(`   - Proposals: ${createdProps.length} (with versioning V1→V2→V3, FINAL_ACCEPTED, REJECTED)`);
+    console.log(`   - Contracts: ${createdContracts.length} (auto-generated from FINAL_ACCEPTED proposals)`);
     console.log(`   - Locations: Config-driven (Saudi Arabia, UAE, Egypt)`);
+    console.log(`   - RBAC: Sidebar items configured per role`);
 
     return {
+      users: {
+        project_lead: [projectLeadA.id, projectLeadB.id],
+        supplier: [supplier1.id],
+        service_provider: [providerCorp1.id, providerCorp2.id],
+        consultant: [consultant1.id],
+        professional: [professional1.id],
+        mentor: [mentor1.id],
+        platform_admin: [platformAdmin.id],
+        auditor: [auditor1.id]
+      },
       opportunities: { created: createdOpps.length, ids: createdOpps },
       proposals: { created: createdProps.length, ids: createdProps },
       contracts: { created: createdContracts.length, ids: createdContracts }

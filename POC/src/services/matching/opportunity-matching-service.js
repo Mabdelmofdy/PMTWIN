@@ -142,14 +142,46 @@
       }
     }
 
-    // Combined score: 70% skills, 30% location
-    const finalScore = Math.round(skillsScore * 0.7 + (locationScore * 100) * 0.3);
+    // Calculate payment compatibility
+    let paymentCompatibility = null;
+    const oppPaymentMode = opportunity.preferredPaymentTerms?.mode || opportunity.paymentTerms?.mode || opportunity.paymentMode || 'CASH';
+    
+    // Get provider payment preferences (if available)
+    const user = PMTwinData.Users.getById(companyId);
+    const providerPaymentPreference = user?.profile?.paymentPreferences?.mode || 'CASH';
+    
+    // Payment compatibility check
+    if (oppPaymentMode === providerPaymentPreference) {
+      paymentCompatibility = `Perfect match: Both prefer ${oppPaymentMode}`;
+    } else if (oppPaymentMode === 'HYBRID' || providerPaymentPreference === 'HYBRID') {
+      paymentCompatibility = `Compatible: ${oppPaymentMode} and ${providerPaymentPreference} can be negotiated`;
+    } else if ((oppPaymentMode === 'CASH' && providerPaymentPreference === 'BARTER') ||
+               (oppPaymentMode === 'BARTER' && providerPaymentPreference === 'CASH')) {
+      paymentCompatibility = `Mismatch: Opportunity prefers ${oppPaymentMode}, provider prefers ${providerPaymentPreference}`;
+    } else {
+      paymentCompatibility = `Opportunity prefers ${oppPaymentMode}`;
+    }
+
+    // Combined score: 60% skills, 25% location, 15% payment compatibility
+    // Payment compatibility: perfect match = 1.0, compatible = 0.8, mismatch = 0.5
+    let paymentScore = 1.0;
+    if (paymentCompatibility.includes('Perfect match')) {
+      paymentScore = 1.0;
+    } else if (paymentCompatibility.includes('Compatible')) {
+      paymentScore = 0.8;
+    } else if (paymentCompatibility.includes('Mismatch')) {
+      paymentScore = 0.5;
+    }
+    
+    const finalScore = Math.round(skillsScore * 0.6 + (locationScore * 100) * 0.25 + (paymentScore * 100) * 0.15);
 
     return {
       score: finalScore,
       skillsScore: skillsScore,
       locationScore: Math.round(locationScore * 100),
       locationReason: locationReason,
+      paymentCompatibility: paymentCompatibility,
+      paymentScore: Math.round(paymentScore * 100),
       matchedSkills: matchedSkills,
       missingSkills: missingSkills
     };
@@ -256,6 +288,8 @@
           skillsScore: matchResult.skillsScore,
           locationScore: matchResult.locationScore,
           locationReason: matchResult.locationReason,
+          paymentCompatibility: matchResult.paymentCompatibility,
+          paymentScore: matchResult.paymentScore,
           matchedSkills: matchResult.matchedSkills,
           missingSkills: matchResult.missingSkills
         });

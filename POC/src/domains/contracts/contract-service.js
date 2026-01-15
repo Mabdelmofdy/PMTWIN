@@ -235,8 +235,18 @@
       return { success: false, error: 'Proposal not found' };
     }
 
-    if (proposal.status !== 'AWARDED' && proposal.status !== 'approved') {
-      return { success: false, error: 'Proposal must be awarded to create contract' };
+    // Validate proposal is FINAL_ACCEPTED before generating contract
+    // Map legacy AWARDED status to FINAL_ACCEPTED for backward compatibility
+    const isFinalAccepted = proposal.status === 'FINAL_ACCEPTED' || proposal.status === 'AWARDED';
+    if (!isFinalAccepted) {
+      return { success: false, error: `Proposal must be FINAL_ACCEPTED to create contract (current status: ${proposal.status})` };
+    }
+    
+    // Ensure both parties have accepted (mutuallyAcceptedVersion is set)
+    if (!proposal.acceptance?.mutuallyAcceptedVersion && 
+        !(proposal.acceptance?.ownerAcceptedVersion && proposal.acceptance?.otherPartyAcceptedVersion &&
+          proposal.acceptance.ownerAcceptedVersion === proposal.acceptance.otherPartyAcceptedVersion)) {
+      return { success: false, error: 'Proposal must have both parties accepted the same version to create contract' };
     }
 
     // Determine which version to use
@@ -261,6 +271,16 @@
 
     const proposalData = versionData?.proposalData || proposal;
     const generatedFromProposalVersionId = `${proposalId}_v${versionToUse}`;
+
+    // IMPORTANT: Get payment terms from version first (not opportunity's preferredPaymentTerms)
+    let paymentTerms = null;
+    if (versionData?.paymentTerms) {
+      // Use version-level paymentTerms (new structure)
+      paymentTerms = versionData.paymentTerms;
+    } else if (versionData?.proposalData?.paymentTerms) {
+      // Fallback to proposalData.paymentTerms (legacy structure)
+      paymentTerms = versionData.proposalData.paymentTerms;
+    }
 
     // Get opportunity
     const opportunityId = proposal.opportunityId || proposal.targetId || proposal.projectId;
@@ -328,13 +348,27 @@
       }));
     }
 
-    // Get payment terms from opportunity
-    const paymentTerms = opportunity.paymentTerms || {
-      mode: 'CASH',
-      barterRule: null,
-      cashSettlement: 0,
-      acknowledgedDifference: false
-    };
+    // IMPORTANT: Contract paymentTerms MUST come from the accepted proposal version
+    // Only fallback to opportunity's preferredPaymentTerms if no version paymentTerms found
+    if (!paymentTerms && opportunity) {
+      // Fallback: use opportunity's preferredPaymentTerms (new) or paymentTerms (legacy)
+      // This should rarely happen if proposal was created correctly
+      console.warn(`No paymentTerms found in proposal version ${versionToUse}, falling back to opportunity preferredPaymentTerms`);
+      paymentTerms = opportunity.preferredPaymentTerms || opportunity.paymentTerms || {
+        mode: 'CASH',
+        barterRule: null,
+        cashSettlement: 0,
+        acknowledgedDifference: false
+      };
+    } else if (!paymentTerms) {
+      // Last resort: default payment terms
+      paymentTerms = {
+        mode: 'CASH',
+        barterRule: null,
+        cashSettlement: 0,
+        acknowledgedDifference: false
+      };
+    }
 
     // Determine contract type
     const isMegaProject = opportunity.subModel === '1.4' || 

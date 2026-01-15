@@ -64,6 +64,8 @@ const routes = {
     '/knowledge/': 'pages/knowledge/index.html',
     '/opportunities': 'pages/opportunities/index.html',
     '/opportunities/': 'pages/opportunities/index.html',
+    '/opportunities/create': 'pages/opportunities/create/index.html',
+    '/opportunities/create/': 'pages/opportunities/create/index.html',
     '/matches': 'pages/matches/index.html',
     '/matches/': 'pages/matches/index.html',
     

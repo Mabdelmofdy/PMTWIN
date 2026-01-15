@@ -136,9 +136,7 @@
     const allItems = [
       { id: 'dashboard', label: 'Dashboard', route: getRouteForMenu('dashboard', 'dashboard/'), icon: '<i class="ph ph-gauge"></i>', roles: ['admin', 'entity', 'individual'] },
       
-      // NEW OPPORTUNITY WORKFLOW ITEMS ONLY:
       { id: 'opportunities', label: 'Opportunities', route: getRouteForMenu('opportunities', 'opportunities/'), icon: '<i class="ph ph-sparkle"></i>', roles: ['admin', 'entity', 'individual'] },
-      { id: 'create-opportunity', label: 'Create Opportunity', route: getRouteForMenu('create-opportunity', 'opportunities/create/'), icon: '<i class="ph ph-plus-circle"></i>', roles: ['admin', 'entity', 'individual'] },
       { id: 'matches', label: 'Matches', route: getRouteForMenu('matches', 'matches/'), icon: '<i class="ph ph-link"></i>', roles: ['admin', 'entity', 'individual'] },
       { id: 'proposals', label: 'Proposals', route: getRouteForMenu('proposals', 'proposals/'), icon: '<i class="ph ph-file-text"></i>', roles: ['admin', 'entity', 'individual'] },
       
@@ -234,7 +232,6 @@
       { id: 'admin-users-management', label: 'User Management', route: getRouteForMenu('admin-users-management', 'admin/users-management/'), icon: '<i class="ph ph-users"></i>', roles: ['admin'] },
       { id: 'admin-models-management', label: 'Models Management', route: getRouteForMenu('admin-models-management', 'admin/models-management/'), icon: '<i class="ph ph-handshake"></i>', roles: ['admin'] },
       { id: 'admin-moderation', label: 'Moderation', route: getRouteForMenu('admin-moderation', 'admin-moderation/'), icon: '<i class="ph ph-shield-check"></i>', roles: ['admin'] },
-      { id: 'admin-analytics', label: 'Analytics', route: getRouteForMenu('admin-analytics', 'admin/analytics/'), icon: '<i class="ph ph-chart-line"></i>', roles: ['admin'] },
       { id: 'admin-audit', label: 'Audit Trail', route: getRouteForMenu('admin-audit', 'admin-audit/'), icon: '<i class="ph ph-clipboard"></i>', roles: ['admin'] },
       { id: 'admin-reports', label: 'Reports', route: getRouteForMenu('admin-reports', 'admin-reports/'), icon: '<i class="ph ph-chart-bar"></i>', roles: ['admin'] },
       { id: 'admin-settings', label: 'Settings', route: getRouteForMenu('admin-settings', 'admin/settings/'), icon: '<i class="ph ph-gear"></i>', roles: ['admin'] }
@@ -1079,30 +1076,215 @@
       }
     }
 
-    // Get current user
+    // Get current user - retry up to 10 times with increasing delays if not found
+    // This handles cases where session is not immediately available after login redirect
+    // or where users haven't loaded yet
     if (typeof PMTwinData !== 'undefined') {
       currentUser = PMTwinData.Sessions.getCurrentUser();
+      
+      // If no user found, check if we're authenticated via AuthCheck
+      // If authenticated but user not found, retry to allow users to load
+      if (!currentUser) {
+        let isAuthenticated = false;
+        if (typeof AuthCheck !== 'undefined' && typeof AuthCheck.checkAuth === 'function') {
+          isAuthenticated = await AuthCheck.checkAuth({ requireAuth: false });
+        } else if (typeof PMTwinAuth !== 'undefined' && typeof PMTwinAuth.isAuthenticated === 'function') {
+          isAuthenticated = PMTwinAuth.isAuthenticated();
+        }
+        
+        // If authenticated but user not found, retry (users might still be loading)
+        if (isAuthenticated) {
+          console.log('[Navigation] Authenticated but user not found, retrying...');
+          
+          // Get session directly to debug
+          const session = PMTwinData.Sessions.getCurrentSession();
+          if (session) {
+            console.log('[Navigation] Session found:', { userId: session.userId, role: session.role, email: session.userEmail });
+            
+            // Try to get user directly by ID
+            if (session.userId && typeof PMTwinData.Users !== 'undefined') {
+              currentUser = PMTwinData.Users.getById(session.userId);
+              if (currentUser) {
+                console.log('[Navigation] Found user directly by session.userId');
+              } else {
+                console.log('[Navigation] User not found by session.userId, trying alternative lookups...');
+                const allUsers = PMTwinData.Users.getAll();
+                console.log('[Navigation] Total users loaded:', allUsers.length);
+                
+                // Try to find user by email first (most reliable)
+                if (session.userEmail) {
+                  currentUser = PMTwinData.Users.getByEmail(session.userEmail);
+                  if (currentUser) {
+                    console.log('[Navigation] Found user by session email:', session.userEmail);
+                  }
+                }
+                
+                // If still not found, try to find by matching any user ID format
+                if (!currentUser && allUsers.length > 0) {
+                  // Try exact match first
+                  currentUser = allUsers.find(u => u.id === session.userId);
+                  
+                  // If still not found, try alternative ID formats
+                  if (!currentUser) {
+                    currentUser = allUsers.find(u => 
+                      u.userId === session.userId || 
+                      String(u.id) === String(session.userId) ||
+                      String(u.userId) === String(session.userId)
+                    );
+                  }
+                  
+                  if (currentUser) {
+                    console.log('[Navigation] Found user via alternative ID lookup');
+                  }
+                }
+              }
+            }
+          }
+          
+          // If still not found, retry up to 10 times with increasing delays
+          if (!currentUser) {
+            for (let i = 0; i < 10; i++) {
+              await new Promise(resolve => setTimeout(resolve, 200 * (i + 1)));
+              
+              // Check if users are loaded
+              if (typeof PMTwinData.Users !== 'undefined' && PMTwinData.Users.getAll) {
+                const userCount = PMTwinData.Users.getAll().length;
+                if (userCount === 0 && i < 5) {
+                  // Users not loaded yet, continue waiting
+                  continue;
+                }
+              }
+              
+              currentUser = PMTwinData.Sessions.getCurrentUser();
+              if (currentUser) {
+                console.log(`[Navigation] Found user after ${i + 1} retry(ies)`);
+                break;
+              }
+            }
+          }
+        }
+      }
     }
 
+    // If user object not found but session exists, create minimal user from session
     if (!currentUser) {
-      console.warn('[Navigation] No current user, clearing sidebar');
-      container.innerHTML = '<div class="sidebar-header"><h2>Menu</h2></div><div class="sidebar-nav"><p style="padding: var(--spacing-4); color: var(--text-secondary);">Please log in to see menu items</p></div>';
-      return;
+      const session = PMTwinData.Sessions.getCurrentSession();
+      if (session && session.userId) {
+        console.warn('[Navigation] Session exists but user lookup failed. Creating minimal user from session.');
+        console.warn('[Navigation] Session userId:', session.userId, 'Role:', session.role);
+        
+        // Try one more time after a longer delay
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        currentUser = PMTwinData.Sessions.getCurrentUser();
+        
+        // If still not found, try to find user by searching all users with different ID formats
+        if (!currentUser && session) {
+          console.log('[Navigation] User not found by session.userId, trying alternative lookups...');
+          const allUsers = PMTwinData.Users.getAll();
+          
+          // Try multiple lookup strategies
+          currentUser = allUsers.find(u => 
+            u.id === session.userId || 
+            u.userId === session.userId ||
+            String(u.id) === String(session.userId) ||
+            String(u.userId) === String(session.userId)
+          );
+          
+          // If still not found and we have email in session, try by email
+          if (!currentUser && session.userEmail) {
+            currentUser = PMTwinData.Users.getByEmail(session.userEmail);
+          }
+          
+          // Last resort: create minimal user object from session
+          if (!currentUser) {
+            console.log('[Navigation] Creating minimal user object from session for menu rendering');
+            // Try to find any user with matching role to get proper structure
+            const roleMatchUser = allUsers.find(u => u.role === session.role);
+            if (roleMatchUser) {
+              // Use the role-matched user's structure but with session userId
+              currentUser = {
+                ...roleMatchUser,
+                id: session.userId,
+                userId: session.userId,
+                email: session.userEmail || roleMatchUser.email || `user_${session.userId}@pmtwin.com`
+              };
+              console.log('[Navigation] Using role-matched user structure with session userId');
+            } else {
+              // Create minimal user object
+              currentUser = {
+                id: session.userId,
+                userId: session.userId,
+                role: session.role,
+                userType: session.userType || session.role,
+                email: session.userEmail || `user_${session.userId}@pmtwin.com`,
+                profile: {
+                  name: 'User'
+                }
+              };
+              console.log('[Navigation] Using minimal session-based user object');
+            }
+            console.log('[Navigation] Using session-based user object for menu:', currentUser);
+          } else {
+            console.log('[Navigation] Found user via alternative lookup:', currentUser.email);
+          }
+        }
+      }
+      
+      // Only show login prompt if no session exists
+      if (!currentUser) {
+        const sessionCheck = PMTwinData.Sessions.getCurrentSession();
+        if (!sessionCheck) {
+          console.warn('[Navigation] No session found, showing login prompt');
+          const basePath = getBasePath();
+          const loginPath = getRoute(`${basePath}auth/login/`);
+          container.innerHTML = `
+            <div class="sidebar-header">
+              <h2>Menu</h2>
+            </div>
+            <div class="sidebar-nav">
+              <p style="padding: var(--spacing-4); color: var(--text-secondary); margin-bottom: var(--spacing-4);">Please log in to see menu items</p>
+              <a href="${loginPath}" class="btn btn-primary" style="margin: 0 var(--spacing-4); width: calc(100% - var(--spacing-8)); display: block; text-align: center;">
+                <i class="ph ph-sign-in"></i> Login
+              </a>
+            </div>
+          `;
+          return;
+        }
+      }
     }
 
     // Load menu items
     await loadMenuItems();
     
-    // Get role from RBAC if available
+    // Get role from RBAC if available, but fallback to user.role if RBAC returns guest
     let userRole = currentUser?.role;
     if (typeof PMTwinRBAC !== 'undefined') {
       try {
         const rbacRole = await PMTwinRBAC.getCurrentUserRole();
-        if (rbacRole) {
+        console.log('[Navigation] RBAC role:', rbacRole, 'User role:', currentUser?.role);
+        
+        // If RBAC returns guest but we have a role in user object or session, use that instead
+        if (rbacRole === 'guest') {
+          // Check session for role
+          const session = PMTwinData.Sessions.getCurrentSession();
+          if (session && session.role && session.role !== 'guest') {
+            console.log('[Navigation] RBAC returned guest, using session role:', session.role);
+            userRole = session.role;
+          } else if (currentUser?.role && currentUser.role !== 'guest') {
+            console.log('[Navigation] RBAC returned guest, using user role instead:', currentUser.role);
+            userRole = currentUser.role;
+          } else {
+            userRole = rbacRole; // Keep guest if no alternative
+          }
+        } else if (rbacRole && rbacRole !== 'guest') {
           userRole = rbacRole;
         }
       } catch (e) {
         console.warn('[Navigation] Could not get RBAC role:', e);
+        // Fallback to user role
+        if (currentUser?.role) {
+          userRole = currentUser.role;
+        }
       }
     }
     
@@ -1838,6 +2020,34 @@
       await new Promise(resolve => setTimeout(resolve, 100));
       
       await renderSidebar(sidebarId);
+      
+      // If sidebar shows login prompt but user might be logging in, check again after delays
+      const sidebarContainer = document.getElementById(sidebarId);
+      if (sidebarContainer && sidebarContainer.textContent.includes('Please log in')) {
+        // Check if authenticated but user not loaded yet
+        let isAuthenticated = false;
+        if (typeof AuthCheck !== 'undefined' && typeof AuthCheck.checkAuth === 'function') {
+          isAuthenticated = await AuthCheck.checkAuth({ requireAuth: false });
+        } else if (typeof PMTwinAuth !== 'undefined' && typeof PMTwinAuth.isAuthenticated === 'function') {
+          isAuthenticated = PMTwinAuth.isAuthenticated();
+        }
+        
+        if (isAuthenticated) {
+          console.log('[Navigation] Authenticated but sidebar shows login, retrying sidebar render...');
+          // Retry multiple times with increasing delays
+          for (let attempt = 1; attempt <= 5; attempt++) {
+            await new Promise(resolve => setTimeout(resolve, 300 * attempt));
+            if (typeof PMTwinData !== 'undefined') {
+              const user = PMTwinData.Sessions.getCurrentUser();
+              if (user) {
+                console.log(`[Navigation] User found after ${attempt} retry(ies), re-rendering sidebar`);
+                await renderSidebar(sidebarId);
+                break;
+              }
+            }
+          }
+        }
+      }
       
       // Add sidebar toggle button to appbar
       const navbar = document.getElementById(appbarId);

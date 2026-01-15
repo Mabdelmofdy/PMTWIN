@@ -1005,470 +1005,312 @@
       return { success: false, error: 'Data service not available' };
     }
     
-    const currentUser = PMTwinData.Sessions.getCurrentUser();
+    let currentUser = PMTwinData.Sessions.getCurrentUser();
+    
+    // If user not found but session exists, try to find user or create from session
+    if (!currentUser) {
+      const session = PMTwinData.Sessions.getCurrentSession();
+      if (session) {
+        console.log('[DashboardService] User object not found, trying alternative lookup...');
+        const allUsers = PMTwinData.Users.getAll();
+        
+        // Try multiple lookup strategies
+        currentUser = allUsers.find(u => 
+          u.id === session.userId || 
+          u.userId === session.userId ||
+          String(u.id) === String(session.userId)
+        );
+        
+        // If still not found and we have email in session, try by email
+        if (!currentUser && session.userEmail) {
+          currentUser = PMTwinData.Users.getByEmail(session.userEmail);
+        }
+        
+        // Last resort: create minimal user from session
+        if (!currentUser) {
+          console.log('[DashboardService] Creating minimal user from session');
+          // Try to find any user with matching role to get proper structure
+          const roleMatchUser = allUsers.find(u => u.role === session.role);
+          if (roleMatchUser) {
+            currentUser = {
+              ...roleMatchUser,
+              id: session.userId,
+              userId: session.userId,
+              email: session.userEmail || roleMatchUser.email || `user_${session.userId}@pmtwin.com`
+            };
+          } else {
+            currentUser = {
+              id: session.userId,
+              userId: session.userId,
+              role: session.role,
+              userType: session.userType || session.role,
+              email: session.userEmail || `user_${session.userId}@pmtwin.com`
+            };
+          }
+        } else {
+          console.log('[DashboardService] Found user via alternative lookup');
+        }
+      }
+    }
+    
     if (!currentUser) {
       console.error('[DashboardService] User not authenticated');
       return { success: false, error: 'User not authenticated' };
     }
     
-        // Get role from RBAC instead of direct user property
-        const userRoleFromRBAC = typeof PMTwinRBAC !== 'undefined' ? await PMTwinRBAC.getCurrentUserRole() : currentUser.role;
-        console.log('[DashboardService] Current user:', currentUser.email, 'Role (from user):', currentUser.role, 'Role (from RBAC):', userRoleFromRBAC);
-    
-    // Get base path for routes
-    function getBasePath() {
-      // Check if we're on Live Server (port 5503) - use full paths to avoid 404 errors
-      const isLiveServer = window.location.port === '5503' || (window.location.hostname === '127.0.0.1' && window.location.port === '5503');
-      
-      if (isLiveServer) {
-        // For Live Server, return empty string and routes will be converted to full paths
-        return '';
+        // Get role from RBAC, but fallback to user.role or session.role if RBAC returns guest
+    let userRoleId = currentUser.role; // Default to user role
+        if (typeof PMTwinRBAC !== 'undefined') {
+          const rbacRole = await PMTwinRBAC.getCurrentUserRole();
+          console.log('[DashboardService] RBAC role:', rbacRole, 'User role:', currentUser.role);
+          
+          // If RBAC returns guest, try to use session role or user role
+          if (rbacRole === 'guest') {
+            const session = PMTwinData.Sessions.getCurrentSession();
+            if (session && session.role && session.role !== 'guest') {
+              console.log('[DashboardService] RBAC returned guest, using session role:', session.role);
+          userRoleId = session.role;
+            } else if (currentUser.role && currentUser.role !== 'guest') {
+              console.log('[DashboardService] RBAC returned guest, using user role instead:', currentUser.role);
+          userRoleId = currentUser.role;
+            } else {
+          userRoleId = rbacRole; // Keep guest if no alternative
+            }
+          } else {
+        userRoleId = rbacRole;
       }
-      
-      // For other servers: count all path segments to determine depth
-      const currentPath = window.location.pathname;
-      // Remove leading/trailing slashes and split, filter out empty strings and HTML files
-      const segments = currentPath.split('/').filter(p => p && !p.endsWith('.html'));
-      
-      // Count how many directory levels deep we are
-      const depth = segments.length;
-      
-      // Generate the appropriate number of ../ to reach POC root
-      return depth > 0 ? '../'.repeat(depth) : '';
     }
     
-    // Helper to convert route to full path
-    // Uses centralized NavRoutes when available
-    function getRoute(routePath) {
-      // If NavRoutes is available, use it
-      if (typeof window.NavRoutes !== 'undefined') {
-        // Check if routePath is a route key (e.g., 'dashboard', 'admin-reports')
-        if (window.NavRoutes.NAV_ROUTES[routePath]) {
-          return window.NavRoutes.getRoute(routePath, { useLiveServer: true });
-        }
-        
-        // Otherwise, normalize the URL
-        return window.NavRoutes.toHtmlUrl(routePath);
-      }
-      
-      // Fallback to old behavior if NavRoutes not loaded
-      const isLiveServer = window.location.port === '5503' || (window.location.hostname === '127.0.0.1' && window.location.port === '5503');
-      
-      if (isLiveServer && routePath && routePath !== '#' && !routePath.startsWith('http')) {
-        // Handle query strings (e.g., "collaboration/?category=1")
-        const [pathPart, queryPart] = routePath.split('?');
-        
-        // Convert relative paths like "dashboard/" or "../dashboard/" to full paths
-        let cleanPath = pathPart.replace(/^\.\.\//g, '').replace(/\/$/, '');
-        
-        // Handle special cases
-        if (cleanPath.endsWith('.html')) {
-          // Already a file path
-          return `http://127.0.0.1:5503/POC/pages/${cleanPath}${queryPart ? '?' + queryPart : ''}`;
-        } else if (cleanPath.includes('/')) {
-          // Nested path like "collaboration/my-collaborations/"
-          return `http://127.0.0.1:5503/POC/pages/${cleanPath}/index.html${queryPart ? '?' + queryPart : ''}`;
-        } else {
-          // Simple path like "dashboard/"
-          return `http://127.0.0.1:5503/POC/pages/${cleanPath}/index.html${queryPart ? '?' + queryPart : ''}`;
-        }
-      }
-      
-      return routePath;
+    // Map legacy roles to new RBAC roles
+    const roleMapping = {
+      'admin': 'platform_admin',
+      'entity': 'project_lead',
+      'beneficiary': 'project_lead',
+      'individual': 'professional',
+      'vendor': 'service_provider',
+      'sub_contractor': 'professional'
+    };
+    
+    // Apply role mapping if needed
+    if (roleMapping[userRoleId]) {
+      console.log(`[DashboardService] Mapping legacy role ${userRoleId} to ${roleMapping[userRoleId]}`);
+      userRoleId = roleMapping[userRoleId];
     }
+    
+    console.log('[DashboardService] Current user:', currentUser.email, 'Role:', userRoleId);
     
     // Helper to get route from NAV_ROUTES map or fallback
     function getRouteForMenu(routeKey, fallbackPath) {
-      if (typeof window.NavRoutes !== 'undefined' && window.NavRoutes.NAV_ROUTES[routeKey]) {
-        return window.NavRoutes.getRoute(routeKey, { useLiveServer: true });
+      // Try NavRoutes first
+      if (typeof window.NavRoutes !== 'undefined') {
+        // Check if routeKey exists in NAV_ROUTES
+        if (window.NavRoutes.NAV_ROUTES && window.NavRoutes.NAV_ROUTES[routeKey]) {
+          const route = window.NavRoutes.getRoute(routeKey, { useLiveServer: true });
+          if (route && route !== routeKey) {
+            return route;
+          }
+        }
+        
+        // Try toHtmlUrl as fallback
+        if (typeof window.NavRoutes.toHtmlUrl === 'function') {
+          try {
+            const url = window.NavRoutes.toHtmlUrl(routeKey);
+            if (url && url !== routeKey && !url.endsWith('/index.html') || url.includes('/')) {
+              return url;
+            }
+          } catch (e) {
+            // Ignore errors, fall through
+          }
+        }
       }
-      return getRoute(`${basePath}${fallbackPath}`);
+      
+      // Fallback to constructing path
+      const isLiveServer = window.location.port === '5503' || (window.location.hostname === '127.0.0.1' && window.location.port === '5503');
+      
+      if (isLiveServer && routeKey && routeKey !== '#' && !routeKey.startsWith('http')) {
+        const cleanPath = routeKey.replace(/^\.\.\//g, '').replace(/\/$/, '').replace(/\.html$/, '');
+        if (cleanPath && cleanPath !== 'index') {
+          if (cleanPath.includes('/')) {
+            return `http://127.0.0.1:5503/POC/pages/${cleanPath}/index.html`;
+          } else {
+            return `http://127.0.0.1:5503/POC/pages/${cleanPath}/index.html`;
+          }
+        }
+      }
+      
+      // Use fallbackPath if provided and valid
+      if (fallbackPath && fallbackPath !== '#' && !fallbackPath.startsWith('index.html')) {
+        // If fallbackPath is already a full URL, return it
+        if (fallbackPath.startsWith('http')) {
+          return fallbackPath;
+        }
+        
+        // If fallbackPath is relative, ensure it's properly formatted
+        if (fallbackPath.startsWith('../') || fallbackPath.startsWith('./') || fallbackPath.startsWith('/')) {
+          return fallbackPath;
+        }
+        
+        // Otherwise, construct proper path
+        if (isLiveServer) {
+          // Remove any leading/trailing slashes and ensure proper format
+          const cleanFallback = fallbackPath.replace(/^\/+|\/+$/g, '').replace(/\.html$/, '');
+          if (cleanFallback && cleanFallback !== 'index') {
+            return `http://127.0.0.1:5503/POC/${cleanFallback}${cleanFallback.includes('index.html') ? '' : '/index.html'}`;
+          }
+        }
+        
+        return fallbackPath;
+      }
+      
+      // Last resort: return routeKey if it's valid
+      if (routeKey && routeKey !== '#' && !routeKey.startsWith('index.html')) {
+        return routeKey;
+      }
+      
+      // Return safe default
+      return '#';
+    }
+    
+    // Use RBACNavConfig if available
+    if (typeof window.RBACNavConfig !== 'undefined' && window.RBACNavConfig.getNavItemsForRole) {
+      console.log('[DashboardService] Using RBACNavConfig for menu items');
+      
+      try {
+        // Get menu items from RBACNavConfig
+        const navItems = window.RBACNavConfig.getNavItemsForRole(userRoleId);
+        
+        if (navItems && navItems.length > 0) {
+          console.log(`[DashboardService] Found ${navItems.length} menu items for role ${userRoleId}`);
+          
+          // Convert route keys to actual URLs
+          const menuItems = navItems.map(item => {
+            // Get route URL, ensuring it's valid
+            let routeUrl = getRouteForMenu(item.route, item.route);
+            
+            // Validate route URL - ensure it's not just "index.html" or invalid
+            if (!routeUrl || routeUrl === 'index.html' || routeUrl === '/index.html' || 
+                (routeUrl.startsWith('index.html') && !routeUrl.includes('/pages/'))) {
+              console.warn(`[DashboardService] Invalid route for ${item.id}: ${routeUrl}, using fallback`);
+              // Try to construct a proper path from the route key
+              const isLiveServer = window.location.port === '5503' || (window.location.hostname === '127.0.0.1' && window.location.port === '5503');
+              if (isLiveServer && item.route && item.route !== '#') {
+                routeUrl = `http://127.0.0.1:5503/POC/pages/${item.route}/index.html`;
+              } else {
+                routeUrl = '#'; // Safe fallback
+              }
+            }
+            
+            const menuItem = {
+              id: item.id,
+              label: item.label,
+              route: routeUrl,
+              feature: item.feature,
+              icon: item.icon
+            };
+            
+            // Add optional properties
+            if (item.filter) menuItem.filter = item.filter;
+            if (item.conditional !== undefined) menuItem.conditional = item.conditional;
+            if (item.readOnly !== undefined) menuItem.readOnly = item.readOnly;
+            if (item.access) menuItem.access = item.access;
+            
+            return menuItem;
+          });
+          
+          console.log('[DashboardService] Returning RBAC-based menu items:', menuItems);
+          return { success: true, items: menuItems };
+        } else {
+          console.warn(`[DashboardService] No menu items found in RBACNavConfig for role ${userRoleId}`);
+        }
+      } catch (error) {
+        console.error('[DashboardService] Error getting menu items from RBACNavConfig:', error);
+        // Fall through to fallback
+      }
+    }
+    
+    // Fallback: Use role-based menu items if RBACNavConfig not available
+    console.log('[DashboardService] Using fallback menu items');
+    
+    // Get base path for routes
+    function getBasePath() {
+      const isLiveServer = window.location.port === '5503' || (window.location.hostname === '127.0.0.1' && window.location.port === '5503');
+      if (isLiveServer) return '';
+      
+      const currentPath = window.location.pathname;
+      const segments = currentPath.split('/').filter(p => p && !p.endsWith('.html'));
+      const depth = segments.length;
+      return depth > 0 ? '../'.repeat(depth) : '';
     }
     
     const basePath = getBasePath();
     
-    // Core menu items - Opportunity Workflow Only (legacy removed)
+    // Core menu items based on role
     const coreMenuItems = [
-      // 1. Dashboard
-      { id: 'dashboard', label: 'Dashboard', route: getRouteForMenu('dashboard', 'dashboard/'), feature: 'user_dashboard', icon: '<i class="ph ph-gauge"></i>' },
-      
-      // 2. Opportunities (NEW WORKFLOW)
-      { id: 'opportunities', label: 'Opportunities', route: getRouteForMenu('opportunities', 'opportunities/'), feature: 'matches_view', icon: '<i class="ph ph-sparkle"></i>' },
-      
-      // 3. Create Opportunity (NEW WORKFLOW)
-      { id: 'create-opportunity', label: 'Create Opportunity', route: getRouteForMenu('create-opportunity', 'opportunities/create/'), feature: 'matches_view', icon: '<i class="ph ph-plus-circle"></i>', alternativeFeatures: ['project_creation'] },
-      
-      // 4. Matches (NEW WORKFLOW)
-      { id: 'matches', label: 'Matches', route: getRouteForMenu('matches', 'matches/'), feature: 'view_matches', icon: '<i class="ph ph-link"></i>', alternativeFeatures: ['matches_view'] },
-      
-      // 5. Proposals (NEW WORKFLOW)
-      { id: 'proposals', label: 'Proposals', route: getRouteForMenu('proposals', 'proposals/'), feature: 'proposal_management', icon: '<i class="ph ph-file-text"></i>', alternativeFeatures: ['view_own_proposals', 'view_incoming_proposals'] }
-      
-      // REMOVED LEGACY ITEMS:
-      // - My Projects (legacy)
-      // - Projects (legacy)
-      // - Create Project (legacy)
-      // - Pipeline (legacy)
-      // - My Services (legacy)
+      { id: 'dashboard', label: 'Dashboard', route: getRouteForMenu('dashboard', `${basePath}pages/dashboard/index.html`), feature: 'user_dashboard', icon: '<i class="ph ph-gauge"></i>' }
     ];
     
-    // Additional menu items (for admin or future expansion)
-    const additionalMenuItems = [
-      // REMOVED LEGACY SERVICE ITEMS:
-      // - Service Marketplace (legacy)
-      // - Service Evaluations (legacy)
-      // - Service Provider Profile (legacy)
-      // - Service Requests (legacy - replaced by Opportunities)
-      // - Skills Search (legacy)
-      // - Service Engagements (legacy)
-      
-      { id: 'notifications', label: 'Notifications', route: getRouteForMenu('notifications', 'notifications/'), feature: 'notifications', icon: '<i class="ph ph-bell"></i>' },
-      
-      // Admin Section (will be filtered by RBAC)
-      { id: 'admin-separator', label: '---', route: '#', feature: null, icon: '', isSeparator: true },
-      { id: 'admin-dashboard', label: 'Admin Dashboard', route: getRouteForMenu('admin', 'admin/'), feature: 'admin_dashboard', icon: '<i class="ph ph-gear"></i>' },
-      { id: 'directory', label: 'Directory', route: getRouteForMenu('admin-directory', 'admin/directory/'), feature: 'admin_directory', icon: '<i class="ph ph-folder"></i>' },
-      { id: 'user-vetting', label: 'User Vetting', route: getRouteForMenu('admin-vetting', 'admin-vetting/'), feature: 'user_vetting', icon: '<i class="ph ph-check-circle"></i>' },
-      { id: 'user-management', label: 'User Management', route: getRouteForMenu('admin-users-management', 'admin/users-management/'), feature: 'user_management', icon: '<i class="ph ph-users"></i>' },
-      { id: 'project-moderation', label: 'Project Moderation', route: getRouteForMenu('admin-moderation', 'admin-moderation/'), feature: 'project_moderation', icon: '<i class="ph ph-shield-check"></i>' },
-      { id: 'audit-trail', label: 'Audit Trail', route: getRouteForMenu('admin-audit', 'admin-audit/'), feature: 'audit_trail', icon: '<i class="ph ph-clipboard"></i>' },
-      { id: 'reports', label: 'Reports', route: getRouteForMenu('admin-reports', 'admin-reports/'), feature: 'reports', icon: '<i class="ph ph-chart-bar"></i>' }
-    ];
-    
-    // Create simplified Collaboration menu item with main features
-    const collaborationChildren = [
-      // Main Features
-      { 
-        id: 'collab-my-collaborations', 
-        label: 'My Collaborations', 
-        route: getRouteForMenu('collab-my-collaborations', 'collaboration/my-collaborations/'), 
-        feature: 'collaboration_opportunities',
-        icon: '<i class="ph ph-folder"></i>' 
-      },
-      { 
-        id: 'collab-opportunities', 
-        label: 'Browse Opportunities', 
-        route: getRouteForMenu('collab-opportunities', 'collaboration/opportunities/'), 
-        feature: 'collaboration_opportunities',
-        icon: '<i class="ph ph-sparkle"></i>' 
-      },
-      { 
-        id: 'collab-applications', 
-        label: 'My Applications', 
-        route: getRouteForMenu('collab-applications', 'collaboration/applications/'), 
-        feature: 'collaboration_applications',
-        icon: '<i class="ph ph-file-text"></i>' 
-      },
-      { 
-        id: 'collab-separator', 
-        label: '---', 
-        route: '#', 
-        feature: null, 
-        icon: '', 
-        isSeparator: true 
-      },
-      // Simplified Model Categories with Sub-Features
-      { 
-        id: 'collab-project-based', 
-        label: 'Project-Based', 
-        route: typeof window.NavRoutes !== 'undefined' ? window.NavRoutes.getRouteWithQuery('collaboration', { category: 1 }) : getRoute(`${basePath}collaboration/?category=1`), 
-        feature: 'collaboration_opportunities',
-        icon: '<i class="ph ph-buildings"></i>',
-        hasChildren: true,
-        children: [
-          { id: 'collab-task-based', label: 'Task-Based Engagement', route: getRouteForMenu('collab-task-based', 'collaboration/task-based/'), feature: 'collaboration_opportunities', icon: '<i class="ph ph-file-text"></i>' },
-          { id: 'collab-consortium', label: 'Consortium', route: getRouteForMenu('collab-consortium', 'collaboration/consortium/'), feature: 'collaboration_opportunities', icon: '<i class="ph ph-users-three"></i>' },
-          { id: 'collab-jv', label: 'Project-Specific JV', route: getRouteForMenu('collab-jv', 'collaboration/joint-venture/'), feature: 'collaboration_opportunities', icon: '<i class="ph ph-handshake"></i>' },
-          { id: 'collab-spv', label: 'Special Purpose Vehicle', route: getRouteForMenu('collab-spv', 'collaboration/spv/'), feature: 'collaboration_opportunities', icon: '<i class="ph ph-building-office"></i>' }
-        ]
-      },
-      { 
-        id: 'collab-strategic', 
-        label: 'Strategic Partnerships', 
-        route: typeof window.NavRoutes !== 'undefined' ? window.NavRoutes.getRouteWithQuery('collaboration', { category: 2 }) : getRoute(`${basePath}collaboration/?category=2`), 
-        feature: 'collaboration_opportunities',
-        icon: '<i class="ph ph-handshake"></i>',
-        hasChildren: true,
-        children: [
-          { id: 'collab-strategic-jv', label: 'Strategic Joint Venture', route: getRouteForMenu('collab-strategic-jv', 'collaboration/strategic-jv/'), feature: 'collaboration_opportunities', icon: '<i class="ph ph-handshake"></i>' },
-          { id: 'collab-strategic-alliance', label: 'Strategic Alliance', route: getRouteForMenu('collab-strategic-alliance', 'collaboration/strategic-alliance/'), feature: 'collaboration_opportunities', icon: '<i class="ph ph-link"></i>' },
-          { id: 'collab-mentorship', label: 'Mentorship Program', route: getRouteForMenu('collab-mentorship', 'collaboration/mentorship/'), feature: 'collaboration_opportunities', icon: '<i class="ph ph-graduation-cap"></i>' }
-        ]
-      },
-      { 
-        id: 'collab-resources', 
-        label: 'Resource Pooling', 
-        route: typeof window.NavRoutes !== 'undefined' ? window.NavRoutes.getRouteWithQuery('collaboration', { category: 3 }) : getRoute(`${basePath}collaboration/?category=3`), 
-        feature: 'collaboration_opportunities',
-        icon: '<i class="ph ph-package"></i>',
-        hasChildren: true,
-        children: [
-          { id: 'collab-bulk-purchasing', label: 'Bulk Purchasing', route: getRouteForMenu('collab-bulk-purchasing', 'collaboration/bulk-purchasing/'), feature: 'collaboration_opportunities', icon: '<i class="ph ph-shopping-cart"></i>' },
-          { id: 'collab-co-ownership', label: 'Co-Ownership Pooling', route: getRouteForMenu('collab-co-ownership', 'collaboration/co-ownership/'), feature: 'collaboration_opportunities', icon: '<i class="ph ph-users"></i>' },
-          { id: 'collab-resource-exchange', label: 'Resource Exchange', route: getRouteForMenu('collab-resource-exchange', 'collaboration/resource-exchange/'), feature: 'collaboration_opportunities', icon: '<i class="ph ph-arrows-clockwise"></i>' }
-        ]
-      },
-      { 
-        id: 'collab-hiring', 
-        label: 'Hiring Resources', 
-        route: typeof window.NavRoutes !== 'undefined' ? window.NavRoutes.getRouteWithQuery('collaboration', { category: 4 }) : getRoute(`${basePath}collaboration/?category=4`), 
-        feature: 'collaboration_opportunities',
-        icon: '<i class="ph ph-briefcase"></i>',
-        hasChildren: true,
-        children: [
-          { id: 'collab-professional-hiring', label: 'Professional Hiring', route: getRouteForMenu('collab-professional-hiring', 'collaboration/professional-hiring/'), feature: 'collaboration_opportunities', icon: '<i class="ph ph-user"></i>' },
-          { id: 'collab-consultant-hiring', label: 'Consultant Hiring', route: getRouteForMenu('collab-consultant-hiring', 'collaboration/consultant-hiring/'), feature: 'collaboration_opportunities', icon: '<i class="ph ph-user-circle"></i>' }
-        ]
-      },
-      { 
-        id: 'collab-competition', 
-        label: 'Call for Competition', 
-        route: typeof window.NavRoutes !== 'undefined' ? window.NavRoutes.getRouteWithQuery('collaboration', { category: 5 }) : getRoute(`${basePath}collaboration/?category=5`), 
-        feature: 'collaboration_opportunities',
-        icon: '<i class="ph ph-trophy"></i>' 
-      }
-    ];
-    
-    // Start with core menu items for the new design (8 items)
-    let allMenuItems = [...coreMenuItems];
-    
-    // Filter by role using RBAC
-    if (typeof PMTwinRBAC !== 'undefined') {
-      try {
-        // Ensure RBAC data is loaded
-        await PMTwinRBAC.loadRolesData();
-        await PMTwinRBAC.loadUserRolesData();
-        
-        // Get user's role
-        const userRoleId = await PMTwinRBAC.getCurrentUserRole();
-        const availableFeatures = await PMTwinRBAC.getCurrentUserFeatures();
-        
-        console.log('[DashboardService] User role:', userRoleId);
-        console.log('[DashboardService] Available features:', availableFeatures);
-        console.log('[DashboardService] Available features count:', availableFeatures?.length || 0);
-        console.log('[DashboardService] Total menu items before filter:', allMenuItems.length);
-        
-        // Special case: platform_admin should see core menu items + admin items
-        if (userRoleId === 'platform_admin' || currentUser.role === 'admin' || currentUser.role === 'platform_admin') {
-          console.log('[DashboardService] Platform admin detected - showing core menu items + admin items');
-          
-          // Add admin menu items
-          const adminMenuItems = [
-            { id: 'admin-separator', label: '---', route: '#', feature: null, icon: '', isSeparator: true },
-            { id: 'admin-dashboard', label: 'Admin Dashboard', route: getRouteForMenu('admin', 'admin/'), feature: 'admin_dashboard', icon: '<i class="ph ph-gear"></i>' },
-            { id: 'directory', label: 'Directory', route: getRouteForMenu('admin-directory', 'admin/directory/'), feature: 'admin_directory', icon: '<i class="ph ph-folder"></i>' },
-            { id: 'user-vetting', label: 'User Vetting', route: getRouteForMenu('admin-vetting', 'admin-vetting/'), feature: 'user_vetting', icon: '<i class="ph ph-check-circle"></i>' },
-            { id: 'user-management', label: 'User Management', route: getRouteForMenu('admin-users-management', 'admin/users-management/'), feature: 'user_management', icon: '<i class="ph ph-users"></i>' },
-            { id: 'project-moderation', label: 'Project Moderation', route: getRouteForMenu('admin-moderation', 'admin-moderation/'), feature: 'project_moderation', icon: '<i class="ph ph-shield-check"></i>' },
-            { id: 'audit-trail', label: 'Audit Trail', route: getRouteForMenu('admin-audit', 'admin-audit/'), feature: 'audit_trail', icon: '<i class="ph ph-clipboard"></i>' },
-            { id: 'reports', label: 'Reports', route: getRouteForMenu('admin-reports', 'admin-reports/'), feature: 'reports', icon: '<i class="ph ph-chart-bar"></i>' }
-          ];
-          
-          // Combine core items with admin items
-          allMenuItems = [...allMenuItems, ...adminMenuItems];
-          
-          // For platform_admin, show all items (they have wildcard access "*")
-          // Platform admin has all features, so show everything
-          console.log('[DashboardService] Platform admin - showing all menu items (wildcard access)');
-          return { success: true, items: allMenuItems };
-        }
-        
-        // If no features available, log warning and use fallback
-        if (!availableFeatures || availableFeatures.length === 0) {
-          console.warn('[DashboardService] No features available for user. Role:', userRoleId);
-          console.warn('[DashboardService] User object:', currentUser);
-          console.warn('[DashboardService] Falling back to legacy role-based filtering');
-          // Fall through to legacy filtering below
-        } else {
-        
-          // Filter menu items based on available features
-          const filtered = allMenuItems.map(item => {
-            // Always show separators
-            if (item.isSeparator) return item;
-            
-            // Handle grouped items (both isGroup and hasChildren)
-            if ((item.isGroup || item.hasChildren) && item.children && Array.isArray(item.children)) {
-              // Filter children based on permissions
-              const filteredChildren = item.children.filter(child => {
-                if (!child.feature) return false;
-                
-                let hasAccess = availableFeatures.includes(child.feature);
-                
-                // Check alternative features if primary feature not available
-                if (!hasAccess && child.alternativeFeatures && Array.isArray(child.alternativeFeatures)) {
-                  hasAccess = child.alternativeFeatures.some(altFeature => availableFeatures.includes(altFeature));
-                }
-                
-                // Special case: platform_admin should see all
-                if (userRoleId === 'platform_admin' || userRoleId === 'admin') {
-                  return true;
-                }
-                
-                return hasAccess;
-              });
-              
-              // Check if group itself should be shown (either group feature OR any child accessible)
-              let showGroup = false;
-              
-              // Check group's own feature requirement
-              if (item.feature) {
-                let groupHasAccess = availableFeatures.includes(item.feature);
-                if (!groupHasAccess && item.alternativeFeatures && Array.isArray(item.alternativeFeatures)) {
-                  groupHasAccess = item.alternativeFeatures.some(altFeature => availableFeatures.includes(altFeature));
-                }
-                if (groupHasAccess || userRoleId === 'platform_admin' || userRoleId === 'admin') {
-                  showGroup = true;
-                }
-              }
-              
-              // Also show if any child is accessible
-              if (filteredChildren.length > 0) {
-                showGroup = true;
-              }
-              
-              // Only show group if it has at least one accessible child OR group feature is available
-              if (!showGroup || filteredChildren.length === 0) {
-                return null; // Filter out empty groups
-              }
-              
-              // Return group with filtered children
-              return {
-                ...item,
-                children: filteredChildren,
-                hasChildren: filteredChildren.length > 0, // Ensure hasChildren is set
-                isGroup: false // Remove isGroup, use hasChildren instead
-              };
-            }
-            
-            // Regular item filtering
-            // Check role restrictions first
-            if (item.roles && Array.isArray(item.roles)) {
-              if (!item.roles.includes(userRoleId)) {
-                return null;
-              }
-            }
-            
-            // If no feature requirement, hide it (security: explicit permission required)
-            if (!item.feature) {
-              console.log('[DashboardService] Hiding item without feature:', item.id);
-              return null;
-            }
-            
-            // Check if user has access to this feature
-            let hasAccess = availableFeatures.includes(item.feature);
-            
-            // Check alternative features if primary feature not available
-            if (!hasAccess && item.alternativeFeatures && Array.isArray(item.alternativeFeatures)) {
-              hasAccess = item.alternativeFeatures.some(altFeature => availableFeatures.includes(altFeature));
-              if (hasAccess) {
-                console.log(`[DashboardService] Item ${item.id} accessible via alternative feature`);
-              }
-            }
-            
-            // Special case: platform_admin should see all
-            if (userRoleId === 'platform_admin' || userRoleId === 'admin') {
-              return item;
-            }
-            
-            if (hasAccess) {
-              return item;
-            }
-            
-            return null; // Filter out items user doesn't have access to
-          }).filter(item => item !== null); // Remove null items
-          
-          console.log('[DashboardService] Filtered menu items:', filtered.length);
-          
-          // Debug: Check if Service Providers is in filtered list
-          if (filtered.length > 0) {
-          const hasServiceProviders = filtered.some(item => item.id === 'service-providers');
-          console.log('[DashboardService] Service Providers menu item present:', hasServiceProviders);
-          if (!hasServiceProviders) {
-            console.warn('[DashboardService] Service Providers menu item is missing!');
-            }
-          }
-          
-          return { success: true, items: filtered };
-        }
-      } catch (error) {
-        console.error('[DashboardService] Error filtering menu items:', error);
-        // Fall through to legacy filtering
-      }
+    // Role-specific menu items
+    if (userRoleId === 'project_lead') {
+      coreMenuItems.push(
+        { id: 'opportunities', label: 'Opportunities', route: getRouteForMenu('opportunities', `${basePath}pages/opportunities/index.html`), feature: 'matches_view', icon: '<i class="ph ph-sparkle"></i>' },
+        { id: 'opportunities-create', label: 'Create Opportunity', route: getRouteForMenu('opportunities/create', `${basePath}pages/opportunities/create/index.html`), feature: 'project_creation', icon: '<i class="ph ph-plus-circle"></i>' },
+        { id: 'matches', label: 'Matches', route: getRouteForMenu('matches', `${basePath}pages/matches/index.html`), feature: 'view_matches', icon: '<i class="ph ph-link"></i>' },
+        { id: 'proposals', label: 'Proposals', route: getRouteForMenu('proposals', `${basePath}pages/proposals/index.html`), feature: 'proposal_management', icon: '<i class="ph ph-file-text"></i>' },
+        { id: 'contracts', label: 'Contracts', route: getRouteForMenu('contracts', `${basePath}pages/contracts/index.html`), feature: 'contract_management', icon: '<i class="ph ph-file-doc"></i>' }
+      );
+    } else if (userRoleId === 'supplier') {
+      coreMenuItems.push(
+        { id: 'opportunities', label: 'Opportunities', route: getRouteForMenu('opportunities', `${basePath}pages/opportunities/index.html`), feature: 'matches_view', icon: '<i class="ph ph-sparkle"></i>', filter: 'OFFER_SERVICE' },
+        { id: 'opportunities-create', label: 'Create Offer', route: getRouteForMenu('opportunities/create', `${basePath}pages/opportunities/create/index.html`), feature: 'project_creation', icon: '<i class="ph ph-plus-circle"></i>' },
+        { id: 'proposals', label: 'Proposals', route: getRouteForMenu('proposals', `${basePath}pages/proposals/index.html`), feature: 'proposal_management', icon: '<i class="ph ph-file-text"></i>' },
+        { id: 'contracts', label: 'Contracts', route: getRouteForMenu('contracts', `${basePath}pages/contracts/index.html`), feature: 'contract_management', icon: '<i class="ph ph-file-doc"></i>', filter: 'own' }
+      );
+    } else if (userRoleId === 'service_provider') {
+      coreMenuItems.push(
+        { id: 'opportunities', label: 'Opportunities', route: getRouteForMenu('opportunities', `${basePath}pages/opportunities/index.html`), feature: 'matches_view', icon: '<i class="ph ph-sparkle"></i>', filter: 'OFFER_SERVICE' },
+        { id: 'opportunities-create', label: 'Create Offer', route: getRouteForMenu('opportunities/create', `${basePath}pages/opportunities/create/index.html`), feature: 'project_creation', icon: '<i class="ph ph-plus-circle"></i>' },
+        { id: 'proposals', label: 'Proposals', route: getRouteForMenu('proposals', `${basePath}pages/proposals/index.html`), feature: 'proposal_management', icon: '<i class="ph ph-file-text"></i>' },
+        { id: 'contracts', label: 'Contracts', route: getRouteForMenu('contracts', `${basePath}pages/contracts/index.html`), feature: 'contract_management', icon: '<i class="ph ph-file-doc"></i>' }
+      );
+    } else if (userRoleId === 'consultant') {
+      coreMenuItems.push(
+        { id: 'opportunities', label: 'Opportunities', route: getRouteForMenu('opportunities', `${basePath}pages/opportunities/index.html`), feature: 'matches_view', icon: '<i class="ph ph-sparkle"></i>', filter: 'OFFER_SERVICE' },
+        { id: 'opportunities-create', label: 'Create Offer', route: getRouteForMenu('opportunities/create', `${basePath}pages/opportunities/create/index.html`), feature: 'project_creation', icon: '<i class="ph ph-plus-circle"></i>' },
+        { id: 'proposals', label: 'Proposals', route: getRouteForMenu('proposals', `${basePath}pages/proposals/index.html`), feature: 'proposal_management', icon: '<i class="ph ph-file-text"></i>' },
+        { id: 'contracts', label: 'Contracts', route: getRouteForMenu('contracts', `${basePath}pages/contracts/index.html`), feature: 'contract_management', icon: '<i class="ph ph-file-doc"></i>' }
+      );
+    } else if (userRoleId === 'professional') {
+      coreMenuItems.push(
+        { id: 'opportunities', label: 'Opportunities', route: getRouteForMenu('opportunities', `${basePath}pages/opportunities/index.html`), feature: 'matches_view', icon: '<i class="ph ph-sparkle"></i>' },
+        { id: 'proposals', label: 'Proposals', route: getRouteForMenu('proposals', `${basePath}pages/proposals/index.html`), feature: 'proposal_management', icon: '<i class="ph ph-file-text"></i>', conditional: true },
+        { id: 'contracts', label: 'Contracts', route: getRouteForMenu('contracts', `${basePath}pages/contracts/index.html`), feature: 'contract_management', icon: '<i class="ph ph-file-doc"></i>', filter: 'own' }
+      );
+    } else if (userRoleId === 'mentor') {
+      coreMenuItems.push(
+        { id: 'collaboration', label: 'Mentorship', route: getRouteForMenu('collab-mentorship', `${basePath}pages/collaboration/mentorship/index.html`), feature: 'collaboration_opportunities', icon: '<i class="ph ph-graduation-cap"></i>' }
+      );
+    } else if (userRoleId === 'platform_admin') {
+      coreMenuItems.push(
+        { id: 'admin', label: 'Admin Dashboard', route: getRouteForMenu('admin', `${basePath}pages/admin/index.html`), feature: 'admin_dashboard', icon: '<i class="ph ph-gear"></i>' },
+        { id: 'opportunities', label: 'Opportunities', route: getRouteForMenu('opportunities', `${basePath}pages/opportunities/index.html`), feature: 'matches_view', icon: '<i class="ph ph-sparkle"></i>', access: 'monitor' },
+        { id: 'proposals', label: 'Proposals', route: getRouteForMenu('proposals', `${basePath}pages/proposals/index.html`), feature: 'proposal_management', icon: '<i class="ph ph-file-text"></i>', access: 'monitor' },
+        { id: 'contracts', label: 'Contracts', route: getRouteForMenu('contracts', `${basePath}pages/contracts/index.html`), feature: 'contract_management', icon: '<i class="ph ph-file-doc"></i>', access: 'monitor' },
+        { id: 'admin-vetting', label: 'User Vetting', route: getRouteForMenu('admin-vetting', `${basePath}pages/admin-vetting/index.html`), feature: 'user_vetting', icon: '<i class="ph ph-check-circle"></i>' },
+        { id: 'admin-users-management', label: 'User Management', route: getRouteForMenu('admin-users-management', `${basePath}pages/admin/users-management/index.html`), feature: 'user_management', icon: '<i class="ph ph-users"></i>' },
+        { id: 'admin-moderation', label: 'Project Moderation', route: getRouteForMenu('admin-moderation', `${basePath}pages/admin-moderation/index.html`), feature: 'project_moderation', icon: '<i class="ph ph-shield-check"></i>' },
+        { id: 'admin-audit', label: 'Audit Trail', route: getRouteForMenu('admin-audit', `${basePath}pages/admin-audit/index.html`), feature: 'audit_trail', icon: '<i class="ph ph-clipboard"></i>' },
+        { id: 'admin-reports', label: 'Reports', route: getRouteForMenu('admin-reports', `${basePath}pages/admin-reports/index.html`), feature: 'reports', icon: '<i class="ph ph-chart-bar"></i>' }
+      );
+    } else if (userRoleId === 'auditor') {
+      coreMenuItems.push(
+        { id: 'audit', label: 'Audit Dashboard', route: getRouteForMenu('admin-audit', `${basePath}pages/admin-audit/index.html`), feature: 'audit_trail', icon: '<i class="ph ph-clipboard"></i>', readOnly: true },
+        { id: 'opportunities', label: 'Opportunities', route: getRouteForMenu('opportunities', `${basePath}pages/opportunities/index.html`), feature: 'matches_view', icon: '<i class="ph ph-sparkle"></i>', readOnly: true },
+        { id: 'proposals', label: 'Proposals', route: getRouteForMenu('proposals', `${basePath}pages/proposals/index.html`), feature: 'proposal_management', icon: '<i class="ph ph-file-text"></i>', readOnly: true },
+        { id: 'contracts', label: 'Contracts', route: getRouteForMenu('contracts', `${basePath}pages/contracts/index.html`), feature: 'contract_management', icon: '<i class="ph ph-file-doc"></i>', readOnly: true }
+      );
     }
     
-    // Legacy role-based filtering (fallback)
-    const role = currentUser.role;
-    const filtered = allMenuItems.filter(item => {
-      // Check if item has role restrictions
-      if (item.roles && Array.isArray(item.roles)) {
-        if (!item.roles.includes(role)) {
-          return false;
-        }
-      }
-      
-      if (role === 'admin' || role === 'platform_admin') return true;
-      if (role === 'entity' || role === 'project_lead' || role === 'beneficiary') {
-        return !item.feature || ['user_dashboard', 'project_creation', 'project_management', 
-                                'proposal_review', 'matches_view', 'profile_management', 
-                                'notifications', 'collaboration_opportunities', 'pipeline_management',
-                                'service_providers', 'service_portfolio', 'service_offering:view',
-                                'service_provider_profile', 'service_requests_browse', 'service_offers_manage', 'service_engagements_view',
-                                'search_service_provider_skills'].includes(item.feature);
-      }
-      if (role === 'vendor') {
-        return !item.feature || ['user_dashboard', 'project_browsing', 'matches_view',
-                                'service_providers', 'service_portfolio', 'service_offering:view',
-                                'collaboration_opportunities', 'collaboration_applications',
-                                'proposal_creation', 'proposal_management', 'sub_contractor_management',
-                                'pipeline_management', 'profile_management', 'notifications',
-                                'service_provider_profile', 'service_requests_browse', 'service_offers_manage', 'service_engagements_view',
-                                'search_service_provider_skills'].includes(item.feature);
-      }
-      if (role === 'sub_contractor') {
-        return !item.feature || ['user_dashboard', 'project_browsing', 'matches_view',
-                                'service_providers', 'service_evaluations',
-                                'proposal_creation', 'proposal_management',
-                                'collaboration_opportunities', 'collaboration_applications',
-                                'pipeline_management', 'profile_management', 'notifications'].includes(item.feature);
-      }
-      if (role === 'individual' || role === 'professional' || role === 'consultant') {
-        return !item.feature || ['user_dashboard', 'project_browsing', 'matches_view', 
-                                'proposal_creation', 'proposal_management', 'profile_management', 
-                                'notifications', 'collaboration_opportunities', 'collaboration_applications',
-                                'service_providers', 'service_portfolio', 'service_offering:view',
-                                'pipeline_management'].includes(item.feature);
-      }
-      if (role === 'service_provider') {
-        return !item.feature || ['user_dashboard', 'project_browsing', 'matches_view',
-                                'service_providers', 'service_portfolio', 'service_offering:view',
-                                'collaboration_opportunities', 'collaboration_applications',
-                                'proposal_creation', 'proposal_management', 'pipeline_management',
-                                'profile_management', 'notifications'].includes(item.feature);
-      }
-      if (role === 'skill_service_provider') {
-        return !item.feature || ['user_dashboard', 'service_provider_profile', 'service_requests_browse',
-                                'service_offers_manage', 'service_engagements_view',
-                                'pipeline_management', 'profile_management', 'notifications'].includes(item.feature);
-      }
-      if (role === 'supplier') {
-        return !item.feature || ['user_dashboard', 'project_browsing', 'matches_view',
-                                'collaboration_opportunities', 'collaboration_applications',
-                                'service_providers', 'pipeline_management',
-                                'profile_management', 'notifications'].includes(item.feature);
-      }
-      if (role === 'mentor') {
-        return !item.feature || ['user_dashboard', 'project_browsing', 'matches_view',
-                                'collaboration_opportunities', 'service_providers',
-                                'pipeline_management', 'profile_management', 'notifications'].includes(item.feature);
-      }
-      if (role === 'auditor') {
-        return !item.feature || ['user_dashboard', 'admin_dashboard', 'audit_trail', 'reports',
-                                'project_browsing', 'notifications'].includes(item.feature);
-      }
-      return false;
-    });
-    
-    return { success: true, items: filtered };
+    return { success: true, items: coreMenuItems };
   }
 
   // ============================================

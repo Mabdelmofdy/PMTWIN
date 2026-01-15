@@ -78,8 +78,23 @@
                   </button>
                 ` : ''}
                 ${canAcceptProposal() ? `
-                  <button type="button" class="btn btn-success" onclick="proposalView.acceptProposal()">
-                    <i class="ph ph-check"></i> Accept Proposal
+                  <button type="button" class="btn btn-success" onclick="proposalView.showAcceptModal()">
+                    <i class="ph ph-check"></i> Accept
+                  </button>
+                ` : ''}
+              ${canRequestChanges() ? `
+                  <button type="button" class="btn btn-warning" onclick="proposalView.showRequestChangesModal()">
+                    <i class="ph ph-pencil"></i> Request Changes
+                  </button>
+                ` : ''}
+              ${canRejectProposal() ? `
+                  <button type="button" class="btn btn-danger" onclick="proposalView.showRejectModal()">
+                    <i class="ph ph-x"></i> Reject
+                  </button>
+                ` : ''}
+              ${canGenerateContract() ? `
+                  <button type="button" class="btn btn-primary" onclick="proposalView.generateContract()">
+                    <i class="ph ph-file-text"></i> Generate Contract
                   </button>
                 ` : ''}
               </div>
@@ -190,6 +205,18 @@
               <p style="margin: 0.5rem 0 0 0; color: var(--text-secondary); font-size: 0.875rem;">
                 Status: <span class="badge badge-${getStatusBadgeClass(version.status)}">${version.status}</span>
               </p>
+              ${version.paymentTerms ? `
+                <div style="margin-top: 0.5rem; padding: 0.5rem; background: var(--bg-secondary); border-radius: var(--radius-sm);">
+                  <strong>Payment Terms:</strong> ${version.paymentTerms.mode || 'N/A'}
+                  ${version.paymentTerms.barterRule ? ` (${version.paymentTerms.barterRule})` : ''}
+                  ${version.paymentTerms.cashSettlement > 0 ? ` - ${version.paymentTerms.cashSettlement.toLocaleString()} SAR` : ''}
+                </div>
+              ` : ''}
+              ${version.comment ? `
+                <div style="margin-top: 0.5rem; padding: 0.5rem; background: var(--bg-secondary); border-radius: var(--radius-sm);">
+                  <strong>Comment:</strong> ${version.comment}
+                </div>
+              ` : ''}
               ${version.changes && version.changes.length > 0 ? `
                 <div style="margin-top: 0.5rem;">
                   <strong>Changes:</strong>
@@ -243,10 +270,20 @@
           </div>
           <div>
             <h3>Payment Terms</h3>
-            ${proposalData.paymentTerms ? `
+            ${versionData.paymentTerms ? `
+              <p><strong>Mode:</strong> ${versionData.paymentTerms.mode || 'N/A'}</p>
+              ${versionData.paymentTerms.barterRule ? `<p><strong>Barter Rule:</strong> ${versionData.paymentTerms.barterRule}</p>` : ''}
+              ${versionData.paymentTerms.cashSettlement > 0 ? `<p><strong>Cash Settlement:</strong> ${versionData.paymentTerms.cashSettlement.toLocaleString()} SAR</p>` : ''}
+            ` : (proposalData.paymentTerms ? `
               <p><strong>Mode:</strong> ${proposalData.paymentTerms.mode}</p>
               ${proposalData.paymentTerms.barterRule ? `<p><strong>Barter Rule:</strong> ${proposalData.paymentTerms.barterRule}</p>` : ''}
-            ` : '<p>Payment terms not specified</p>'}
+            ` : '<p>Payment terms not specified</p>')}
+            ${versionData.comment ? `
+              <div style="margin-top: 1rem; padding: 1rem; background: var(--bg-secondary); border-radius: var(--radius-sm);">
+                <strong>Comment:</strong>
+                <p style="margin-top: 0.5rem;">${versionData.comment}</p>
+              </div>
+            ` : ''}
           </div>
         </div>
 
@@ -451,20 +488,210 @@
   }
 
   // ============================================
+  // Show Accept Modal
+  // ============================================
+  function showAcceptModal() {
+    const modal = createCommentModal('Accept Proposal', 'Accept this proposal? (Optional comment)', async (comment) => {
+      await acceptProposal(comment);
+    });
+    document.body.appendChild(modal);
+  }
+
+  // ============================================
   // Accept Proposal
   // ============================================
-  function acceptProposal() {
+  async function acceptProposal(optionalComment = '') {
     const currentUser = PMTwinData.Sessions.getCurrentUser();
     if (!currentUser) return;
 
-    const isOwner = currentProposal.ownerCompanyId === currentUser.id;
-    const isProvider = currentProposal.providerCompanyId === currentUser.id || currentProposal.providerId === currentUser.id;
+    const isOwner = currentProposal.ownerCompanyId === currentUser.id || currentProposal.receiverId === currentUser.id;
+    const isProvider = currentProposal.providerId === currentUser.id || currentProposal.bidderCompanyId === currentUser.id || currentProposal.initiatorId === currentUser.id;
+
+    const currentVersion = currentProposal.currentVersion || selectedVersion;
+    const acceptance = currentProposal.acceptance || {};
+    
+    let updates = {
+      acceptance: { ...acceptance }
+    };
 
     if (isOwner) {
-      toggleAcceptance('owner', true);
+      updates.acceptance.ownerAcceptedVersion = currentVersion;
+      if (acceptance.otherPartyAcceptedVersion === currentVersion) {
+        // Both parties accepted same version
+        updates.acceptance.mutuallyAcceptedVersion = currentVersion;
+        updates.acceptance.finalAcceptedAt = new Date().toISOString();
+        updates.status = 'FINAL_ACCEPTED';
+      } else {
+        updates.status = 'ACCEPTED_BY_OWNER';
+      }
     } else if (isProvider) {
-      toggleAcceptance('provider', true);
+      updates.acceptance.otherPartyAcceptedVersion = currentVersion;
+      if (acceptance.ownerAcceptedVersion === currentVersion) {
+        // Both parties accepted same version
+        updates.acceptance.mutuallyAcceptedVersion = currentVersion;
+        updates.acceptance.finalAcceptedAt = new Date().toISOString();
+        updates.status = 'FINAL_ACCEPTED';
+      } else {
+        updates.status = 'ACCEPTED_BY_OTHER';
+      }
     }
+
+    const updated = PMTwinData.Proposals.update(currentProposal.id, updates);
+    if (updated) {
+      // Auto-generate contract if FINAL_ACCEPTED
+      if (updates.status === 'FINAL_ACCEPTED') {
+        await generateContract();
+      }
+      loadProposal(currentProposal.id);
+    }
+  }
+
+  // ============================================
+  // Show Request Changes Modal
+  // ============================================
+  function showRequestChangesModal() {
+    const modal = createCommentModal('Request Changes', 'Please explain what changes you would like (required, min 10 characters)', async (comment) => {
+      if (!comment || comment.trim().length < 10) {
+        alert('Comment is required and must be at least 10 characters long');
+        return;
+      }
+      await requestChanges(comment);
+    }, true);
+    document.body.appendChild(modal);
+  }
+
+  // ============================================
+  // Request Changes
+  // ============================================
+  async function requestChanges(comment) {
+    if (!comment || comment.trim().length < 10) {
+      alert('Comment is required and must be at least 10 characters long');
+      return;
+    }
+
+    // This will be handled by ProposalService.requestChanges() which creates a new version
+    // For now, we'll show a message that this should be done through the service layer
+    alert('Request Changes functionality will be implemented in ProposalService. Please use the "Create New Version" button for now.');
+  }
+
+  // ============================================
+  // Show Reject Modal
+  // ============================================
+  function showRejectModal() {
+    const modal = createCommentModal('Reject Proposal', 'Please provide a reason for rejection (required, min 10 characters)', async (comment) => {
+      if (!comment || comment.trim().length < 10) {
+        alert('Rejection reason is required and must be at least 10 characters long');
+        return;
+      }
+      await rejectProposal(comment);
+    }, true);
+    document.body.appendChild(modal);
+  }
+
+  // ============================================
+  // Reject Proposal
+  // ============================================
+  async function rejectProposal(comment) {
+    if (!comment || comment.trim().length < 10) {
+      alert('Rejection reason is required and must be at least 10 characters long');
+      return;
+    }
+
+    const updates = {
+      status: 'REJECTED',
+      rejectionReason: comment,
+      rejectedAt: new Date().toISOString()
+    };
+
+    const updated = PMTwinData.Proposals.update(currentProposal.id, updates);
+    if (updated) {
+      loadProposal(currentProposal.id);
+    }
+  }
+
+  // ============================================
+  // Generate Contract
+  // ============================================
+  async function generateContract() {
+    if (currentProposal.status !== 'FINAL_ACCEPTED') {
+      alert('Contract can only be generated for FINAL_ACCEPTED proposals');
+      return;
+    }
+
+    if (typeof PMTwinData === 'undefined' || !PMTwinData.Contracts) {
+      alert('Contract service not available');
+      return;
+    }
+
+    try {
+      const contractData = {
+        proposalId: currentProposal.id,
+        opportunityId: currentProposal.opportunityId,
+        generatedFromProposalVersionId: `${currentProposal.id}_v${currentProposal.acceptance?.mutuallyAcceptedVersion || currentProposal.currentVersion}`
+      };
+
+      const contract = PMTwinData.Contracts.create(contractData);
+      if (contract) {
+        alert('Contract generated successfully!');
+        // Redirect to contract view
+        if (typeof window.NavRoutes !== 'undefined') {
+          const viewUrl = window.NavRoutes.getRouteWithQuery('contracts/view', { id: contract.id });
+          window.location.href = viewUrl;
+        } else {
+          window.location.href = `/POC/pages/contracts/view/index.html?id=${contract.id}`;
+        }
+      } else {
+        alert('Failed to generate contract');
+      }
+    } catch (error) {
+      console.error('Error generating contract:', error);
+      alert('An error occurred while generating the contract');
+    }
+  }
+
+  // ============================================
+  // Create Comment Modal
+  // ============================================
+  function createCommentModal(title, label, onSubmit, required = false) {
+    const modal = document.createElement('div');
+    modal.className = 'modal';
+    modal.style.display = 'block';
+    modal.innerHTML = `
+      <div class="modal-content" style="max-width: 500px;">
+        <div class="modal-header">
+          <h2>${title}</h2>
+          <button type="button" class="modal-close" onclick="this.closest('.modal').remove()">&times;</button>
+        </div>
+        <div class="modal-body">
+          <div class="form-group">
+            <label for="commentInput" class="form-label">${label}</label>
+            <textarea id="commentInput" class="form-control" rows="4" ${required ? 'required minlength="10"' : ''}></textarea>
+            ${required ? '<small class="form-text">This field is required and must be at least 10 characters long.</small>' : ''}
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" onclick="this.closest('.modal').remove()">Cancel</button>
+          <button type="button" class="btn btn-primary" onclick="handleModalSubmit()">Submit</button>
+        </div>
+      </div>
+    `;
+
+    // Store onSubmit handler
+    modal._onSubmit = onSubmit;
+
+    // Add submit handler
+    window.handleModalSubmit = function() {
+      const comment = modal.querySelector('#commentInput').value.trim();
+      if (required && (!comment || comment.length < 10)) {
+        alert('Comment is required and must be at least 10 characters long');
+        return;
+      }
+      modal._onSubmit(comment);
+      modal.remove();
+      delete window.handleModalSubmit;
+    };
+
+    return modal;
   }
 
   // ============================================
@@ -498,11 +725,64 @@
     const currentUser = PMTwinData.Sessions.getCurrentUser();
     if (!currentUser) return false;
 
+    const status = currentProposal.status;
     const acceptance = currentProposal.acceptance || {};
-    const isOwner = currentProposal.ownerCompanyId === currentUser.id;
-    const isProvider = currentProposal.providerId === currentUser.id || currentProposal.bidderCompanyId === currentUser.id;
+    const isOwner = currentProposal.ownerCompanyId === currentUser.id || currentProposal.receiverId === currentUser.id;
+    const isProvider = currentProposal.providerId === currentUser.id || currentProposal.bidderCompanyId === currentUser.id || currentProposal.initiatorId === currentUser.id;
 
-    return (isOwner && !acceptance.ownerAccepted) || (isProvider && !acceptance.providerAccepted);
+    // Can accept if proposal is SUBMITTED, CHANGES_REQUESTED, ACCEPTED_BY_OWNER, or ACCEPTED_BY_OTHER
+    if (status === 'FINAL_ACCEPTED' || status === 'REJECTED') return false;
+    
+    if (isOwner) {
+      return !acceptance.ownerAcceptedVersion && (status === 'SUBMITTED' || status === 'CHANGES_REQUESTED' || status === 'ACCEPTED_BY_OTHER');
+    } else if (isProvider) {
+      return !acceptance.otherPartyAcceptedVersion && (status === 'SUBMITTED' || status === 'CHANGES_REQUESTED' || status === 'ACCEPTED_BY_OWNER');
+    }
+    
+    return false;
+  }
+
+  // ============================================
+  // Helper: Can Request Changes
+  // ============================================
+  function canRequestChanges() {
+    const currentUser = PMTwinData.Sessions.getCurrentUser();
+    if (!currentUser) return false;
+
+    const status = currentProposal.status;
+    const isOwner = currentProposal.ownerCompanyId === currentUser.id || currentProposal.receiverId === currentUser.id;
+
+    // Only owner can request changes, and only if proposal is SUBMITTED or ACCEPTED_BY_OTHER
+    return isOwner && (status === 'SUBMITTED' || status === 'ACCEPTED_BY_OTHER');
+  }
+
+  // ============================================
+  // Helper: Can Reject Proposal
+  // ============================================
+  function canRejectProposal() {
+    const currentUser = PMTwinData.Sessions.getCurrentUser();
+    if (!currentUser) return false;
+
+    const status = currentProposal.status;
+    const isOwner = currentProposal.ownerCompanyId === currentUser.id || currentProposal.receiverId === currentUser.id;
+
+    // Only owner can reject, and only if not already FINAL_ACCEPTED or REJECTED
+    return isOwner && status !== 'FINAL_ACCEPTED' && status !== 'REJECTED';
+  }
+
+  // ============================================
+  // Helper: Can Generate Contract
+  // ============================================
+  function canGenerateContract() {
+    const currentUser = PMTwinData.Sessions.getCurrentUser();
+    if (!currentUser) return false;
+
+    const status = currentProposal.status;
+    const isOwner = currentProposal.ownerCompanyId === currentUser.id || currentProposal.receiverId === currentUser.id;
+    const isProvider = currentProposal.providerId === currentUser.id || currentProposal.bidderCompanyId === currentUser.id || currentProposal.initiatorId === currentUser.id;
+
+    // Can generate contract if FINAL_ACCEPTED and user is owner or provider
+    return status === 'FINAL_ACCEPTED' && (isOwner || isProvider);
   }
 
   // ============================================
@@ -513,6 +793,10 @@
       'DRAFT': 'secondary',
       'SUBMITTED': 'info',
       'UNDER_REVIEW': 'warning',
+      'CHANGES_REQUESTED': 'warning',
+      'ACCEPTED_BY_OWNER': 'info',
+      'ACCEPTED_BY_OTHER': 'info',
+      'FINAL_ACCEPTED': 'success',
       'SHORTLISTED': 'primary',
       'NEGOTIATION': 'warning',
       'AWARDED': 'success',
@@ -554,6 +838,12 @@
     createNewVersion,
     toggleAcceptance,
     acceptProposal,
+    showAcceptModal,
+    showRequestChangesModal,
+    showRejectModal,
+    requestChanges,
+    rejectProposal,
+    generateContract,
     showDiff
   };
 

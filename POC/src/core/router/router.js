@@ -33,13 +33,11 @@
       'dashboard': '/POC/pages/dashboard/index.html',
       'merchant-portal': '/POC/pages/merchant-portal/index.html',
       'projects': '/POC/pages/opportunities/index.html', // Redirect to opportunities
-      'create-project': '/POC/pages/opportunities/create/index.html', // Redirect to opportunity creation
       'project': '/POC/pages/opportunities/index.html', // Redirect to opportunities (legacy)
       'opportunities': '/POC/pages/opportunities/index.html',
       'matches': '/POC/pages/matches/index.html',
       'proposals': '/POC/pages/proposals/index.html',
       'create-proposal': '/POC/pages/proposals/create/index.html',
-      'pipeline': '/POC/pages/pipeline/index.html',
       'collaboration': '/POC/pages/collaboration/index.html',
       'collab-task-based': '/POC/pages/collaboration/task-based/index.html',
       'collab-consortium': '/POC/pages/collaboration/consortium/index.html',

@@ -26,6 +26,10 @@ RewriteRule ^dashboard/?$ pages/dashboard/index.html [L]
 RewriteRule ^projects/?$ pages/projects/index.html [L]
 RewriteRule ^create-project/?$ pages/projects/create/index.html [L]
 
+# Opportunities routes
+RewriteRule ^opportunities/?$ pages/opportunities/index.html [L]
+RewriteRule ^opportunities/create/?$ pages/opportunities/create/index.html [L]
+
 # Other common routes - add more as needed
 RewriteRule ^login/?$ pages/auth/login/index.html [L]
 RewriteRule ^signup/?$ pages/auth/signup/index.html [L]

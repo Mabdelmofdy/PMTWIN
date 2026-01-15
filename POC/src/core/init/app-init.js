@@ -81,6 +81,9 @@
     }
 
     // Check if user is authenticated
+    // Add a delay to allow session and users to initialize after login redirect
+    await new Promise(resolve => setTimeout(resolve, 300));
+    
     const isAuth = await AuthCheck.checkAuth({ requireAuth: false });
     
     if (isAuth) {
@@ -100,6 +103,13 @@
       }
     } else {
       console.log('[AppInit] User not authenticated, skipping layout initialization');
+      // Even if not authenticated, initialize sidebar to show login button
+      if (typeof Navigation !== 'undefined') {
+        await Navigation.init({ 
+          showSidebar: true, 
+          sidebarAlwaysOpen: true 
+        });
+      }
     }
   }
 

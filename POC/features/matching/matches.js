@@ -243,8 +243,50 @@
             
             <div style="background: var(--color-info-light, #e3f2fd); padding: 1rem; border-radius: var(--border-radius); margin-bottom: 1rem;">
               <p style="margin: 0 0 0.5rem 0; font-weight: var(--font-weight-semibold);">
-                <i class="ph ph-lightning"></i> Skills Match: ${matchScore}%
+                <i class="ph ph-lightning"></i> Match Score: ${matchScore}%
               </p>
+              
+              <!-- Skills Match Breakdown -->
+              <div style="margin-bottom: 0.75rem;">
+                <p style="margin: 0 0 0.25rem 0; font-size: 0.875rem; font-weight: var(--font-weight-semibold);">
+                  Skills Match: ${match.skillsScore || matchScore}%
+                </p>
+                ${matchedSkills.length > 0 ? `
+                  <p style="margin: 0 0 0.25rem 0; font-size: 0.85rem; color: var(--color-success);">
+                    <i class="ph ph-check-circle"></i> Matched: ${matchedSkills.slice(0, 5).join(', ')}${matchedSkills.length > 5 ? ` +${matchedSkills.length - 5} more` : ''}
+                  </p>
+                ` : ''}
+                ${missingSkills.length > 0 ? `
+                  <p style="margin: 0; font-size: 0.85rem; color: var(--color-warning);">
+                    <i class="ph ph-warning"></i> Missing: ${missingSkills.slice(0, 3).join(', ')}${missingSkills.length > 3 ? ` +${missingSkills.length - 3} more` : ''}
+                  </p>
+                ` : ''}
+              </div>
+              
+              <!-- Location Match -->
+              ${match.locationReason ? `
+                <div style="margin-bottom: 0.75rem; padding-top: 0.75rem; border-top: 1px solid rgba(0,0,0,0.1);">
+                  <p style="margin: 0 0 0.25rem 0; font-size: 0.875rem; font-weight: var(--font-weight-semibold);">
+                    Location Compatibility: ${match.locationScore || 0}%
+                  </p>
+                  <p style="margin: 0; font-size: 0.85rem; color: var(--text-secondary);">
+                    <i class="ph ph-map-pin"></i> ${match.locationReason}
+                  </p>
+                </div>
+              ` : ''}
+              
+              <!-- Payment Compatibility -->
+              ${match.paymentCompatibility ? `
+                <div style="padding-top: 0.75rem; border-top: 1px solid rgba(0,0,0,0.1);">
+                  <p style="margin: 0 0 0.25rem 0; font-size: 0.875rem; font-weight: var(--font-weight-semibold);">
+                    Payment Compatibility
+                  </p>
+                  <p style="margin: 0; font-size: 0.85rem; color: var(--text-secondary);">
+                    <i class="ph ph-currency-circle-dollar"></i> ${match.paymentCompatibility}
+                  </p>
+                </div>
+              ` : ''}
+              
               ${matchedSkills.length > 0 ? `
                 <p style="margin: 0 0 0.5rem 0; font-size: 0.9rem;">
                   <strong>Matched Skills:</strong>
@@ -268,19 +310,19 @@
             </div>
             
             <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
-              ${targetType === 'PROJECT' || targetType === 'MEGA_PROJECT' ? `
-                <a href="${getBasePath()}projects/view/?id=${targetId}" class="btn btn-primary btn-sm">
-                  <i class="ph ph-eye"></i> View Project
+              ${targetType === 'PROJECT' || targetType === 'MEGA_PROJECT' || targetType === 'OPPORTUNITY' ? `
+                <a href="${getBasePath()}opportunities/view/?id=${targetId}" class="btn btn-primary btn-sm">
+                  <i class="ph ph-eye"></i> View Opportunity
                 </a>
-                <a href="../proposals/create/?targetType=${targetType}&targetId=${targetId}" class="btn btn-success btn-sm">
-                  <i class="ph ph-paper-plane-tilt"></i> Create Proposal
+                <a href="${getBasePath()}proposals/create/?opportunityId=${targetId}" class="btn btn-success btn-sm">
+                  <i class="ph ph-paper-plane-tilt"></i> Send Engagement Request
                 </a>
               ` : targetType === 'SERVICE_REQUEST' ? `
-                <a href="${getBasePath()}service-requests/view/?id=${targetId}" class="btn btn-primary btn-sm">
-                  <i class="ph ph-eye"></i> View Request
+                <a href="${getBasePath()}opportunities/view/?id=${targetId}" class="btn btn-primary btn-sm">
+                  <i class="ph ph-eye"></i> View Opportunity
                 </a>
-                <a href="../proposals/create/?targetType=${targetType}&targetId=${targetId}" class="btn btn-success btn-sm">
-                  <i class="ph ph-paper-plane-tilt"></i> Create Offer
+                <a href="${getBasePath()}proposals/create/?opportunityId=${targetId}" class="btn btn-success btn-sm">
+                  <i class="ph ph-paper-plane-tilt"></i> Send Engagement Request
                 </a>
               ` : ''}
             </div>
@@ -410,7 +452,7 @@
             <a href="${getBasePath()}project/?id=${match.projectId}" class="btn btn-primary">
               <i class="ph ph-eye"></i> View Full Project
             </a>
-            <a href="../create-proposal/?projectId=${match.projectId}" class="btn btn-success">
+            <a href="${getBasePath()}proposals/create/?opportunityId=${match.targetId || match.projectId || match.opportunityId}" class="btn btn-success">
               <i class="ph ph-paper-plane-tilt"></i> Submit Proposal
             </a>
             ${match.isExistingMatch && !match.viewed ? `

@@ -6,9 +6,16 @@
   'use strict';
 
   async function init(params) {
-    // Get projectId from params or query string
+    // Get projectId or opportunityId from params or query string
     const urlParams = new URLSearchParams(window.location.search);
     const projectId = urlParams.get('projectId') || (params && params.projectId);
+    const opportunityId = urlParams.get('opportunityId') || (params && params.opportunityId);
+    
+    // Check if this is an opportunity-based engagement request
+    if (opportunityId) {
+      await setupOpportunityEngagementRequest(opportunityId);
+      return;
+    }
     
     // Get current user role
     await setupRoleBasedUI();
@@ -16,6 +23,134 @@
     loadProjects(projectId);
     setupProposalTypeToggle();
     addPricingItem(); // Add initial pricing item
+  }
+
+  // ============================================
+  // Setup Opportunity-Based Engagement Request
+  // ============================================
+  async function setupOpportunityEngagementRequest(opportunityId) {
+    if (!opportunityId || typeof PMTwinData === 'undefined') {
+      showMessage('Invalid opportunity ID', 'error');
+      return;
+    }
+
+    const opportunity = PMTwinData.Opportunities?.getById(opportunityId);
+    if (!opportunity) {
+      showMessage('Opportunity not found', 'error');
+      return;
+    }
+
+    // Hide project selection, show opportunity info and engagement request form
+    const projectSelectGroup = document.querySelector('#proposalProjectId')?.closest('.form-group');
+    if (projectSelectGroup) {
+      projectSelectGroup.style.display = 'none';
+    }
+
+    // Show opportunity info
+    const form = document.getElementById('proposalCreateForm');
+    if (form) {
+      const opportunityInfo = document.createElement('div');
+      opportunityInfo.className = 'card';
+      opportunityInfo.style.marginBottom = '1.5rem';
+      opportunityInfo.innerHTML = `
+        <div class="card-body">
+          <h3 style="margin-bottom: 0.5rem;">${opportunity.title || 'Untitled Opportunity'}</h3>
+          <p style="color: var(--text-secondary); margin-bottom: 0.5rem;">${opportunity.description || ''}</p>
+          <p style="font-size: 0.875rem; color: var(--text-secondary);">
+            Preferred Payment: <strong>${opportunity.preferredPaymentTerms?.mode || opportunity.paymentTerms?.mode || 'CASH'}</strong>
+          </p>
+        </div>
+      `;
+      form.insertBefore(opportunityInfo, form.firstChild);
+
+      // Add payment terms section
+      const paymentSection = document.createElement('div');
+      paymentSection.className = 'form-group';
+      paymentSection.style.marginTop = '1.5rem';
+      paymentSection.innerHTML = `
+        <h3 class="section-title" style="margin-bottom: 1rem;">Proposed Payment Terms</h3>
+        <div class="form-group">
+          <label for="proposedPaymentMode" class="form-label">Payment Mode *</label>
+          <select id="proposedPaymentMode" class="form-control" required>
+            <option value="CASH">Cash</option>
+            <option value="BARTER">Barter</option>
+            <option value="HYBRID">Hybrid</option>
+          </select>
+        </div>
+        <div id="barterRuleGroup" class="form-group" style="display: none;">
+          <label for="proposedBarterRule" class="form-label">Barter Settlement Rule *</label>
+          <select id="proposedBarterRule" class="form-control">
+            <option value="EQUAL_ONLY">Equal Value Only</option>
+            <option value="ALLOW_DIFFERENCE_CASH">Allow Difference with Cash</option>
+            <option value="ACCEPT_AS_IS">Accept As-Is</option>
+          </select>
+        </div>
+        <div id="cashSettlementGroup" class="form-group" style="display: none;">
+          <label for="proposedCashSettlement" class="form-label">Cash Settlement Amount (SAR)</label>
+          <input type="number" id="proposedCashSettlement" class="form-control" min="0" step="0.01" value="0">
+        </div>
+      `;
+      
+      // Insert before submit button
+      const submitButton = form.querySelector('button[type="submit"]');
+      if (submitButton) {
+        form.insertBefore(paymentSection, submitButton.parentElement);
+      } else {
+        form.appendChild(paymentSection);
+      }
+
+      // Add mandatory comment field
+      const commentSection = document.createElement('div');
+      commentSection.className = 'form-group';
+      commentSection.style.marginTop = '1.5rem';
+      commentSection.innerHTML = `
+        <label for="engagementComment" class="form-label">Comment / Note *</label>
+        <textarea id="engagementComment" class="form-control" rows="4" 
+                  placeholder="Explain your engagement request and proposed payment terms" 
+                  required minlength="10"></textarea>
+        <small class="form-text">This comment is required and must be at least 10 characters long.</small>
+      `;
+      if (submitButton) {
+        form.insertBefore(commentSection, submitButton.parentElement);
+      } else {
+        form.appendChild(commentSection);
+      }
+
+      // Setup payment mode change handler
+      const paymentModeSelect = document.getElementById('proposedPaymentMode');
+      if (paymentModeSelect) {
+        paymentModeSelect.addEventListener('change', function() {
+          const mode = this.value;
+          const barterRuleGroup = document.getElementById('barterRuleGroup');
+          const cashSettlementGroup = document.getElementById('cashSettlementGroup');
+          
+          if (mode === 'BARTER' || mode === 'HYBRID') {
+            barterRuleGroup.style.display = 'block';
+            if (mode === 'HYBRID' || document.getElementById('proposedBarterRule')?.value === 'ALLOW_DIFFERENCE_CASH') {
+              cashSettlementGroup.style.display = 'block';
+            } else {
+              cashSettlementGroup.style.display = 'none';
+            }
+          } else {
+            barterRuleGroup.style.display = 'none';
+            cashSettlementGroup.style.display = 'none';
+          }
+        });
+
+        // Setup barter rule change handler
+        const barterRuleSelect = document.getElementById('proposedBarterRule');
+        if (barterRuleSelect) {
+          barterRuleSelect.addEventListener('change', function() {
+            const cashSettlementGroup = document.getElementById('cashSettlementGroup');
+            if (this.value === 'ALLOW_DIFFERENCE_CASH' || document.getElementById('proposedPaymentMode')?.value === 'HYBRID') {
+              cashSettlementGroup.style.display = 'block';
+            } else {
+              cashSettlementGroup.style.display = 'none';
+            }
+          });
+        }
+      }
+    }
   }
 
   // ============================================
@@ -509,6 +644,104 @@
     container.appendChild(itemDiv);
   }
 
+  // ============================================
+  // Handle Opportunity-Based Engagement Request
+  // ============================================
+  async function handleOpportunityEngagementRequest(event, opportunityId) {
+    event.preventDefault();
+    
+    const messageDiv = document.getElementById('proposalCreateMessage');
+    if (messageDiv) {
+      messageDiv.style.display = 'none';
+      messageDiv.className = '';
+    }
+
+    try {
+      // Collect payment terms
+      const paymentMode = document.getElementById('proposedPaymentMode')?.value;
+      const barterRule = document.getElementById('proposedBarterRule')?.value || null;
+      const cashSettlement = parseFloat(document.getElementById('proposedCashSettlement')?.value) || 0;
+      
+      // Collect mandatory comment
+      const comment = document.getElementById('engagementComment')?.value?.trim() || '';
+      
+      // Validation
+      if (!paymentMode) {
+        showMessage('Please select a payment mode', 'error');
+        return false;
+      }
+      
+      if (comment.length < 10) {
+        showMessage('Comment is required and must be at least 10 characters long', 'error');
+        return false;
+      }
+      
+      if ((paymentMode === 'BARTER' || paymentMode === 'HYBRID') && !barterRule) {
+        showMessage('Please select a barter settlement rule', 'error');
+        return false;
+      }
+
+      const opportunity = PMTwinData.Opportunities?.getById(opportunityId);
+      if (!opportunity) {
+        showMessage('Opportunity not found', 'error');
+        return false;
+      }
+
+      const currentUser = PMTwinData?.Sessions?.getCurrentUser();
+      if (!currentUser) {
+        showMessage('You must be logged in to send an engagement request', 'error');
+        return false;
+      }
+
+      // Build payment terms object
+      const paymentTerms = {
+        mode: paymentMode,
+        barterRule: barterRule,
+        cashSettlement: cashSettlement,
+        acknowledgedDifference: barterRule === 'ACCEPT_AS_IS'
+      };
+
+      // Create proposal data
+      const proposalData = {
+        opportunityId: opportunityId,
+        initiatorId: currentUser.id,
+        receiverId: opportunity.createdBy || opportunity.creatorId,
+        paymentTerms: paymentTerms,
+        comment: comment,
+        status: 'SUBMITTED'
+      };
+
+      // Create proposal using Proposals.create
+      if (typeof PMTwinData !== 'undefined' && PMTwinData.Proposals) {
+        const proposal = PMTwinData.Proposals.create(proposalData);
+        
+        if (proposal) {
+          showMessage('Engagement request submitted successfully!', 'success');
+          setTimeout(() => {
+            // Redirect to proposal view or opportunities list
+            if (typeof window.NavRoutes !== 'undefined') {
+              const viewUrl = window.NavRoutes.getRouteWithQuery('proposals/view', { id: proposal.id });
+              window.location.href = viewUrl;
+            } else {
+              window.location.href = `/POC/pages/proposals/view/index.html?id=${proposal.id}`;
+            }
+          }, 1500);
+          return false;
+        } else {
+          showMessage('Failed to create engagement request', 'error');
+          return false;
+        }
+      } else {
+        showMessage('Proposals service not available', 'error');
+        return false;
+      }
+    } catch (error) {
+      console.error('Error creating engagement request:', error);
+      showMessage('An error occurred while creating the engagement request', 'error');
+      return false;
+    }
+  }
+
   function showMessage(message, type) {
     const messageDiv = document.getElementById('proposalCreateMessage');
     if (messageDiv) {
@@ -523,6 +756,7 @@
   window.proposals['proposal-create'] = {
     init,
     handleSubmit,
+    handleOpportunityEngagementRequest,
     addPricingItem,
     addServiceOffered,
     addServiceRequested

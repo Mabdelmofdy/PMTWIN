@@ -619,6 +619,190 @@
     return await ProposalValidator.validateVendorProposalScope(proposalData, project);
   }
 
+  // ============================================
+  // Request Changes on Proposal (Owner Action)
+  // ============================================
+  async function requestChanges(proposalId, paymentTermsUpdates = {}, comment, serviceItems = null) {
+    if (typeof PMTwinData === 'undefined') {
+      return { success: false, error: 'Data service not available' };
+    }
+
+    const proposal = PMTwinData.Proposals.getById(proposalId);
+    if (!proposal) {
+      return { success: false, error: 'Proposal not found' };
+    }
+
+    const currentUser = PMTwinData.Sessions.getCurrentUser();
+    if (!currentUser) {
+      return { success: false, error: 'User not authenticated' };
+    }
+
+    // Validate comment is required and min 10 characters
+    if (!comment || typeof comment !== 'string' || comment.trim().length < 10) {
+      return { success: false, error: 'Comment is required and must be at least 10 characters long' };
+    }
+
+    // Check if user is the receiver (opportunity owner)
+    if (proposal.receiverId !== currentUser.id && proposal.ownerCompanyId !== currentUser.id) {
+      return { success: false, error: 'Only the opportunity owner can request changes' };
+    }
+
+    // Get current version payment terms
+    const currentVersion = proposal.versions[proposal.versions.length - 1];
+    const currentPaymentTerms = currentVersion?.paymentTerms || {};
+
+    // Merge payment terms updates
+    const updatedPaymentTerms = {
+      ...currentPaymentTerms,
+      ...paymentTermsUpdates
+    };
+
+    // Create new version with updated payment terms and comment
+    const updates = {
+      paymentTerms: updatedPaymentTerms,
+      comment: comment.trim(),
+      status: 'CHANGES_REQUESTED'
+    };
+
+    if (serviceItems) {
+      updates.serviceItems = serviceItems;
+    }
+
+    // Use Proposals.createVersion or ProposalVersioningService if available
+    if (typeof ProposalVersioningService !== 'undefined') {
+      const result = await ProposalVersioningService.createVersionWithChanges(
+        proposalId,
+        updatedPaymentTerms,
+        comment.trim(),
+        serviceItems
+      );
+      if (result.success) {
+        return { success: true, proposal: result.proposal };
+      }
+      return result;
+    } else if (PMTwinData.Proposals.createVersion) {
+      const updated = PMTwinData.Proposals.createVersion(proposalId, updates, currentUser.id);
+      if (updated) {
+        return { success: true, proposal: updated };
+      }
+    }
+
+    return { success: false, error: 'Failed to create version with changes' };
+  }
+
+  // ============================================
+  // Accept Proposal (Owner or Other Party)
+  // ============================================
+  async function acceptProposal(proposalId, optionalNote = '') {
+    if (typeof PMTwinData === 'undefined') {
+      return { success: false, error: 'Data service not available' };
+    }
+
+    const proposal = PMTwinData.Proposals.getById(proposalId);
+    if (!proposal) {
+      return { success: false, error: 'Proposal not found' };
+    }
+
+    const currentUser = PMTwinData.Sessions.getCurrentUser();
+    if (!currentUser) {
+      return { success: false, error: 'User not authenticated' };
+    }
+
+    const currentVersion = proposal.currentVersion || proposal.versions.length;
+
+    // Determine if user is owner (receiver) or other party (initiator)
+    const isOwner = proposal.receiverId === currentUser.id || proposal.ownerCompanyId === currentUser.id;
+    const isOtherParty = proposal.initiatorId === currentUser.id || proposal.providerId === currentUser.id;
+
+    if (!isOwner && !isOtherParty) {
+      return { success: false, error: 'You are not authorized to accept this proposal' };
+    }
+
+    // Update acceptance state
+    const acceptance = proposal.acceptance || {};
+    
+    if (isOwner) {
+      acceptance.ownerAcceptedVersion = currentVersion;
+      acceptance.ownerAccepted = true; // Backward compatibility
+    } else if (isOtherParty) {
+      acceptance.otherPartyAcceptedVersion = currentVersion;
+      acceptance.providerAccepted = true; // Backward compatibility
+    }
+
+    // Check if both parties accepted the same version
+    if (acceptance.ownerAcceptedVersion && acceptance.otherPartyAcceptedVersion &&
+        acceptance.ownerAcceptedVersion === acceptance.otherPartyAcceptedVersion) {
+      acceptance.mutuallyAcceptedVersion = acceptance.ownerAcceptedVersion;
+      acceptance.finalAcceptedAt = new Date().toISOString();
+      acceptance.acceptedAt = acceptance.finalAcceptedAt; // Backward compatibility
+      
+      // Update proposal status to FINAL_ACCEPTED
+      const updated = PMTwinData.Proposals.update(proposalId, {
+        acceptance: acceptance,
+        status: 'FINAL_ACCEPTED'
+      });
+      
+      if (updated) {
+        return { success: true, proposal: updated, finalAccepted: true };
+      }
+    } else {
+      // Update acceptance state
+      const status = isOwner ? 'ACCEPTED_BY_OWNER' : 'ACCEPTED_BY_OTHER';
+      const updated = PMTwinData.Proposals.update(proposalId, {
+        acceptance: acceptance,
+        status: status
+      });
+      
+      if (updated) {
+        return { success: true, proposal: updated, finalAccepted: false };
+      }
+    }
+
+    return { success: false, error: 'Failed to accept proposal' };
+  }
+
+  // ============================================
+  // Reject Proposal (Owner Action)
+  // ============================================
+  async function rejectProposal(proposalId, reason) {
+    if (typeof PMTwinData === 'undefined') {
+      return { success: false, error: 'Data service not available' };
+    }
+
+    const proposal = PMTwinData.Proposals.getById(proposalId);
+    if (!proposal) {
+      return { success: false, error: 'Proposal not found' };
+    }
+
+    const currentUser = PMTwinData.Sessions.getCurrentUser();
+    if (!currentUser) {
+      return { success: false, error: 'User not authenticated' };
+    }
+
+    // Validate comment/reason is required and min 10 characters
+    if (!reason || typeof reason !== 'string' || reason.trim().length < 10) {
+      return { success: false, error: 'Rejection reason is required and must be at least 10 characters long' };
+    }
+
+    // Check if user is the receiver (opportunity owner)
+    if (proposal.receiverId !== currentUser.id && proposal.ownerCompanyId !== currentUser.id) {
+      return { success: false, error: 'Only the opportunity owner can reject proposals' };
+    }
+
+    // Update proposal status to REJECTED
+    const updated = PMTwinData.Proposals.update(proposalId, {
+      status: 'REJECTED',
+      rejectionReason: reason.trim(),
+      rejectedAt: new Date().toISOString()
+    });
+
+    if (updated) {
+      return { success: true, proposal: updated };
+    }
+
+    return { success: false, error: 'Failed to reject proposal' };
+  }
+
   window.ProposalService = {
     createProposal,
     createProposalFromOffering,
@@ -629,7 +813,10 @@
     updateProposalStatus,
     getVendorSubContractors,
     linkSubContractorToVendor,
-    validateVendorProposalScope
+    validateVendorProposalScope,
+    requestChanges,
+    acceptProposal,
+    rejectProposal
   };
 
 })();

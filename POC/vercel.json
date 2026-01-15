@@ -125,6 +125,14 @@
       "destination": "/pages/opportunities/index.html"
     },
     {
+      "source": "/opportunities/create",
+      "destination": "/pages/opportunities/create/index.html"
+    },
+    {
+      "source": "/opportunities/create/",
+      "destination": "/pages/opportunities/create/index.html"
+    },
+    {
       "source": "/matches",
       "destination": "/pages/matches/index.html"
     },

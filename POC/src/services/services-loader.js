@@ -79,6 +79,9 @@
     // Core RBAC service (must be loaded first)
     'src/services/rbac/role-service.js',
     
+    // RBAC Navigation Config (must load before dashboard-service)
+    'src/core/rbac/nav.config.js',
+    
     // Business Logic Models (must load before services that use them)
     'src/business-logic/models/service-item-model.js',
     'src/business-logic/payment/barter-settlement.js',

@@ -188,7 +188,7 @@
   const ApiServices = {
     users: new ApiService('users', 'pmtwin_users'),
     sessions: new ApiService('sessions', 'pmtwin_sessions'),
-    projects: new ApiService('projects', 'pmtwin_projects'),
+    // DEPRECATED: projects: new ApiService('projects', 'pmtwin_projects'), // Legacy workflow - use Opportunities instead
     proposals: new ApiService('proposals', 'pmtwin_proposals'),
     matches: new ApiService('matches', 'pmtwin_matches'),
     notifications: new ApiService('notifications', 'pmtwin_notifications'),

@@ -1,19 +1,19 @@
 /**
- * Opportunities List Component
- * Displays opportunities with filters for intent, payment mode, location, model
+ * My Opportunities Component
+ * Displays user's own opportunities with tabs for Drafts and Published
  */
 
 (function() {
   'use strict';
 
+  let currentTab = 'drafts';
   let currentFilters = {
     intent: null,
     paymentMode: null,
     country: null,
     city: null,
     remoteAllowed: null,
-    model: null,
-    subModel: null
+    model: null
   };
 
   // ============================================
@@ -26,17 +26,35 @@
   }
 
   // ============================================
+  // Switch Tab
+  // ============================================
+  function switchTab(tab) {
+    currentTab = tab;
+    
+    // Update tab UI
+    document.querySelectorAll('#myOpportunitiesTabs .tab-nav-item').forEach(btn => {
+      if (btn.getAttribute('data-tab') === tab) {
+        btn.classList.add('active');
+      } else {
+        btn.classList.remove('active');
+      }
+    });
+    
+    loadOpportunities();
+  }
+
+  // ============================================
   // Render Filters
   // ============================================
   function renderFilters() {
-    const container = document.getElementById('opportunitiesFilters');
+    const container = document.getElementById('myOpportunitiesFilters');
     if (!container) return;
 
     const html = `
-      <div class="filters-container" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 2rem;">
+      <div class="filters-container" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">
         <div class="form-group">
           <label for="filterIntent" class="form-label">Intent</label>
-          <select id="filterIntent" class="form-control" onchange="opportunitiesList.updateFilter('intent', this.value)">
+          <select id="filterIntent" class="form-control" onchange="myOpportunities.updateFilter('intent', this.value)">
             <option value="">All</option>
             <option value="REQUEST_SERVICE">Request Service</option>
             <option value="OFFER_SERVICE">Offer Service</option>
@@ -46,7 +64,7 @@
         
         <div class="form-group">
           <label for="filterPaymentMode" class="form-label">Payment Mode</label>
-          <select id="filterPaymentMode" class="form-control" onchange="opportunitiesList.updateFilter('paymentMode', this.value)">
+          <select id="filterPaymentMode" class="form-control" onchange="myOpportunities.updateFilter('paymentMode', this.value)">
             <option value="">All</option>
             <option value="CASH">Cash</option>
             <option value="BARTER">Barter</option>
@@ -56,7 +74,7 @@
         
         <div class="form-group">
           <label for="filterCountry" class="form-label">Country</label>
-          <select id="filterCountry" class="form-control" onchange="opportunitiesList.onCountryFilterChange(this.value)">
+          <select id="filterCountry" class="form-control" onchange="myOpportunities.onCountryFilterChange(this.value)">
             <option value="">All Countries</option>
             ${typeof window.LocationConfig !== 'undefined' 
               ? window.LocationConfig.getAllowedCountries().map(country => `
@@ -69,7 +87,7 @@
         <div class="form-group">
           <label for="filterCity" class="form-label">City</label>
           <select id="filterCity" class="form-control" 
-                 onchange="opportunitiesList.updateFilter('city', this.value)"
+                 onchange="myOpportunities.updateFilter('city', this.value)"
                  ${!currentFilters.country ? 'disabled' : ''}>
             <option value="">All Cities</option>
             ${currentFilters.country && typeof window.LocationConfig !== 'undefined'
@@ -81,29 +99,8 @@
           ${!currentFilters.country ? '<small class="form-text">Select a country first</small>' : ''}
         </div>
         
-        <div class="form-group">
-          <label for="filterRemote" class="form-label">Remote</label>
-          <select id="filterRemote" class="form-control" onchange="opportunitiesList.updateFilter('remoteAllowed', this.value === 'yes' ? true : this.value === 'no' ? false : null)">
-            <option value="">All</option>
-            <option value="yes">Remote Allowed</option>
-            <option value="no">On-Site Only</option>
-          </select>
-        </div>
-        
-        <div class="form-group">
-          <label for="filterModel" class="form-label">Model</label>
-          <select id="filterModel" class="form-control" onchange="opportunitiesList.updateFilter('model', this.value)">
-            <option value="">All</option>
-            <option value="1">Model 1: Project-Based</option>
-            <option value="2">Model 2: Strategic</option>
-            <option value="3">Model 3: Resource Pooling</option>
-            <option value="4">Model 4: Hiring</option>
-            <option value="5">Model 5: Competition</option>
-          </select>
-        </div>
-        
         <div class="form-group" style="display: flex; align-items: flex-end;">
-          <button type="button" class="btn btn-secondary" onclick="opportunitiesList.clearFilters()" style="width: 100%;">
+          <button type="button" class="btn btn-secondary" onclick="myOpportunities.clearFilters()" style="width: 100%;">
             <i class="ph ph-x"></i> Clear Filters
           </button>
         </div>
@@ -117,7 +114,7 @@
   // Load Opportunities
   // ============================================
   function loadOpportunities() {
-    const container = document.getElementById('opportunitiesList');
+    const container = document.getElementById('myOpportunitiesList');
     if (!container) return;
 
     if (typeof PMTwinData === 'undefined' || !PMTwinData.Opportunities) {
@@ -125,34 +122,53 @@
       return;
     }
 
-    // Get current user to filter out own opportunities
+    // Get current user
     const currentUser = PMTwinData.Sessions.getCurrentUser();
     const userId = currentUser?.id;
-
-    // Apply filters
-    let opportunities = PMTwinData.Opportunities.getWithFilters(currentFilters);
     
-    // Filter out own opportunities
-    if (userId) {
-      opportunities = opportunities.filter(opp => {
-        const createdBy = opp.createdBy || opp.creatorId;
-        return createdBy !== userId;
-      });
+    if (!userId) {
+      container.innerHTML = '<p class="alert alert-warning">Please log in to view your opportunities</p>';
+      return;
     }
 
-    // Filter by status (only show published/active)
-    opportunities = opportunities.filter(opp => 
-      opp.status === 'published' || opp.status === 'active'
-    );
+    // Get all opportunities created by current user
+    let opportunities = PMTwinData.Opportunities.getAll();
+    
+    // Filter by creator
+    opportunities = opportunities.filter(opp => {
+      const createdBy = opp.createdBy || opp.creatorId;
+      return createdBy === userId;
+    });
+
+    // Filter by tab (drafts vs published)
+    if (currentTab === 'drafts') {
+      opportunities = opportunities.filter(opp => 
+        opp.status === 'draft' || !opp.status || opp.status === ''
+      );
+    } else {
+      opportunities = opportunities.filter(opp => 
+        opp.status === 'published' || opp.status === 'active'
+      );
+    }
+
+    // Apply filters
+    opportunities = PMTwinData.Opportunities.getWithFilters(currentFilters, opportunities);
 
     if (opportunities.length === 0) {
       container.innerHTML = `
         <div class="card">
           <div class="card-body" style="text-align: center; padding: 3rem;">
-            <p>No opportunities found matching your filters.</p>
-            <button type="button" class="btn btn-secondary" onclick="opportunitiesList.clearFilters()" style="margin-top: 1rem;">
-              Clear Filters
-            </button>
+            <p>No ${currentTab === 'drafts' ? 'draft' : 'published'} opportunities found${Object.values(currentFilters).some(f => f !== null) ? ' matching your filters' : ''}.</p>
+            ${currentTab === 'drafts' ? `
+              <a href="../../create/index.html" class="btn btn-primary" style="margin-top: 1rem;">
+                <i class="ph ph-plus"></i> Create Your First Opportunity
+              </a>
+            ` : ''}
+            ${Object.values(currentFilters).some(f => f !== null) ? `
+              <button type="button" class="btn btn-secondary" onclick="myOpportunities.clearFilters()" style="margin-top: 1rem;">
+                Clear Filters
+              </button>
+            ` : ''}
           </div>
         </div>
       `;
@@ -168,8 +184,9 @@
         : 0;
       
       const intentBadge = getIntentBadge(opportunity.intent || opportunity.intentType);
-      const paymentBadge = getPaymentBadge(opportunity.paymentTerms?.mode || opportunity.paymentMode);
-      // Display location as "City, Country" format
+      const paymentBadge = getPaymentBadge(opportunity.preferredPaymentTerms?.mode || opportunity.paymentTerms?.mode || opportunity.paymentMode);
+      const statusBadge = getStatusBadge(opportunity.status);
+      
       const oppCity = opportunity.location?.city || 'TBD';
       const oppCountry = opportunity.location?.country || 'Not specified';
       const locationText = `${oppCity}, ${oppCountry}`;
@@ -182,6 +199,7 @@
               <div style="flex: 1;">
                 <h3 style="margin: 0 0 0.5rem 0;">${opportunity.title || 'Untitled Opportunity'}</h3>
                 <div style="display: flex; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 0.5rem;">
+                  ${statusBadge}
                   ${intentBadge}
                   ${paymentBadge}
                   ${isRemoteAllowed ? '<span class="badge badge-success"><i class="ph ph-globe"></i> Remote</span>' : ''}
@@ -190,6 +208,8 @@
                 <p style="margin: 0; color: var(--text-secondary);">
                   <i class="ph ph-map-pin"></i> ${locationText}
                   ${totalValue > 0 ? ` • <strong>${totalValue.toLocaleString()} SAR</strong>` : ''}
+                  ${opportunity.views ? ` • <i class="ph ph-eye"></i> ${opportunity.views} views` : ''}
+                  ${opportunity.applicationsReceived ? ` • <i class="ph ph-paper-plane-tilt"></i> ${opportunity.applicationsReceived} proposals` : ''}
                 </p>
               </div>
             </div>
@@ -205,26 +225,20 @@
               </div>
             ` : ''}
             
-            ${opportunity.serviceItems && opportunity.serviceItems.length > 0 ? `
-              <div style="margin-bottom: 1rem; padding: 1rem; background: var(--bg-secondary); border-radius: var(--border-radius);">
-                <strong>Service Items:</strong>
-                <ul style="margin: 0.5rem 0 0 0; padding-left: 1.5rem;">
-                  ${opportunity.serviceItems.slice(0, 3).map(item => `
-                    <li>${item.name || 'Service'} - ${item.qty || 1} ${item.unit || 'unit'} × ${(item.unitPriceRef || 0).toLocaleString()} SAR</li>
-                  `).join('')}
-                  ${opportunity.serviceItems.length > 3 ? `<li><em>+${opportunity.serviceItems.length - 3} more items</em></li>` : ''}
-                </ul>
-              </div>
-            ` : ''}
-            
             <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
               <a href="${getOpportunityViewUrl(opportunity.id)}" class="btn btn-primary btn-sm">
                 <i class="ph ph-eye"></i> View Details
               </a>
-              ${shouldShowEngagementRequestButton(opportunity) ? `
-                <a href="${getEngagementRequestUrl(opportunity.id)}" class="btn btn-success btn-sm">
-                  <i class="ph ph-paper-plane-tilt"></i> Send Engagement Request
+              ${currentTab === 'drafts' ? `
+                <a href="${getOpportunityEditUrl(opportunity.id)}" class="btn btn-secondary btn-sm">
+                  <i class="ph ph-pencil"></i> Edit
                 </a>
+                <button type="button" class="btn btn-success btn-sm" onclick="myOpportunities.publishOpportunity('${opportunity.id}')">
+                  <i class="ph ph-paper-plane-tilt"></i> Publish
+                </button>
+                <button type="button" class="btn btn-danger btn-sm" onclick="myOpportunities.deleteOpportunity('${opportunity.id}')">
+                  <i class="ph ph-trash"></i> Delete
+                </button>
               ` : ''}
             </div>
           </div>
@@ -261,6 +275,19 @@
   }
 
   // ============================================
+  // Helper: Get Status Badge
+  // ============================================
+  function getStatusBadge(status) {
+    const badges = {
+      'draft': '<span class="badge badge-secondary"><i class="ph ph-file-dashed"></i> Draft</span>',
+      'published': '<span class="badge badge-success"><i class="ph ph-paper-plane-tilt"></i> Published</span>',
+      'active': '<span class="badge badge-info"><i class="ph ph-check-circle"></i> Active</span>',
+      'closed': '<span class="badge badge-danger"><i class="ph ph-x-circle"></i> Closed</span>'
+    };
+    return badges[status] || '<span class="badge badge-secondary">' + (status || 'Draft') + '</span>';
+  }
+
+  // ============================================
   // Helper: Get Opportunity View URL
   // ============================================
   function getOpportunityViewUrl(opportunityId) {
@@ -271,46 +298,65 @@
   }
 
   // ============================================
-  // Helper: Get Proposal Create URL
+  // Helper: Get Opportunity Edit URL
   // ============================================
-  function getProposalCreateUrl(opportunityId) {
+  function getOpportunityEditUrl(opportunityId) {
     if (typeof window.NavRoutes !== 'undefined') {
-      return window.NavRoutes.getRouteWithQuery('create-proposal', { opportunityId: opportunityId });
+      return window.NavRoutes.getRouteWithQuery('create-opportunity', { edit: opportunityId });
     }
-    return `/POC/pages/proposals/create/index.html?opportunityId=${opportunityId}`;
+    return `/POC/pages/opportunities/create/index.html?edit=${opportunityId}`;
   }
 
   // ============================================
-  // Helper: Get Engagement Request URL
+  // Publish Opportunity
   // ============================================
-  function getEngagementRequestUrl(opportunityId) {
-    if (typeof window.NavRoutes !== 'undefined') {
-      return window.NavRoutes.getRouteWithQuery('create-proposal', { opportunityId: opportunityId });
+  function publishOpportunity(opportunityId) {
+    if (!confirm('Are you sure you want to publish this opportunity? It will be visible to all users.')) {
+      return;
     }
-    return `/POC/pages/proposals/create/index.html?opportunityId=${opportunityId}`;
+
+    if (typeof PMTwinData === 'undefined' || !PMTwinData.Opportunities) {
+      alert('Opportunities service not available');
+      return;
+    }
+
+    const opportunity = PMTwinData.Opportunities.getById(opportunityId);
+    if (!opportunity) {
+      alert('Opportunity not found');
+      return;
+    }
+
+    // Update status to published
+    PMTwinData.Opportunities.update(opportunityId, {
+      status: 'published',
+      publishedAt: new Date().toISOString()
+    });
+
+    // Reload opportunities
+    loadOpportunities();
+    
+    alert('Opportunity published successfully!');
   }
 
   // ============================================
-  // Helper: Check if Engagement Request button should be shown
+  // Delete Opportunity
   // ============================================
-  function shouldShowEngagementRequestButton(opportunity) {
-    // Check if current user is not the opportunity owner
-    if (typeof PMTwinData === 'undefined' || !PMTwinData.Sessions) {
-      return false;
+  function deleteOpportunity(opportunityId) {
+    if (!confirm('Are you sure you want to delete this opportunity? This action cannot be undone.')) {
+      return;
     }
-    
-    const currentUser = PMTwinData.Sessions.getCurrentUser();
-    if (!currentUser) {
-      return false;
+
+    if (typeof PMTwinData === 'undefined' || !PMTwinData.Opportunities) {
+      alert('Opportunities service not available');
+      return;
     }
+
+    PMTwinData.Opportunities.delete(opportunityId);
     
-    const opportunityOwner = opportunity.createdBy || opportunity.creatorId;
-    if (currentUser.id === opportunityOwner) {
-      return false; // Don't show button for own opportunities
-    }
+    // Reload opportunities
+    loadOpportunities();
     
-    // Show for all opportunity types (REQUEST_SERVICE, OFFER_SERVICE, BOTH)
-    return true;
+    alert('Opportunity deleted successfully!');
   }
 
   // ============================================
@@ -326,29 +372,12 @@
   }
 
   // ============================================
-  // Country Filter Change Handler
+  // Country Filter Change
   // ============================================
   function onCountryFilterChange(country) {
     currentFilters.country = country || null;
-    // Reset city filter when country changes
-    currentFilters.city = null;
-    
-    // Update city dropdown
-    const citySelect = document.getElementById('filterCity');
-    if (citySelect) {
-      if (!country) {
-        citySelect.disabled = true;
-        citySelect.innerHTML = '<option value="">All Cities</option>';
-      } else {
-        citySelect.disabled = false;
-        const cities = typeof window.LocationConfig !== 'undefined' 
-          ? window.LocationConfig.getCitiesByCountry(country) 
-          : [];
-        citySelect.innerHTML = '<option value="">All Cities</option>' + 
-          cities.map(city => `<option value="${city}">${city}</option>`).join('');
-      }
-    }
-    
+    currentFilters.city = null; // Reset city when country changes
+    renderFilters();
     loadOpportunities();
   }
 
@@ -362,18 +391,9 @@
       country: null,
       city: null,
       remoteAllowed: null,
-      model: null,
-      subModel: null
+      model: null
     };
-    
-    // Reset form inputs
-    document.getElementById('filterIntent').value = '';
-    document.getElementById('filterPaymentMode').value = '';
-    document.getElementById('filterCountry').value = '';
-    document.getElementById('filterCity').value = '';
-    document.getElementById('filterRemote').value = '';
-    document.getElementById('filterModel').value = '';
-    
+    renderFilters();
     loadOpportunities();
   }
 
@@ -381,28 +401,19 @@
   // Attach Event Listeners
   // ============================================
   function attachEventListeners() {
-    // Filters are handled via inline onchange handlers
-  }
-
-  // ============================================
-  // Get Base Path Helper
-  // ============================================
-  function getBasePath() {
-    const currentPath = window.location.pathname;
-    const segments = currentPath.split('/').filter(p => p && !p.endsWith('.html'));
-    const depth = segments.length;
-    return depth > 0 ? '../'.repeat(depth) : '';
+    // Event listeners are attached via inline onclick handlers
   }
 
   // ============================================
   // Public API
   // ============================================
-  window.opportunitiesList = {
+  window.myOpportunities = {
     init,
-    loadOpportunities,
+    switchTab,
     updateFilter,
     onCountryFilterChange,
-    clearFilters
+    clearFilters,
+    publishOpportunity,
+    deleteOpportunity
   };
-
 })();

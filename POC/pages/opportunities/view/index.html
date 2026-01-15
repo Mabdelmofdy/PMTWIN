@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Opportunity Details - PMTwin</title>
+    <link rel="stylesheet" href="../../../assets/css/main.css">
+</head>
+<body>
+    <!-- Main Content - Sidebar and Navbar are automatically added by layout system -->
+    <main class="page-wrapper">
+        <div class="container">
+            <!-- Opportunity Details -->
+            <div id="opportunityViewContainer">
+                <!-- Content will be loaded here -->
+            </div>
+        </div>
+    </main>
+
+    <!-- Configuration (must load first) -->
+    <script src="../../../src/config/config.js"></script>
+    <script src="../../../src/core/config/location.config.js"></script>
+    
+    <!-- API Layer (for future Java backend integration) -->
+    <script src="../../../src/core/api/api-client.js"></script>
+    <script src="../../../src/core/api/api-service.js"></script>
+    
+    <!-- Core Data Layer -->
+    <script src="../../../src/core/data/data.js"></script>
+    
+    <!-- Core Services -->
+    <script src="../../../src/core/router/router.js"></script>
+    <script src="../../../src/core/routes/nav-routes.js"></script>
+    <script src="../../../src/core/layout/navigation.js"></script>
+    <script src="../../../src/core/renderer/renderer.js"></script>
+    <script src="../../../src/core/storage/storage-adapter.js"></script>
+    
+    <!-- Features -->
+    <script src="../../../features/opportunities/opportunity-view.js"></script>
+    
+    <!-- Initialize -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            if (typeof opportunityView !== 'undefined') {
+                opportunityView.init();
+            }
+        });
+    </script>
+</body>
+</html>

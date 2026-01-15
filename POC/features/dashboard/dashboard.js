@@ -100,6 +100,11 @@
   }
 
   function renderDashboard(container, data) {
+    if (!data) {
+      console.error('[Dashboard] renderDashboard called with null/undefined data');
+      container.innerHTML = '<p style="color: var(--text-secondary); text-align: center; padding: 2rem 0;">Error loading dashboard data</p>';
+      return;
+    }
     const user = data.user || {};
     const role = data.role || user.role || '';
     const features = data.features || [];
@@ -1127,7 +1132,6 @@
         <div class="card-body">
           <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
             <h2 style="margin: 0;">Recent Activity</h2>
-            <a href="${basePath}pipeline/" style="font-size: var(--font-size-sm); color: var(--color-primary); text-decoration: none;">View All <i class="ph ph-arrow-right"></i></a>
           </div>
     `;
     
@@ -1189,11 +1193,7 @@
     html += `</div></div>`;
     html += `</div>`; // Close two-column grid
 
-    // Role-Adaptive Sections
-    const role = data.role || data.user?.role || '';
-    const isEntity = role === 'project_lead' || role === 'entity' || role === 'vendor';
-    const isIndividual = role === 'professional' || role === 'individual' || role === 'consultant';
-    
+    // Role-Adaptive Sections (using isEntity and isIndividual already declared above at lines 147-148)
     if (isEntity && !isServiceProvider) {
       html += renderEntityDashboard(data, basePath);
     } else if (isIndividual) {
