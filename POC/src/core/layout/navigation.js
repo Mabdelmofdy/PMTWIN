@@ -12,10 +12,18 @@
   let sidebarMinimized = false;
 
   // ============================================
-  // Get Base Path Helper
+  // Get Base Path Helper (kept for backward compatibility)
   // ============================================
   function getBasePath() {
-    // For local development: count all path segments to determine depth
+    // Check if we're on Live Server (port 5503) - use full paths to avoid 404 errors
+    const isLiveServer = window.location.port === '5503' || (window.location.hostname === '127.0.0.1' && window.location.port === '5503');
+    
+    if (isLiveServer) {
+      // For Live Server, return empty string and routes will be converted to full paths
+      return '';
+    }
+    
+    // For other servers: count all path segments to determine depth
     const currentPath = window.location.pathname;
     // Remove leading/trailing slashes and split, filter out empty strings and HTML files
     const segments = currentPath.split('/').filter(p => p && !p.endsWith('.html'));
@@ -25,6 +33,49 @@
     
     // Generate the appropriate number of ../ to reach POC root
     return depth > 0 ? '../'.repeat(depth) : '';
+  }
+
+  // ============================================
+  // Helper to convert route to full path
+  // Uses centralized NavRoutes when available
+  // ============================================
+  function getRoute(routePath) {
+    // If NavRoutes is available, use it
+    if (typeof window.NavRoutes !== 'undefined') {
+      // Check if routePath is a route key (e.g., 'dashboard', 'admin-reports')
+      if (window.NavRoutes.NAV_ROUTES[routePath]) {
+        const route = window.NavRoutes.getRoute(routePath, { useLiveServer: true });
+        return route;
+      }
+      
+      // Otherwise, normalize the URL
+      return window.NavRoutes.toHtmlUrl(routePath);
+    }
+    
+    // Fallback to old behavior if NavRoutes not loaded
+    const isLiveServer = window.location.port === '5503' || (window.location.hostname === '127.0.0.1' && window.location.port === '5503');
+    
+    if (isLiveServer && routePath && routePath !== '#' && !routePath.startsWith('http')) {
+      // Handle query strings (e.g., "collaboration/?category=1")
+      const [pathPart, queryPart] = routePath.split('?');
+      
+      // Convert relative paths like "dashboard/" or "../dashboard/" to full paths
+      let cleanPath = pathPart.replace(/^\.\.\//g, '').replace(/\/$/, '');
+      
+      // Handle special cases
+      if (cleanPath.endsWith('.html')) {
+        // Already a file path
+        return `http://127.0.0.1:5503/POC/pages/${cleanPath}${queryPart ? '?' + queryPart : ''}`;
+      } else if (cleanPath.includes('/')) {
+        // Nested path like "collaboration/my-collaborations/"
+        return `http://127.0.0.1:5503/POC/pages/${cleanPath}/index.html${queryPart ? '?' + queryPart : ''}`;
+      } else {
+        // Simple path like "dashboard/"
+        return `http://127.0.0.1:5503/POC/pages/${cleanPath}/index.html${queryPart ? '?' + queryPart : ''}`;
+      }
+    }
+    
+    return routePath;
   }
 
   // ============================================
@@ -73,105 +124,113 @@
     
     const basePath = getBasePath();
     const role = currentUser.role;
+    
+    // Helper to get route - use NAV_ROUTES if available, otherwise use getRoute()
+    function getRouteForMenu(routeKey, fallbackPath) {
+      if (typeof window.NavRoutes !== 'undefined' && window.NavRoutes.NAV_ROUTES[routeKey]) {
+        return window.NavRoutes.getRoute(routeKey, { useLiveServer: true });
+      }
+      return getRoute(`${basePath}${fallbackPath}`);
+    }
 
     const allItems = [
-      { id: 'dashboard', label: 'Dashboard', route: `${basePath}dashboard/`, icon: '<i class="ph ph-gauge"></i>', roles: ['admin', 'entity', 'individual'] },
-      { id: 'projects', label: 'My Projects', route: `${basePath}projects/`, icon: '<i class="ph ph-buildings"></i>', roles: ['admin', 'entity', 'individual'] },
-      { id: 'create-project', label: 'Create Project', route: `${basePath}projects/create/`, icon: '<i class="ph ph-plus-circle"></i>', roles: ['admin', 'entity'] },
-      { id: 'proposals', label: 'Proposals', route: `${basePath}proposals/`, icon: '<i class="ph ph-file-text"></i>', roles: ['admin', 'entity', 'individual'] },
-      { id: 'matches', label: 'Matches', route: `${basePath}matches/`, icon: '<i class="ph ph-link"></i>', roles: ['admin', 'entity', 'individual'] },
-      { id: 'opportunities', label: 'Opportunities', route: `${basePath}opportunities/`, icon: '<i class="ph ph-sparkle"></i>', roles: ['admin', 'entity', 'individual'] },
-      { id: 'pipeline', label: 'Pipeline', route: `${basePath}pipeline/`, icon: '<i class="ph ph-trend-up"></i>', roles: ['admin', 'entity', 'individual'] },
+      { id: 'dashboard', label: 'Dashboard', route: getRouteForMenu('dashboard', 'dashboard/'), icon: '<i class="ph ph-gauge"></i>', roles: ['admin', 'entity', 'individual'] },
+      { id: 'projects', label: 'My Projects', route: getRouteForMenu('projects', 'projects/'), icon: '<i class="ph ph-buildings"></i>', roles: ['admin', 'entity', 'individual'] },
+      { id: 'create-project', label: 'Create Project', route: getRouteForMenu('create-project', 'projects/create/'), icon: '<i class="ph ph-plus-circle"></i>', roles: ['admin', 'entity'] },
+      { id: 'proposals', label: 'Proposals', route: getRouteForMenu('proposals', 'proposals/'), icon: '<i class="ph ph-file-text"></i>', roles: ['admin', 'entity', 'individual'] },
+      { id: 'matches', label: 'Matches', route: getRouteForMenu('matches', 'matches/'), icon: '<i class="ph ph-link"></i>', roles: ['admin', 'entity', 'individual'] },
+      { id: 'opportunities', label: 'Opportunities', route: getRouteForMenu('opportunities', 'opportunities/'), icon: '<i class="ph ph-sparkle"></i>', roles: ['admin', 'entity', 'individual'] },
+      { id: 'pipeline', label: 'Pipeline', route: getRouteForMenu('pipeline', 'pipeline/'), icon: '<i class="ph ph-trend-up"></i>', roles: ['admin', 'entity', 'individual'] },
       { 
         id: 'collaboration', 
         label: 'Collaboration', 
-        route: `${basePath}collaboration/`, 
+        route: getRouteForMenu('collaboration', 'collaboration/'), 
         icon: '<i class="ph ph-handshake"></i>', 
         roles: ['admin', 'entity', 'individual'],
         hasChildren: true,
         isGroup: true,
         children: [
           // Main Features
-          { id: 'collab-my-collaborations', label: 'My Collaborations', route: `${basePath}collaboration/my-collaborations/`, icon: '<i class="ph ph-folder"></i>', roles: ['admin', 'entity', 'individual'] },
-          { id: 'collab-opportunities', label: 'Browse Opportunities', route: `${basePath}collaboration/opportunities/`, icon: '<i class="ph ph-sparkle"></i>', roles: ['admin', 'entity', 'individual'] },
-          { id: 'collab-applications', label: 'My Applications', route: `${basePath}collaboration/applications/`, icon: '<i class="ph ph-file-text"></i>', roles: ['admin', 'entity', 'individual'] },
+          { id: 'collab-my-collaborations', label: 'My Collaborations', route: getRouteForMenu('collab-my-collaborations', 'collaboration/my-collaborations/'), icon: '<i class="ph ph-folder"></i>', roles: ['admin', 'entity', 'individual'] },
+          { id: 'collab-opportunities', label: 'Browse Opportunities', route: getRouteForMenu('collab-opportunities', 'collaboration/opportunities/'), icon: '<i class="ph ph-sparkle"></i>', roles: ['admin', 'entity', 'individual'] },
+          { id: 'collab-applications', label: 'My Applications', route: getRouteForMenu('collab-applications', 'collaboration/applications/'), icon: '<i class="ph ph-file-text"></i>', roles: ['admin', 'entity', 'individual'] },
           { id: 'collab-separator', label: '---', route: '#', icon: '', isSeparator: true, roles: ['admin', 'entity', 'individual'] },
           // Simplified Model Categories with Sub-Features
           { 
             id: 'collab-project-based', 
             label: 'Project-Based', 
-            route: `${basePath}collaboration/?category=1`, 
+            route: typeof window.NavRoutes !== 'undefined' ? window.NavRoutes.getRouteWithQuery('collaboration', { category: 1 }) : getRoute(`${basePath}collaboration/?category=1`), 
             icon: '<i class="ph ph-buildings"></i>', 
             roles: ['admin', 'entity', 'individual'],
             hasChildren: true,
             isGroup: true,
             children: [
-              { id: 'collab-task-based', label: 'Task-Based Engagement', route: `${basePath}collaboration/task-based/`, icon: '<i class="ph ph-file-text"></i>', roles: ['admin', 'entity', 'individual'] },
-              { id: 'collab-consortium', label: 'Consortium', route: `${basePath}collaboration/consortium/`, icon: '<i class="ph ph-users-three"></i>', roles: ['admin', 'entity', 'individual'] },
-              { id: 'collab-jv', label: 'Project-Specific JV', route: `${basePath}collaboration/joint-venture/`, icon: '<i class="ph ph-handshake"></i>', roles: ['admin', 'entity', 'individual'] },
-              { id: 'collab-spv', label: 'Special Purpose Vehicle', route: `${basePath}collaboration/spv/`, icon: '<i class="ph ph-building-office"></i>', roles: ['admin', 'entity', 'individual'] }
+              { id: 'collab-task-based', label: 'Task-Based Engagement', route: getRouteForMenu('collab-task-based', 'collaboration/task-based/'), icon: '<i class="ph ph-file-text"></i>', roles: ['admin', 'entity', 'individual'] },
+              { id: 'collab-consortium', label: 'Consortium', route: getRouteForMenu('collab-consortium', 'collaboration/consortium/'), icon: '<i class="ph ph-users-three"></i>', roles: ['admin', 'entity', 'individual'] },
+              { id: 'collab-jv', label: 'Project-Specific JV', route: getRouteForMenu('collab-jv', 'collaboration/joint-venture/'), icon: '<i class="ph ph-handshake"></i>', roles: ['admin', 'entity', 'individual'] },
+              { id: 'collab-spv', label: 'Special Purpose Vehicle', route: getRouteForMenu('collab-spv', 'collaboration/spv/'), icon: '<i class="ph ph-building-office"></i>', roles: ['admin', 'entity', 'individual'] }
             ]
           },
           { 
             id: 'collab-strategic', 
             label: 'Strategic Partnerships', 
-            route: `${basePath}collaboration/?category=2`, 
+            route: typeof window.NavRoutes !== 'undefined' ? window.NavRoutes.getRouteWithQuery('collaboration', { category: 2 }) : getRoute(`${basePath}collaboration/?category=2`), 
             icon: '<i class="ph ph-handshake"></i>', 
             roles: ['admin', 'entity', 'individual'],
             hasChildren: true,
             isGroup: true,
             children: [
-              { id: 'collab-strategic-jv', label: 'Strategic Joint Venture', route: `${basePath}collaboration/strategic-jv/`, icon: '<i class="ph ph-handshake"></i>', roles: ['admin', 'entity', 'individual'] },
-              { id: 'collab-strategic-alliance', label: 'Strategic Alliance', route: `${basePath}collaboration/strategic-alliance/`, icon: '<i class="ph ph-link"></i>', roles: ['admin', 'entity', 'individual'] },
-              { id: 'collab-mentorship', label: 'Mentorship Program', route: `${basePath}collaboration/mentorship/`, icon: '<i class="ph ph-graduation-cap"></i>', roles: ['admin', 'entity', 'individual'] }
+              { id: 'collab-strategic-jv', label: 'Strategic Joint Venture', route: getRouteForMenu('collab-strategic-jv', 'collaboration/strategic-jv/'), icon: '<i class="ph ph-handshake"></i>', roles: ['admin', 'entity', 'individual'] },
+              { id: 'collab-strategic-alliance', label: 'Strategic Alliance', route: getRouteForMenu('collab-strategic-alliance', 'collaboration/strategic-alliance/'), icon: '<i class="ph ph-link"></i>', roles: ['admin', 'entity', 'individual'] },
+              { id: 'collab-mentorship', label: 'Mentorship Program', route: getRouteForMenu('collab-mentorship', 'collaboration/mentorship/'), icon: '<i class="ph ph-graduation-cap"></i>', roles: ['admin', 'entity', 'individual'] }
             ]
           },
           { 
             id: 'collab-resources', 
             label: 'Resource Pooling', 
-            route: `${basePath}collaboration/?category=3`, 
+            route: typeof window.NavRoutes !== 'undefined' ? window.NavRoutes.getRouteWithQuery('collaboration', { category: 3 }) : getRoute(`${basePath}collaboration/?category=3`), 
             icon: '<i class="ph ph-package"></i>', 
             roles: ['admin', 'entity', 'individual'],
             hasChildren: true,
             isGroup: true,
             children: [
-              { id: 'collab-bulk-purchasing', label: 'Bulk Purchasing', route: `${basePath}collaboration/bulk-purchasing/`, icon: '<i class="ph ph-shopping-cart"></i>', roles: ['admin', 'entity', 'individual'] },
-              { id: 'collab-co-ownership', label: 'Co-Ownership Pooling', route: `${basePath}collaboration/co-ownership/`, icon: '<i class="ph ph-users"></i>', roles: ['admin', 'entity', 'individual'] },
-              { id: 'collab-resource-exchange', label: 'Resource Exchange', route: `${basePath}collaboration/resource-exchange/`, icon: '<i class="ph ph-arrows-clockwise"></i>', roles: ['admin', 'entity', 'individual'] }
+              { id: 'collab-bulk-purchasing', label: 'Bulk Purchasing', route: getRouteForMenu('collab-bulk-purchasing', 'collaboration/bulk-purchasing/'), icon: '<i class="ph ph-shopping-cart"></i>', roles: ['admin', 'entity', 'individual'] },
+              { id: 'collab-co-ownership', label: 'Co-Ownership Pooling', route: getRouteForMenu('collab-co-ownership', 'collaboration/co-ownership/'), icon: '<i class="ph ph-users"></i>', roles: ['admin', 'entity', 'individual'] },
+              { id: 'collab-resource-exchange', label: 'Resource Exchange', route: getRouteForMenu('collab-resource-exchange', 'collaboration/resource-exchange/'), icon: '<i class="ph ph-arrows-clockwise"></i>', roles: ['admin', 'entity', 'individual'] }
             ]
           },
           { 
             id: 'collab-hiring', 
             label: 'Hiring Resources', 
-            route: `${basePath}collaboration/?category=4`, 
+            route: typeof window.NavRoutes !== 'undefined' ? window.NavRoutes.getRouteWithQuery('collaboration', { category: 4 }) : getRoute(`${basePath}collaboration/?category=4`), 
             icon: '<i class="ph ph-briefcase"></i>', 
             roles: ['admin', 'entity', 'individual'],
             hasChildren: true,
             isGroup: true,
             children: [
-              { id: 'collab-professional-hiring', label: 'Professional Hiring', route: `${basePath}collaboration/professional-hiring/`, icon: '<i class="ph ph-user"></i>', roles: ['admin', 'entity', 'individual'] },
-              { id: 'collab-consultant-hiring', label: 'Consultant Hiring', route: `${basePath}collaboration/consultant-hiring/`, icon: '<i class="ph ph-user-circle"></i>', roles: ['admin', 'entity', 'individual'] }
+              { id: 'collab-professional-hiring', label: 'Professional Hiring', route: getRouteForMenu('collab-professional-hiring', 'collaboration/professional-hiring/'), icon: '<i class="ph ph-user"></i>', roles: ['admin', 'entity', 'individual'] },
+              { id: 'collab-consultant-hiring', label: 'Consultant Hiring', route: getRouteForMenu('collab-consultant-hiring', 'collaboration/consultant-hiring/'), icon: '<i class="ph ph-user-circle"></i>', roles: ['admin', 'entity', 'individual'] }
             ]
           },
           { 
             id: 'collab-competition', 
             label: 'Call for Competition', 
-            route: `${basePath}collaboration/?category=5`, 
+            route: typeof window.NavRoutes !== 'undefined' ? window.NavRoutes.getRouteWithQuery('collaboration', { category: 5 }) : getRoute(`${basePath}collaboration/?category=5`), 
             icon: '<i class="ph ph-trophy"></i>', 
             roles: ['admin', 'entity', 'individual'] 
           }
         ]
       },
-      { id: 'notifications', label: 'Notifications', route: `${basePath}notifications/`, icon: '<i class="ph ph-bell"></i>', roles: ['admin', 'entity', 'individual', 'project_lead', 'supplier', 'service_provider', 'professional', 'consultant', 'mentor'] },
-      { id: 'admin', label: 'Admin Dashboard', route: `${basePath}admin/`, icon: '<i class="ph ph-gear"></i>', roles: ['admin'] },
-      { id: 'admin-vetting', label: 'User Vetting', route: `${basePath}admin-vetting/`, icon: '<i class="ph ph-check-circle"></i>', roles: ['admin'] },
-      { id: 'admin-users-management', label: 'User Management', route: `${basePath}admin/users-management/`, icon: '<i class="ph ph-users"></i>', roles: ['admin'] },
-      { id: 'admin-models-management', label: 'Models Management', route: `${basePath}admin/models-management/`, icon: '<i class="ph ph-handshake"></i>', roles: ['admin'] },
-      { id: 'admin-moderation', label: 'Moderation', route: `${basePath}admin-moderation/`, icon: '<i class="ph ph-shield-check"></i>', roles: ['admin'] },
-      { id: 'admin-analytics', label: 'Analytics', route: `${basePath}admin/analytics/`, icon: '<i class="ph ph-chart-line"></i>', roles: ['admin'] },
-      { id: 'admin-audit', label: 'Audit Trail', route: `${basePath}admin-audit/`, icon: '<i class="ph ph-clipboard"></i>', roles: ['admin'] },
-      { id: 'admin-reports', label: 'Reports', route: `${basePath}admin-reports/`, icon: '<i class="ph ph-chart-bar"></i>', roles: ['admin'] },
-      { id: 'admin-settings', label: 'Settings', route: `${basePath}admin/settings/`, icon: '<i class="ph ph-gear"></i>', roles: ['admin'] }
+      { id: 'notifications', label: 'Notifications', route: getRouteForMenu('notifications', 'notifications/'), icon: '<i class="ph ph-bell"></i>', roles: ['admin', 'entity', 'individual', 'project_lead', 'supplier', 'service_provider', 'professional', 'consultant', 'mentor'] },
+      { id: 'admin', label: 'Admin Dashboard', route: getRouteForMenu('admin', 'admin/'), icon: '<i class="ph ph-gear"></i>', roles: ['admin'] },
+      { id: 'admin-vetting', label: 'User Vetting', route: getRouteForMenu('admin-vetting', 'admin-vetting/'), icon: '<i class="ph ph-check-circle"></i>', roles: ['admin'] },
+      { id: 'admin-users-management', label: 'User Management', route: getRouteForMenu('admin-users-management', 'admin/users-management/'), icon: '<i class="ph ph-users"></i>', roles: ['admin'] },
+      { id: 'admin-models-management', label: 'Models Management', route: getRouteForMenu('admin-models-management', 'admin/models-management/'), icon: '<i class="ph ph-handshake"></i>', roles: ['admin'] },
+      { id: 'admin-moderation', label: 'Moderation', route: getRouteForMenu('admin-moderation', 'admin-moderation/'), icon: '<i class="ph ph-shield-check"></i>', roles: ['admin'] },
+      { id: 'admin-analytics', label: 'Analytics', route: getRouteForMenu('admin-analytics', 'admin/analytics/'), icon: '<i class="ph ph-chart-line"></i>', roles: ['admin'] },
+      { id: 'admin-audit', label: 'Audit Trail', route: getRouteForMenu('admin-audit', 'admin-audit/'), icon: '<i class="ph ph-clipboard"></i>', roles: ['admin'] },
+      { id: 'admin-reports', label: 'Reports', route: getRouteForMenu('admin-reports', 'admin-reports/'), icon: '<i class="ph ph-chart-bar"></i>', roles: ['admin'] },
+      { id: 'admin-settings', label: 'Settings', route: getRouteForMenu('admin-settings', 'admin/settings/'), icon: '<i class="ph ph-gear"></i>', roles: ['admin'] }
     ];
 
     return allItems.filter(item => item.roles.includes(role));
@@ -204,7 +263,7 @@
     let html = `
       <div class="container">
         <div class="navbar-content">
-          <a href="${basePath}dashboard/" class="navbar-brand">PMTwin</a>
+          <a href="${getRoute(`${basePath}dashboard/`)}" class="navbar-brand">PMTwin</a>
           <button class="navbar-toggle" id="navbarToggle" aria-label="Toggle navigation">☰</button>
           <ul class="navbar-nav" id="navbarNav">
     `;
@@ -229,7 +288,7 @@
     const isServiceProvidersActive = currentPath.includes('service-providers');
     html += `
       <li>
-        <a href="${basePath}service-providers/" class="navbar-link ${isServiceProvidersActive ? 'active' : ''}" onclick="Navigation.handleNavClick(event, '${basePath}service-providers/');">
+        <a href="${getRoute(`${basePath}service-providers/`)}" class="navbar-link ${isServiceProvidersActive ? 'active' : ''}" onclick="Navigation.handleNavClick(event, '${getRoute(`${basePath}service-providers/`)}');">
           <i class="ph ph-buildings"></i> Service Providers Directory
         </a>
       </li>
@@ -280,40 +339,40 @@
                 <div id="quickActionsDropdown" style="display: none; position: absolute; top: 100%; right: 0; margin-top: 0.5rem; background: var(--bg-primary); border: 1px solid var(--border-color); border-radius: 12px; box-shadow: 0 8px 24px rgba(0,0,0,0.15); min-width: 240px; z-index: 1000; overflow: hidden;">
                   <div style="padding: 1rem; border-bottom: 1px solid var(--border-color); font-weight: 600; font-size: 0.95rem; background: var(--bg-secondary);">Quick Actions</div>
                   <div style="padding: 0.5rem 0;">
-                    <a href="${basePath}projects/create/" class="navbar-link" style="display: flex; align-items: center; gap: 0.75rem; padding: 0.875rem 1rem; transition: background 0.2s;" 
+                    <a href="${getRoute(`${basePath}projects/create/`)}" class="navbar-link" style="display: flex; align-items: center; gap: 0.75rem; padding: 0.875rem 1rem; transition: background 0.2s;" 
                        onmouseover="this.style.background='var(--bg-secondary)'" 
                        onmouseout="this.style.background='transparent'"
-                       onclick="Navigation.handleNavClick(event, '${basePath}projects/create/');">
+                       onclick="Navigation.handleNavClick(event, '${getRoute(`${basePath}projects/create/`)}');">
                       <i class="ph ph-plus-circle" style="font-size: 1.25rem; color: var(--color-primary);"></i> 
                       <div style="flex: 1;">
                         <div style="font-weight: 500; font-size: 0.875rem;">Create Project</div>
                         <div style="font-size: 0.75rem; color: var(--text-secondary);">Start a new project</div>
                       </div>
                     </a>
-                    <a href="${basePath}proposals/create/" class="navbar-link" style="display: flex; align-items: center; gap: 0.75rem; padding: 0.875rem 1rem; transition: background 0.2s;" 
+                    <a href="${getRoute(`${basePath}proposals/create/`)}" class="navbar-link" style="display: flex; align-items: center; gap: 0.75rem; padding: 0.875rem 1rem; transition: background 0.2s;" 
                        onmouseover="this.style.background='var(--bg-secondary)'" 
                        onmouseout="this.style.background='transparent'"
-                       onclick="Navigation.handleNavClick(event, '${basePath}proposals/create/');">
+                       onclick="Navigation.handleNavClick(event, '${getRoute(`${basePath}proposals/create/`)}');">
                       <i class="ph ph-file-text" style="font-size: 1.25rem; color: var(--color-primary);"></i> 
                       <div style="flex: 1;">
                         <div style="font-weight: 500; font-size: 0.875rem;">Create Proposal</div>
                         <div style="font-size: 0.75rem; color: var(--text-secondary);">Submit a proposal</div>
                       </div>
                     </a>
-                    <a href="${basePath}collaboration/" class="navbar-link" style="display: flex; align-items: center; gap: 0.75rem; padding: 0.875rem 1rem; transition: background 0.2s;" 
+                    <a href="${getRoute(`${basePath}collaboration/`)}" class="navbar-link" style="display: flex; align-items: center; gap: 0.75rem; padding: 0.875rem 1rem; transition: background 0.2s;" 
                        onmouseover="this.style.background='var(--bg-secondary)'" 
                        onmouseout="this.style.background='transparent'"
-                       onclick="Navigation.handleNavClick(event, '${basePath}collaboration/');">
+                       onclick="Navigation.handleNavClick(event, '${getRoute(`${basePath}collaboration/`)}');">
                       <i class="ph ph-handshake" style="font-size: 1.25rem; color: var(--color-primary);"></i> 
                       <div style="flex: 1;">
                         <div style="font-weight: 500; font-size: 0.875rem;">New Collaboration</div>
                         <div style="font-size: 0.75rem; color: var(--text-secondary);">Start collaborating</div>
                       </div>
                     </a>
-                    <a href="${basePath}wizard/" class="navbar-link" style="display: flex; align-items: center; gap: 0.75rem; padding: 0.875rem 1rem; transition: background 0.2s;" 
+                    <a href="${getRoute(`${basePath}wizard/`)}" class="navbar-link" style="display: flex; align-items: center; gap: 0.75rem; padding: 0.875rem 1rem; transition: background 0.2s;" 
                        onmouseover="this.style.background='var(--bg-secondary)'" 
                        onmouseout="this.style.background='transparent'"
-                       onclick="Navigation.handleNavClick(event, '${basePath}wizard/');">
+                       onclick="Navigation.handleNavClick(event, '${getRoute(`${basePath}wizard/`)}');">
                       <i class="ph ph-magic-wand" style="font-size: 1.25rem; color: var(--color-primary);"></i> 
                       <div style="flex: 1;">
                         <div style="font-weight: 500; font-size: 0.875rem;">AI Wizard</div>
@@ -351,7 +410,7 @@
                     ${renderNotificationsDropdown(unreadNotifications.slice(0, 5))}
                   </div>
                   <div style="padding: 0.75rem 1rem; border-top: 1px solid var(--border-color); text-align: center; background: var(--bg-secondary);">
-                    <a href="${basePath}notifications/" class="navbar-link" style="color: var(--color-primary); font-weight: 500; font-size: 0.875rem;" onclick="Navigation.handleNavClick(event, '${basePath}notifications/');">
+                    <a href="${getRoute(`${basePath}notifications/`)}" class="navbar-link" style="color: var(--color-primary); font-weight: 500; font-size: 0.875rem;" onclick="Navigation.handleNavClick(event, '${getRoute(`${basePath}notifications/`)}');">
                       View All Notifications
                     </a>
                   </div>
@@ -401,37 +460,37 @@
                     </div>
                   </div>
                   <div style="padding: 0.5rem 0;">
-                    <a href="${basePath}profile/" class="navbar-link" style="display: flex; align-items: center; gap: 0.75rem; padding: 0.75rem 1rem; transition: background 0.2s;" 
+                    <a href="${getRoute(`${basePath}profile/`)}" class="navbar-link" style="display: flex; align-items: center; gap: 0.75rem; padding: 0.75rem 1rem; transition: background 0.2s;" 
                        onmouseover="this.style.background='var(--bg-secondary)'" 
                        onmouseout="this.style.background='transparent'"
-                       onclick="Navigation.handleNavClick(event, '${basePath}profile/');">
+                       onclick="Navigation.handleNavClick(event, '${getRoute(`${basePath}profile/`)}');">
                       <i class="ph ph-user" style="font-size: 1.125rem;"></i> <span>My Profile</span>
                     </a>
-                    <a href="${basePath}settings/" class="navbar-link" style="display: flex; align-items: center; gap: 0.75rem; padding: 0.75rem 1rem; transition: background 0.2s;" 
+                    <a href="${getRoute(`${basePath}settings/`)}" class="navbar-link" style="display: flex; align-items: center; gap: 0.75rem; padding: 0.75rem 1rem; transition: background 0.2s;" 
                        onmouseover="this.style.background='var(--bg-secondary)'" 
                        onmouseout="this.style.background='transparent'"
-                       onclick="Navigation.handleNavClick(event, '${basePath}settings/');">
+                       onclick="Navigation.handleNavClick(event, '${getRoute(`${basePath}settings/`)}');">
                       <i class="ph ph-gear" style="font-size: 1.125rem;"></i> <span>Settings</span>
                     </a>
-                    <a href="${basePath}notifications/" class="navbar-link" style="display: flex; align-items: center; gap: 0.75rem; padding: 0.75rem 1rem; transition: background 0.2s;" 
+                    <a href="${getRoute(`${basePath}notifications/`)}" class="navbar-link" style="display: flex; align-items: center; gap: 0.75rem; padding: 0.75rem 1rem; transition: background 0.2s;" 
                        onmouseover="this.style.background='var(--bg-secondary)'" 
                        onmouseout="this.style.background='transparent'"
-                       onclick="Navigation.handleNavClick(event, '${basePath}notifications/');">
+                       onclick="Navigation.handleNavClick(event, '${getRoute(`${basePath}notifications/`)}');">
                       <i class="ph ph-bell" style="font-size: 1.125rem;"></i> <span>Notifications</span>
                       ${unreadCount > 0 ? `<span style="margin-left: auto; background: var(--color-primary); color: white; padding: 0.125rem 0.5rem; border-radius: 12px; font-size: 0.75rem; font-weight: 600;">${unreadCount > 99 ? '99+' : unreadCount}</span>` : ''}
                     </a>
                     ${currentUser.role === 'admin' || currentUser.role === 'platform_admin' ? `
-                    <a href="${basePath}admin/" class="navbar-link" style="display: flex; align-items: center; gap: 0.75rem; padding: 0.75rem 1rem; transition: background 0.2s; border-top: 1px solid var(--border-color); margin-top: 0.25rem; padding-top: 0.875rem;" 
+                    <a href="${getRoute(`${basePath}admin/`)}" class="navbar-link" style="display: flex; align-items: center; gap: 0.75rem; padding: 0.75rem 1rem; transition: background 0.2s; border-top: 1px solid var(--border-color); margin-top: 0.25rem; padding-top: 0.875rem;" 
                        onmouseover="this.style.background='var(--bg-secondary)'" 
                        onmouseout="this.style.background='transparent'"
-                       onclick="Navigation.handleNavClick(event, '${basePath}admin/');">
+                       onclick="Navigation.handleNavClick(event, '${getRoute(`${basePath}admin/`)}');">
                       <i class="ph ph-shield-check" style="font-size: 1.125rem; color: var(--color-primary);"></i> <span style="font-weight: 500;">Admin Portal</span>
                     </a>
                     ` : ''}
-                    <a href="${basePath}knowledge/" class="navbar-link" style="display: flex; align-items: center; gap: 0.75rem; padding: 0.75rem 1rem; transition: background 0.2s;" 
+                    <a href="${getRoute(`${basePath}knowledge/`)}" class="navbar-link" style="display: flex; align-items: center; gap: 0.75rem; padding: 0.75rem 1rem; transition: background 0.2s;" 
                        onmouseover="this.style.background='var(--bg-secondary)'" 
                        onmouseout="this.style.background='transparent'"
-                       onclick="Navigation.handleNavClick(event, '${basePath}knowledge/');">
+                       onclick="Navigation.handleNavClick(event, '${getRoute(`${basePath}knowledge/`)}');">
                       <i class="ph ph-question" style="font-size: 1.125rem;"></i> <span>Help & Support</span>
                     </a>
                     <hr style="margin: 0.5rem 0; border: none; border-top: 1px solid var(--border-color);">
@@ -463,19 +522,28 @@
 
   function renderPublicNavbar(container) {
     const basePath = getBasePath();
+    
+    // Helper to get route
+    function getRouteForNav(routeKey, fallbackPath) {
+      if (typeof window.NavRoutes !== 'undefined' && window.NavRoutes.NAV_ROUTES[routeKey]) {
+        return window.NavRoutes.getRoute(routeKey, { useLiveServer: true });
+      }
+      return getRoute(`${basePath}${fallbackPath}`);
+    }
+    
     container.innerHTML = `
       <div class="container">
         <div class="navbar-content">
-          <a href="${basePath}home/" class="navbar-brand">PMTwin</a>
+          <a href="${getRouteForNav('home', 'home/')}" class="navbar-brand">PMTwin</a>
           <button class="navbar-toggle" id="navbarToggle" aria-label="Toggle navigation">☰</button>
           <ul class="navbar-nav" id="navbarNav">
-            <li><a href="${basePath}home/" class="navbar-link">Home</a></li>
-            <li><a href="${basePath}discovery/" class="navbar-link">Discover Projects</a></li>
-            <li><a href="${basePath}wizard/" class="navbar-link">PMTwin Wizard</a></li>
-            <li><a href="${basePath}knowledge/" class="navbar-link">Knowledge Hub</a></li>
-            <li><a href="${basePath}service-providers/" class="navbar-link">Service Providers Directory</a></li>
-            <li><a href="${basePath}signup/" class="navbar-link">Sign Up</a></li>
-            <li><a href="${basePath}login/" class="navbar-link">Login</a></li>
+            <li><a href="${getRouteForNav('home', 'home/')}" class="navbar-link">Home</a></li>
+            <li><a href="${getRouteForNav('discovery', 'discovery/')}" class="navbar-link">Discover Projects</a></li>
+            <li><a href="${getRouteForNav('wizard', 'wizard/')}" class="navbar-link">PMTwin Wizard</a></li>
+            <li><a href="${getRouteForNav('knowledge', 'knowledge/')}" class="navbar-link">Knowledge Hub</a></li>
+            <li><a href="${getRouteForNav('service-providers', 'service-providers/')}" class="navbar-link">Service Providers Directory</a></li>
+            <li><a href="${getRouteForNav('signup', 'signup/')}" class="navbar-link">Sign Up</a></li>
+            <li><a href="${getRouteForNav('login', 'login/')}" class="navbar-link">Login</a></li>
           </ul>
         </div>
       </div>
@@ -596,9 +664,37 @@
     const toggle = document.getElementById('navbarToggle');
     const nav = document.getElementById('navbarNav');
     if (toggle && nav) {
-      toggle.onclick = () => {
+      toggle.onclick = (e) => {
+        e.stopPropagation();
         nav.classList.toggle('show');
+        // Update aria-expanded for accessibility
+        const isOpen = nav.classList.contains('show');
+        toggle.setAttribute('aria-expanded', isOpen);
+        toggle.setAttribute('aria-label', isOpen ? 'Close navigation menu' : 'Open navigation menu');
       };
+      
+      // Close menu when clicking outside
+      document.addEventListener('click', (e) => {
+        if (!nav.contains(e.target) && !toggle.contains(e.target)) {
+          nav.classList.remove('show');
+          toggle.setAttribute('aria-expanded', 'false');
+          toggle.setAttribute('aria-label', 'Open navigation menu');
+        }
+      });
+      
+      // Close menu when clicking a link (mobile navigation)
+      const navLinks = nav.querySelectorAll('.navbar-link');
+      navLinks.forEach(link => {
+        link.addEventListener('click', () => {
+          nav.classList.remove('show');
+          toggle.setAttribute('aria-expanded', 'false');
+          toggle.setAttribute('aria-label', 'Open navigation menu');
+        });
+      });
+      
+      // Initialize aria attributes
+      toggle.setAttribute('aria-expanded', 'false');
+      toggle.setAttribute('aria-controls', 'navbarNav');
     }
   }
 
@@ -769,7 +865,7 @@
   function handleSearchSubmit(query) {
     // Navigate to search results page or perform search
     const basePath = getBasePath();
-    window.location.href = `${basePath}discovery/?search=${encodeURIComponent(query)}`;
+    window.location.href = `${getRoute(`${basePath}discovery/`)}?search=${encodeURIComponent(query)}`;
   }
 
   function setupNavLinks() {
@@ -794,9 +890,14 @@
     // Close all dropdowns
     closeAllDropdowns();
     
-    // Navigate to URL
+    // Navigate to URL - normalize it first
     if (url) {
-      window.location.href = url;
+      // Normalize URL to ensure it ends with .html
+      let normalizedUrl = url;
+      if (typeof window.NavRoutes !== 'undefined' && window.NavRoutes.toHtmlUrl) {
+        normalizedUrl = window.NavRoutes.toHtmlUrl(url);
+      }
+      window.location.href = normalizedUrl;
     }
   }
 
@@ -1007,14 +1108,14 @@
 
     let html = `
       <div class="sidebar-header">
-        <a href="${basePath}dashboard/" class="sidebar-brand" title="Go to Dashboard">
+        <a href="${getRoute(`${basePath}dashboard/`)}" class="sidebar-brand" title="Go to Dashboard">
           <div class="sidebar-logo" style="width: 40px; height: 40px; background: var(--primary-color, #2563eb); border-radius: 8px; display: flex; align-items: center; justify-content: center; color: white; font-size: 1.25rem;">
             <i class="ph ph-file-text"></i>
           </div>
           <span class="sidebar-brand-name" style="font-weight: var(--font-weight-bold, 700); font-size: 1.125rem;">PMTwin</span>
         </a>
         <div class="sidebar-header-actions" style="display: flex; gap: 0.5rem; align-items: center;">
-          <a href="${basePath}notifications/" class="sidebar-notification-btn" title="Notifications" style="position: relative; width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; background: var(--bg-secondary, #f3f4f6); border-radius: 8px; border: none; cursor: pointer; text-decoration: none; color: var(--text-primary);">
+          <a href="${getRoute(`${basePath}notifications/`)}" class="sidebar-notification-btn" title="Notifications" style="position: relative; width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; background: var(--bg-secondary, #f3f4f6); border-radius: 8px; border: none; cursor: pointer; text-decoration: none; color: var(--text-primary);">
             <i class="ph ph-bell"></i>
             ${getNotificationBadge()}
           </a>
@@ -1272,14 +1373,14 @@
           <i class="ph ph-caret-down" style="color: var(--text-secondary); font-size: 0.875rem;"></i>
         </div>
         <div id="sidebarUserMenu" style="display: none; margin-bottom: 0.75rem; background: var(--bg-primary, white); border: 1px solid var(--border-color, #e5e7eb); border-radius: 8px; overflow: hidden;">
-          <a href="${basePath}profile/" class="sidebar-link" style="display: flex; align-items: center; gap: 0.75rem; padding: 0.75rem; border-bottom: 1px solid var(--border-color, #e5e7eb);" onclick="Navigation.handleNavClick(event, '${basePath}profile/');">
+          <a href="${getRoute(`${basePath}profile/`)}" class="sidebar-link" style="display: flex; align-items: center; gap: 0.75rem; padding: 0.75rem; border-bottom: 1px solid var(--border-color, #e5e7eb);" onclick="Navigation.handleNavClick(event, '${getRoute(`${basePath}profile/`)}');">
             <i class="ph ph-user"></i> <span>Profile</span>
           </a>
-          <a href="${basePath}settings/" class="sidebar-link" style="display: flex; align-items: center; gap: 0.75rem; padding: 0.75rem; border-bottom: 1px solid var(--border-color, #e5e7eb);" onclick="Navigation.handleNavClick(event, '${basePath}settings/');">
+          <a href="${getRoute(`${basePath}settings/`)}" class="sidebar-link" style="display: flex; align-items: center; gap: 0.75rem; padding: 0.75rem; border-bottom: 1px solid var(--border-color, #e5e7eb);" onclick="Navigation.handleNavClick(event, '${getRoute(`${basePath}settings/`)}');">
             <i class="ph ph-gear"></i> <span>Settings</span>
           </a>
           ${currentUser.role === 'admin' || currentUser.role === 'platform_admin' ? `
-          <a href="${basePath}admin/" class="sidebar-link" style="display: flex; align-items: center; gap: 0.75rem; padding: 0.75rem;" onclick="Navigation.handleNavClick(event, '${basePath}admin/');">
+          <a href="${getRoute(`${basePath}admin/`)}" class="sidebar-link" style="display: flex; align-items: center; gap: 0.75rem; padding: 0.75rem;" onclick="Navigation.handleNavClick(event, '${getRoute(`${basePath}admin/`)}');">
             <i class="ph ph-shield-check"></i> <span>Admin Portal</span>
           </a>
           ` : ''}
@@ -1695,8 +1796,15 @@
     if (typeof PMTwinAuth !== 'undefined') {
       PMTwinAuth.logout();
     }
-    const basePath = getBasePath();
-    window.location.href = `${basePath}login/`;
+    // Use centralized route for login
+    let loginUrl = '/POC/pages/auth/login/index.html';
+    if (typeof window.NavRoutes !== 'undefined' && window.NavRoutes.NAV_ROUTES['login']) {
+      loginUrl = window.NavRoutes.getRoute('login', { useLiveServer: true });
+    } else {
+      const basePath = getBasePath();
+      loginUrl = getRoute(`${basePath}login/`);
+    }
+    window.location.href = loginUrl;
   }
 
   // ============================================

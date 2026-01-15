@@ -942,7 +942,19 @@
         const currentPath = window.location.pathname;
         const isIndividualPage = currentPath.includes('/collaboration/') && 
                                  currentPath.split('/').length > 3; // e.g., /collaboration/task-based/
-        const cancelUrl = isIndividualPage ? '../../collaboration/' : '#collaboration-models';
+        // Use NAV_ROUTES for cancel URL - always use full absolute path
+        let cancelUrl = '#collaboration-models';
+        if (isIndividualPage) {
+          if (typeof window.NavRoutes !== 'undefined' && window.NavRoutes.NAV_ROUTES['collaboration']) {
+            cancelUrl = window.NavRoutes.getRoute('collaboration', { useLiveServer: true });
+          } else {
+            cancelUrl = '/POC/pages/collaboration/index.html';
+            // Normalize if NavRoutes available
+            if (typeof window.NavRoutes !== 'undefined' && window.NavRoutes.toHtmlUrl) {
+              cancelUrl = window.NavRoutes.toHtmlUrl(cancelUrl);
+            }
+          }
+        }
         
         container.innerHTML = `
           <div class="card">

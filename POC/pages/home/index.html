@@ -217,6 +217,35 @@
     <!-- Initialize Component -->
     <script>
         document.addEventListener('DOMContentLoaded', function() {
+            // CRITICAL: Check if admin user is logged in and redirect to admin portal
+            setTimeout(() => {
+                try {
+                    if (typeof PMTwinAuth !== 'undefined' && PMTwinAuth.isAuthenticated()) {
+                        const currentUser = PMTwinData?.Sessions?.getCurrentUser();
+                        if (currentUser) {
+                            const userEmail = currentUser.email;
+                            const userRole = currentUser.role?.toLowerCase()?.trim();
+                            const adminRoles = ['admin', 'platform_admin', 'auditor'];
+                            const isAdmin = userEmail === 'admin@pmtwin.com' || (userRole && adminRoles.includes(userRole));
+                            
+                            if (isAdmin) {
+                                console.log('🚀 Admin user detected on home page, redirecting to admin portal');
+                                const currentPort = window.location.port || (window.location.protocol === 'https:' ? '443' : '80');
+                                const isLiveServer = currentPort === '5503' || window.location.host.includes(':5503');
+                                const adminPath = isLiveServer 
+                                    ? 'http://127.0.0.1:5503/POC/pages/admin/index.html'
+                                    : '../admin/';
+                                console.log('🔄 Redirecting admin to:', adminPath);
+                                window.location.replace(adminPath);
+                                return; // Stop execution
+                            }
+                        }
+                    }
+                } catch (e) {
+                    console.error('Error checking admin status:', e);
+                }
+            }, 500);
+            
             // Initialize landing page renderer
             if (typeof initLandingPage === 'function') {
                 initLandingPage();

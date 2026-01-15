@@ -1,0 +1,1632 @@
+{
+  "timestamp": "2026-01-15T08:09:39.757Z",
+  "stats": {
+    "filesChecked": 238,
+    "urlsFound": 1462,
+    "functionsFound": 10569,
+    "issuesFound": 50,
+    "warningsFound": 174
+  },
+  "issues": [
+    {
+      "type": "missing_file",
+      "url": "../../collaboration/view/?id=${app.opportunityId}",
+      "file": "D:\\Cursor\\New_PMTWIN\\POC\\pages\\collaboration\\applications\\index.html",
+      "line": 250,
+      "resolved": "D:\\Cursor\\New_PMTWIN\\POC\\pages\\collaboration\\view\\?id=${app.opportunityId}",
+      "context": "href=\"../../collaboration/view/?id=${app.opportunityId}\""
+    },
+    {
+      "type": "missing_file",
+      "url": "../../collaboration/view/?id=${opportunityId}",
+      "file": "D:\\Cursor\\New_PMTWIN\\POC\\pages\\collaboration\\edit\\index.html",
+      "line": 148,
+      "resolved": "D:\\Cursor\\New_PMTWIN\\POC\\pages\\collaboration\\view\\?id=${opportunityId}",
+      "context": "href=\"../../collaboration/view/?id=${opportunityId}\""
+    },
+    {
+      "type": "missing_file",
+      "url": "../../collaboration/view/?id=${opportunityId}",
+      "file": "D:\\Cursor\\New_PMTWIN\\POC\\pages\\collaboration\\edit\\index.html",
+      "line": 198,
+      "resolved": "D:\\Cursor\\New_PMTWIN\\POC\\pages\\collaboration\\view\\?id=${opportunityId}",
+      "context": "href=\"../../collaboration/view/?id=${opportunityId}\""
+    },
+    {
+      "type": "missing_file",
+      "url": "../../collaboration/view/?id=${opp.id}",
+      "file": "D:\\Cursor\\New_PMTWIN\\POC\\pages\\collaboration\\my-collaborations\\index.html",
+      "line": 267,
+      "resolved": "D:\\Cursor\\New_PMTWIN\\POC\\pages\\collaboration\\view\\?id=${opp.id}",
+      "context": "href=\"../../collaboration/view/?id=${opp.id}\""
+    },
+    {
+      "type": "missing_file",
+      "url": "../auth/signup/?type=individual",
+      "file": "D:\\Cursor\\New_PMTWIN\\POC\\pages\\home\\index.html",
+      "line": 151,
+      "resolved": "D:\\Cursor\\New_PMTWIN\\POC\\pages\\auth\\signup\\?type=individual",
+      "context": "href=\"../auth/signup/?type=individual\""
+    },
+    {
+      "type": "missing_file",
+      "url": "../auth/signup/?type=entity",
+      "file": "D:\\Cursor\\New_PMTWIN\\POC\\pages\\home\\index.html",
+      "line": 169,
+      "resolved": "D:\\Cursor\\New_PMTWIN\\POC\\pages\\auth\\signup\\?type=entity",
+      "context": "href=\"../auth/signup/?type=entity\""
+    },
+    {
+      "type": "missing_file",
+      "url": "../projects/",
+      "file": "D:\\Cursor\\New_PMTWIN\\POC\\pages\\projects\\create\\index.html",
+      "line": 242,
+      "resolved": "D:\\Cursor\\New_PMTWIN\\POC\\pages\\projects\\projects",
+      "context": "href=\"../projects/\""
+    },
+    {
+      "type": "missing_file",
+      "url": "../proposals/",
+      "file": "D:\\Cursor\\New_PMTWIN\\POC\\pages\\proposals\\create\\index.html",
+      "line": 96,
+      "resolved": "D:\\Cursor\\New_PMTWIN\\POC\\pages\\proposals\\proposals",
+      "context": "href=\"../proposals/\""
+    },
+    {
+      "type": "missing_file",
+      "url": "../proposals/create/",
+      "file": "D:\\Cursor\\New_PMTWIN\\POC\\pages\\proposals\\list\\index.html",
+      "line": 21,
+      "resolved": "D:\\Cursor\\New_PMTWIN\\POC\\pages\\proposals\\proposals\\create",
+      "context": "href=\"../proposals/create/\""
+    },
+    {
+      "type": "missing_file",
+      "url": "../admin-audit/",
+      "file": "D:\\Cursor\\New_PMTWIN\\POC\\features\\admin\\admin-dashboard.js",
+      "line": 128,
+      "resolved": "D:\\Cursor\\New_PMTWIN\\POC\\features\\admin-audit",
+      "context": "href=\"../admin-audit/\""
+    },
+    {
+      "type": "missing_file",
+      "url": "../admin-audit/",
+      "file": "D:\\Cursor\\New_PMTWIN\\POC\\features\\admin\\admin-dashboard.js",
+      "line": 166,
+      "resolved": "D:\\Cursor\\New_PMTWIN\\POC\\features\\admin-audit",
+      "context": "href=\"../admin-audit/\""
+    },
+    {
+      "type": "missing_file",
+      "url": "../admin-vetting/",
+      "file": "D:\\Cursor\\New_PMTWIN\\POC\\features\\admin\\admin-dashboard.js",
+      "line": 303,
+      "resolved": "D:\\Cursor\\New_PMTWIN\\POC\\features\\admin-vetting",
+      "context": "href=\"../admin-vetting/\""
+    },
+    {
+      "type": "missing_file",
+      "url": "../admin-moderation/",
+      "file": "D:\\Cursor\\New_PMTWIN\\POC\\features\\admin\\admin-dashboard.js",
+      "line": 327,
+      "resolved": "D:\\Cursor\\New_PMTWIN\\POC\\features\\admin-moderation",
+      "context": "href=\"../admin-moderation/\""
+    },
+    {
+      "type": "missing_file",
+      "url": "../../../service-providers/profile/",
+      "file": "D:\\Cursor\\New_PMTWIN\\POC\\features\\admin\\admin-service-providers.js",
+      "line": 113,
+      "resolved": "D:\\Cursor\\New_PMTWIN\\service-providers\\profile",
+      "context": ".href = '../../../service-providers/profile/'"
+    },
+    {
+      "type": "missing_file",
+      "url": "../../collaboration/",
+      "file": "D:\\Cursor\\New_PMTWIN\\POC\\features\\collaboration\\collaboration-workflows.js",
+      "line": 187,
+      "resolved": "D:\\Cursor\\New_PMTWIN\\POC\\collaboration",
+      "context": ".href = '../../collaboration/'"
+    },
+    {
+      "type": "missing_file",
+      "url": "../../collaboration/",
+      "file": "D:\\Cursor\\New_PMTWIN\\POC\\features\\collaboration\\collaboration-workflows.js",
+      "line": 338,
+      "resolved": "D:\\Cursor\\New_PMTWIN\\POC\\collaboration",
+      "context": ".href = '../../collaboration/'"
+    },
+    {
+      "type": "missing_file",
+      "url": "../css/main.css",
+      "file": "D:\\Cursor\\New_PMTWIN\\POC\\features\\icon-reference.html",
+      "line": 7,
+      "resolved": "D:\\Cursor\\New_PMTWIN\\POC\\css\\main.css",
+      "context": "href=\"../css/main.css\""
+    },
+    {
+      "type": "missing_file",
+      "url": "../proposals/create/?targetType=${targetType}&targetId=${targetId}",
+      "file": "D:\\Cursor\\New_PMTWIN\\POC\\features\\matching\\matches.js",
+      "line": 275,
+      "resolved": "D:\\Cursor\\New_PMTWIN\\POC\\features\\proposals\\create\\?targetType=${targetType}&targetId=${targetId}",
+      "context": "href=\"../proposals/create/?targetType=${targetType}&targetId=${targetId}\""
+    },
+    {
+      "type": "missing_file",
+      "url": "../proposals/create/?targetType=${targetType}&targetId=${targetId}",
+      "file": "D:\\Cursor\\New_PMTWIN\\POC\\features\\matching\\matches.js",
+      "line": 282,
+      "resolved": "D:\\Cursor\\New_PMTWIN\\POC\\features\\proposals\\create\\?targetType=${targetType}&targetId=${targetId}",
+      "context": "href=\"../proposals/create/?targetType=${targetType}&targetId=${targetId}\""
+    },
+    {
+      "type": "missing_file",
+      "url": "../create-proposal/?projectId=${match.projectId}",
+      "file": "D:\\Cursor\\New_PMTWIN\\POC\\features\\matching\\matches.js",
+      "line": 413,
+      "resolved": "D:\\Cursor\\New_PMTWIN\\POC\\features\\create-proposal\\?projectId=${match.projectId}",
+      "context": "href=\"../create-proposal/?projectId=${match.projectId}\""
+    },
+    {
+      "type": "missing_file",
+      "url": "../create-proposal/?projectId=${project.id}",
+      "file": "D:\\Cursor\\New_PMTWIN\\POC\\features\\matching\\opportunities.js",
+      "line": 111,
+      "resolved": "D:\\Cursor\\New_PMTWIN\\POC\\features\\create-proposal\\?projectId=${project.id}",
+      "context": "href=\"../create-proposal/?projectId=${project.id}\""
+    },
+    {
+      "type": "missing_file",
+      "url": "../matches/",
+      "file": "D:\\Cursor\\New_PMTWIN\\POC\\features\\matching\\opportunities.js",
+      "line": 112,
+      "resolved": "D:\\Cursor\\New_PMTWIN\\POC\\features\\matches",
+      "context": "href=\"../matches/\""
+    },
+    {
+      "type": "missing_file",
+      "url": "../projects/create/",
+      "file": "D:\\Cursor\\New_PMTWIN\\POC\\features\\projects\\my-projects.js",
+      "line": 98,
+      "resolved": "D:\\Cursor\\New_PMTWIN\\POC\\features\\projects\\create",
+      "context": "href=\"../projects/create/\""
+    },
+    {
+      "type": "missing_file",
+      "url": "../projects/view/?id=${project.id}",
+      "file": "D:\\Cursor\\New_PMTWIN\\POC\\features\\projects\\my-projects.js",
+      "line": 123,
+      "resolved": "D:\\Cursor\\New_PMTWIN\\POC\\features\\projects\\view\\?id=${project.id}",
+      "context": "href=\"../projects/view/?id=${project.id}\""
+    },
+    {
+      "type": "missing_file",
+      "url": "../projects/create/?id=${project.id}",
+      "file": "D:\\Cursor\\New_PMTWIN\\POC\\features\\projects\\my-projects.js",
+      "line": 124,
+      "resolved": "D:\\Cursor\\New_PMTWIN\\POC\\features\\projects\\create\\?id=${project.id}",
+      "context": "href=\"../projects/create/?id=${project.id}\""
+    },
+    {
+      "type": "missing_file",
+      "url": "../projects/create/",
+      "file": "D:\\Cursor\\New_PMTWIN\\POC\\features\\projects\\my-projects.js",
+      "line": 146,
+      "resolved": "D:\\Cursor\\New_PMTWIN\\POC\\features\\projects\\create",
+      "context": "href=\"../projects/create/\""
+    },
+    {
+      "type": "missing_file",
+      "url": "../projects/view/?id=${project.id}",
+      "file": "D:\\Cursor\\New_PMTWIN\\POC\\features\\projects\\my-projects.js",
+      "line": 173,
+      "resolved": "D:\\Cursor\\New_PMTWIN\\POC\\features\\projects\\view\\?id=${project.id}",
+      "context": "href=\"../projects/view/?id=${project.id}\""
+    },
+    {
+      "type": "missing_file",
+      "url": "../projects/create/?id=${project.id}",
+      "file": "D:\\Cursor\\New_PMTWIN\\POC\\features\\projects\\my-projects.js",
+      "line": 174,
+      "resolved": "D:\\Cursor\\New_PMTWIN\\POC\\features\\projects\\create\\?id=${project.id}",
+      "context": "href=\"../projects/create/?id=${project.id}\""
+    },
+    {
+      "type": "missing_file",
+      "url": "../service-requests/create/",
+      "file": "D:\\Cursor\\New_PMTWIN\\POC\\features\\projects\\my-projects.js",
+      "line": 196,
+      "resolved": "D:\\Cursor\\New_PMTWIN\\POC\\features\\service-requests\\create",
+      "context": "href=\"../service-requests/create/\""
+    },
+    {
+      "type": "missing_file",
+      "url": "../service-requests/view/?id=${request.id}",
+      "file": "D:\\Cursor\\New_PMTWIN\\POC\\features\\projects\\my-projects.js",
+      "line": 221,
+      "resolved": "D:\\Cursor\\New_PMTWIN\\POC\\features\\service-requests\\view\\?id=${request.id}",
+      "context": "href=\"../service-requests/view/?id=${request.id}\""
+    },
+    {
+      "type": "missing_file",
+      "url": "../projects/create/?id=${project.id}",
+      "file": "D:\\Cursor\\New_PMTWIN\\POC\\features\\projects\\project-view.js",
+      "line": 384,
+      "resolved": "D:\\Cursor\\New_PMTWIN\\POC\\features\\projects\\create\\?id=${project.id}",
+      "context": "href=\"../projects/create/?id=${project.id}\""
+    },
+    {
+      "type": "missing_file",
+      "url": "../create-proposal/?projectId=${project.id}",
+      "file": "D:\\Cursor\\New_PMTWIN\\POC\\features\\projects\\project-view.js",
+      "line": 398,
+      "resolved": "D:\\Cursor\\New_PMTWIN\\POC\\features\\create-proposal\\?projectId=${project.id}",
+      "context": "href=\"../create-proposal/?projectId=${project.id}\""
+    },
+    {
+      "type": "missing_file",
+      "url": "../auth/signup/",
+      "file": "D:\\Cursor\\New_PMTWIN\\POC\\features\\public\\discovery.js",
+      "line": 211,
+      "resolved": "D:\\Cursor\\New_PMTWIN\\POC\\features\\auth\\signup",
+      "context": "href=\"../auth/signup/\""
+    },
+    {
+      "type": "missing_file",
+      "url": "../projects/view/?id=${project.id}",
+      "file": "D:\\Cursor\\New_PMTWIN\\POC\\features\\public\\discovery.js",
+      "line": 239,
+      "resolved": "D:\\Cursor\\New_PMTWIN\\POC\\features\\projects\\view\\?id=${project.id}",
+      "context": "href=\"../projects/view/?id=${project.id}\""
+    },
+    {
+      "type": "missing_file",
+      "url": "../proposals/create/?projectId=${project.id}",
+      "file": "D:\\Cursor\\New_PMTWIN\\POC\\features\\public\\discovery.js",
+      "line": 241,
+      "resolved": "D:\\Cursor\\New_PMTWIN\\POC\\features\\proposals\\create\\?projectId=${project.id}",
+      "context": "href=\"../proposals/create/?projectId=${project.id}\""
+    },
+    {
+      "type": "missing_file",
+      "url": "../auth/signup/",
+      "file": "D:\\Cursor\\New_PMTWIN\\POC\\features\\public\\discovery.js",
+      "line": 243,
+      "resolved": "D:\\Cursor\\New_PMTWIN\\POC\\features\\auth\\signup",
+      "context": "href=\"../auth/signup/\""
+    },
+    {
+      "type": "missing_file",
+      "url": "../knowledge/?article=spv",
+      "file": "D:\\Cursor\\New_PMTWIN\\POC\\features\\public\\home.js",
+      "line": 203,
+      "resolved": "D:\\Cursor\\New_PMTWIN\\POC\\features\\knowledge\\?article=spv",
+      "context": "href=\"../knowledge/?article=spv\""
+    },
+    {
+      "type": "missing_file",
+      "url": "../knowledge/?article=barter",
+      "file": "D:\\Cursor\\New_PMTWIN\\POC\\features\\public\\home.js",
+      "line": 217,
+      "resolved": "D:\\Cursor\\New_PMTWIN\\POC\\features\\knowledge\\?article=barter",
+      "context": "href=\"../knowledge/?article=barter\""
+    },
+    {
+      "type": "missing_file",
+      "url": "../knowledge/?section=faq",
+      "file": "D:\\Cursor\\New_PMTWIN\\POC\\features\\public\\home.js",
+      "line": 231,
+      "resolved": "D:\\Cursor\\New_PMTWIN\\POC\\features\\knowledge\\?section=faq",
+      "context": "href=\"../knowledge/?section=faq\""
+    },
+    {
+      "type": "missing_file",
+      "url": "../signup/",
+      "file": "D:\\Cursor\\New_PMTWIN\\POC\\features\\public\\home.js",
+      "line": 364,
+      "resolved": "D:\\Cursor\\New_PMTWIN\\POC\\features\\signup",
+      "context": "href=\"../signup/\""
+    },
+    {
+      "type": "missing_file",
+      "url": "../discovery/",
+      "file": "D:\\Cursor\\New_PMTWIN\\POC\\features\\public\\home.js",
+      "line": 365,
+      "resolved": "D:\\Cursor\\New_PMTWIN\\POC\\features\\discovery",
+      "context": "href=\"../discovery/\""
+    },
+    {
+      "type": "missing_file",
+      "url": "../signup/",
+      "file": "D:\\Cursor\\New_PMTWIN\\POC\\features\\public\\home.js",
+      "line": 381,
+      "resolved": "D:\\Cursor\\New_PMTWIN\\POC\\features\\signup",
+      "context": "href=\"../signup/\""
+    },
+    {
+      "type": "missing_file",
+      "url": "../discovery/",
+      "file": "D:\\Cursor\\New_PMTWIN\\POC\\features\\public\\home.js",
+      "line": 382,
+      "resolved": "D:\\Cursor\\New_PMTWIN\\POC\\features\\discovery",
+      "context": "href=\"../discovery/\""
+    },
+    {
+      "type": "missing_file",
+      "url": "../discovery/",
+      "file": "D:\\Cursor\\New_PMTWIN\\POC\\features\\public\\home.js",
+      "line": 397,
+      "resolved": "D:\\Cursor\\New_PMTWIN\\POC\\features\\discovery",
+      "context": "href=\"../discovery/\""
+    },
+    {
+      "type": "missing_file",
+      "url": "../discovery/",
+      "file": "D:\\Cursor\\New_PMTWIN\\POC\\features\\public\\home.js",
+      "line": 432,
+      "resolved": "D:\\Cursor\\New_PMTWIN\\POC\\features\\discovery",
+      "context": "href=\"../discovery/\""
+    },
+    {
+      "type": "missing_file",
+      "url": "../service-requests/index.html",
+      "file": "D:\\Cursor\\New_PMTWIN\\POC\\features\\service-offerings\\my-services.js",
+      "line": 400,
+      "resolved": "D:\\Cursor\\New_PMTWIN\\POC\\features\\service-requests\\index.html",
+      "context": "href=\"../service-requests/index.html\""
+    },
+    {
+      "type": "missing_file",
+      "url": "../service-requests/create.html",
+      "file": "D:\\Cursor\\New_PMTWIN\\POC\\features\\service-providers\\skills-search.js",
+      "line": 267,
+      "resolved": "D:\\Cursor\\New_PMTWIN\\POC\\features\\service-requests\\create.html",
+      "context": ".href = '../service-requests/create.html'"
+    },
+    {
+      "type": "missing_file",
+      "url": "../../auth/login/",
+      "file": "D:\\Cursor\\New_PMTWIN\\POC\\src\\business-logic\\collab-init.js",
+      "line": 33,
+      "resolved": "D:\\Cursor\\New_PMTWIN\\POC\\auth\\login",
+      "context": ".href = '../../auth/login/'"
+    },
+    {
+      "type": "missing_file",
+      "url": "../../auth/login/",
+      "file": "D:\\Cursor\\New_PMTWIN\\POC\\src\\business-logic\\collab-init.js",
+      "line": 40,
+      "resolved": "D:\\Cursor\\New_PMTWIN\\POC\\auth\\login",
+      "context": ".href = '../../auth/login/'"
+    },
+    {
+      "type": "missing_file",
+      "url": "../discovery/",
+      "file": "D:\\Cursor\\New_PMTWIN\\POC\\src\\core\\init\\main.js",
+      "line": 343,
+      "resolved": "D:\\Cursor\\New_PMTWIN\\POC\\src\\core\\discovery",
+      "context": "href=\"../discovery/\""
+    }
+  ],
+  "warnings": [
+    {
+      "type": "relative_path",
+      "url": "href",
+      "file": "D:\\Cursor\\New_PMTWIN\\POC\\pages\\admin\\login\\index.html",
+      "line": 127,
+      "message": "Relative path without ../ may not work correctly"
+    },
+    {
+      "type": "relative_path",
+      "url": "href",
+      "file": "D:\\Cursor\\New_PMTWIN\\POC\\pages\\admin\\login\\index.html",
+      "line": 170,
+      "message": "Relative path without ../ may not work correctly"
+    },
+    {
+      "type": "relative_path",
+      "url": "./",
+      "file": "D:\\Cursor\\New_PMTWIN\\POC\\pages\\auth\\login\\index.html",
+      "line": 23,
+      "message": "Relative path without ../ may not work correctly"
+    },
+    {
+      "type": "relative_path",
+      "url": "./",
+      "file": "D:\\Cursor\\New_PMTWIN\\POC\\pages\\auth\\signup\\index.html",
+      "line": 22,
+      "message": "Relative path without ../ may not work correctly"
+    },
+    {
+      "type": "relative_path",
+      "url": "href",
+      "file": "D:\\Cursor\\New_PMTWIN\\POC\\pages\\collaboration\\applications\\index.html",
+      "line": 301,
+      "message": "Relative path without ../ may not work correctly"
+    },
+    {
+      "type": "relative_path",
+      "url": "href",
+      "file": "D:\\Cursor\\New_PMTWIN\\POC\\pages\\collaboration\\consortium\\index.html",
+      "line": 74,
+      "message": "Relative path without ../ may not work correctly"
+    },
+    {
+      "type": "relative_path",
+      "url": "href",
+      "file": "D:\\Cursor\\New_PMTWIN\\POC\\pages\\collaboration\\consortium\\index.html",
+      "line": 76,
+      "message": "Relative path without ../ may not work correctly"
+    },
+    {
+      "type": "relative_path",
+      "url": "href",
+      "file": "D:\\Cursor\\New_PMTWIN\\POC\\pages\\collaboration\\edit\\index.html",
+      "line": 61,
+      "message": "Relative path without ../ may not work correctly"
+    },
+    {
+      "type": "relative_path",
+      "url": "href",
+      "file": "D:\\Cursor\\New_PMTWIN\\POC\\pages\\collaboration\\edit\\index.html",
+      "line": 316,
+      "message": "Relative path without ../ may not work correctly"
+    },
+    {
+      "type": "relative_path",
+      "url": "my-collaborations/",
+      "file": "D:\\Cursor\\New_PMTWIN\\POC\\pages\\collaboration\\index.html",
+      "line": 21,
+      "message": "Relative path without ../ may not work correctly"
+    },
+    {
+      "type": "relative_path",
+      "url": "opportunities/",
+      "file": "D:\\Cursor\\New_PMTWIN\\POC\\pages\\collaboration\\index.html",
+      "line": 24,
+      "message": "Relative path without ../ may not work correctly"
+    },
+    {
+      "type": "relative_path",
+      "url": "href",
+      "file": "D:\\Cursor\\New_PMTWIN\\POC\\pages\\collaboration\\index.html",
+      "line": 128,
+      "message": "Relative path without ../ may not work correctly"
+    },
+    {
+      "type": "relative_path",
+      "url": "${redirectUrl}",
+      "file": "D:\\Cursor\\New_PMTWIN\\POC\\pages\\collaboration\\index.html",
+      "line": 198,
+      "message": "Relative path without ../ may not work correctly"
+    },
+    {
+      "type": "relative_path",
+      "url": "href",
+      "file": "D:\\Cursor\\New_PMTWIN\\POC\\pages\\collaboration\\my-collaborations\\index.html",
+      "line": 310,
+      "message": "Relative path without ../ may not work correctly"
+    },
+    {
+      "type": "relative_path",
+      "url": "href",
+      "file": "D:\\Cursor\\New_PMTWIN\\POC\\pages\\collaboration\\opportunities\\index.html",
+      "line": 169,
+      "message": "Relative path without ../ may not work correctly"
+    },
+    {
+      "type": "relative_path",
+      "url": "href",
+      "file": "D:\\Cursor\\New_PMTWIN\\POC\\pages\\collaboration\\view\\index.html",
+      "line": 54,
+      "message": "Relative path without ../ may not work correctly"
+    },
+    {
+      "type": "relative_path",
+      "url": "href",
+      "file": "D:\\Cursor\\New_PMTWIN\\POC\\pages\\collaboration\\view\\index.html",
+      "line": 325,
+      "message": "Relative path without ../ may not work correctly"
+    },
+    {
+      "type": "relative_path",
+      "url": "create/",
+      "file": "D:\\Cursor\\New_PMTWIN\\POC\\pages\\proposals\\index.html",
+      "line": 20,
+      "message": "Relative path without ../ may not work correctly"
+    },
+    {
+      "type": "relative_path",
+      "url": "create/",
+      "file": "D:\\Cursor\\New_PMTWIN\\POC\\pages\\service-requests\\index.html",
+      "line": 19,
+      "message": "Relative path without ../ may not work correctly"
+    },
+    {
+      "type": "relative_path",
+      "url": "href",
+      "file": "D:\\Cursor\\New_PMTWIN\\POC\\pages\\settings\\index.html",
+      "line": 1365,
+      "message": "Relative path without ../ may not work correctly"
+    },
+    {
+      "type": "relative_path",
+      "url": "admin-vetting.html",
+      "file": "D:\\Cursor\\New_PMTWIN\\POC\\features\\admin\\admin-dashboard.html",
+      "line": 14,
+      "message": "Relative path without ../ may not work correctly"
+    },
+    {
+      "type": "relative_path",
+      "url": "admin-moderation.html",
+      "file": "D:\\Cursor\\New_PMTWIN\\POC\\features\\admin\\admin-dashboard.html",
+      "line": 15,
+      "message": "Relative path without ../ may not work correctly"
+    },
+    {
+      "type": "relative_path",
+      "url": "admin-audit.html",
+      "file": "D:\\Cursor\\New_PMTWIN\\POC\\features\\admin\\admin-dashboard.html",
+      "line": 16,
+      "message": "Relative path without ../ may not work correctly"
+    },
+    {
+      "type": "relative_path",
+      "url": "admin-reports.html",
+      "file": "D:\\Cursor\\New_PMTWIN\\POC\\features\\admin\\admin-dashboard.html",
+      "line": 17,
+      "message": "Relative path without ../ may not work correctly"
+    },
+    {
+      "type": "relative_path",
+      "url": "models-management/?category=${categoryId}",
+      "file": "D:\\Cursor\\New_PMTWIN\\POC\\features\\admin\\admin-dashboard.js",
+      "line": 222,
+      "message": "Relative path without ../ may not work correctly"
+    },
+    {
+      "type": "relative_path",
+      "url": "href",
+      "file": "D:\\Cursor\\New_PMTWIN\\POC\\features\\admin\\admin-dashboard.js",
+      "line": 222,
+      "message": "Relative path without ../ may not work correctly"
+    },
+    {
+      "type": "relative_path",
+      "url": "models-management/?category=${categoryId}",
+      "file": "D:\\Cursor\\New_PMTWIN\\POC\\features\\admin\\admin-dashboard.js",
+      "line": 222,
+      "message": "Relative path without ../ may not work correctly"
+    },
+    {
+      "type": "relative_path",
+      "url": "models-management/",
+      "file": "D:\\Cursor\\New_PMTWIN\\POC\\features\\admin\\admin-dashboard.js",
+      "line": 252,
+      "message": "Relative path without ../ may not work correctly"
+    },
+    {
+      "type": "relative_path",
+      "url": "models-management/?status=active",
+      "file": "D:\\Cursor\\New_PMTWIN\\POC\\features\\admin\\admin-dashboard.js",
+      "line": 253,
+      "message": "Relative path without ../ may not work correctly"
+    },
+    {
+      "type": "relative_path",
+      "url": "models-management/?status=pending",
+      "file": "D:\\Cursor\\New_PMTWIN\\POC\\features\\admin\\admin-dashboard.js",
+      "line": 254,
+      "message": "Relative path without ../ may not work correctly"
+    },
+    {
+      "type": "relative_path",
+      "url": "models-management/?status=pending",
+      "file": "D:\\Cursor\\New_PMTWIN\\POC\\features\\admin\\admin-dashboard.js",
+      "line": 315,
+      "message": "Relative path without ../ may not work correctly"
+    },
+    {
+      "type": "relative_path",
+      "url": "${action.href}",
+      "file": "D:\\Cursor\\New_PMTWIN\\POC\\features\\admin\\admin-dashboard.js",
+      "line": 575,
+      "message": "Relative path without ../ may not work correctly"
+    },
+    {
+      "type": "relative_path",
+      "url": "${projectUrl}",
+      "file": "D:\\Cursor\\New_PMTWIN\\POC\\features\\admin\\admin-directory.js",
+      "line": 250,
+      "message": "Relative path without ../ may not work correctly"
+    },
+    {
+      "type": "relative_path",
+      "url": "${getBasePath()}project/?id=${project.id}",
+      "file": "D:\\Cursor\\New_PMTWIN\\POC\\features\\admin\\admin-moderation.js",
+      "line": 158,
+      "message": "Relative path without ../ may not work correctly"
+    },
+    {
+      "type": "relative_path",
+      "url": "href",
+      "file": "D:\\Cursor\\New_PMTWIN\\POC\\features\\admin\\admin-service-providers.js",
+      "line": 113,
+      "message": "Relative path without ../ may not work correctly"
+    },
+    {
+      "type": "relative_path",
+      "url": "${getBasePath()}service-requests/view/?id=${request.id}",
+      "file": "D:\\Cursor\\New_PMTWIN\\POC\\features\\admin\\admin-service-requests.js",
+      "line": 136,
+      "message": "Relative path without ../ may not work correctly"
+    },
+    {
+      "type": "relative_path",
+      "url": "signup.html",
+      "file": "D:\\Cursor\\New_PMTWIN\\POC\\features\\auth\\login.html",
+      "line": 27,
+      "message": "Relative path without ../ may not work correctly"
+    },
+    {
+      "type": "relative_path",
+      "url": "home.html",
+      "file": "D:\\Cursor\\New_PMTWIN\\POC\\features\\auth\\login.html",
+      "line": 30,
+      "message": "Relative path without ../ may not work correctly"
+    },
+    {
+      "type": "relative_path",
+      "url": "login.html",
+      "file": "D:\\Cursor\\New_PMTWIN\\POC\\features\\auth\\signup.html",
+      "line": 48,
+      "message": "Relative path without ../ may not work correctly"
+    },
+    {
+      "type": "relative_path",
+      "url": "home.html",
+      "file": "D:\\Cursor\\New_PMTWIN\\POC\\features\\auth\\signup.html",
+      "line": 51,
+      "message": "Relative path without ../ may not work correctly"
+    },
+    {
+      "type": "relative_path",
+      "url": "href",
+      "file": "D:\\Cursor\\New_PMTWIN\\POC\\features\\auth\\signup.js",
+      "line": 1262,
+      "message": "Relative path without ../ may not work correctly"
+    },
+    {
+      "type": "relative_path",
+      "url": "href",
+      "file": "D:\\Cursor\\New_PMTWIN\\POC\\features\\collaboration\\collaboration-workflows.js",
+      "line": 187,
+      "message": "Relative path without ../ may not work correctly"
+    },
+    {
+      "type": "relative_path",
+      "url": "href",
+      "file": "D:\\Cursor\\New_PMTWIN\\POC\\features\\collaboration\\collaboration-workflows.js",
+      "line": 338,
+      "message": "Relative path without ../ may not work correctly"
+    },
+    {
+      "type": "relative_path",
+      "url": "${basePath}my-services/",
+      "file": "D:\\Cursor\\New_PMTWIN\\POC\\features\\dashboard\\dashboard.js",
+      "line": 179,
+      "message": "Relative path without ../ may not work correctly"
+    },
+    {
+      "type": "relative_path",
+      "url": "${basePath}my-services/",
+      "file": "D:\\Cursor\\New_PMTWIN\\POC\\features\\dashboard\\dashboard.js",
+      "line": 514,
+      "message": "Relative path without ../ may not work correctly"
+    },
+    {
+      "type": "relative_path",
+      "url": "${insight.action.link}",
+      "file": "D:\\Cursor\\New_PMTWIN\\POC\\features\\dashboard\\dashboard.js",
+      "line": 712,
+      "message": "Relative path without ../ may not work correctly"
+    },
+    {
+      "type": "relative_path",
+      "url": "${basePath}my-services/",
+      "file": "D:\\Cursor\\New_PMTWIN\\POC\\features\\dashboard\\dashboard.js",
+      "line": 736,
+      "message": "Relative path without ../ may not work correctly"
+    },
+    {
+      "type": "relative_path",
+      "url": "${basePath}proposals/",
+      "file": "D:\\Cursor\\New_PMTWIN\\POC\\features\\dashboard\\dashboard.js",
+      "line": 817,
+      "message": "Relative path without ../ may not work correctly"
+    },
+    {
+      "type": "relative_path",
+      "url": "${basePath}collaboration/",
+      "file": "D:\\Cursor\\New_PMTWIN\\POC\\features\\dashboard\\dashboard.js",
+      "line": 895,
+      "message": "Relative path without ../ may not work correctly"
+    },
+    {
+      "type": "relative_path",
+      "url": "${basePath}matches/",
+      "file": "D:\\Cursor\\New_PMTWIN\\POC\\features\\dashboard\\dashboard.js",
+      "line": 970,
+      "message": "Relative path without ../ may not work correctly"
+    },
+    {
+      "type": "relative_path",
+      "url": "${basePath}my-services/",
+      "file": "D:\\Cursor\\New_PMTWIN\\POC\\features\\dashboard\\dashboard.js",
+      "line": 1040,
+      "message": "Relative path without ../ may not work correctly"
+    },
+    {
+      "type": "relative_path",
+      "url": "${basePath}services-marketplace/",
+      "file": "D:\\Cursor\\New_PMTWIN\\POC\\features\\dashboard\\dashboard.js",
+      "line": 1043,
+      "message": "Relative path without ../ may not work correctly"
+    },
+    {
+      "type": "relative_path",
+      "url": "${basePath}proposals/",
+      "file": "D:\\Cursor\\New_PMTWIN\\POC\\features\\dashboard\\dashboard.js",
+      "line": 1046,
+      "message": "Relative path without ../ may not work correctly"
+    },
+    {
+      "type": "relative_path",
+      "url": "${basePath}profile/",
+      "file": "D:\\Cursor\\New_PMTWIN\\POC\\features\\dashboard\\dashboard.js",
+      "line": 1049,
+      "message": "Relative path without ../ may not work correctly"
+    },
+    {
+      "type": "relative_path",
+      "url": "${basePath}my-services/",
+      "file": "D:\\Cursor\\New_PMTWIN\\POC\\features\\dashboard\\dashboard.js",
+      "line": 1072,
+      "message": "Relative path without ../ may not work correctly"
+    },
+    {
+      "type": "relative_path",
+      "url": "${basePath}my-services/",
+      "file": "D:\\Cursor\\New_PMTWIN\\POC\\features\\dashboard\\dashboard.js",
+      "line": 1117,
+      "message": "Relative path without ../ may not work correctly"
+    },
+    {
+      "type": "relative_path",
+      "url": "${basePath}pipeline/",
+      "file": "D:\\Cursor\\New_PMTWIN\\POC\\features\\dashboard\\dashboard.js",
+      "line": 1130,
+      "message": "Relative path without ../ may not work correctly"
+    },
+    {
+      "type": "relative_path",
+      "url": "${basePath}notifications/",
+      "file": "D:\\Cursor\\New_PMTWIN\\POC\\features\\dashboard\\dashboard.js",
+      "line": 1167,
+      "message": "Relative path without ../ may not work correctly"
+    },
+    {
+      "type": "relative_path",
+      "url": "${basePath}opportunities/",
+      "file": "D:\\Cursor\\New_PMTWIN\\POC\\features\\dashboard\\dashboard.js",
+      "line": 1314,
+      "message": "Relative path without ../ may not work correctly"
+    },
+    {
+      "type": "relative_path",
+      "url": "${basePath}collaboration/view/?id=${opportunity.id}",
+      "file": "D:\\Cursor\\New_PMTWIN\\POC\\features\\dashboard\\dashboard.js",
+      "line": 1343,
+      "message": "Relative path without ../ may not work correctly"
+    },
+    {
+      "type": "relative_path",
+      "url": "${basePath}collaboration/applications/?opportunityId=${opportunity.id}",
+      "file": "D:\\Cursor\\New_PMTWIN\\POC\\features\\dashboard\\dashboard.js",
+      "line": 1344,
+      "message": "Relative path without ../ may not work correctly"
+    },
+    {
+      "type": "relative_path",
+      "url": "${basePath}opportunities/",
+      "file": "D:\\Cursor\\New_PMTWIN\\POC\\features\\dashboard\\dashboard.js",
+      "line": 1354,
+      "message": "Relative path without ../ may not work correctly"
+    },
+    {
+      "type": "relative_path",
+      "url": "${basePath}profile/",
+      "file": "D:\\Cursor\\New_PMTWIN\\POC\\features\\dashboard\\dashboard.js",
+      "line": 1364,
+      "message": "Relative path without ../ may not work correctly"
+    },
+    {
+      "type": "relative_path",
+      "url": "${getBasePath()}projects/view/?id=${targetId}",
+      "file": "D:\\Cursor\\New_PMTWIN\\POC\\features\\matching\\matches.js",
+      "line": 272,
+      "message": "Relative path without ../ may not work correctly"
+    },
+    {
+      "type": "relative_path",
+      "url": "${getBasePath()}service-requests/view/?id=${targetId}",
+      "file": "D:\\Cursor\\New_PMTWIN\\POC\\features\\matching\\matches.js",
+      "line": 279,
+      "message": "Relative path without ../ may not work correctly"
+    },
+    {
+      "type": "relative_path",
+      "url": "${getBasePath()}project/?id=${match.projectId}",
+      "file": "D:\\Cursor\\New_PMTWIN\\POC\\features\\matching\\matches.js",
+      "line": 410,
+      "message": "Relative path without ../ may not work correctly"
+    },
+    {
+      "type": "relative_path",
+      "url": "${getBasePath()}project/?id=${project.id}",
+      "file": "D:\\Cursor\\New_PMTWIN\\POC\\features\\matching\\opportunities.js",
+      "line": 110,
+      "message": "Relative path without ../ may not work correctly"
+    },
+    {
+      "type": "relative_path",
+      "url": "${basePath}my-services/",
+      "file": "D:\\Cursor\\New_PMTWIN\\POC\\features\\merchant-portal\\merchant-portal.js",
+      "line": 140,
+      "message": "Relative path without ../ may not work correctly"
+    },
+    {
+      "type": "relative_path",
+      "url": "${basePath}my-services/",
+      "file": "D:\\Cursor\\New_PMTWIN\\POC\\features\\merchant-portal\\merchant-portal.js",
+      "line": 194,
+      "message": "Relative path without ../ may not work correctly"
+    },
+    {
+      "type": "relative_path",
+      "url": "${basePath}services-marketplace/",
+      "file": "D:\\Cursor\\New_PMTWIN\\POC\\features\\merchant-portal\\merchant-portal.js",
+      "line": 197,
+      "message": "Relative path without ../ may not work correctly"
+    },
+    {
+      "type": "relative_path",
+      "url": "${basePath}proposals/",
+      "file": "D:\\Cursor\\New_PMTWIN\\POC\\features\\merchant-portal\\merchant-portal.js",
+      "line": 200,
+      "message": "Relative path without ../ may not work correctly"
+    },
+    {
+      "type": "relative_path",
+      "url": "${basePath}profile/",
+      "file": "D:\\Cursor\\New_PMTWIN\\POC\\features\\merchant-portal\\merchant-portal.js",
+      "line": 203,
+      "message": "Relative path without ../ may not work correctly"
+    },
+    {
+      "type": "relative_path",
+      "url": "${basePath}my-services/",
+      "file": "D:\\Cursor\\New_PMTWIN\\POC\\features\\merchant-portal\\merchant-portal.js",
+      "line": 217,
+      "message": "Relative path without ../ may not work correctly"
+    },
+    {
+      "type": "relative_path",
+      "url": "${basePath}my-services/",
+      "file": "D:\\Cursor\\New_PMTWIN\\POC\\features\\merchant-portal\\merchant-portal.js",
+      "line": 254,
+      "message": "Relative path without ../ may not work correctly"
+    },
+    {
+      "type": "relative_path",
+      "url": "${basePath}proposals/",
+      "file": "D:\\Cursor\\New_PMTWIN\\POC\\features\\merchant-portal\\merchant-portal.js",
+      "line": 267,
+      "message": "Relative path without ../ may not work correctly"
+    },
+    {
+      "type": "relative_path",
+      "url": "${notification.actionUrl}",
+      "file": "D:\\Cursor\\New_PMTWIN\\POC\\features\\notifications\\notifications.js",
+      "line": 248,
+      "message": "Relative path without ../ may not work correctly"
+    },
+    {
+      "type": "relative_path",
+      "url": "href",
+      "file": "D:\\Cursor\\New_PMTWIN\\POC\\features\\onboarding\\onboarding.js",
+      "line": 161,
+      "message": "Relative path without ../ may not work correctly"
+    },
+    {
+      "type": "relative_path",
+      "url": "${link}",
+      "file": "D:\\Cursor\\New_PMTWIN\\POC\\features\\pipeline\\pipeline.js",
+      "line": 203,
+      "message": "Relative path without ../ may not work correctly"
+    },
+    {
+      "type": "relative_path",
+      "url": "href",
+      "file": "D:\\Cursor\\New_PMTWIN\\POC\\features\\pipeline\\pipeline.js",
+      "line": 203,
+      "message": "Relative path without ../ may not work correctly"
+    },
+    {
+      "type": "relative_path",
+      "url": "${link}",
+      "file": "D:\\Cursor\\New_PMTWIN\\POC\\features\\pipeline\\pipeline.js",
+      "line": 203,
+      "message": "Relative path without ../ may not work correctly"
+    },
+    {
+      "type": "relative_path",
+      "url": "${item.link}",
+      "file": "D:\\Cursor\\New_PMTWIN\\POC\\features\\profile\\profile.js",
+      "line": 1293,
+      "message": "Relative path without ../ may not work correctly"
+    },
+    {
+      "type": "relative_path",
+      "url": "${profile.website}",
+      "file": "D:\\Cursor\\New_PMTWIN\\POC\\features\\profile\\profile.js",
+      "line": 1376,
+      "message": "Relative path without ../ may not work correctly"
+    },
+    {
+      "type": "relative_path",
+      "url": "projects.html",
+      "file": "D:\\Cursor\\New_PMTWIN\\POC\\features\\projects\\project-create.html",
+      "line": 78,
+      "message": "Relative path without ../ may not work correctly"
+    },
+    {
+      "type": "relative_path",
+      "url": "href",
+      "file": "D:\\Cursor\\New_PMTWIN\\POC\\features\\projects\\project-create.js",
+      "line": 422,
+      "message": "Relative path without ../ may not work correctly"
+    },
+    {
+      "type": "relative_path",
+      "url": "href",
+      "file": "D:\\Cursor\\New_PMTWIN\\POC\\features\\projects\\project-view.js",
+      "line": 107,
+      "message": "Relative path without ../ may not work correctly"
+    },
+    {
+      "type": "relative_path",
+      "url": "${getBasePath()}projects/create/",
+      "file": "D:\\Cursor\\New_PMTWIN\\POC\\features\\projects\\projects-list.js",
+      "line": 208,
+      "message": "Relative path without ../ may not work correctly"
+    },
+    {
+      "type": "relative_path",
+      "url": "${getBasePath()}project/?id=${project.id}",
+      "file": "D:\\Cursor\\New_PMTWIN\\POC\\features\\projects\\projects-list.js",
+      "line": 269,
+      "message": "Relative path without ../ may not work correctly"
+    },
+    {
+      "type": "relative_path",
+      "url": "${getBasePath()}projects/create/?id=${project.id}",
+      "file": "D:\\Cursor\\New_PMTWIN\\POC\\features\\projects\\projects-list.js",
+      "line": 272,
+      "message": "Relative path without ../ may not work correctly"
+    },
+    {
+      "type": "relative_path",
+      "url": "proposals.html",
+      "file": "D:\\Cursor\\New_PMTWIN\\POC\\features\\proposals\\proposal-create.html",
+      "line": 74,
+      "message": "Relative path without ../ may not work correctly"
+    },
+    {
+      "type": "relative_path",
+      "url": "href",
+      "file": "D:\\Cursor\\New_PMTWIN\\POC\\features\\proposals\\proposal-create.js",
+      "line": 445,
+      "message": "Relative path without ../ may not work correctly"
+    },
+    {
+      "type": "relative_path",
+      "url": "create-proposal.html",
+      "file": "D:\\Cursor\\New_PMTWIN\\POC\\features\\proposals\\proposals-list.html",
+      "line": 4,
+      "message": "Relative path without ../ may not work correctly"
+    },
+    {
+      "type": "relative_path",
+      "url": "create/",
+      "file": "D:\\Cursor\\New_PMTWIN\\POC\\features\\proposals\\proposals-list.js",
+      "line": 317,
+      "message": "Relative path without ../ may not work correctly"
+    },
+    {
+      "type": "relative_path",
+      "url": "signup.html",
+      "file": "D:\\Cursor\\New_PMTWIN\\POC\\features\\public\\home.html",
+      "line": 8,
+      "message": "Relative path without ../ may not work correctly"
+    },
+    {
+      "type": "relative_path",
+      "url": "discovery.html",
+      "file": "D:\\Cursor\\New_PMTWIN\\POC\\features\\public\\home.html",
+      "line": 9,
+      "message": "Relative path without ../ may not work correctly"
+    },
+    {
+      "type": "relative_path",
+      "url": "discovery.html",
+      "file": "D:\\Cursor\\New_PMTWIN\\POC\\features\\public\\home.html",
+      "line": 42,
+      "message": "Relative path without ../ may not work correctly"
+    },
+    {
+      "type": "relative_path",
+      "url": "${project.image}",
+      "file": "D:\\Cursor\\New_PMTWIN\\POC\\features\\public\\home.js",
+      "line": 329,
+      "message": "Relative path without ../ may not work correctly"
+    },
+    {
+      "type": "relative_path",
+      "url": "${project.link || ",
+      "file": "D:\\Cursor\\New_PMTWIN\\POC\\features\\public\\home.js",
+      "line": 345,
+      "message": "Relative path without ../ may not work correctly"
+    },
+    {
+      "type": "relative_path",
+      "url": "${getBasePath()}project/?id=${project.id}",
+      "file": "D:\\Cursor\\New_PMTWIN\\POC\\features\\public\\home.js",
+      "line": 419,
+      "message": "Relative path without ../ may not work correctly"
+    },
+    {
+      "type": "relative_path",
+      "url": "?article=${article.id}",
+      "file": "D:\\Cursor\\New_PMTWIN\\POC\\features\\public\\knowledge.js",
+      "line": 604,
+      "message": "Relative path without ../ may not work correctly"
+    },
+    {
+      "type": "relative_path",
+      "url": "?article=${related.id}",
+      "file": "D:\\Cursor\\New_PMTWIN\\POC\\features\\public\\knowledge.js",
+      "line": 677,
+      "message": "Relative path without ../ may not work correctly"
+    },
+    {
+      "type": "relative_path",
+      "url": "href",
+      "file": "D:\\Cursor\\New_PMTWIN\\POC\\features\\public\\knowledge.js",
+      "line": 677,
+      "message": "Relative path without ../ may not work correctly"
+    },
+    {
+      "type": "relative_path",
+      "url": "?article=${related.id}",
+      "file": "D:\\Cursor\\New_PMTWIN\\POC\\features\\public\\knowledge.js",
+      "line": 677,
+      "message": "Relative path without ../ may not work correctly"
+    },
+    {
+      "type": "relative_path",
+      "url": "${recommendation.link}",
+      "file": "D:\\Cursor\\New_PMTWIN\\POC\\features\\public\\wizard.js",
+      "line": 370,
+      "message": "Relative path without ../ may not work correctly"
+    },
+    {
+      "type": "relative_path",
+      "url": "href",
+      "file": "D:\\Cursor\\New_PMTWIN\\POC\\features\\service-offerings\\marketplace.js",
+      "line": 133,
+      "message": "Relative path without ../ may not work correctly"
+    },
+    {
+      "type": "relative_path",
+      "url": "href",
+      "file": "D:\\Cursor\\New_PMTWIN\\POC\\features\\service-offerings\\marketplace.js",
+      "line": 647,
+      "message": "Relative path without ../ may not work correctly"
+    },
+    {
+      "type": "relative_path",
+      "url": "${getBasePath()}service-requests/view/?id=${request.id}",
+      "file": "D:\\Cursor\\New_PMTWIN\\POC\\features\\service-offerings\\my-services.js",
+      "line": 499,
+      "message": "Relative path without ../ may not work correctly"
+    },
+    {
+      "type": "relative_path",
+      "url": "${getBasePath()}service-requests/view/?id=${request.id}",
+      "file": "D:\\Cursor\\New_PMTWIN\\POC\\features\\service-offerings\\my-services.js",
+      "line": 659,
+      "message": "Relative path without ../ may not work correctly"
+    },
+    {
+      "type": "relative_path",
+      "url": "${provider.contact.website}",
+      "file": "D:\\Cursor\\New_PMTWIN\\POC\\features\\service-providers\\service-providers.js",
+      "line": 371,
+      "message": "Relative path without ../ may not work correctly"
+    },
+    {
+      "type": "relative_path",
+      "url": "href",
+      "file": "D:\\Cursor\\New_PMTWIN\\POC\\features\\service-providers\\skills-search.js",
+      "line": 267,
+      "message": "Relative path without ../ may not work correctly"
+    },
+    {
+      "type": "relative_path",
+      "url": "href",
+      "file": "D:\\Cursor\\New_PMTWIN\\POC\\features\\service-requests\\create.js",
+      "line": 138,
+      "message": "Relative path without ../ may not work correctly"
+    },
+    {
+      "type": "relative_path",
+      "url": "${getBasePath()}service-requests/view/?id=${request.id}",
+      "file": "D:\\Cursor\\New_PMTWIN\\POC\\features\\service-requests\\requests.js",
+      "line": 89,
+      "message": "Relative path without ../ may not work correctly"
+    },
+    {
+      "type": "relative_path",
+      "url": "href",
+      "file": "D:\\Cursor\\New_PMTWIN\\POC\\src\\business-logic\\collab-init.js",
+      "line": 33,
+      "message": "Relative path without ../ may not work correctly"
+    },
+    {
+      "type": "relative_path",
+      "url": "href",
+      "file": "D:\\Cursor\\New_PMTWIN\\POC\\src\\business-logic\\collab-init.js",
+      "line": 40,
+      "message": "Relative path without ../ may not work correctly"
+    },
+    {
+      "type": "relative_path",
+      "url": "${cancelUrl}",
+      "file": "D:\\Cursor\\New_PMTWIN\\POC\\src\\business-logic\\models\\collaboration-models.js",
+      "line": 962,
+      "message": "Relative path without ../ may not work correctly"
+    },
+    {
+      "type": "relative_path",
+      "url": "href",
+      "file": "D:\\Cursor\\New_PMTWIN\\POC\\src\\business-logic\\models\\collaboration-models.js",
+      "line": 962,
+      "message": "Relative path without ../ may not work correctly"
+    },
+    {
+      "type": "relative_path",
+      "url": "${cancelUrl}",
+      "file": "D:\\Cursor\\New_PMTWIN\\POC\\src\\business-logic\\models\\collaboration-models.js",
+      "line": 962,
+      "message": "Relative path without ../ may not work correctly"
+    },
+    {
+      "type": "relative_path",
+      "url": "${href}",
+      "file": "D:\\Cursor\\New_PMTWIN\\POC\\src\\components\\cards\\action-card.js",
+      "line": 53,
+      "message": "Relative path without ../ may not work correctly"
+    },
+    {
+      "type": "relative_path",
+      "url": "${url}",
+      "file": "D:\\Cursor\\New_PMTWIN\\POC\\src\\components\\footer.js",
+      "line": 38,
+      "message": "Relative path without ../ may not work correctly"
+    },
+    {
+      "type": "relative_path",
+      "url": "${href || ",
+      "file": "D:\\Cursor\\New_PMTWIN\\POC\\src\\components\\layout\\breadcrumb.js",
+      "line": 28,
+      "message": "Relative path without ../ may not work correctly"
+    },
+    {
+      "type": "relative_path",
+      "url": "${href}",
+      "file": "D:\\Cursor\\New_PMTWIN\\POC\\src\\components\\page-header.js",
+      "line": 48,
+      "message": "Relative path without ../ may not work correctly"
+    },
+    {
+      "type": "relative_path",
+      "url": "${data.ctaLink || ",
+      "file": "D:\\Cursor\\New_PMTWIN\\POC\\src\\core\\init\\main.js",
+      "line": 71,
+      "message": "Relative path without ../ may not work correctly"
+    },
+    {
+      "type": "relative_path",
+      "url": "${data.secondaryCtaLink || ",
+      "file": "D:\\Cursor\\New_PMTWIN\\POC\\src\\core\\init\\main.js",
+      "line": 72,
+      "message": "Relative path without ../ may not work correctly"
+    },
+    {
+      "type": "relative_path",
+      "url": "${data.image}",
+      "file": "D:\\Cursor\\New_PMTWIN\\POC\\src\\core\\init\\main.js",
+      "line": 102,
+      "message": "Relative path without ../ may not work correctly"
+    },
+    {
+      "type": "relative_path",
+      "url": "${service.icon}",
+      "file": "D:\\Cursor\\New_PMTWIN\\POC\\src\\core\\init\\main.js",
+      "line": 121,
+      "message": "Relative path without ../ may not work correctly"
+    },
+    {
+      "type": "relative_path",
+      "url": "${service.icon}",
+      "file": "D:\\Cursor\\New_PMTWIN\\POC\\src\\core\\init\\main.js",
+      "line": 223,
+      "message": "Relative path without ../ may not work correctly"
+    },
+    {
+      "type": "relative_path",
+      "url": "${service.link}",
+      "file": "D:\\Cursor\\New_PMTWIN\\POC\\src\\core\\init\\main.js",
+      "line": 245,
+      "message": "Relative path without ../ may not work correctly"
+    },
+    {
+      "type": "relative_path",
+      "url": "${item.image}",
+      "file": "D:\\Cursor\\New_PMTWIN\\POC\\src\\core\\init\\main.js",
+      "line": 326,
+      "message": "Relative path without ../ may not work correctly"
+    },
+    {
+      "type": "relative_path",
+      "url": "${item.link}",
+      "file": "D:\\Cursor\\New_PMTWIN\\POC\\src\\core\\init\\main.js",
+      "line": 331,
+      "message": "Relative path without ../ may not work correctly"
+    },
+    {
+      "type": "relative_path",
+      "url": "${testimonial.avatar}",
+      "file": "D:\\Cursor\\New_PMTWIN\\POC\\src\\core\\init\\main.js",
+      "line": 360,
+      "message": "Relative path without ../ may not work correctly"
+    },
+    {
+      "type": "relative_path",
+      "url": "${url}",
+      "file": "D:\\Cursor\\New_PMTWIN\\POC\\src\\core\\init\\main.js",
+      "line": 392,
+      "message": "Relative path without ../ may not work correctly"
+    },
+    {
+      "type": "relative_path",
+      "url": "${member.photo}",
+      "file": "D:\\Cursor\\New_PMTWIN\\POC\\src\\core\\init\\main.js",
+      "line": 400,
+      "message": "Relative path without ../ may not work correctly"
+    },
+    {
+      "type": "relative_path",
+      "url": "${url}",
+      "file": "D:\\Cursor\\New_PMTWIN\\POC\\src\\core\\init\\main.js",
+      "line": 428,
+      "message": "Relative path without ../ may not work correctly"
+    },
+    {
+      "type": "relative_path",
+      "url": "${item.url || ",
+      "file": "D:\\Cursor\\New_PMTWIN\\POC\\src\\core\\init\\main.js",
+      "line": 493,
+      "message": "Relative path without ../ may not work correctly"
+    },
+    {
+      "type": "relative_path",
+      "url": "${basePath}dashboard/",
+      "file": "D:\\Cursor\\New_PMTWIN\\POC\\src\\core\\layout\\navigation.js",
+      "line": 207,
+      "message": "Relative path without ../ may not work correctly"
+    },
+    {
+      "type": "relative_path",
+      "url": "${item.route}",
+      "file": "D:\\Cursor\\New_PMTWIN\\POC\\src\\core\\layout\\navigation.js",
+      "line": 221,
+      "message": "Relative path without ../ may not work correctly"
+    },
+    {
+      "type": "relative_path",
+      "url": "${basePath}service-providers/",
+      "file": "D:\\Cursor\\New_PMTWIN\\POC\\src\\core\\layout\\navigation.js",
+      "line": 232,
+      "message": "Relative path without ../ may not work correctly"
+    },
+    {
+      "type": "relative_path",
+      "url": "${basePath}projects/create/",
+      "file": "D:\\Cursor\\New_PMTWIN\\POC\\src\\core\\layout\\navigation.js",
+      "line": 283,
+      "message": "Relative path without ../ may not work correctly"
+    },
+    {
+      "type": "relative_path",
+      "url": "${basePath}proposals/create/",
+      "file": "D:\\Cursor\\New_PMTWIN\\POC\\src\\core\\layout\\navigation.js",
+      "line": 293,
+      "message": "Relative path without ../ may not work correctly"
+    },
+    {
+      "type": "relative_path",
+      "url": "${basePath}collaboration/",
+      "file": "D:\\Cursor\\New_PMTWIN\\POC\\src\\core\\layout\\navigation.js",
+      "line": 303,
+      "message": "Relative path without ../ may not work correctly"
+    },
+    {
+      "type": "relative_path",
+      "url": "${basePath}wizard/",
+      "file": "D:\\Cursor\\New_PMTWIN\\POC\\src\\core\\layout\\navigation.js",
+      "line": 313,
+      "message": "Relative path without ../ may not work correctly"
+    },
+    {
+      "type": "relative_path",
+      "url": "${basePath}notifications/",
+      "file": "D:\\Cursor\\New_PMTWIN\\POC\\src\\core\\layout\\navigation.js",
+      "line": 354,
+      "message": "Relative path without ../ may not work correctly"
+    },
+    {
+      "type": "relative_path",
+      "url": "${userAvatar}",
+      "file": "D:\\Cursor\\New_PMTWIN\\POC\\src\\core\\layout\\navigation.js",
+      "line": 374,
+      "message": "Relative path without ../ may not work correctly"
+    },
+    {
+      "type": "relative_path",
+      "url": "${userAvatar}",
+      "file": "D:\\Cursor\\New_PMTWIN\\POC\\src\\core\\layout\\navigation.js",
+      "line": 390,
+      "message": "Relative path without ../ may not work correctly"
+    },
+    {
+      "type": "relative_path",
+      "url": "${basePath}profile/",
+      "file": "D:\\Cursor\\New_PMTWIN\\POC\\src\\core\\layout\\navigation.js",
+      "line": 404,
+      "message": "Relative path without ../ may not work correctly"
+    },
+    {
+      "type": "relative_path",
+      "url": "${basePath}settings/",
+      "file": "D:\\Cursor\\New_PMTWIN\\POC\\src\\core\\layout\\navigation.js",
+      "line": 410,
+      "message": "Relative path without ../ may not work correctly"
+    },
+    {
+      "type": "relative_path",
+      "url": "${basePath}notifications/",
+      "file": "D:\\Cursor\\New_PMTWIN\\POC\\src\\core\\layout\\navigation.js",
+      "line": 416,
+      "message": "Relative path without ../ may not work correctly"
+    },
+    {
+      "type": "relative_path",
+      "url": "${basePath}admin/",
+      "file": "D:\\Cursor\\New_PMTWIN\\POC\\src\\core\\layout\\navigation.js",
+      "line": 424,
+      "message": "Relative path without ../ may not work correctly"
+    },
+    {
+      "type": "relative_path",
+      "url": "${basePath}knowledge/",
+      "file": "D:\\Cursor\\New_PMTWIN\\POC\\src\\core\\layout\\navigation.js",
+      "line": 431,
+      "message": "Relative path without ../ may not work correctly"
+    },
+    {
+      "type": "relative_path",
+      "url": "${basePath}home/",
+      "file": "D:\\Cursor\\New_PMTWIN\\POC\\src\\core\\layout\\navigation.js",
+      "line": 469,
+      "message": "Relative path without ../ may not work correctly"
+    },
+    {
+      "type": "relative_path",
+      "url": "${basePath}home/",
+      "file": "D:\\Cursor\\New_PMTWIN\\POC\\src\\core\\layout\\navigation.js",
+      "line": 472,
+      "message": "Relative path without ../ may not work correctly"
+    },
+    {
+      "type": "relative_path",
+      "url": "${basePath}discovery/",
+      "file": "D:\\Cursor\\New_PMTWIN\\POC\\src\\core\\layout\\navigation.js",
+      "line": 473,
+      "message": "Relative path without ../ may not work correctly"
+    },
+    {
+      "type": "relative_path",
+      "url": "${basePath}wizard/",
+      "file": "D:\\Cursor\\New_PMTWIN\\POC\\src\\core\\layout\\navigation.js",
+      "line": 474,
+      "message": "Relative path without ../ may not work correctly"
+    },
+    {
+      "type": "relative_path",
+      "url": "${basePath}knowledge/",
+      "file": "D:\\Cursor\\New_PMTWIN\\POC\\src\\core\\layout\\navigation.js",
+      "line": 475,
+      "message": "Relative path without ../ may not work correctly"
+    },
+    {
+      "type": "relative_path",
+      "url": "${basePath}service-providers/",
+      "file": "D:\\Cursor\\New_PMTWIN\\POC\\src\\core\\layout\\navigation.js",
+      "line": 476,
+      "message": "Relative path without ../ may not work correctly"
+    },
+    {
+      "type": "relative_path",
+      "url": "${basePath}signup/",
+      "file": "D:\\Cursor\\New_PMTWIN\\POC\\src\\core\\layout\\navigation.js",
+      "line": 477,
+      "message": "Relative path without ../ may not work correctly"
+    },
+    {
+      "type": "relative_path",
+      "url": "${basePath}login/",
+      "file": "D:\\Cursor\\New_PMTWIN\\POC\\src\\core\\layout\\navigation.js",
+      "line": 478,
+      "message": "Relative path without ../ may not work correctly"
+    },
+    {
+      "type": "relative_path",
+      "url": "${notif.url || ",
+      "file": "D:\\Cursor\\New_PMTWIN\\POC\\src\\core\\layout\\navigation.js",
+      "line": 544,
+      "message": "Relative path without ../ may not work correctly"
+    },
+    {
+      "type": "relative_path",
+      "url": "${result.url}",
+      "file": "D:\\Cursor\\New_PMTWIN\\POC\\src\\core\\layout\\navigation.js",
+      "line": 752,
+      "message": "Relative path without ../ may not work correctly"
+    },
+    {
+      "type": "relative_path",
+      "url": "${basePath}dashboard/",
+      "file": "D:\\Cursor\\New_PMTWIN\\POC\\src\\core\\layout\\navigation.js",
+      "line": 1010,
+      "message": "Relative path without ../ may not work correctly"
+    },
+    {
+      "type": "relative_path",
+      "url": "${basePath}notifications/",
+      "file": "D:\\Cursor\\New_PMTWIN\\POC\\src\\core\\layout\\navigation.js",
+      "line": 1017,
+      "message": "Relative path without ../ may not work correctly"
+    },
+    {
+      "type": "relative_path",
+      "url": "${grandchild.route}",
+      "file": "D:\\Cursor\\New_PMTWIN\\POC\\src\\core\\layout\\navigation.js",
+      "line": 1202,
+      "message": "Relative path without ../ may not work correctly"
+    },
+    {
+      "type": "relative_path",
+      "url": "${child.route}",
+      "file": "D:\\Cursor\\New_PMTWIN\\POC\\src\\core\\layout\\navigation.js",
+      "line": 1223,
+      "message": "Relative path without ../ may not work correctly"
+    },
+    {
+      "type": "relative_path",
+      "url": "${item.route}",
+      "file": "D:\\Cursor\\New_PMTWIN\\POC\\src\\core\\layout\\navigation.js",
+      "line": 1249,
+      "message": "Relative path without ../ may not work correctly"
+    },
+    {
+      "type": "relative_path",
+      "url": "${basePath}profile/",
+      "file": "D:\\Cursor\\New_PMTWIN\\POC\\src\\core\\layout\\navigation.js",
+      "line": 1275,
+      "message": "Relative path without ../ may not work correctly"
+    },
+    {
+      "type": "relative_path",
+      "url": "${basePath}settings/",
+      "file": "D:\\Cursor\\New_PMTWIN\\POC\\src\\core\\layout\\navigation.js",
+      "line": 1278,
+      "message": "Relative path without ../ may not work correctly"
+    },
+    {
+      "type": "relative_path",
+      "url": "${basePath}admin/",
+      "file": "D:\\Cursor\\New_PMTWIN\\POC\\src\\core\\layout\\navigation.js",
+      "line": 1282,
+      "message": "Relative path without ../ may not work correctly"
+    },
+    {
+      "type": "relative_path",
+      "url": "${result.href}",
+      "file": "D:\\Cursor\\New_PMTWIN\\POC\\src\\core\\layout\\navigation.js",
+      "line": 1424,
+      "message": "Relative path without ../ may not work correctly"
+    },
+    {
+      "type": "relative_path",
+      "url": "${subModel.image}",
+      "file": "D:\\Cursor\\New_PMTWIN\\POC\\src\\core\\renderer\\renderer.js",
+      "line": 90,
+      "message": "Relative path without ../ may not work correctly"
+    },
+    {
+      "type": "relative_path",
+      "url": "${subModel.image}",
+      "file": "D:\\Cursor\\New_PMTWIN\\POC\\src\\core\\renderer\\renderer.js",
+      "line": 125,
+      "message": "Relative path without ../ may not work correctly"
+    },
+    {
+      "type": "relative_path",
+      "url": "${model.image}",
+      "file": "D:\\Cursor\\New_PMTWIN\\POC\\src\\core\\renderer\\renderer.js",
+      "line": 189,
+      "message": "Relative path without ../ may not work correctly"
+    },
+    {
+      "type": "relative_path",
+      "url": "assets/css/main.css",
+      "file": "D:\\Cursor\\New_PMTWIN\\POC\\index.html",
+      "line": 7,
+      "message": "Relative path without ../ may not work correctly"
+    },
+    {
+      "type": "relative_path",
+      "url": "href",
+      "file": "D:\\Cursor\\New_PMTWIN\\POC\\index.html",
+      "line": 14,
+      "message": "Relative path without ../ may not work correctly"
+    },
+    {
+      "type": "relative_path",
+      "url": "pages/home/",
+      "file": "D:\\Cursor\\New_PMTWIN\\POC\\index.html",
+      "line": 14,
+      "message": "Relative path without ../ may not work correctly"
+    },
+    {
+      "type": "relative_path",
+      "url": "pages/home/",
+      "file": "D:\\Cursor\\New_PMTWIN\\POC\\index.html",
+      "line": 16,
+      "message": "Relative path without ../ may not work correctly"
+    }
+  ]
+}

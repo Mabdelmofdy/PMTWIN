@@ -5,6 +5,14 @@
 (function() {
   'use strict';
 
+  // Get base path helper
+  function getBasePath() {
+    const currentPath = window.location.pathname;
+    const segments = currentPath.split('/').filter(p => p && !p.endsWith('.html'));
+    const depth = segments.length;
+    return depth > 0 ? '../'.repeat(depth) : '';
+  }
+
   function init(params) {
     loadDashboardData();
   }
@@ -125,7 +133,7 @@
           <div class="card-body">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
               <h2 style="margin: 0;">Recent Activity Feed</h2>
-              <a href="../admin-audit/" class="btn btn-outline" style="font-size: 0.9rem;">View All</a>
+              <a href="${getBasePath()}admin-audit/" class="btn btn-outline" style="font-size: 0.9rem;">View All</a>
             </div>
             <div style="display: grid; gap: 0.75rem;">
       `;
@@ -163,7 +171,7 @@
       html += `
             </div>
             <div style="margin-top: 1rem; padding-top: 1rem; border-top: 1px solid var(--border-color);">
-              <a href="../admin-audit/" class="btn btn-primary">View Full Audit Trail</a>
+              <a href="${getBasePath()}admin-audit/" class="btn btn-primary">View Full Audit Trail</a>
             </div>
           </div>
         </div>
@@ -300,7 +308,7 @@
               <h3 style="margin: 0 0 0.25rem 0; font-size: 1.1rem;">Users Pending Review</h3>
               <p style="margin: 0; color: var(--text-secondary); font-size: 0.9rem;">${pendingUsers.length} user(s) awaiting vetting</p>
             </div>
-            <a href="../admin-vetting/" class="btn btn-warning">Review Users</a>
+            <a href="${getBasePath()}admin-vetting/" class="btn btn-warning">Review Users</a>
           </div>
         `;
       }
@@ -324,7 +332,7 @@
               <h3 style="margin: 0 0 0.25rem 0; font-size: 1.1rem;">Service Proposals</h3>
               <p style="margin: 0; color: var(--text-secondary); font-size: 0.9rem;">${pendingProposals.length} proposal(s) under review</p>
             </div>
-            <a href="../admin-moderation/" class="btn btn-warning">Review Proposals</a>
+            <a href="${getBasePath()}admin-moderation/" class="btn btn-warning">Review Proposals</a>
           </div>
         `;
       }
@@ -506,60 +514,69 @@
       const pendingOpportunities = PMTwinData.CollaborationOpportunities.getAll().filter(o => o.status === 'pending').length;
       const pendingProposals = PMTwinData.Proposals.getAll().filter(p => p.status === 'in_review' || p.status === 'pending').length;
 
+      // Helper to get route from NAV_ROUTES or fallback
+      function getRouteForAction(routeKey, fallbackPath) {
+        if (typeof window.NavRoutes !== 'undefined' && window.NavRoutes.NAV_ROUTES[routeKey]) {
+          return window.NavRoutes.getRoute(routeKey, { useLiveServer: true });
+        }
+        const basePath = getBasePath();
+        return `${basePath}${fallbackPath}`;
+      }
+
       const quickActions = [
         {
           title: 'User Vetting',
           icon: 'ph-check-circle',
-          href: '../admin-vetting/',
+          href: getRouteForAction('admin-vetting', 'admin-vetting/'),
           badge: pendingUsers > 0 ? pendingUsers : null,
           color: 'primary'
         },
         {
           title: 'Project Moderation',
           icon: 'ph-shield-check',
-          href: '../admin-moderation/',
+          href: getRouteForAction('admin-moderation', 'admin-moderation/'),
           badge: pendingProposals > 0 ? pendingProposals : null,
           color: 'primary'
         },
         {
           title: 'Models Management',
           icon: 'ph-handshake',
-          href: 'models-management/',
+          href: getRouteForAction('admin-models-management', 'admin/models-management/'),
           badge: pendingOpportunities > 0 ? pendingOpportunities : null,
           color: 'primary'
         },
         {
           title: 'Audit Trail',
           icon: 'ph-clipboard',
-          href: '../admin-audit/',
+          href: getRouteForAction('admin-audit', 'admin-audit/'),
           badge: null,
           color: 'primary'
         },
         {
           title: 'Reports',
           icon: 'ph-chart-bar',
-          href: '../admin-reports/',
+          href: getRouteForAction('admin-reports', 'admin-reports/'),
           badge: null,
           color: 'primary'
         },
         {
           title: 'Analytics',
           icon: 'ph-chart-line',
-          href: '../analytics/',
+          href: getRouteForAction('admin-analytics', 'admin/analytics/'),
           badge: null,
           color: 'primary'
         },
         {
           title: 'Settings',
           icon: 'ph-gear',
-          href: '../settings/',
+          href: getRouteForAction('admin-settings', 'admin/settings/'),
           badge: null,
           color: 'primary'
         },
         {
           title: 'User Management',
           icon: 'ph-users',
-          href: '../users-management/',
+          href: getRouteForAction('admin-users-management', 'admin/users-management/'),
           badge: null,
           color: 'primary'
         }

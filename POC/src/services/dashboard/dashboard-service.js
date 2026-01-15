@@ -1017,7 +1017,15 @@
     
     // Get base path for routes
     function getBasePath() {
-      // For local development: count all path segments to determine depth
+      // Check if we're on Live Server (port 5503) - use full paths to avoid 404 errors
+      const isLiveServer = window.location.port === '5503' || (window.location.hostname === '127.0.0.1' && window.location.port === '5503');
+      
+      if (isLiveServer) {
+        // For Live Server, return empty string and routes will be converted to full paths
+        return '';
+      }
+      
+      // For other servers: count all path segments to determine depth
       const currentPath = window.location.pathname;
       // Remove leading/trailing slashes and split, filter out empty strings and HTML files
       const segments = currentPath.split('/').filter(p => p && !p.endsWith('.html'));
@@ -1029,63 +1037,105 @@
       return depth > 0 ? '../'.repeat(depth) : '';
     }
     
+    // Helper to convert route to full path
+    // Uses centralized NavRoutes when available
+    function getRoute(routePath) {
+      // If NavRoutes is available, use it
+      if (typeof window.NavRoutes !== 'undefined') {
+        // Check if routePath is a route key (e.g., 'dashboard', 'admin-reports')
+        if (window.NavRoutes.NAV_ROUTES[routePath]) {
+          return window.NavRoutes.getRoute(routePath, { useLiveServer: true });
+        }
+        
+        // Otherwise, normalize the URL
+        return window.NavRoutes.toHtmlUrl(routePath);
+      }
+      
+      // Fallback to old behavior if NavRoutes not loaded
+      const isLiveServer = window.location.port === '5503' || (window.location.hostname === '127.0.0.1' && window.location.port === '5503');
+      
+      if (isLiveServer && routePath && routePath !== '#' && !routePath.startsWith('http')) {
+        // Handle query strings (e.g., "collaboration/?category=1")
+        const [pathPart, queryPart] = routePath.split('?');
+        
+        // Convert relative paths like "dashboard/" or "../dashboard/" to full paths
+        let cleanPath = pathPart.replace(/^\.\.\//g, '').replace(/\/$/, '');
+        
+        // Handle special cases
+        if (cleanPath.endsWith('.html')) {
+          // Already a file path
+          return `http://127.0.0.1:5503/POC/pages/${cleanPath}${queryPart ? '?' + queryPart : ''}`;
+        } else if (cleanPath.includes('/')) {
+          // Nested path like "collaboration/my-collaborations/"
+          return `http://127.0.0.1:5503/POC/pages/${cleanPath}/index.html${queryPart ? '?' + queryPart : ''}`;
+        } else {
+          // Simple path like "dashboard/"
+          return `http://127.0.0.1:5503/POC/pages/${cleanPath}/index.html${queryPart ? '?' + queryPart : ''}`;
+        }
+      }
+      
+      return routePath;
+    }
+    
+    // Helper to get route from NAV_ROUTES map or fallback
+    function getRouteForMenu(routeKey, fallbackPath) {
+      if (typeof window.NavRoutes !== 'undefined' && window.NavRoutes.NAV_ROUTES[routeKey]) {
+        return window.NavRoutes.getRoute(routeKey, { useLiveServer: true });
+      }
+      return getRoute(`${basePath}${fallbackPath}`);
+    }
+    
     const basePath = getBasePath();
     
     // Core menu items matching the new design (8 items)
     const coreMenuItems = [
       // 1. Dashboard
-      { id: 'dashboard', label: 'Dashboard', route: `${basePath}dashboard/`, feature: 'user_dashboard', icon: '<i class="ph ph-gauge"></i>' },
+      { id: 'dashboard', label: 'Dashboard', route: getRouteForMenu('dashboard', 'dashboard/'), feature: 'user_dashboard', icon: '<i class="ph ph-gauge"></i>' },
       
       // 2. My Projects (new page)
-      { id: 'my-projects', label: 'My Projects', route: `${basePath}my-projects/`, feature: 'view_my_projects', icon: '<i class="ph ph-folder"></i>', alternativeFeatures: ['project_management'] },
+      { id: 'my-projects', label: 'My Projects', route: getRouteForMenu('my-projects', 'my-projects/'), feature: 'view_my_projects', icon: '<i class="ph ph-folder"></i>', alternativeFeatures: ['project_management'] },
       // 2b. Projects (legacy, for browsing)
-      { id: 'projects', label: 'Projects', route: `${basePath}projects/`, feature: 'project_browsing', icon: '<i class="ph ph-buildings"></i>', alternativeFeatures: ['project_management'] },
+      { id: 'projects', label: 'Projects', route: getRouteForMenu('projects', 'projects/'), feature: 'project_browsing', icon: '<i class="ph ph-buildings"></i>', alternativeFeatures: ['project_management'] },
       
       // 3. Create Project
-      { id: 'create-project', label: 'Create Project', route: `${basePath}projects/create/`, feature: 'project_creation', icon: '<i class="ph ph-plus-circle"></i>' },
+      { id: 'create-project', label: 'Create Project', route: getRouteForMenu('create-project', 'projects/create/'), feature: 'project_creation', icon: '<i class="ph ph-plus-circle"></i>' },
       
       // 4. Opportunities
-      { id: 'opportunities', label: 'Opportunities', route: `${basePath}opportunities/`, feature: 'matches_view', icon: '<i class="ph ph-sparkle"></i>' },
+      { id: 'opportunities', label: 'Opportunities', route: getRouteForMenu('opportunities', 'opportunities/'), feature: 'matches_view', icon: '<i class="ph ph-sparkle"></i>' },
       
       // 5. Matches / Opportunities
-      { id: 'matches', label: 'Matches', route: `${basePath}matches/`, feature: 'view_matches', icon: '<i class="ph ph-link"></i>', alternativeFeatures: ['matches_view'] },
+      { id: 'matches', label: 'Matches', route: getRouteForMenu('matches', 'matches/'), feature: 'view_matches', icon: '<i class="ph ph-link"></i>', alternativeFeatures: ['matches_view'] },
       // 6. Proposals
-      { id: 'proposals', label: 'Proposals', route: `${basePath}proposals/`, feature: 'proposal_management', icon: '<i class="ph ph-file-text"></i>', alternativeFeatures: ['view_own_proposals', 'view_incoming_proposals'] },
+      { id: 'proposals', label: 'Proposals', route: getRouteForMenu('proposals', 'proposals/'), feature: 'proposal_management', icon: '<i class="ph ph-file-text"></i>', alternativeFeatures: ['view_own_proposals', 'view_incoming_proposals'] },
       // 7. Pipeline
-      { id: 'pipeline', label: 'Pipeline', route: `${basePath}pipeline/`, feature: 'pipeline_management', icon: '<i class="ph ph-git-branch"></i>', alternativeFeatures: ['proposal_management'] },
-      
-      // 6. Proposals
-      { id: 'proposals', label: 'Proposals', route: `${basePath}proposals/`, feature: 'proposal_management', icon: '<i class="ph ph-file-text"></i>', alternativeFeatures: ['proposal_creation', 'proposal_review'] },
-      
-      // 7. Pipeline
-      { id: 'pipeline', label: 'Pipeline', route: `${basePath}pipeline/`, feature: 'pipeline_management', icon: '<i class="ph ph-trend-up"></i>' },
+      { id: 'pipeline', label: 'Pipeline', route: getRouteForMenu('pipeline', 'pipeline/'), feature: 'pipeline_management', icon: '<i class="ph ph-git-branch"></i>', alternativeFeatures: ['proposal_management'] },
       
       // 8. My Services
-      { id: 'my-services', label: 'My Services', route: `${basePath}my-services/`, feature: 'service_portfolio', icon: '<i class="ph ph-briefcase"></i>', alternativeFeatures: ['service_providers'] }
+      { id: 'my-services', label: 'My Services', route: getRouteForMenu('my-services', 'my-services/'), feature: 'service_portfolio', icon: '<i class="ph ph-briefcase"></i>', alternativeFeatures: ['service_providers'] }
     ];
     
     // Additional menu items (for admin or future expansion)
     const additionalMenuItems = [
-      { id: 'services-marketplace', label: 'Service Marketplace', route: `${basePath}services-marketplace/`, feature: 'service_providers', icon: '<i class="ph ph-storefront"></i>' },
-      { id: 'service-evaluations', label: 'Service Evaluations', route: `${basePath}service-providers/`, feature: 'service_evaluations', icon: '<i class="ph ph-star"></i>', alternativeFeatures: ['service_providers'] },
+      { id: 'services-marketplace', label: 'Service Marketplace', route: getRouteForMenu('services-marketplace', 'services-marketplace/'), feature: 'service_providers', icon: '<i class="ph ph-storefront"></i>' },
+      { id: 'service-evaluations', label: 'Service Evaluations', route: getRouteForMenu('service-providers', 'service-providers/'), feature: 'service_evaluations', icon: '<i class="ph ph-star"></i>', alternativeFeatures: ['service_providers'] },
       
       // Service Provider & Service Request Section (New)
-      { id: 'service-provider-profile', label: 'Service Provider Profile', route: `${basePath}service-providers/profile/`, feature: 'service_provider_profile', icon: '<i class="ph ph-user-circle"></i>' },
-      { id: 'service-requests', label: 'Service Requests', route: `${basePath}service-requests/`, feature: 'service_requests_browse', icon: '<i class="ph ph-clipboard-text"></i>', alternativeFeatures: ['create_service_requests'] },
-      { id: 'skills-search', label: 'Search Provider Skills', route: `${basePath}service-providers/skills-search.html`, feature: 'search_service_provider_skills', icon: '<i class="ph ph-magnifying-glass"></i>', roles: ['vendor', 'entity', 'beneficiary'] },
-      { id: 'service-engagements', label: 'Service Engagements', route: `${basePath}service-engagements/`, feature: 'service_engagements_view', icon: '<i class="ph ph-handshake"></i>' },
+      { id: 'service-provider-profile', label: 'Service Provider Profile', route: getRouteForMenu('service-provider-profile', 'service-providers/profile/'), feature: 'service_provider_profile', icon: '<i class="ph ph-user-circle"></i>' },
+      { id: 'service-requests', label: 'Service Requests', route: getRouteForMenu('service-requests', 'service-requests/'), feature: 'service_requests_browse', icon: '<i class="ph ph-clipboard-text"></i>', alternativeFeatures: ['create_service_requests'] },
+      { id: 'skills-search', label: 'Search Provider Skills', route: getRouteForMenu('skills-search', 'service-providers/skills-search.html'), feature: 'search_service_provider_skills', icon: '<i class="ph ph-magnifying-glass"></i>', roles: ['vendor', 'entity', 'beneficiary'] },
+      { id: 'service-engagements', label: 'Service Engagements', route: getRouteForMenu('service-engagements', 'service-engagements/'), feature: 'service_engagements_view', icon: '<i class="ph ph-handshake"></i>' },
       
-      { id: 'notifications', label: 'Notifications', route: `${basePath}notifications/`, feature: 'notifications', icon: '<i class="ph ph-bell"></i>' },
+      { id: 'notifications', label: 'Notifications', route: getRouteForMenu('notifications', 'notifications/'), feature: 'notifications', icon: '<i class="ph ph-bell"></i>' },
       
       // Admin Section (will be filtered by RBAC)
       { id: 'admin-separator', label: '---', route: '#', feature: null, icon: '', isSeparator: true },
-      { id: 'admin-dashboard', label: 'Admin Dashboard', route: `${basePath}admin/`, feature: 'admin_dashboard', icon: '<i class="ph ph-gear"></i>' },
-      { id: 'directory', label: 'Directory', route: `${basePath}admin/directory/`, feature: 'admin_directory', icon: '<i class="ph ph-folder"></i>' },
-      { id: 'user-vetting', label: 'User Vetting', route: `${basePath}admin-vetting/`, feature: 'user_vetting', icon: '<i class="ph ph-check-circle"></i>' },
-      { id: 'user-management', label: 'User Management', route: `${basePath}admin/users-management/`, feature: 'user_management', icon: '<i class="ph ph-users"></i>' },
-      { id: 'project-moderation', label: 'Project Moderation', route: `${basePath}admin-moderation/`, feature: 'project_moderation', icon: '<i class="ph ph-shield-check"></i>' },
-      { id: 'audit-trail', label: 'Audit Trail', route: `${basePath}admin-audit/`, feature: 'audit_trail', icon: '<i class="ph ph-clipboard"></i>' },
-      { id: 'reports', label: 'Reports', route: `${basePath}admin-reports/`, feature: 'reports', icon: '<i class="ph ph-chart-bar"></i>' }
+      { id: 'admin-dashboard', label: 'Admin Dashboard', route: getRouteForMenu('admin', 'admin/'), feature: 'admin_dashboard', icon: '<i class="ph ph-gear"></i>' },
+      { id: 'directory', label: 'Directory', route: getRouteForMenu('admin-directory', 'admin/directory/'), feature: 'admin_directory', icon: '<i class="ph ph-folder"></i>' },
+      { id: 'user-vetting', label: 'User Vetting', route: getRouteForMenu('admin-vetting', 'admin-vetting/'), feature: 'user_vetting', icon: '<i class="ph ph-check-circle"></i>' },
+      { id: 'user-management', label: 'User Management', route: getRouteForMenu('admin-users-management', 'admin/users-management/'), feature: 'user_management', icon: '<i class="ph ph-users"></i>' },
+      { id: 'project-moderation', label: 'Project Moderation', route: getRouteForMenu('admin-moderation', 'admin-moderation/'), feature: 'project_moderation', icon: '<i class="ph ph-shield-check"></i>' },
+      { id: 'audit-trail', label: 'Audit Trail', route: getRouteForMenu('admin-audit', 'admin-audit/'), feature: 'audit_trail', icon: '<i class="ph ph-clipboard"></i>' },
+      { id: 'reports', label: 'Reports', route: getRouteForMenu('admin-reports', 'admin-reports/'), feature: 'reports', icon: '<i class="ph ph-chart-bar"></i>' }
     ];
     
     // Create simplified Collaboration menu item with main features
@@ -1094,21 +1144,21 @@
       { 
         id: 'collab-my-collaborations', 
         label: 'My Collaborations', 
-        route: `${basePath}collaboration/my-collaborations/`, 
+        route: getRouteForMenu('collab-my-collaborations', 'collaboration/my-collaborations/'), 
         feature: 'collaboration_opportunities',
         icon: '<i class="ph ph-folder"></i>' 
       },
       { 
         id: 'collab-opportunities', 
         label: 'Browse Opportunities', 
-        route: `${basePath}collaboration/opportunities/`, 
+        route: getRouteForMenu('collab-opportunities', 'collaboration/opportunities/'), 
         feature: 'collaboration_opportunities',
         icon: '<i class="ph ph-sparkle"></i>' 
       },
       { 
         id: 'collab-applications', 
         label: 'My Applications', 
-        route: `${basePath}collaboration/applications/`, 
+        route: getRouteForMenu('collab-applications', 'collaboration/applications/'), 
         feature: 'collaboration_applications',
         icon: '<i class="ph ph-file-text"></i>' 
       },
@@ -1124,59 +1174,59 @@
       { 
         id: 'collab-project-based', 
         label: 'Project-Based', 
-        route: `${basePath}collaboration/?category=1`, 
+        route: typeof window.NavRoutes !== 'undefined' ? window.NavRoutes.getRouteWithQuery('collaboration', { category: 1 }) : getRoute(`${basePath}collaboration/?category=1`), 
         feature: 'collaboration_opportunities',
         icon: '<i class="ph ph-buildings"></i>',
         hasChildren: true,
         children: [
-          { id: 'collab-task-based', label: 'Task-Based Engagement', route: `${basePath}collaboration/task-based/`, feature: 'collaboration_opportunities', icon: '<i class="ph ph-file-text"></i>' },
-          { id: 'collab-consortium', label: 'Consortium', route: `${basePath}collaboration/consortium/`, feature: 'collaboration_opportunities', icon: '<i class="ph ph-users-three"></i>' },
-          { id: 'collab-jv', label: 'Project-Specific JV', route: `${basePath}collaboration/joint-venture/`, feature: 'collaboration_opportunities', icon: '<i class="ph ph-handshake"></i>' },
-          { id: 'collab-spv', label: 'Special Purpose Vehicle', route: `${basePath}collaboration/spv/`, feature: 'collaboration_opportunities', icon: '<i class="ph ph-building-office"></i>' }
+          { id: 'collab-task-based', label: 'Task-Based Engagement', route: getRouteForMenu('collab-task-based', 'collaboration/task-based/'), feature: 'collaboration_opportunities', icon: '<i class="ph ph-file-text"></i>' },
+          { id: 'collab-consortium', label: 'Consortium', route: getRouteForMenu('collab-consortium', 'collaboration/consortium/'), feature: 'collaboration_opportunities', icon: '<i class="ph ph-users-three"></i>' },
+          { id: 'collab-jv', label: 'Project-Specific JV', route: getRouteForMenu('collab-jv', 'collaboration/joint-venture/'), feature: 'collaboration_opportunities', icon: '<i class="ph ph-handshake"></i>' },
+          { id: 'collab-spv', label: 'Special Purpose Vehicle', route: getRouteForMenu('collab-spv', 'collaboration/spv/'), feature: 'collaboration_opportunities', icon: '<i class="ph ph-building-office"></i>' }
         ]
       },
       { 
         id: 'collab-strategic', 
         label: 'Strategic Partnerships', 
-        route: `${basePath}collaboration/?category=2`, 
+        route: typeof window.NavRoutes !== 'undefined' ? window.NavRoutes.getRouteWithQuery('collaboration', { category: 2 }) : getRoute(`${basePath}collaboration/?category=2`), 
         feature: 'collaboration_opportunities',
         icon: '<i class="ph ph-handshake"></i>',
         hasChildren: true,
         children: [
-          { id: 'collab-strategic-jv', label: 'Strategic Joint Venture', route: `${basePath}collaboration/strategic-jv/`, feature: 'collaboration_opportunities', icon: '<i class="ph ph-handshake"></i>' },
-          { id: 'collab-strategic-alliance', label: 'Strategic Alliance', route: `${basePath}collaboration/strategic-alliance/`, feature: 'collaboration_opportunities', icon: '<i class="ph ph-link"></i>' },
-          { id: 'collab-mentorship', label: 'Mentorship Program', route: `${basePath}collaboration/mentorship/`, feature: 'collaboration_opportunities', icon: '<i class="ph ph-graduation-cap"></i>' }
+          { id: 'collab-strategic-jv', label: 'Strategic Joint Venture', route: getRouteForMenu('collab-strategic-jv', 'collaboration/strategic-jv/'), feature: 'collaboration_opportunities', icon: '<i class="ph ph-handshake"></i>' },
+          { id: 'collab-strategic-alliance', label: 'Strategic Alliance', route: getRouteForMenu('collab-strategic-alliance', 'collaboration/strategic-alliance/'), feature: 'collaboration_opportunities', icon: '<i class="ph ph-link"></i>' },
+          { id: 'collab-mentorship', label: 'Mentorship Program', route: getRouteForMenu('collab-mentorship', 'collaboration/mentorship/'), feature: 'collaboration_opportunities', icon: '<i class="ph ph-graduation-cap"></i>' }
         ]
       },
       { 
         id: 'collab-resources', 
         label: 'Resource Pooling', 
-        route: `${basePath}collaboration/?category=3`, 
+        route: typeof window.NavRoutes !== 'undefined' ? window.NavRoutes.getRouteWithQuery('collaboration', { category: 3 }) : getRoute(`${basePath}collaboration/?category=3`), 
         feature: 'collaboration_opportunities',
         icon: '<i class="ph ph-package"></i>',
         hasChildren: true,
         children: [
-          { id: 'collab-bulk-purchasing', label: 'Bulk Purchasing', route: `${basePath}collaboration/bulk-purchasing/`, feature: 'collaboration_opportunities', icon: '<i class="ph ph-shopping-cart"></i>' },
-          { id: 'collab-co-ownership', label: 'Co-Ownership Pooling', route: `${basePath}collaboration/co-ownership/`, feature: 'collaboration_opportunities', icon: '<i class="ph ph-users"></i>' },
-          { id: 'collab-resource-exchange', label: 'Resource Exchange', route: `${basePath}collaboration/resource-exchange/`, feature: 'collaboration_opportunities', icon: '<i class="ph ph-arrows-clockwise"></i>' }
+          { id: 'collab-bulk-purchasing', label: 'Bulk Purchasing', route: getRouteForMenu('collab-bulk-purchasing', 'collaboration/bulk-purchasing/'), feature: 'collaboration_opportunities', icon: '<i class="ph ph-shopping-cart"></i>' },
+          { id: 'collab-co-ownership', label: 'Co-Ownership Pooling', route: getRouteForMenu('collab-co-ownership', 'collaboration/co-ownership/'), feature: 'collaboration_opportunities', icon: '<i class="ph ph-users"></i>' },
+          { id: 'collab-resource-exchange', label: 'Resource Exchange', route: getRouteForMenu('collab-resource-exchange', 'collaboration/resource-exchange/'), feature: 'collaboration_opportunities', icon: '<i class="ph ph-arrows-clockwise"></i>' }
         ]
       },
       { 
         id: 'collab-hiring', 
         label: 'Hiring Resources', 
-        route: `${basePath}collaboration/?category=4`, 
+        route: typeof window.NavRoutes !== 'undefined' ? window.NavRoutes.getRouteWithQuery('collaboration', { category: 4 }) : getRoute(`${basePath}collaboration/?category=4`), 
         feature: 'collaboration_opportunities',
         icon: '<i class="ph ph-briefcase"></i>',
         hasChildren: true,
         children: [
-          { id: 'collab-professional-hiring', label: 'Professional Hiring', route: `${basePath}collaboration/professional-hiring/`, feature: 'collaboration_opportunities', icon: '<i class="ph ph-user"></i>' },
-          { id: 'collab-consultant-hiring', label: 'Consultant Hiring', route: `${basePath}collaboration/consultant-hiring/`, feature: 'collaboration_opportunities', icon: '<i class="ph ph-user-circle"></i>' }
+          { id: 'collab-professional-hiring', label: 'Professional Hiring', route: getRouteForMenu('collab-professional-hiring', 'collaboration/professional-hiring/'), feature: 'collaboration_opportunities', icon: '<i class="ph ph-user"></i>' },
+          { id: 'collab-consultant-hiring', label: 'Consultant Hiring', route: getRouteForMenu('collab-consultant-hiring', 'collaboration/consultant-hiring/'), feature: 'collaboration_opportunities', icon: '<i class="ph ph-user-circle"></i>' }
         ]
       },
       { 
         id: 'collab-competition', 
         label: 'Call for Competition', 
-        route: `${basePath}collaboration/?category=5`, 
+        route: typeof window.NavRoutes !== 'undefined' ? window.NavRoutes.getRouteWithQuery('collaboration', { category: 5 }) : getRoute(`${basePath}collaboration/?category=5`), 
         feature: 'collaboration_opportunities',
         icon: '<i class="ph ph-trophy"></i>' 
       }
@@ -1208,13 +1258,13 @@
           // Add admin menu items
           const adminMenuItems = [
             { id: 'admin-separator', label: '---', route: '#', feature: null, icon: '', isSeparator: true },
-            { id: 'admin-dashboard', label: 'Admin Dashboard', route: `${basePath}admin/`, feature: 'admin_dashboard', icon: '<i class="ph ph-gear"></i>' },
-            { id: 'directory', label: 'Directory', route: `${basePath}admin/directory/`, feature: 'admin_directory', icon: '<i class="ph ph-folder"></i>' },
-            { id: 'user-vetting', label: 'User Vetting', route: `${basePath}admin-vetting/`, feature: 'user_vetting', icon: '<i class="ph ph-check-circle"></i>' },
-            { id: 'user-management', label: 'User Management', route: `${basePath}admin/users-management/`, feature: 'user_management', icon: '<i class="ph ph-users"></i>' },
-            { id: 'project-moderation', label: 'Project Moderation', route: `${basePath}admin-moderation/`, feature: 'project_moderation', icon: '<i class="ph ph-shield-check"></i>' },
-            { id: 'audit-trail', label: 'Audit Trail', route: `${basePath}admin-audit/`, feature: 'audit_trail', icon: '<i class="ph ph-clipboard"></i>' },
-            { id: 'reports', label: 'Reports', route: `${basePath}admin-reports/`, feature: 'reports', icon: '<i class="ph ph-chart-bar"></i>' }
+            { id: 'admin-dashboard', label: 'Admin Dashboard', route: getRouteForMenu('admin', 'admin/'), feature: 'admin_dashboard', icon: '<i class="ph ph-gear"></i>' },
+            { id: 'directory', label: 'Directory', route: getRouteForMenu('admin-directory', 'admin/directory/'), feature: 'admin_directory', icon: '<i class="ph ph-folder"></i>' },
+            { id: 'user-vetting', label: 'User Vetting', route: getRouteForMenu('admin-vetting', 'admin-vetting/'), feature: 'user_vetting', icon: '<i class="ph ph-check-circle"></i>' },
+            { id: 'user-management', label: 'User Management', route: getRouteForMenu('admin-users-management', 'admin/users-management/'), feature: 'user_management', icon: '<i class="ph ph-users"></i>' },
+            { id: 'project-moderation', label: 'Project Moderation', route: getRouteForMenu('admin-moderation', 'admin-moderation/'), feature: 'project_moderation', icon: '<i class="ph ph-shield-check"></i>' },
+            { id: 'audit-trail', label: 'Audit Trail', route: getRouteForMenu('admin-audit', 'admin-audit/'), feature: 'audit_trail', icon: '<i class="ph ph-clipboard"></i>' },
+            { id: 'reports', label: 'Reports', route: getRouteForMenu('admin-reports', 'admin-reports/'), feature: 'reports', icon: '<i class="ph ph-chart-bar"></i>' }
           ];
           
           // Combine core items with admin items

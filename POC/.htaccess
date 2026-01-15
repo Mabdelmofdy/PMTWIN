@@ -1,0 +1,39 @@
+# Apache configuration for local development
+# This file helps with routing when using Apache or similar servers
+
+# Enable rewrite engine
+RewriteEngine On
+
+# Base path - adjust if your project is in a subdirectory
+RewriteBase /POC/
+
+# Admin routes
+RewriteRule ^admin/?$ pages/admin/index.html [L]
+RewriteRule ^admin/$ pages/admin/index.html [L]
+RewriteRule ^admin-vetting/?$ pages/admin-vetting/index.html [L]
+RewriteRule ^admin-moderation/?$ pages/admin-moderation/index.html [L]
+RewriteRule ^admin-audit/?$ pages/admin-audit/index.html [L]
+RewriteRule ^admin-reports/?$ pages/admin-reports/index.html [L]
+
+# Home route
+RewriteRule ^$ pages/home/index.html [L]
+RewriteRule ^home/?$ pages/home/index.html [L]
+
+# Dashboard route
+RewriteRule ^dashboard/?$ pages/dashboard/index.html [L]
+
+# Projects routes
+RewriteRule ^projects/?$ pages/projects/index.html [L]
+RewriteRule ^create-project/?$ pages/projects/create/index.html [L]
+
+# Other common routes - add more as needed
+RewriteRule ^login/?$ pages/auth/login/index.html [L]
+RewriteRule ^signup/?$ pages/auth/signup/index.html [L]
+RewriteRule ^profile/?$ pages/profile/index.html [L]
+RewriteRule ^notifications/?$ pages/notifications/index.html [L]
+
+# Fallback: if file exists, serve it; otherwise, try index.html in that directory
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteCond %{REQUEST_URI} ^(.+)/$
+RewriteRule ^(.+)/$ $1/index.html [L]

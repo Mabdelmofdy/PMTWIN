@@ -42,7 +42,7 @@
                 </h1>
                 <div class="card">
                     <div class="card-body">
-                        <form id="loginForm">
+                        <form id="loginForm" data-validate>
                             <div class="form-group">
                                 <label for="loginEmail" class="form-label">Email</label>
                                 <input type="email" id="loginEmail" class="form-control" required>
@@ -93,6 +93,8 @@
     <script src="../../../src/components/footer.js"></script>
     
     <!-- Component Scripts -->
+    <script src="../../../src/components/notifications.js"></script>
+    <script src="../../../src/utils/form-validation.js"></script>
     <script src="../../../features/auth/login.js"></script>
     
     <!-- Initialize Component -->

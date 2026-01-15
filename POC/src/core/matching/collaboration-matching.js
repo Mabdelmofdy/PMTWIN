@@ -982,6 +982,107 @@
   }
 
   // ============================================
+  // Intent-Based Matching Check
+  // ============================================
+  function checkIntentCompatibility(opportunity, user) {
+    // If opportunity has intentType, check compatibility
+    if (!opportunity.intentType) {
+      return true; // Legacy opportunities without intentType are compatible
+    }
+
+    // For REQUEST_SERVICE: user should be able to OFFER_SERVICE
+    if (opportunity.intentType === 'REQUEST_SERVICE') {
+      // User can match if they can offer services
+      // Check if user has service offerings or is a service provider
+      const userRole = user.role || '';
+      return ['service_provider', 'skill_service_provider', 'vendor', 'entity', 'individual'].includes(userRole);
+    }
+
+    // For OFFER_SERVICE: user should be able to REQUEST_SERVICE
+    if (opportunity.intentType === 'OFFER_SERVICE') {
+      // User can match if they can request services
+      const userRole = user.role || '';
+      return ['entity', 'beneficiary', 'vendor', 'project_lead'].includes(userRole);
+    }
+
+    // For BOTH: compatible with both requesters and offerers
+    if (opportunity.intentType === 'BOTH') {
+      return true; // Compatible with all
+    }
+
+    return true; // Default: compatible
+  }
+
+  // ============================================
+  // Payment Mode Compatibility Check
+  // ============================================
+  function checkPaymentModeCompatibility(opportunityPaymentMode, userPaymentPreference) {
+    if (!opportunityPaymentMode) {
+      return true; // Legacy opportunities without paymentMode
+    }
+
+    // If user preference not specified, assume compatible
+    if (!userPaymentPreference) {
+      return true;
+    }
+
+    // Exact match
+    if (opportunityPaymentMode === userPaymentPreference) {
+      return true;
+    }
+
+    // Hybrid is compatible with Cash and Barter
+    if (opportunityPaymentMode === 'Hybrid') {
+      return ['Cash', 'Barter', 'Hybrid'].includes(userPaymentPreference);
+    }
+
+    if (userPaymentPreference === 'Hybrid') {
+      return ['Cash', 'Barter', 'Hybrid'].includes(opportunityPaymentMode);
+    }
+
+    // Cash and Barter are not directly compatible (unless Hybrid)
+    return false;
+  }
+
+  // ============================================
+  // Barter Matching Logic
+  // ============================================
+  function calculateBarterCompatibility(opportunity, user) {
+    if (opportunity.paymentMode !== 'Barter' && opportunity.paymentMode !== 'Hybrid') {
+      return null; // Not applicable
+    }
+
+    const barterOffer = opportunity.attributes?.barterOffer || '';
+    const userBarterPreferences = user.profile?.barterPreferences || user.profile?.barterOffers || [];
+
+    if (!barterOffer && userBarterPreferences.length === 0) {
+      return { score: 50, compatible: true }; // Neutral if not specified
+    }
+
+    // Simple keyword matching for barter compatibility
+    const offerLower = barterOffer.toLowerCase();
+    let matchCount = 0;
+    let totalChecks = 0;
+
+    userBarterPreferences.forEach(pref => {
+      totalChecks++;
+      const prefLower = pref.toLowerCase();
+      if (offerLower.includes(prefLower) || prefLower.includes(offerLower)) {
+        matchCount++;
+      }
+    });
+
+    const score = totalChecks > 0 ? (matchCount / totalChecks) * 100 : 50;
+    return {
+      score: score,
+      compatible: score >= 30, // Low threshold for barter matching
+      matchedPreferences: userBarterPreferences.filter(pref => 
+        offerLower.includes(pref.toLowerCase()) || pref.toLowerCase().includes(offerLower)
+      )
+    };
+  }
+
+  // ============================================
   // Unified Matching Function
   // ============================================
   function matchCollaborationOpportunity(opportunityId, userId) {
@@ -990,6 +1091,17 @@
 
     if (!opportunity || !user) {
       return null;
+    }
+
+    // Check intent type compatibility
+    if (!checkIntentCompatibility(opportunity, user)) {
+      return null; // Intent types not compatible
+    }
+
+    // Check payment mode compatibility
+    const userPaymentPreference = user.profile?.paymentPreference || user.profile?.preferredPaymentMode;
+    if (!checkPaymentModeCompatibility(opportunity.paymentMode, userPaymentPreference)) {
+      return null; // Payment modes not compatible
     }
 
     // Check relationship type compatibility
@@ -1046,6 +1158,24 @@
 
     if (!matchResult) {
       return null;
+    }
+
+    // Add barter compatibility score if applicable
+    if (opportunity.paymentMode === 'Barter' || opportunity.paymentMode === 'Hybrid') {
+      const barterCompatibility = calculateBarterCompatibility(opportunity, user);
+      if (barterCompatibility) {
+        // Adjust final score based on barter compatibility
+        matchResult.scores.barterCompatibility = barterCompatibility.score;
+        // Reduce score if barter incompatible
+        if (!barterCompatibility.compatible) {
+          matchResult.finalScore = Math.max(0, matchResult.finalScore - 20);
+        } else {
+          // Boost score if barter highly compatible
+          if (barterCompatibility.score >= 70) {
+            matchResult.finalScore = Math.min(100, matchResult.finalScore + 5);
+          }
+        }
+      }
     }
 
     // Create match record if meets threshold

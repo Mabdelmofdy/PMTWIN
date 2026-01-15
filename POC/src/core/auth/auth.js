@@ -349,13 +349,25 @@
     if (!decodedPassword) {
       console.warn('Password decoding failed, attempting to fix...');
       let expectedPassword = null;
-      if (user.email === 'admin@pmtwin.com') {
-        expectedPassword = 'Admin123';
-      } else if (user.email === 'individual@pmtwin.com') {
-        expectedPassword = 'User123';
-      } else if (user.email === 'entity@pmtwin.com') {
-        expectedPassword = 'Entity123';
-      }
+      
+      // Check common demo account passwords
+      const demoPasswords = {
+        'admin@pmtwin.com': 'Admin123',
+        'individual@pmtwin.com': 'User123',
+        'entity@pmtwin.com': 'Entity123',
+        'entity2@pmtwin.com': 'Entity123',
+        'beneficiary@pmtwin.com': 'Beneficiary123',
+        'vendor.alpha@pmtwin.com': 'Vendor123',
+        'vendor.beta@pmtwin.com': 'Vendor123',
+        'bim@pmtwin.com': 'Service123',
+        'qa@pmtwin.com': 'Service123',
+        'scheduler@pmtwin.com': 'Service123',
+        'consultant@pmtwin.com': 'Consultant123',
+        'mep.sub@pmtwin.com': 'SubContractor123',
+        'steel.sub@pmtwin.com': 'SubContractor123'
+      };
+      
+      expectedPassword = demoPasswords[user.email];
       
       if (expectedPassword) {
         // Fix the password encoding
@@ -363,19 +375,24 @@
         decodedPassword = expectedPassword;
         console.log('✅ Fixed password encoding for', user.email);
       } else {
-        return { success: false, error: 'Password encoding error. Please contact support or reset your password.' };
+        // Try to decode as plain text (for backward compatibility)
+        try {
+          decodedPassword = atob(user.password);
+        } catch (e) {
+          // If that fails, check if password is already plain text
+          if (user.password && user.password.length < 50) {
+            decodedPassword = user.password;
+            // Re-encode properly
+            PMTwinData.Users.update(user.id, { password: btoa(user.password) });
+          } else {
+            return { success: false, error: 'Password encoding error. Please contact support or reset your password.' };
+          }
+        }
       }
     }
     
     if (decodedPassword !== password) {
-      // Provide helpful error message for test accounts
-      if (user.email === 'admin@pmtwin.com' || user.email === 'individual@pmtwin.com' || user.email === 'entity@pmtwin.com') {
-        return { 
-          success: false, 
-          error: `Invalid password. Expected: ${decodedPassword}. Please check your password and try again.` 
-        };
-      }
-      return { success: false, error: 'Invalid email or password' };
+      return { success: false, error: 'Invalid email or password. Please check your credentials and try again.' };
     }
 
     // Progressive authentication: Allow login based on onboarding stage

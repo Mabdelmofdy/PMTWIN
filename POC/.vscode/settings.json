@@ -1,0 +1,7 @@
+{
+  "liveServer.settings.root": "/POC",
+  "liveServer.settings.port": 5503,
+  "liveServer.settings.CustomBrowser": "chrome",
+  "liveServer.settings.donotShowInfoMsg": true,
+  "liveServer.settings.donotVerifyTags": true
+}

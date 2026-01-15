@@ -30,14 +30,30 @@ function initCollaborationPage(modelId) {
             try {
                 // Check authentication
                 if (!PMTwinAuth.isAuthenticated()) {
-                    window.location.href = '../../auth/login/';
+                    // Use NAV_ROUTES if available, otherwise use full URL
+                    let loginUrl = '/POC/pages/auth/login/index.html';
+                    if (typeof window.NavRoutes !== 'undefined' && window.NavRoutes.NAV_ROUTES['login']) {
+                        loginUrl = window.NavRoutes.getRoute('login', { useLiveServer: true });
+                    } else {
+                        // Fallback: normalize to full URL
+                        loginUrl = 'http://127.0.0.1:5503/POC/pages/auth/login/index.html';
+                    }
+                    window.location.href = loginUrl;
                     return;
                 }
                 
                 // Get current user
                 const currentUser = PMTwinData.Sessions.getCurrentUser();
                 if (!currentUser) {
-                    window.location.href = '../../auth/login/';
+                    // Use NAV_ROUTES if available, otherwise use full URL
+                    let loginUrl = '/POC/pages/auth/login/index.html';
+                    if (typeof window.NavRoutes !== 'undefined' && window.NavRoutes.NAV_ROUTES['login']) {
+                        loginUrl = window.NavRoutes.getRoute('login', { useLiveServer: true });
+                    } else {
+                        // Fallback: normalize to full URL
+                        loginUrl = 'http://127.0.0.1:5503/POC/pages/auth/login/index.html';
+                    }
+                    window.location.href = loginUrl;
                     return;
                 }
                 

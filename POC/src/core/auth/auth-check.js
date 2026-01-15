@@ -107,21 +107,54 @@
           }
           return false;
         }
-      } else if (currentUser.role !== requireRole) {
-        // Fallback to direct role check
-        const currentPath = window.location.pathname;
-        // Filter out POC, empty strings, and .html files
-        const pathSegments = currentPath.split('/').filter(p => p && p !== 'POC' && !p.endsWith('.html'));
-        const pagesIndex = pathSegments.indexOf('pages');
-        const depth = pagesIndex >= 0 ? pathSegments.length - pagesIndex - 1 : 1;
-        const basePath = depth > 0 ? '../'.repeat(depth) : '';
+      } else {
+        // Fallback to direct role check (case-insensitive)
+        const userRoleLower = currentUser.role?.toLowerCase()?.trim();
+        const requireRoleLower = requireRole?.toLowerCase()?.trim();
         
-        if (currentUser.role === 'entity' || currentUser.role === 'individual') {
-          window.location.href = basePath + 'dashboard/';
-        } else {
-          window.location.href = basePath + 'home/';
+        // Check for admin roles
+        const adminRoles = ['admin', 'platform_admin', 'auditor'];
+        const isUserAdmin = userRoleLower && adminRoles.includes(userRoleLower);
+        const isRequireAdmin = requireRoleLower && adminRoles.includes(requireRoleLower);
+        
+        // If both are admin roles, allow access
+        if (isUserAdmin && isRequireAdmin) {
+          console.log('✅ Admin role match (case-insensitive):', userRoleLower, 'matches', requireRoleLower);
+          // Allow access
+        } else if (userRoleLower !== requireRoleLower) {
+          // Role doesn't match, redirect based on user role
+          console.warn('⚠️ Role mismatch. User role:', currentUser.role, 'Required role:', requireRole);
+          const currentPath = window.location.pathname;
+          // Filter out POC, empty strings, and .html files
+          const pathSegments = currentPath.split('/').filter(p => p && p !== 'POC' && !p.endsWith('.html'));
+          const pagesIndex = pathSegments.indexOf('pages');
+          const depth = pagesIndex >= 0 ? pathSegments.length - pagesIndex - 1 : 1;
+          const basePath = depth > 0 ? '../'.repeat(depth) : '';
+          
+          if (isUserAdmin) {
+            // Platform admin ALWAYS redirects to full Live Server URL
+            const adminPath = 'http://127.0.0.1:5503/POC/pages/admin/index.html';
+            console.log('🔄 Admin user accessing wrong page, redirecting to admin dashboard:', adminPath);
+            window.location.href = adminPath;
+          } else if (currentUser.role === 'entity' || currentUser.role === 'individual') {
+            let dashboardPath = '/POC/pages/dashboard/index.html';
+            if (typeof window.NavRoutes !== 'undefined' && window.NavRoutes.NAV_ROUTES['dashboard']) {
+              dashboardPath = window.NavRoutes.getRoute('dashboard', { useLiveServer: true });
+            } else {
+              dashboardPath = basePath + 'dashboard/';
+            }
+            window.location.href = dashboardPath;
+          } else {
+            let homePath = '/POC/pages/home/index.html';
+            if (typeof window.NavRoutes !== 'undefined' && window.NavRoutes.NAV_ROUTES['home']) {
+              homePath = window.NavRoutes.getRoute('home', { useLiveServer: true });
+            } else {
+              homePath = basePath + 'home/';
+            }
+            window.location.href = homePath;
+          }
+          return false;
         }
-        return false;
       }
     }
 

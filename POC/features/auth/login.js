@@ -161,13 +161,26 @@
   async function handleLogin(e) {
     e.preventDefault();
     
-    const email = document.getElementById('loginEmail')?.value;
+    const email = document.getElementById('loginEmail')?.value?.trim();
     const password = document.getElementById('loginPassword')?.value;
     const errorDiv = document.getElementById('loginError');
+    const submitButton = e.target.querySelector('button[type="submit"]');
+    
+    // Clear previous errors
+    showError('');
     
     if (!email || !password) {
       showError('Please enter email and password');
       return;
+    }
+    
+    // Show loading state
+    if (submitButton) {
+      submitButton.disabled = true;
+      submitButton.classList.add('btn-loading');
+      const originalText = submitButton.textContent;
+      submitButton.setAttribute('data-original-text', originalText);
+      submitButton.textContent = 'Logging in...';
     }
 
     try {
@@ -184,19 +197,36 @@
       if (result.success) {
         console.log('✅ Login result:', result);
         
-        // Wait a moment to ensure session is stored in localStorage
-        await new Promise(resolve => setTimeout(resolve, 300));
+        // Verify session was created - use result.session if available, otherwise check
+        let session = result.session || PMTwinData.Sessions.getCurrentSession();
+        let currentUser = result.user || PMTwinData.Sessions.getCurrentUser();
         
-        // Verify session was created - check multiple times if needed
-        let session = PMTwinData.Sessions.getCurrentSession();
-        let currentUser = PMTwinData.Sessions.getCurrentUser();
-        
-        // If session not found, try again after a short delay
+        // If session not found, try multiple times with increasing delays
         if (!session || !currentUser) {
           console.warn('Session not found immediately, retrying...');
-          await new Promise(resolve => setTimeout(resolve, 200));
-          session = PMTwinData.Sessions.getCurrentSession();
-          currentUser = PMTwinData.Sessions.getCurrentUser();
+          for (let i = 0; i < 5; i++) {
+            await new Promise(resolve => setTimeout(resolve, 100 * (i + 1)));
+            session = PMTwinData.Sessions.getCurrentSession();
+            currentUser = PMTwinData.Sessions.getCurrentUser();
+            if (session && currentUser) break;
+          }
+        }
+        
+        // Final verification - if still no session, try to get user directly
+        if (!session && result.user) {
+          // Session might not be set yet, but user exists - create session manually
+          try {
+            session = PMTwinData.Sessions.create(
+              result.user.id,
+              result.user.role || result.user.userType,
+              result.user.userType,
+              result.user.onboardingStage
+            );
+            currentUser = result.user;
+            console.log('✅ Created session manually after login');
+          } catch (err) {
+            console.error('Failed to create session manually:', err);
+          }
         }
         
         console.log('Session check:', { 
@@ -208,18 +238,23 @@
         if (!session || !currentUser) {
           console.error('❌ Session not created properly after login');
           console.log('Available sessions:', PMTwinData.Sessions.getAll());
-          console.log('PMTwinAuth.isAuthenticated():', PMTwinAuth.isAuthenticated());
-          showError('Session creation failed. Please try again.');
+          console.log('PMTwinAuth.isAuthenticated():', typeof PMTwinAuth !== 'undefined' ? PMTwinAuth.isAuthenticated() : 'N/A');
+          showError('Session creation failed. Please refresh the page and try again.');
           return;
         }
         
         console.log('✅ Login successful. User:', currentUser.email, 'Role:', currentUser.role);
         
+        // Check for stored redirect (from AuthCheck)
+        const storedRedirect = typeof AuthCheck !== 'undefined' ? AuthCheck.getLoginRedirect() : null;
+        if (storedRedirect) {
+          console.log('🚀 Using stored redirect:', storedRedirect);
+          window.location.replace(storedRedirect);
+          return;
+        }
+        
         // Get base path for proper navigation
         const basePath = getBasePath();
-        
-        // Determine redirect path based on user role
-        let redirectPath = `${basePath}dashboard/`; // Default to dashboard
         
         // Use the user from result if available, otherwise get from session
         const user = result.user || currentUser;
@@ -227,57 +262,223 @@
         
         // Get role from multiple sources (user object, session, result)
         const role = user?.role || session?.role || result.user?.role || currentUser?.role;
+        const userType = user?.userType || session?.userType || currentUser?.userType;
+        
+        // Check email as primary indicator for admin (most reliable)
+        const isAdminEmail = userEmail === 'admin@pmtwin.com';
         
         console.log('🔍 Login redirect check:', {
           userEmail: userEmail,
           role: role,
-          userType: user?.userType,
+          roleType: typeof role,
+          userType: userType,
           sessionRole: session?.role,
           resultUserRole: result.user?.role,
-          currentUserRole: currentUser?.role
+          currentUserRole: currentUser?.role,
+          isAdminEmail: isAdminEmail,
+          userObject: user
         });
+        
+        // Determine redirect path based on user role
+        // Use NAV_ROUTES if available, otherwise fallback to basePath
+        let redirectPath = typeof window.NavRoutes !== 'undefined' && window.NavRoutes.NAV_ROUTES['dashboard']
+          ? window.NavRoutes.getRoute('dashboard', { useLiveServer: true })
+          : `${basePath}dashboard/`; // Default to dashboard
         
         // Simple role-based redirect (more reliable than RBAC for now)
         // Check for admin roles (case-insensitive check)
         const adminRoles = ['admin', 'platform_admin', 'auditor'];
-        const roleLower = role?.toLowerCase();
-        const isAdmin = adminRoles.some(r => r.toLowerCase() === roleLower);
+        const roleLower = role?.toLowerCase()?.trim();
+        let isAdmin = (roleLower && adminRoles.some(r => r.toLowerCase() === roleLower)) || isAdminEmail;
+        
+        // If email is admin@pmtwin.com, force admin detection regardless of role
+        if (isAdminEmail && !isAdmin) {
+          console.warn('⚠️ Admin email detected but role not admin, forcing admin redirect');
+          isAdmin = true;
+        }
+        
+        console.log('🔍 Admin check:', {
+          roleLower: roleLower,
+          isAdmin: isAdmin,
+          adminRoles: adminRoles,
+          matches: adminRoles.map(r => ({ role: r, matches: r.toLowerCase() === roleLower }))
+        });
         
         if (isAdmin) {
-          redirectPath = `${basePath}admin/`;
-          console.log('🔐 Admin user detected, redirecting to admin portal');
+          // Platform admin ALWAYS redirects to full Live Server URL
+          redirectPath = 'http://127.0.0.1:5503/POC/pages/admin/index.html';
+          console.log('🔐 Admin user detected, redirecting to admin portal:', redirectPath);
+        } else if (isAdminEmail) {
+          // Email-based admin detection (fallback if role detection fails)
+          console.warn('⚠️ Admin detected by email but not by role, forcing admin redirect');
+          // Platform admin ALWAYS redirects to full Live Server URL
+          redirectPath = 'http://127.0.0.1:5503/POC/pages/admin/index.html';
+          console.log('🔐 Admin email detected, forcing admin redirect:', redirectPath);
+          isAdmin = true; // Update flag
         } else if (role === 'beneficiary' || role === 'entity' || role === 'individual' || role === 'project_lead' || 
                    role === 'professional' || role === 'supplier' || role === 'service_provider' || 
                    role === 'skill_service_provider' || role === 'consultant' || role === 'mentor' ||
-                   role === 'vendor' || role === 'sub_contractor') {
-          redirectPath = `${basePath}dashboard/`;
+                   role === 'vendor' || role === 'sub_contractor' || userType === 'beneficiary' ||
+                   userType === 'vendor_corporate' || userType === 'vendor_individual' ||
+                   userType === 'service_provider' || userType === 'consultant' || userType === 'sub_contractor') {
+          redirectPath = typeof window.NavRoutes !== 'undefined' && window.NavRoutes.NAV_ROUTES['dashboard']
+            ? window.NavRoutes.getRoute('dashboard', { useLiveServer: true })
+            : `${basePath}dashboard/`;
           console.log('👤 User detected, redirecting to user portal (dashboard)');
         } else {
-          redirectPath = `${basePath}home/`;
+          redirectPath = typeof window.NavRoutes !== 'undefined' && window.NavRoutes.NAV_ROUTES['home']
+            ? window.NavRoutes.getRoute('home', { useLiveServer: true })
+            : `${basePath}home/`;
           console.log('🏠 Unknown role "' + role + '", redirecting to home');
         }
         
         // Perform redirect
         console.log('🚀 Redirecting to:', redirectPath);
         console.log('Current location:', window.location.href);
+        console.log('User role:', role, 'Is Admin:', isAdmin);
+        console.log('Redirect path type:', typeof redirectPath, 'Value:', redirectPath);
+        
+        // Ensure redirect path is valid
+        if (!redirectPath || redirectPath === 'undefined' || redirectPath.includes('undefined')) {
+          console.error('❌ Invalid redirect path:', redirectPath);
+          const currentPort = window.location.port || (window.location.protocol === 'https:' ? '443' : '80');
+          // Use NAV_ROUTES if available
+          if (typeof window.NavRoutes !== 'undefined' && window.NavRoutes.NAV_ROUTES) {
+            redirectPath = isAdmin 
+              ? window.NavRoutes.getRoute('admin', { useLiveServer: true })
+              : window.NavRoutes.getRoute('dashboard', { useLiveServer: true });
+          } else {
+            const currentPort = window.location.port || (window.location.protocol === 'https:' ? '443' : '80');
+            const isLiveServer = currentPort === '5503' || window.location.host.includes(':5503');
+            redirectPath = isAdmin 
+              ? (isLiveServer ? 'http://127.0.0.1:5503/POC/pages/admin/index.html' : `${basePath}admin/`)
+              : `${basePath}dashboard/`;
+          }
+          console.log('🔄 Using fallback redirect path:', redirectPath);
+        }
+        
+        // Final safety check: If email is admin@pmtwin.com, ALWAYS redirect to admin
+        if (isAdminEmail && !redirectPath.includes('admin')) {
+          console.warn('⚠️ Admin email detected but redirect path incorrect, forcing admin redirect...');
+          // Platform admin ALWAYS redirects to full Live Server URL
+          redirectPath = 'http://127.0.0.1:5503/POC/pages/admin/index.html';
+          console.log('🔄 Forced admin redirect based on email:', redirectPath);
+          isAdmin = true; // Update flag
+        }
+        
+        // Ensure admin redirects always use full Live Server URL
+        if (isAdmin && !redirectPath.includes('http://127.0.0.1:5503/POC/pages/admin/index.html')) {
+          redirectPath = 'http://127.0.0.1:5503/POC/pages/admin/index.html';
+          console.log('🔄 Ensuring admin redirect uses full Live Server URL:', redirectPath);
+        }
         
         // Use replace to avoid back button issues
-        window.location.replace(redirectPath);
+        // Add a delay to ensure session is saved and persisted
+        setTimeout(() => {
+          // Verify session was saved before redirecting
+          const savedSession = PMTwinData?.Sessions?.getCurrentSession();
+          const savedUser = PMTwinData?.Sessions?.getCurrentUser();
+          
+          console.log('🔍 Pre-redirect session check:', {
+            hasSession: !!savedSession,
+            hasUser: !!savedUser,
+            userRole: savedUser?.role,
+            userEmail: savedUser?.email,
+            sessionRole: savedSession?.role,
+            isAdmin: isAdmin,
+            isAdminEmail: isAdminEmail
+          });
+          
+          // Verify admin role is saved correctly, but allow redirect if email matches admin
+          if (isAdmin) {
+            const savedRoleLower = savedUser?.role?.toLowerCase()?.trim();
+            const savedEmail = savedUser?.email;
+            const isSavedAdmin = savedRoleLower && ['admin', 'platform_admin', 'auditor'].includes(savedRoleLower);
+            const isSavedAdminEmail = savedEmail === 'admin@pmtwin.com';
+            
+            // If email matches admin, always allow redirect (role might not be saved yet)
+            if (isSavedAdminEmail) {
+              console.log('✅ Admin email confirmed in session, proceeding with redirect');
+            } else if (!savedUser || !isSavedAdmin) {
+              console.warn('⚠️ Session not properly saved for admin user. Saved role:', savedUser?.role, 'Saved email:', savedEmail);
+              
+              // If we detected admin from email or role earlier, still redirect
+              if (isAdminEmail || (roleLower && ['admin', 'platform_admin', 'auditor'].includes(roleLower))) {
+                console.warn('⚠️ Admin detected earlier but session incomplete, proceeding with redirect anyway');
+              } else {
+                console.warn('⚠️ Retrying redirect after additional delay...');
+                // Retry after another delay
+                setTimeout(() => {
+                  try {
+                    console.log('🔄 Executing redirect to:', redirectPath);
+                    window.location.replace(redirectPath);
+                  } catch (e) {
+                    console.error('❌ Redirect error, trying href instead:', e);
+                    window.location.href = redirectPath;
+                  }
+                }, 300);
+                return;
+              }
+            }
+          }
+          
+          try {
+            console.log('🔄 Executing redirect to:', redirectPath);
+            window.location.replace(redirectPath);
+          } catch (e) {
+            console.error('❌ Redirect error, trying href instead:', e);
+            try {
+              window.location.href = redirectPath;
+            } catch (e2) {
+              console.error('❌ Both redirect methods failed:', e2);
+              alert('Redirect failed. Please navigate manually to: ' + redirectPath);
+            }
+          }
+        }, 300);
       } else {
         console.error('❌ Login failed:', result.error);
-        showError(result.error || 'Login failed');
+        showError(result.error || 'Login failed. Please check your credentials and try again.');
+        // Show notification
+        if (typeof window.Notifications !== 'undefined') {
+          window.Notifications.error('Login Failed', result.error || 'Please check your credentials and try again.');
+        }
+        // Restore button
+        if (submitButton) {
+          submitButton.disabled = false;
+          submitButton.classList.remove('btn-loading');
+          submitButton.textContent = submitButton.getAttribute('data-original-text') || 'Login';
+        }
       }
     } catch (error) {
       console.error('Login error:', error);
-      showError('An error occurred during login');
+      const errorMsg = 'An error occurred during login. Please try again or refresh the page.';
+      showError(errorMsg);
+      // Show notification
+      if (typeof window.Notifications !== 'undefined') {
+        window.Notifications.error('Login Error', errorMsg);
+      }
+      // Restore button
+      if (submitButton) {
+        submitButton.disabled = false;
+        submitButton.classList.remove('btn-loading');
+        submitButton.textContent = submitButton.getAttribute('data-original-text') || 'Login';
+      }
     }
   }
 
   function showError(message) {
     const errorDiv = document.getElementById('loginError');
     if (errorDiv) {
-      errorDiv.textContent = message;
-      errorDiv.style.display = 'block';
+      if (message) {
+        errorDiv.textContent = message;
+        errorDiv.style.display = 'block';
+        errorDiv.classList.add('alert-error');
+        // Scroll to error
+        errorDiv.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      } else {
+        errorDiv.textContent = '';
+        errorDiv.style.display = 'none';
+      }
     }
   }
 

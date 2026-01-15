@@ -7,21 +7,70 @@
 (function() {
   'use strict';
 
-  // Calculate base path from current page location
-  // All active pages load services-loader.js with ../services/services-loader.js
-  // So they're all in subdirectories and need ../ to reach the POC root
+  // Calculate base path from script location
+  // This script is always at: [POC_ROOT]/src/services/services-loader.js
+  // We need to calculate relative path from current page to POC root
   function getBasePath() {
-    // For local development: count all path segments to determine depth
+    // Use document.currentScript if available (most reliable)
+    const currentScript = document.currentScript || (function() {
+      const scripts = document.getElementsByTagName('script');
+      for (let i = scripts.length - 1; i >= 0; i--) {
+        if (scripts[i].src && scripts[i].src.includes('services-loader.js')) {
+          return scripts[i];
+        }
+      }
+      return null;
+    })();
+    
+    if (currentScript && currentScript.src) {
+      try {
+        // Get the script's directory URL
+        const scriptUrl = new URL(currentScript.src);
+        // The script is at: [BASE]/src/services/services-loader.js
+        // So POC root is 2 levels up from the script
+        const scriptDir = scriptUrl.pathname.substring(0, scriptUrl.pathname.lastIndexOf('/'));
+        const pocRoot = scriptDir.split('/').slice(0, -2).join('/') || '/';
+        
+        // Get current page directory
+        const pageUrl = new URL(window.location.href);
+        const pageDir = pageUrl.pathname.substring(0, pageUrl.pathname.lastIndexOf('/')) || '/';
+        
+        // Calculate relative path from page to POC root
+        if (pageDir === pocRoot || pageDir === '/') {
+          return '';
+        }
+        
+        // Count directory levels difference
+        const pageSegments = pageDir.split('/').filter(p => p);
+        const rootSegments = pocRoot.split('/').filter(p => p);
+        const depth = pageSegments.length - rootSegments.length;
+        
+        return depth > 0 ? '../'.repeat(depth) : '';
+      } catch (e) {
+        console.warn('[ServicesLoader] Error calculating path from script:', e);
+      }
+    }
+    
+    // Fallback: calculate from page location
     const currentPath = window.location.pathname;
-    // Remove leading/trailing slashes and split, filter out empty strings and HTML files
-    const segments = currentPath.split('/').filter(p => p && !p.endsWith('.html'));
-    
-    // Count how many levels deep we are
-    // For example: /pages/auth/login/ = 3 levels deep, need ../../../ to reach POC root
+    // Remove index.html or trailing slash
+    const cleanPath = currentPath.replace(/\/index\.html?$/i, '').replace(/\/$/, '') || '/';
+    const segments = cleanPath.split('/').filter(p => p);
     const depth = segments.length;
+    const basePath = depth > 0 ? '../'.repeat(depth) : '';
     
-    // Generate the appropriate number of ../ to reach POC root
-    return depth > 0 ? '../'.repeat(depth) : '';
+    // Debug logging
+    if (window.location.hostname === '127.0.0.1' || window.location.hostname === 'localhost') {
+      console.log('[ServicesLoader] Path calculation (fallback):', {
+        pathname: currentPath,
+        cleanPath: cleanPath,
+        segments: segments,
+        depth: depth,
+        basePath: basePath
+      });
+    }
+    
+    return basePath;
   }
 
   const basePath = getBasePath();
@@ -30,13 +79,22 @@
     // Core RBAC service (must be loaded first)
     'src/services/rbac/role-service.js',
     
+    // Business Logic Models (must load before services that use them)
+    'src/business-logic/models/service-item-model.js',
+    'src/business-logic/payment/barter-settlement.js',
+    'src/business-logic/payment/hybrid-payment.js',
+    
     // Feature services
     'src/services/auth/auth-service.js',
     'src/services/dashboard/dashboard-service.js',
     'src/services/projects/project-service.js',
+    'src/services/proposals/proposal-versioning-service.js',
     'src/services/proposals/proposal-service.js',
+    'src/domains/contracts/multi-party-contract-service.js',
     'src/services/matching/matching-service.js',
     'src/services/collaboration/collaboration-service.js',
+    'src/services/marketplace/unified-marketplace-service.js',
+    'src/core/matching/barter-matching-service.js',
     'src/services/service-providers/service-provider-service.js',
     'src/services/service-offerings/service-offering-service.js',
     'src/services/service-evaluations/service-evaluation-service.js',
@@ -76,6 +134,13 @@
       console.log('[ServicesLoader] ServiceOfferingService available:', typeof ServiceOfferingService !== 'undefined');
       console.log('[ServicesLoader] ServiceProviderService available:', typeof ServiceProviderService !== 'undefined');
       console.log('[ServicesLoader] ServiceEvaluationService available:', typeof ServiceEvaluationService !== 'undefined');
+      console.log('[ServicesLoader] ServiceItemModel available:', typeof ServiceItemModel !== 'undefined');
+      console.log('[ServicesLoader] BarterSettlement available:', typeof BarterSettlement !== 'undefined');
+      console.log('[ServicesLoader] HybridPayment available:', typeof HybridPayment !== 'undefined');
+      console.log('[ServicesLoader] ProposalVersioning available:', typeof ProposalVersioning !== 'undefined');
+      console.log('[ServicesLoader] MultiPartyContractService available:', typeof MultiPartyContractService !== 'undefined');
+      console.log('[ServicesLoader] UnifiedMarketplaceService available:', typeof UnifiedMarketplaceService !== 'undefined');
+      console.log('[ServicesLoader] BarterMatchingService available:', typeof BarterMatchingService !== 'undefined');
       
       // Initialize role assignments for existing users
       if (typeof PMTwinData !== 'undefined' && typeof PMTwinRBAC !== 'undefined') {

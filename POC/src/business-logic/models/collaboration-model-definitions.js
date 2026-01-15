@@ -18,7 +18,18 @@
       category: 'Project-Based Collaboration',
       description: 'Short-term collaboration for executing specific tasks, deliverables, or providing expert consultation.',
       applicability: ['B2B', 'B2P', 'P2B', 'P2P'],
+      supportedIntentTypes: ['REQUEST_SERVICE', 'OFFER_SERVICE', 'BOTH'],
+      supportedPaymentModes: ['Cash', 'Barter', 'Hybrid'],
       attributes: [
+        {
+          name: 'intentType',
+          type: 'Enum',
+          required: true,
+          question: 'What is your intent?',
+          options: ['REQUEST_SERVICE', 'OFFER_SERVICE', 'BOTH'],
+          placeholder: 'Select intent type',
+          default: 'BOTH'
+        },
         {
           name: 'taskTitle',
           type: 'String',
@@ -114,21 +125,33 @@
           placeholder: 'Select payment terms'
         },
         {
-          name: 'exchangeType',
+          name: 'paymentMode',
           type: 'Enum',
           required: true,
-          question: 'How will you compensate?',
-          options: ['Cash', 'Barter', 'Mixed'],
-          placeholder: 'Select exchange type'
+          question: 'What payment mode will you use?',
+          options: ['Cash', 'Barter', 'Hybrid'],
+          placeholder: 'Select payment mode',
+          default: 'Cash'
         },
         {
           name: 'barterOffer',
           type: 'Text',
           maxLength: 500,
           required: false,
-          conditional: { field: 'exchangeType', value: ['Barter', 'Mixed'] },
+          conditional: { field: 'paymentMode', value: ['Barter', 'Hybrid'] },
           question: 'What are you offering in exchange?',
           placeholder: 'Describe what you can offer in barter...'
+        },
+        {
+          name: 'barterSettlementRule',
+          type: 'Enum',
+          required: false,
+          conditional: { field: 'paymentMode', value: ['Barter', 'Hybrid'] },
+          question: 'How should value differences be handled?',
+          options: ['EQUAL_VALUE_ONLY', 'ALLOW_DIFFERENCE_WITH_CASH', 'ACCEPT_AS_IS'],
+          placeholder: 'Select barter settlement rule',
+          default: 'ALLOW_DIFFERENCE_WITH_CASH',
+          description: 'EQUAL_VALUE_ONLY: Values must match exactly | ALLOW_DIFFERENCE_WITH_CASH: Cash component allowed | ACCEPT_AS_IS: Value difference waived'
         }
       ],
       matchingMetrics: [
@@ -1686,19 +1709,20 @@
           placeholder: 'Select start date'
         },
         {
-          name: 'exchangeType',
+          name: 'paymentMode',
           type: 'Enum',
           required: true,
-          question: 'How will you compensate?',
-          options: ['Cash', 'Barter', 'Mixed'],
-          placeholder: 'Select exchange type'
+          question: 'What payment mode will you use?',
+          options: ['Cash', 'Barter', 'Hybrid'],
+          placeholder: 'Select payment mode',
+          default: 'Cash'
         },
         {
           name: 'barterOffer',
           type: 'Text',
           maxLength: 500,
           required: false,
-          conditional: { field: 'exchangeType', value: ['Barter', 'Mixed'] },
+          conditional: { field: 'paymentMode', value: ['Barter', 'Hybrid'] },
           question: 'What are you offering in exchange?',
           placeholder: 'Describe barter offer...'
         }
@@ -1902,11 +1926,126 @@
   };
 
   // ============================================
+  // Model Enhancement: Add Product Vision Support
+  // ============================================
+
+  /**
+   * Enhance model with intentType and paymentMode support
+   * @param {Object} model - Model definition
+   * @returns {Object} - Enhanced model
+   */
+  function enhanceModelWithProductVision(model) {
+    if (!model) return model;
+
+    // Add intentType support (default: BOTH for collaboration models)
+    if (!model.supportedIntentTypes) {
+      model.supportedIntentTypes = ['REQUEST_SERVICE', 'OFFER_SERVICE', 'BOTH'];
+    }
+
+    // Add paymentMode support (default: all modes)
+    if (!model.supportedPaymentModes) {
+      model.supportedPaymentModes = ['Cash', 'Barter', 'Hybrid'];
+    }
+
+    // Add intentType attribute if not present
+    const hasIntentType = model.attributes && model.attributes.some(attr => attr.name === 'intentType');
+    if (!hasIntentType) {
+      model.attributes = model.attributes || [];
+      model.attributes.unshift({
+        name: 'intentType',
+        type: 'Enum',
+        required: true,
+        question: 'What is your intent?',
+        options: model.supportedIntentTypes,
+        placeholder: 'Select intent type',
+        default: 'BOTH'
+      });
+    }
+
+    // Replace exchangeType with paymentMode if present, or add paymentMode
+    const exchangeTypeIndex = model.attributes ? model.attributes.findIndex(attr => attr.name === 'exchangeType') : -1;
+    if (exchangeTypeIndex >= 0) {
+      // Replace exchangeType with paymentMode
+      model.attributes[exchangeTypeIndex] = {
+        name: 'paymentMode',
+        type: 'Enum',
+        required: true,
+        question: 'What payment mode will you use?',
+        options: model.supportedPaymentModes,
+        placeholder: 'Select payment mode',
+        default: 'Cash'
+      };
+    } else {
+      // Add paymentMode if not present
+      const hasPaymentMode = model.attributes && model.attributes.some(attr => attr.name === 'paymentMode');
+      if (!hasPaymentMode) {
+        const paymentModeAttr = {
+          name: 'paymentMode',
+          type: 'Enum',
+          required: true,
+          question: 'What payment mode will you use?',
+          options: model.supportedPaymentModes,
+          placeholder: 'Select payment mode',
+          default: 'Cash'
+        };
+        // Insert after intentType or at beginning
+        const intentTypeIndex = model.attributes ? model.attributes.findIndex(attr => attr.name === 'intentType') : -1;
+        if (intentTypeIndex >= 0) {
+          model.attributes.splice(intentTypeIndex + 1, 0, paymentModeAttr);
+        } else {
+          model.attributes = model.attributes || [];
+          model.attributes.unshift(paymentModeAttr);
+        }
+      }
+    }
+
+    // Add barterSettlementRule for Barter/Hybrid models
+    const supportsBarter = model.supportedPaymentModes.includes('Barter') || model.supportedPaymentModes.includes('Hybrid');
+    if (supportsBarter) {
+      const hasBarterRule = model.attributes && model.attributes.some(attr => attr.name === 'barterSettlementRule');
+      if (!hasBarterRule) {
+        // Find barterOffer or paymentMode field to add after
+        const barterOfferIndex = model.attributes ? model.attributes.findIndex(attr => attr.name === 'barterOffer') : -1;
+        const paymentModeIndex = model.attributes ? model.attributes.findIndex(attr => attr.name === 'paymentMode') : -1;
+        
+        const barterRuleAttr = {
+          name: 'barterSettlementRule',
+          type: 'Enum',
+          required: false,
+          conditional: { field: 'paymentMode', value: ['Barter', 'Hybrid'] },
+          question: 'How should value differences be handled?',
+          options: ['EQUAL_VALUE_ONLY', 'ALLOW_DIFFERENCE_WITH_CASH', 'ACCEPT_AS_IS'],
+          placeholder: 'Select barter settlement rule',
+          default: 'ALLOW_DIFFERENCE_WITH_CASH',
+          description: 'EQUAL_VALUE_ONLY: Values must match exactly | ALLOW_DIFFERENCE_WITH_CASH: Cash component allowed | ACCEPT_AS_IS: Value difference waived'
+        };
+
+        if (barterOfferIndex >= 0) {
+          model.attributes.splice(barterOfferIndex + 1, 0, barterRuleAttr);
+        } else if (paymentModeIndex >= 0) {
+          model.attributes.splice(paymentModeIndex + 1, 0, barterRuleAttr);
+        } else {
+          model.attributes = model.attributes || [];
+          model.attributes.push(barterRuleAttr);
+        }
+      }
+    }
+
+    return model;
+  }
+
+  // Enhance all models
+  Object.keys(COLLABORATION_MODELS).forEach(modelId => {
+    COLLABORATION_MODELS[modelId] = enhanceModelWithProductVision(COLLABORATION_MODELS[modelId]);
+  });
+
+  // ============================================
   // Helper Functions
   // ============================================
 
   function getModel(modelId) {
-    return COLLABORATION_MODELS[modelId] || null;
+    const model = COLLABORATION_MODELS[modelId] || null;
+    return model ? enhanceModelWithProductVision(model) : null;
   }
 
   function getCategory(categoryId) {

@@ -108,6 +108,13 @@
   async function loginWithDemoUser(user) {
     console.log(`🔐 Logging in with demo user: ${user.name} (${user.email})`);
     
+    // CRITICAL: Early check for Platform Administrator - if email is admin@pmtwin.com, 
+    // we know it's admin and will redirect to admin portal
+    const isPlatformAdmin = user.email === 'admin@pmtwin.com';
+    if (isPlatformAdmin) {
+      console.log('✅ Platform Administrator detected early - will redirect to admin portal');
+    }
+    
     // Show loading state
     const card = document.querySelector(`[data-user-id="${user.userId}"]`);
     if (card) {
@@ -125,53 +132,392 @@
     }
 
     try {
+      // CRITICAL: Early check for Platform Administrator
+      const isPlatformAdmin = user.email === 'admin@pmtwin.com';
+      console.log('🔍🔍🔍 PRE-LOGIN CHECK 🔍🔍🔍');
+      console.log('🔍 Pre-login check - Platform Administrator:', isPlatformAdmin, 'Email:', user.email);
+      console.log('🔍 User object:', user);
+      
       // Try AuthService first, then fallback to PMTwinAuth
       let result;
       if (typeof AuthService !== 'undefined') {
+        console.log('🔐 Using AuthService.login for:', user.email);
         result = await AuthService.login(user.email, user.password);
       } else if (typeof PMTwinAuth !== 'undefined') {
+        console.log('🔐 Using PMTwinAuth.login for:', user.email);
         result = await PMTwinAuth.login(user.email, user.password);
       } else {
+        console.error('❌ No auth service available!');
         // Fallback: try to find and submit form
         return fallbackToFormFill(user);
       }
+      
+      console.log('🔍 Login result:', {
+        success: result?.success,
+        error: result?.error,
+        user: result?.user,
+        userEmail: result?.user?.email,
+        userRole: result?.user?.role
+      });
+      
+      if (!result || !result.success) {
+        console.error('❌ Login failed:', result?.error || 'Unknown error');
+        console.error('❌ Login result object:', result);
+        if (card) {
+          card.classList.remove('logging-in');
+          const button = card.querySelector('.demo-user-select-btn');
+          if (button) {
+            button.disabled = false;
+            button.innerHTML = '<i class="ph ph-sign-in"></i> Login';
+          }
+          // Re-enable all cards
+          document.querySelectorAll('.demo-user-card').forEach(c => {
+            c.style.pointerEvents = 'auto';
+          });
+        }
+        alert('Login failed: ' + (result?.error || 'Unknown error') + '\n\nPlease check console for details.');
+        return false;
+      }
 
+      // Login succeeded - proceed with redirect logic
       if (result.success) {
         console.log('✅ Login successful:', result);
+        console.log('🔍 Login result details:', {
+          success: result.success,
+          user: result.user,
+          userEmail: result.user?.email,
+          userRole: result.user?.role,
+          session: result.session
+        });
 
     // Close modal
     closeDemoCredentialsModal();
 
-        // Wait a moment for session to be stored
+        // CRITICAL: Check if this is Platform Administrator BEFORE any other logic
+        const isPlatformAdminEmail = user.email === 'admin@pmtwin.com' || result.user?.email === 'admin@pmtwin.com';
+        console.log('🔍 Platform Administrator check:', {
+          userEmail: user.email,
+          resultUserEmail: result.user?.email,
+          isPlatformAdminEmail: isPlatformAdminEmail,
+          loginSuccess: result.success
+        });
+        
+        if (isPlatformAdminEmail) {
+          console.log('🚀🚀🚀 Platform Administrator detected IMMEDIATELY after login success - FORCING redirect 🚀🚀🚀');
+          // Platform admin ALWAYS redirects to full Live Server URL
+          const adminRedirectPath = 'http://127.0.0.1:5503/POC/pages/admin/index.html';
+          
+          console.log('🔄 IMMEDIATE redirect to admin portal:', adminRedirectPath);
+          console.log('🔄 Current location:', window.location.href);
+          console.log('🔄 Window location object:', {
+            href: window.location.href,
+            pathname: window.location.pathname,
+            host: window.location.host,
+            port: window.location.port
+          });
+          
+          // Close modal first
+          closeDemoCredentialsModal();
+          
+          // CRITICAL: Use multiple redirect attempts to ensure it works
+          console.log('🔄 Starting redirect sequence...');
+          
+          // First attempt - immediate
+          setTimeout(() => {
+            console.log('🔄 Attempt 1: Redirecting to:', adminRedirectPath);
+            try {
+              window.location.replace(adminRedirectPath);
+            } catch (e) {
+              console.error('❌ Attempt 1 failed:', e);
+              try {
+                window.location.href = adminRedirectPath;
+              } catch (e2) {
+                console.error('❌ Attempt 1 href also failed:', e2);
+              }
+            }
+          }, 200);
+          
+          // Backup attempt
+          setTimeout(() => {
+            if (window.location.href !== adminRedirectPath && !window.location.href.includes('admin')) {
+              console.log('🔄 Attempt 2: Still not redirected, forcing again:', adminRedirectPath);
+              window.location.href = adminRedirectPath;
+            }
+          }, 500);
+          
+          // Final backup attempt
+          setTimeout(() => {
+            if (window.location.href !== adminRedirectPath && !window.location.href.includes('admin')) {
+              console.log('🔄 Attempt 3: Final redirect attempt:', adminRedirectPath);
+              window.location.replace(adminRedirectPath);
+            }
+          }, 1000);
+          
+          return true;
+        }
+
+        // Wait a moment for session to be stored, then verify it
         await new Promise(resolve => setTimeout(resolve, 300));
         
-        // Redirect to dashboard
-        const basePath = getBasePath();
-        const currentPath = window.location.pathname;
+        // Get the actual user from login result or session
+        let loggedInUser = result.user || PMTwinData?.Sessions?.getCurrentUser();
+        let session = PMTwinData?.Sessions?.getCurrentSession();
         
-        // Determine redirect based on user role
-        let redirectPath = `${basePath}dashboard/`;
+        // If session/user not found, wait a bit more and retry
+        if (!loggedInUser || !session) {
+          console.warn('⚠️ Session not found immediately, retrying...');
+          for (let i = 0; i < 5; i++) {
+            await new Promise(resolve => setTimeout(resolve, 100 * (i + 1)));
+            loggedInUser = result.user || PMTwinData?.Sessions?.getCurrentUser();
+            session = PMTwinData?.Sessions?.getCurrentSession();
+            if (loggedInUser && session) break;
+          }
+        }
+        
+        // Verify role is set correctly in session
+        if (loggedInUser && loggedInUser.role && session && session.role !== loggedInUser.role) {
+          console.warn('⚠️ Role mismatch between user and session, updating session...');
+          console.log('User role:', loggedInUser.role, 'Session role:', session.role);
+          // Try to update session role
+          if (PMTwinData?.Sessions?.update) {
+            PMTwinData.Sessions.update(session.id, { role: loggedInUser.role });
+          }
+        }
+        
+        // Get role from multiple sources (prioritize logged-in user, then session, then demo user)
+        // IMPORTANT: Use result.user first as it's the most reliable source
+        const role = result.user?.role || loggedInUser?.role || session?.role || user.role;
+        const roleLower = role?.toLowerCase()?.trim();
+        
+        // Check email as primary indicator for admin (most reliable)
+        const userEmail = result.user?.email || loggedInUser?.email || user.email;
+        const isAdminEmail = userEmail === 'admin@pmtwin.com';
+        
+        console.log('🔍 Email check:', { userEmail, isAdminEmail, resultUserEmail: result.user?.email, loggedInUserEmail: loggedInUser?.email, demoUserEmail: user.email });
+        
+        console.log('🔍 Demo credentials role detection:', {
+          demoUserRole: user.role,
+          resultUserRole: result.user?.role,
+          loggedInUserRole: loggedInUser?.role,
+          sessionRole: session?.role,
+          finalRole: role,
+          roleLower: roleLower,
+          userEmail: userEmail,
+          isAdminEmail: isAdminEmail,
+          resultUser: result.user,
+          loggedInUser: loggedInUser
+        });
+        
+        // Determine redirect based on user role - ALWAYS use full absolute URLs
+        // Helper to get normalized route
+        function getNormalizedRoute(routeKey) {
+          if (typeof window.NavRoutes !== 'undefined' && window.NavRoutes.NAV_ROUTES[routeKey]) {
+            return window.NavRoutes.getRoute(routeKey, { useLiveServer: true });
+          }
+          // Fallback: normalize to full URL
+          if (typeof window.NavRoutes !== 'undefined' && window.NavRoutes.toHtmlUrl) {
+            return window.NavRoutes.toHtmlUrl(`/POC/pages/${routeKey}/index.html`);
+          }
+          // Final fallback: hardcode Live Server URL
+          return 'http://127.0.0.1:5503/POC/pages/' + routeKey + '/index.html';
+        }
         
         // Check for admin roles (case-insensitive)
-        const role = user.role?.toLowerCase();
         const adminRoles = ['admin', 'platform_admin', 'auditor'];
-        const isAdmin = adminRoles.some(r => r.toLowerCase() === role);
+        // CRITICAL: Check email FIRST - if admin@pmtwin.com, ALWAYS treat as admin
+        const isAdminByEmail = isAdminEmail || userEmail === 'admin@pmtwin.com' || user.email === 'admin@pmtwin.com';
+        let isAdmin = (roleLower && adminRoles.some(r => r.toLowerCase() === roleLower)) || isAdminByEmail;
+        
+        // If email is admin@pmtwin.com, force admin detection regardless of role
+        if (isAdminByEmail && !isAdmin) {
+          console.warn('⚠️ Admin email detected but role not admin, forcing admin redirect');
+          isAdmin = true;
+        }
+        
+        console.log('🔍 Demo credentials admin check:', {
+          role: role,
+          roleLower: roleLower,
+          isAdmin: isAdmin,
+          adminRoles: adminRoles,
+          matches: adminRoles.map(r => ({ role: r, matches: r.toLowerCase() === roleLower }))
+        });
+        
+        // Determine redirect path - ALWAYS use full absolute URLs
+        let redirectPath;
         
         if (isAdmin) {
-          redirectPath = `${basePath}admin/`;
-          console.log('🔐 Admin user detected in demo credentials, redirecting to admin portal');
-        } else if (role === 'beneficiary' || role === 'entity' || role === 'project_lead' ||
-                   role === 'vendor' || role === 'service_provider' || role === 'skill_service_provider' ||
-                   role === 'consultant' || role === 'sub_contractor' || role === 'professional' ||
-                   role === 'supplier' || role === 'individual') {
-          redirectPath = `${basePath}dashboard/`;
-          console.log('👤 User detected in demo credentials, redirecting to dashboard');
+          // Platform admin ALWAYS redirects to full Live Server URL
+          redirectPath = 'http://127.0.0.1:5503/POC/pages/admin/index.html';
+          console.log('🔐 Admin user detected in demo credentials, redirecting to admin portal:', redirectPath);
+        } else if (roleLower === 'beneficiary' || roleLower === 'entity' || roleLower === 'project_lead' ||
+                   roleLower === 'vendor' || roleLower === 'service_provider' || roleLower === 'skill_service_provider' ||
+                   roleLower === 'consultant' || roleLower === 'sub_contractor' || roleLower === 'professional' ||
+                   roleLower === 'supplier' || roleLower === 'individual') {
+          // Regular users redirect to dashboard - use full URL
+          redirectPath = getNormalizedRoute('dashboard');
+          console.log('👤 User detected in demo credentials, redirecting to dashboard:', redirectPath);
+        } else if (isAdminEmail) {
+          // Email-based admin detection (fallback if role detection fails)
+          console.warn('⚠️ Admin detected by email but not by role, forcing admin redirect');
+          redirectPath = 'http://127.0.0.1:5503/POC/pages/admin/index.html';
+          console.log('🔐 Admin email detected, forcing admin redirect:', redirectPath);
+          isAdmin = true; // Update flag
         } else {
-          console.warn('⚠️ Unknown role in demo credentials:', user.role);
+          console.warn('⚠️ Unknown role in demo credentials. Role:', role, 'RoleLower:', roleLower, 'DemoUserRole:', user.role, 'Email:', userEmail);
+          // Default to dashboard for unknown roles - use full URL
+          redirectPath = getNormalizedRoute('dashboard');
         }
         
         console.log(`🔄 Redirecting to: ${redirectPath}`);
-        window.location.href = redirectPath;
+        console.log('User role:', role, 'Is Admin:', isAdmin);
+        console.log('Redirect path type:', typeof redirectPath, 'Value:', redirectPath);
+        
+        // Ensure redirect path is valid and normalized
+        if (!redirectPath || redirectPath === 'undefined' || redirectPath.includes('undefined')) {
+          console.error('❌ Invalid redirect path:', redirectPath);
+          redirectPath = isAdmin 
+            ? 'http://127.0.0.1:5503/POC/pages/admin/index.html'
+            : getNormalizedRoute('dashboard');
+          console.log('🔄 Using fallback redirect path:', redirectPath);
+        }
+        
+        // Normalize redirect path to ensure it ends with .html
+        if (typeof window.NavRoutes !== 'undefined' && window.NavRoutes.toHtmlUrl) {
+          redirectPath = window.NavRoutes.toHtmlUrl(redirectPath);
+        }
+        
+        // Double-check: If admin was detected but redirect path doesn't contain 'admin', fix it
+        if (isAdmin && !redirectPath.includes('admin')) {
+          console.warn('⚠️ Admin detected but redirect path incorrect, fixing...');
+          redirectPath = 'http://127.0.0.1:5503/POC/pages/admin/index.html';
+          console.log('🔄 Fixed admin redirect path:', redirectPath);
+        }
+        
+        // Final safety check: If result.user has admin role but we didn't detect it, force admin redirect
+        const resultUserRole = result.user?.role?.toLowerCase()?.trim();
+        const resultIsAdmin = resultUserRole && ['admin', 'platform_admin', 'auditor'].includes(resultUserRole);
+        
+        // Also check if email matches admin email as additional verification
+        const resultUserEmail = result.user?.email || loggedInUser?.email || user.email;
+        const resultIsAdminEmail = resultUserEmail === 'admin@pmtwin.com';
+        
+        // CRITICAL: If email is admin@pmtwin.com, ALWAYS redirect to admin (most reliable check)
+        if (resultIsAdminEmail || isAdminEmail || userEmail === 'admin@pmtwin.com') {
+          if (!redirectPath.includes('admin')) {
+            console.warn('⚠️ Admin email detected but redirect path incorrect, forcing admin redirect...');
+            redirectPath = 'http://127.0.0.1:5503/POC/pages/admin/index.html';
+            console.log('🔄 Forced admin redirect based on email:', redirectPath);
+            isAdmin = true;
+          } else {
+            console.log('✅ Admin email confirmed, redirect path is correct:', redirectPath);
+          }
+        } else if ((resultIsAdmin || isAdmin) && !redirectPath.includes('admin')) {
+          console.warn('⚠️ Admin detected (role) but redirect path incorrect, forcing admin redirect...');
+          redirectPath = 'http://127.0.0.1:5503/POC/pages/admin/index.html';
+          console.log('🔄 Forced admin redirect path:', redirectPath);
+          isAdmin = true;
+        }
+        
+        // CRITICAL: If admin email detected, ALWAYS redirect to admin portal immediately
+        const adminEmailCheck = isAdminEmail || resultIsAdminEmail || userEmail === 'admin@pmtwin.com' || user.email === 'admin@pmtwin.com' || loggedInUser?.email === 'admin@pmtwin.com';
+        
+        if (adminEmailCheck) {
+          // Platform admin ALWAYS redirects to full Live Server URL
+          const adminRedirectPath = 'http://127.0.0.1:5503/POC/pages/admin/index.html';
+          
+          console.log('🚀 Platform Administrator detected - FORCING admin redirect');
+          console.log('🔍 Admin email check (ALL SOURCES):', { 
+            isAdminEmail, 
+            resultIsAdminEmail, 
+            userEmail, 
+            demoUserEmail: user.email,
+            loggedInUserEmail: loggedInUser?.email,
+            adminEmailCheck: adminEmailCheck,
+            redirectPath: adminRedirectPath,
+            currentLocation: window.location.href
+          });
+          
+          // Close modal if not already closed
+          closeDemoCredentialsModal();
+          
+          // Longer delay to ensure session is fully saved, then redirect
+          setTimeout(() => {
+            try {
+              console.log('🔄 FINAL redirect to admin portal:', adminRedirectPath);
+              console.log('🔄 Current location before redirect:', window.location.href);
+              // Use replace to avoid back button issues
+              window.location.replace(adminRedirectPath);
+            } catch (e) {
+              console.error('❌ Redirect error, trying href instead:', e);
+              window.location.href = adminRedirectPath;
+            }
+          }, 400);
+          return true;
+        }
+        
+        // For other users, add a delay to ensure session is saved, then redirect
+        setTimeout(() => {
+          // Verify session was saved before redirecting
+          const savedSession = PMTwinData?.Sessions?.getCurrentSession();
+          const savedUser = PMTwinData?.Sessions?.getCurrentUser();
+          
+          console.log('🔍 Pre-redirect session check:', {
+            hasSession: !!savedSession,
+            hasUser: !!savedUser,
+            userRole: savedUser?.role,
+            userRoleLower: savedUser?.role?.toLowerCase(),
+            userEmail: savedUser?.email,
+            sessionRole: savedSession?.role,
+            isAdmin: isAdmin,
+            expectedAdminRole: roleLower
+          });
+          
+          // Verify admin role is saved correctly, but allow redirect if email matches admin
+          if (isAdmin) {
+            const savedRoleLower = savedUser?.role?.toLowerCase()?.trim();
+            const savedEmail = savedUser?.email;
+            const isSavedAdmin = savedRoleLower && ['admin', 'platform_admin', 'auditor'].includes(savedRoleLower);
+            const isSavedAdminEmail = savedEmail === 'admin@pmtwin.com';
+            
+            // If email matches admin, always allow redirect (role might not be saved yet)
+            if (isSavedAdminEmail) {
+              console.log('✅ Admin email confirmed in session, proceeding with redirect');
+            } else if (!savedUser || !isSavedAdmin) {
+              console.warn('⚠️ Session not properly saved for admin user. Saved role:', savedUser?.role, 'Saved email:', savedEmail, 'Expected role:', roleLower);
+              
+              // If we detected admin from email or role earlier, still redirect
+              if (isAdminEmail || (roleLower && ['admin', 'platform_admin', 'auditor'].includes(roleLower))) {
+                console.warn('⚠️ Admin detected earlier but session incomplete, proceeding with redirect anyway');
+              } else {
+                console.warn('⚠️ Retrying redirect after additional delay...');
+                // Retry after another delay
+                setTimeout(() => {
+                  try {
+                    console.log('🔄 Executing redirect to:', redirectPath);
+                    window.location.replace(redirectPath);
+                  } catch (e) {
+                    console.error('❌ Redirect error, trying href instead:', e);
+                    window.location.href = redirectPath;
+                  }
+                }, 300);
+                return;
+              }
+            }
+          }
+          
+          try {
+            console.log('🔄 Executing redirect to:', redirectPath);
+            window.location.replace(redirectPath);
+          } catch (e) {
+            console.error('❌ Redirect error, trying href instead:', e);
+            try {
+              window.location.href = redirectPath;
+            } catch (e2) {
+              console.error('❌ Both redirect methods failed:', e2);
+              alert('Redirect failed. Please navigate manually to: ' + redirectPath);
+            }
+          }
+        }, 300);
 
     return true;
       } else {

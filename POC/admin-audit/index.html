@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Content-Security-Policy" content="default-src * 'unsafe-inline' 'unsafe-eval' data: blob:; connect-src * 'unsafe-inline' 'unsafe-eval' ws: wss:; script-src * 'unsafe-inline' 'unsafe-eval'; style-src * 'unsafe-inline'; font-src * data:; img-src * data: blob:; frame-src *; object-src *; media-src *;">
+    <title>Redirecting to Admin Audit...</title>
+    <script>
+        (function() {
+            const existingCSP = document.querySelector('meta[http-equiv="Content-Security-Policy"]');
+            if (existingCSP) existingCSP.remove();
+            const cspMeta = document.createElement('meta');
+            cspMeta.setAttribute('http-equiv', 'Content-Security-Policy');
+            cspMeta.setAttribute('content', "default-src * 'unsafe-inline' 'unsafe-eval' data: blob:; connect-src * 'unsafe-inline' 'unsafe-eval' ws: wss: http://127.0.0.1:* http://localhost:*; script-src * 'unsafe-inline' 'unsafe-eval'; style-src * 'unsafe-inline'; font-src * data:; img-src * data: blob:; frame-src *;");
+            document.head.insertBefore(cspMeta, document.head.firstChild);
+        })();
+        (function() {
+            const currentPath = window.location.pathname;
+            const currentPort = window.location.port || (window.location.protocol === 'https:' ? '443' : '80');
+            const isLiveServer = currentPort === '5503' || window.location.host.includes(':5503');
+            let redirectPath = isLiveServer 
+                ? 'http://127.0.0.1:5503/POC/pages/admin-audit/index.html'
+                : (currentPath.includes('/POC/') ? '/POC/pages/admin-audit/index.html' : 'pages/admin-audit/index.html');
+            console.log('Redirecting to:', redirectPath);
+            try {
+                window.location.replace(redirectPath);
+            } catch (e) {
+                const alternatives = isLiveServer 
+                    ? ['http://127.0.0.1:5503/POC/pages/admin-audit/index.html']
+                    : ['../pages/admin-audit/index.html', '/POC/pages/admin-audit/index.html'];
+                let altIndex = 0;
+                function tryAlternative() {
+                    if (altIndex < alternatives.length) {
+                        try {
+                            window.location.href = alternatives[altIndex];
+                        } catch (err) {
+                            altIndex++;
+                            setTimeout(tryAlternative, 100);
+                        }
+                    }
+                }
+                setTimeout(tryAlternative, 200);
+            }
+        })();
+    </script>
+    <meta http-equiv="refresh" content="0; url=http://127.0.0.1:5503/POC/pages/admin-audit/index.html">
+</head>
+<body style="font-family: system-ui, -apple-system, sans-serif; padding: 2rem; text-align: center; background: #f5f5f5;">
+    <div style="max-width: 600px; margin: 4rem auto; background: white; padding: 2rem; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+        <h1 style="color: #0066CC; margin-bottom: 1rem;">Redirecting to Admin Audit...</h1>
+        <p style="color: #666; margin-bottom: 2rem;">If you're not redirected automatically, <a href="http://127.0.0.1:5503/POC/pages/admin-audit/index.html" style="color: #0066CC;">click here</a>.</p>
+    </div>
+</body>
+</html>

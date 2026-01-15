@@ -41,7 +41,7 @@
     VERSION: 'pmtwin_data_version'
   };
 
-  const DATA_VERSION = '2.4.0'; // Updated for Contract-Driven Workflow implementation
+  const DATA_VERSION = '2.5.0'; // Updated for Product Vision: IntentType, PaymentMode, Barter/Hybrid support
 
   // ============================================
   // User Type & Role Mapping
@@ -151,6 +151,7 @@
     // Migrate Service Provider model
     migrateServiceProviderModel();
     migrateToContractDrivenWorkflow();
+    migrateOpportunitiesToProductVision();
     
     // Migrate creatorId to ownerCompanyId
     migrateCreatorIdToOwnerCompanyId();
@@ -3712,7 +3713,15 @@
         ownerCompanyId: ownerCompanyId,
         // Status: DRAFT | SUBMITTED | UNDER_REVIEW | SHORTLISTED | NEGOTIATION | AWARDED | REJECTED | WITHDRAWN
         status: proposalData.status || 'SUBMITTED',
-        submittedAt: proposalData.status === 'DRAFT' ? null : (proposalData.submittedAt || new Date().toISOString())
+        submittedAt: proposalData.status === 'DRAFT' ? null : (proposalData.submittedAt || new Date().toISOString()),
+        // Versioning fields
+        version: proposalData.version || 1,
+        parentProposalId: proposalData.parentProposalId || null, // Root proposal ID for version chains
+        versionHistory: proposalData.versionHistory || [],
+        negotiationStatus: proposalData.negotiationStatus || 'INITIAL', // INITIAL | COUNTEROFFER | REVISION | ACCEPTED | REJECTED
+        negotiationThread: proposalData.negotiationThread || [],
+        createdAt: proposalData.createdAt || new Date().toISOString(),
+        updatedAt: proposalData.updatedAt || new Date().toISOString()
       };
       
       // Validate: bidderCompanyId must not equal ownerCompanyId
@@ -4585,22 +4594,65 @@
 
     create(opportunityData) {
       const opportunities = this.getAll();
+      
+      // Intent type: REQUEST_SERVICE | OFFER_SERVICE | BOTH
+      // Default: infer from model type or set to BOTH for collaboration models
+      let intentType = opportunityData.intentType;
+      if (!intentType) {
+        // Infer from context
+        if (opportunityData.serviceRequestId || opportunityData.requestType === 'SERVICE_REQUEST') {
+          intentType = 'REQUEST_SERVICE';
+        } else if (opportunityData.serviceOfferingId || opportunityData.offerType === 'SERVICE_OFFER') {
+          intentType = 'OFFER_SERVICE';
+        } else {
+          intentType = 'BOTH'; // Default for collaboration opportunities
+        }
+      }
+      
+      // Payment mode: Cash | Barter | Hybrid
+      // Default: Cash unless barter-related fields are present
+      let paymentMode = opportunityData.paymentMode;
+      if (!paymentMode) {
+        if (opportunityData.exchangeType === 'Barter' || opportunityData.barterOffer) {
+          paymentMode = 'Barter';
+        } else if (opportunityData.exchangeType === 'Mixed' || 
+                   (opportunityData.cashComponent && opportunityData.serviceComponents)) {
+          paymentMode = 'Hybrid';
+        } else {
+          paymentMode = 'Cash';
+        }
+      }
+      
+      // Barter settlement rule (only for Barter/Hybrid)
+      const barterSettlementRule = (paymentMode === 'Barter' || paymentMode === 'Hybrid') 
+        ? (opportunityData.barterSettlementRule || 'ALLOW_DIFFERENCE_WITH_CASH')
+        : null;
+      
       const opportunity = {
         id: generateId('collab'),
         ...opportunityData,
+        // New fields for product vision alignment
+        intentType: intentType,
+        paymentMode: paymentMode,
+        barterSettlementRule: barterSettlementRule,
+        // Standard fields
         status: opportunityData.status || 'draft',
         views: 0,
         matchesGenerated: 0,
         applicationsReceived: 0,
         applicationsApproved: 0,
-        createdAt: new Date().toISOString()
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
       };
+      
       opportunities.push(opportunity);
       if (set(STORAGE_KEYS.COLLABORATION_OPPORTUNITIES, opportunities)) {
         this.createAuditLog('collaboration_opportunity_creation', opportunity.id, {
           description: `Collaboration opportunity created: ${opportunity.modelName || opportunity.modelType}`,
           creatorId: opportunity.creatorId,
-          modelType: opportunity.modelType
+          modelType: opportunity.modelType,
+          intentType: intentType,
+          paymentMode: paymentMode
         });
         return opportunity;
       }
@@ -4673,6 +4725,12 @@
       if (filters.creatorId) {
         opportunities = opportunities.filter(o => o.creatorId === filters.creatorId);
       }
+      if (filters.intentType) {
+        opportunities = opportunities.filter(o => o.intentType === filters.intentType);
+      }
+      if (filters.paymentMode) {
+        opportunities = opportunities.filter(o => o.paymentMode === filters.paymentMode);
+      }
       if (filters.dateFrom) {
         opportunities = opportunities.filter(o => new Date(o.createdAt) >= new Date(filters.dateFrom));
       }
@@ -4681,6 +4739,16 @@
       }
       
       return opportunities;
+    },
+    
+    getByIntentType(intentType) {
+      const opportunities = this.getAll();
+      return opportunities.filter(o => o.intentType === intentType);
+    },
+    
+    getByPaymentMode(paymentMode) {
+      const opportunities = this.getAll();
+      return opportunities.filter(o => o.paymentMode === paymentMode);
     },
 
     getStatistics(modelId = null) {
@@ -7779,6 +7847,75 @@
       console.log(`   - ${engagementsCreated} engagements created`);
     }
   }
+
+  // ============================================
+  // Migration: Add IntentType and PaymentMode to Opportunities
+  // ============================================
+  function migrateOpportunitiesToProductVision() {
+    const currentVersion = localStorage.getItem(STORAGE_KEYS.VERSION) || '0.0.0';
+    
+    // Only migrate if version is less than 2.5.0
+    if (compareVersions(currentVersion, '2.5.0') < 0) {
+      console.log('🔄 Migrating opportunities to Product Vision model (v2.5.0)...');
+      
+      const opportunities = CollaborationOpportunities.getAll();
+      let migrated = 0;
+      
+      opportunities.forEach(opp => {
+        let needsUpdate = false;
+        const updates = {};
+        
+        // Add intentType if missing
+        if (!opp.intentType) {
+          // Infer from context
+          if (opp.serviceRequestId || opp.requestType === 'SERVICE_REQUEST') {
+            updates.intentType = 'REQUEST_SERVICE';
+          } else if (opp.serviceOfferingId || opp.offerType === 'SERVICE_OFFER') {
+            updates.intentType = 'OFFER_SERVICE';
+          } else {
+            updates.intentType = 'BOTH'; // Default for collaboration opportunities
+          }
+          needsUpdate = true;
+        }
+        
+        // Add paymentMode if missing
+        if (!opp.paymentMode) {
+          // Infer from existing fields
+          if (opp.exchangeType === 'Barter' || opp.barterOffer) {
+            updates.paymentMode = 'Barter';
+            updates.barterSettlementRule = opp.barterSettlementRule || 'ALLOW_DIFFERENCE_WITH_CASH';
+          } else if (opp.exchangeType === 'Mixed' || 
+                     (opp.cashComponent && opp.serviceComponents)) {
+            updates.paymentMode = 'Hybrid';
+          } else {
+            updates.paymentMode = 'Cash';
+          }
+          needsUpdate = true;
+        }
+        
+        // Add barterSettlementRule for Barter/Hybrid if missing
+        if ((opp.paymentMode === 'Barter' || updates.paymentMode === 'Barter' ||
+             opp.paymentMode === 'Hybrid' || updates.paymentMode === 'Hybrid') &&
+            !opp.barterSettlementRule && !updates.barterSettlementRule) {
+          updates.barterSettlementRule = 'ALLOW_DIFFERENCE_WITH_CASH';
+          needsUpdate = true;
+        }
+        
+        if (needsUpdate) {
+          CollaborationOpportunities.update(opp.id, updates);
+          migrated++;
+        }
+      });
+      
+      if (migrated > 0) {
+        console.log(`✅ Migrated ${migrated} opportunity/opportunities to Product Vision model`);
+      }
+      
+      // Update version
+      localStorage.setItem(STORAGE_KEYS.VERSION, '2.5.0');
+      console.log('✅ Product Vision opportunity migration completed');
+    }
+  }
   
   // Helper function to compare versions
   function compareVersions(v1, v2) {
@@ -8177,15 +8314,25 @@
 
     create(contractData) {
       const contracts = this.getAll();
+      
+      // Determine if multi-party contract
+      const isMultiParty = contractData.isMultiParty === true || 
+                          (contractData.parties && Array.isArray(contractData.parties) && contractData.parties.length > 0);
+      
       const contract = {
         id: contractData.id || generateId('contract'),
-        contractType: contractData.contractType, // PROJECT_CONTRACT, MEGA_PROJECT_CONTRACT, SERVICE_CONTRACT, ADVISORY_CONTRACT, SUB_CONTRACT
+        contractType: contractData.contractType, // PROJECT_CONTRACT, MEGA_PROJECT_CONTRACT, SERVICE_CONTRACT, ADVISORY_CONTRACT, SUB_CONTRACT, SPV_CONTRACT, JV_CONTRACT, CONSORTIUM_CONTRACT
         scopeType: contractData.scopeType, // PROJECT, MEGA_PROJECT, SUB_PROJECT, SERVICE_REQUEST
         scopeId: contractData.scopeId,
-        buyerPartyId: contractData.buyerPartyId,
-        buyerPartyType: contractData.buyerPartyType, // BENEFICIARY, VENDOR_CORPORATE, VENDOR_INDIVIDUAL
-        providerPartyId: contractData.providerPartyId,
-        providerPartyType: contractData.providerPartyType, // VENDOR_CORPORATE, VENDOR_INDIVIDUAL, SERVICE_PROVIDER, CONSULTANT, SUB_CONTRACTOR
+        // Single-party fields (backward compatibility)
+        buyerPartyId: contractData.buyerPartyId || (isMultiParty ? null : contractData.buyerPartyId),
+        buyerPartyType: contractData.buyerPartyType,
+        providerPartyId: contractData.providerPartyId || (isMultiParty ? null : contractData.providerPartyId),
+        providerPartyType: contractData.providerPartyType,
+        // Multi-party fields
+        isMultiParty: isMultiParty,
+        parties: isMultiParty ? (contractData.parties || []) : null,
+        governanceStructure: isMultiParty ? (contractData.governanceStructure || null) : null,
         parentContractId: contractData.parentContractId || null, // For SUB_CONTRACT only
         status: contractData.status || 'DRAFT', // DRAFT, SENT, SIGNED, ACTIVE, COMPLETED, TERMINATED
         startDate: contractData.startDate || null,
@@ -8202,7 +8349,7 @@
         sourceServiceOfferId: contractData.sourceServiceOfferId || null,
         createdAt: contractData.createdAt || new Date().toISOString(),
         updatedAt: new Date().toISOString(),
-        createdBy: contractData.createdBy || contractData.buyerPartyId
+        createdBy: contractData.createdBy || contractData.buyerPartyId || (isMultiParty && contractData.parties ? contractData.parties[0]?.partyId : null)
       };
       contracts.push(contract);
       if (set(STORAGE_KEYS.CONTRACTS, contracts)) {

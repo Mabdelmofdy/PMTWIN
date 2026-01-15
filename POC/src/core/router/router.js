@@ -6,47 +6,64 @@
 (function() {
   'use strict';
 
-  // Route mapping: hash route -> directory path (updated for pages/ structure)
-  const routeMap = {
-    'home': 'pages/home/',
-    'discovery': 'pages/discovery/',
-    'wizard': 'pages/wizard/',
-    'knowledge': 'pages/knowledge/',
-    'login': 'pages/auth/login/',
-    'signup': 'pages/auth/signup/',
-    'dashboard': 'pages/dashboard/',
-    'merchant-portal': 'pages/merchant-portal/',
-    'projects': 'pages/projects/',
-    'create-project': 'pages/projects/create/',
-    'project': 'pages/projects/view/',
-    'opportunities': 'pages/opportunities/',
-    'matches': 'pages/matches/',
-    'proposals': 'pages/proposals/',
-    'create-proposal': 'pages/proposals/create/',
-    'pipeline': 'pages/pipeline/',
-    'collaboration': 'pages/collaboration/',
-    'collab-task-based': 'pages/collaboration/task-based/',
-    'collab-consortium': 'pages/collaboration/consortium/',
-    'collab-jv': 'pages/collaboration/joint-venture/',
-    'collab-spv': 'pages/collaboration/spv/',
-    'collab-strategic-jv': 'pages/collaboration/strategic-jv/',
-    'collab-strategic-alliance': 'pages/collaboration/strategic-alliance/',
-    'collab-mentorship': 'pages/collaboration/mentorship/',
-    'collab-bulk-purchasing': 'pages/collaboration/bulk-purchasing/',
-    'collab-co-ownership': 'pages/collaboration/co-ownership/',
-    'collab-resource-exchange': 'pages/collaboration/resource-exchange/',
-    'collab-professional-hiring': 'pages/collaboration/professional-hiring/',
-    'collab-consultant-hiring': 'pages/collaboration/consultant-hiring/',
-    'collab-competition': 'pages/collaboration/competition/',
-    'profile': 'pages/profile/',
-    'onboarding': 'pages/onboarding/',
-    'notifications': 'pages/notifications/',
-    'admin': 'pages/admin/',
-    'admin-vetting': 'pages/admin-vetting/',
-    'admin-moderation': 'pages/admin-moderation/',
-    'admin-audit': 'pages/admin-audit/',
-    'admin-reports': 'pages/admin-reports/'
-  };
+  // Route mapping: hash route -> absolute path ending with .html
+  // Uses NAV_ROUTES when available, otherwise falls back to this map
+  function getRouteMap() {
+    // If NavRoutes is available, use it
+    if (typeof window.NavRoutes !== 'undefined' && window.NavRoutes.NAV_ROUTES) {
+      const navRoutes = window.NavRoutes.NAV_ROUTES;
+      // Convert NAV_ROUTES to routeMap format (without /POC prefix for relative paths)
+      const routeMap = {};
+      Object.keys(navRoutes).forEach(key => {
+        // Remove /POC prefix and convert to relative path
+        const path = navRoutes[key].replace('/POC/', '');
+        routeMap[key] = path;
+      });
+      return routeMap;
+    }
+    
+    // Fallback route map (absolute paths ending with .html)
+    return {
+      'home': '/POC/pages/home/index.html',
+      'discovery': '/POC/pages/discovery/index.html',
+      'wizard': '/POC/pages/wizard/index.html',
+      'knowledge': '/POC/pages/knowledge/index.html',
+      'login': '/POC/pages/auth/login/index.html',
+      'signup': '/POC/pages/auth/signup/index.html',
+      'dashboard': '/POC/pages/dashboard/index.html',
+      'merchant-portal': '/POC/pages/merchant-portal/index.html',
+      'projects': '/POC/pages/projects/index.html',
+      'create-project': '/POC/pages/projects/create/index.html',
+      'project': '/POC/pages/projects/view/index.html',
+      'opportunities': '/POC/pages/opportunities/index.html',
+      'matches': '/POC/pages/matches/index.html',
+      'proposals': '/POC/pages/proposals/index.html',
+      'create-proposal': '/POC/pages/proposals/create/index.html',
+      'pipeline': '/POC/pages/pipeline/index.html',
+      'collaboration': '/POC/pages/collaboration/index.html',
+      'collab-task-based': '/POC/pages/collaboration/task-based/index.html',
+      'collab-consortium': '/POC/pages/collaboration/consortium/index.html',
+      'collab-jv': '/POC/pages/collaboration/joint-venture/index.html',
+      'collab-spv': '/POC/pages/collaboration/spv/index.html',
+      'collab-strategic-jv': '/POC/pages/collaboration/strategic-jv/index.html',
+      'collab-strategic-alliance': '/POC/pages/collaboration/strategic-alliance/index.html',
+      'collab-mentorship': '/POC/pages/collaboration/mentorship/index.html',
+      'collab-bulk-purchasing': '/POC/pages/collaboration/bulk-purchasing/index.html',
+      'collab-co-ownership': '/POC/pages/collaboration/co-ownership/index.html',
+      'collab-resource-exchange': '/POC/pages/collaboration/resource-exchange/index.html',
+      'collab-professional-hiring': '/POC/pages/collaboration/professional-hiring/index.html',
+      'collab-consultant-hiring': '/POC/pages/collaboration/consultant-hiring/index.html',
+      'collab-competition': '/POC/pages/collaboration/competition/index.html',
+      'profile': '/POC/pages/profile/index.html',
+      'onboarding': '/POC/pages/onboarding/index.html',
+      'notifications': '/POC/pages/notifications/index.html',
+      'admin': '/POC/pages/admin/index.html',
+      'admin-vetting': '/POC/pages/admin-vetting/index.html',
+      'admin-moderation': '/POC/pages/admin-moderation/index.html',
+      'admin-audit': '/POC/pages/admin-audit/index.html',
+      'admin-reports': '/POC/pages/admin-reports/index.html'
+    };
+  }
 
   /**
    * Redirect hash route to HTML file
@@ -60,6 +77,9 @@
     // Remove # from hash
     const route = hash.substring(1);
     
+    // Get route map (uses NAV_ROUTES if available)
+    const routeMap = getRouteMap();
+    
     // Handle dynamic routes like #project/123 or #create-proposal?projectId=123
     let targetFile = null;
     let queryParams = '';
@@ -71,7 +91,12 @@
       const id = parts[1];
       
       if (baseRoute === 'project' && id) {
-        targetFile = 'pages/projects/view/';
+        // Use NAV_ROUTES if available
+        if (typeof window.NavRoutes !== 'undefined' && window.NavRoutes.NAV_ROUTES['project-view']) {
+          targetFile = window.NavRoutes.NAV_ROUTES['project-view'];
+        } else {
+          targetFile = '/POC/pages/projects/view/index.html';
+        }
         queryParams = `?id=${id}`;
       } else if (routeMap[baseRoute]) {
         targetFile = routeMap[baseRoute];
@@ -92,6 +117,17 @@
     }
 
     if (targetFile) {
+      // Normalize URL to ensure it ends with .html
+      if (typeof window.NavRoutes !== 'undefined' && window.NavRoutes.toHtmlUrl) {
+        targetFile = window.NavRoutes.toHtmlUrl(targetFile);
+      } else if (!targetFile.endsWith('.html')) {
+        // Fallback: ensure .html ending
+        if (targetFile.endsWith('/')) {
+          targetFile = targetFile + 'index.html';
+        } else {
+          targetFile = targetFile + '/index.html';
+        }
+      }
       window.location.replace(targetFile + queryParams);
     }
   }

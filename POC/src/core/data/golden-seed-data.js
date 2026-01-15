@@ -2505,8 +2505,8 @@
     const steelSub = users.find(u => u.email === 'steel.sub@pmtwin.com');
     const megaProject = projects.find(p => p.id === 'megaproject_neom_001');
     const standaloneProject = projects.find(p => p.id === 'project_residential_001');
-    const offer1 = serviceOffers.find(o => o.id === 'so_bim_001');
-    const offer2 = serviceOffers.find(o => o.id === 'so_qa_001');
+    let offer1 = serviceOffers.find(o => o.id === 'so_bim_001');
+    let offer2 = serviceOffers.find(o => o.id === 'so_qa_001');
 
     if (!beneficiaryA || !beneficiaryB || !vendorAlpha || !vendorBeta || !bimProvider || !qaProvider || !consultant || !mepSub || !steelSub || !megaProject || !standaloneProject) {
       console.warn('Required entities not found, skipping contracts');
@@ -2518,6 +2518,7 @@
       // Set to null to prevent access errors
       if (!offer1) offer1 = null;
       if (!offer2) offer2 = null;
+      return { created: 0, skipped: 0 };
     }
 
     const created = [];

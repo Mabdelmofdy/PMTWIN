@@ -10,19 +10,66 @@
   // Helper: Get Base Path for Data Files
   // ============================================
   function getDataBasePath() {
-    // Calculate relative path from current page to POC root
-    // For local development: count all path segments to determine depth
+    // Use document.currentScript if available (most reliable)
+    const currentScript = document.currentScript || (function() {
+      const scripts = document.getElementsByTagName('script');
+      for (let i = scripts.length - 1; i >= 0; i--) {
+        if (scripts[i].src && scripts[i].src.includes('data-loader.js')) {
+          return scripts[i];
+        }
+      }
+      return null;
+    })();
+    
+    if (currentScript && currentScript.src) {
+      try {
+        // Get the script's directory URL
+        const scriptUrl = new URL(currentScript.src);
+        // The script is at: [BASE]/data/data-loader.js
+        // So POC root is 1 level up from the script
+        const scriptDir = scriptUrl.pathname.substring(0, scriptUrl.pathname.lastIndexOf('/'));
+        const pocRoot = scriptDir.split('/').slice(0, -1).join('/') || '/';
+        
+        // Get current page directory
+        const pageUrl = new URL(window.location.href);
+        const pageDir = pageUrl.pathname.substring(0, pageUrl.pathname.lastIndexOf('/')) || '/';
+        
+        // Calculate relative path from page to POC root
+        if (pageDir === pocRoot || pageDir === '/') {
+          return '';
+        }
+        
+        // Count directory levels difference
+        const pageSegments = pageDir.split('/').filter(p => p);
+        const rootSegments = pocRoot.split('/').filter(p => p);
+        const depth = pageSegments.length - rootSegments.length;
+        
+        return depth > 0 ? '../'.repeat(depth) : '';
+      } catch (e) {
+        console.warn('[DataLoader] Error calculating path from script:', e);
+      }
+    }
+    
+    // Fallback: calculate from page location
     const currentPath = window.location.pathname;
-    // Remove leading/trailing slashes and split, filter out empty strings and HTML files
-    const segments = currentPath.split('/').filter(p => p && !p.endsWith('.html'));
-    
-    // Count how many directory levels deep we are
-    // For example: /pages/auth/login/ = 3 levels deep, need ../../../ to reach POC root
-    // For example: /pages/home/ = 2 levels deep, need ../../ to reach POC root
+    // Remove index.html or trailing slash
+    const cleanPath = currentPath.replace(/\/index\.html?$/i, '').replace(/\/$/, '') || '/';
+    const segments = cleanPath.split('/').filter(p => p);
     const depth = segments.length;
+    const basePath = depth > 0 ? '../'.repeat(depth) : '';
     
-    // Generate the appropriate number of ../ to reach POC root
-    return depth > 0 ? '../'.repeat(depth) : '';
+    // Debug logging
+    if (window.location.hostname === '127.0.0.1' || window.location.hostname === 'localhost') {
+      console.log('[DataLoader] Path calculation (fallback):', {
+        pathname: currentPath,
+        cleanPath: cleanPath,
+        segments: segments,
+        depth: depth,
+        basePath: basePath
+      });
+    }
+    
+    return basePath;
   }
 
   const dataFiles = [

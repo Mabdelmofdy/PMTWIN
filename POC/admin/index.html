@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- Very permissive CSP for local development - MUST be first to prevent CSP errors -->
+    <meta http-equiv="Content-Security-Policy" content="default-src * 'unsafe-inline' 'unsafe-eval' data: blob:; connect-src * 'unsafe-inline' 'unsafe-eval' ws: wss:; script-src * 'unsafe-inline' 'unsafe-eval'; style-src * 'unsafe-inline'; font-src * data:; img-src * data: blob:; frame-src *; object-src *; media-src *;">
+    <title>Redirecting to Admin Dashboard...</title>
+    <script>
+        // CRITICAL: Set CSP via meta tag immediately to prevent browser default CSP
+        (function() {
+            // Remove any existing CSP meta tags
+            const existingCSP = document.querySelector('meta[http-equiv="Content-Security-Policy"]');
+            if (existingCSP) {
+                existingCSP.remove();
+            }
+            
+            // Create new permissive CSP meta tag
+            const cspMeta = document.createElement('meta');
+            cspMeta.setAttribute('http-equiv', 'Content-Security-Policy');
+            cspMeta.setAttribute('content', "default-src * 'unsafe-inline' 'unsafe-eval' data: blob:; connect-src * 'unsafe-inline' 'unsafe-eval' ws: wss: http://127.0.0.1:* http://localhost:*; script-src * 'unsafe-inline' 'unsafe-eval'; style-src * 'unsafe-inline'; font-src * data:; img-src * data: blob:; frame-src *;");
+            document.head.insertBefore(cspMeta, document.head.firstChild);
+        })();
+        
+        // Smart redirect detection
+        (function() {
+            const currentPath = window.location.pathname;
+            const currentHost = window.location.host;
+            const currentPort = window.location.port || (window.location.protocol === 'https:' ? '443' : '80');
+            const isLiveServer = currentPort === '5503' || currentHost.includes(':5503');
+            
+            console.log('Current path:', currentPath);
+            console.log('Current host:', currentHost);
+            console.log('Current port:', currentPort);
+            console.log('Is Live Server:', isLiveServer);
+            
+            // Determine server root by checking path structure
+            let redirectPath;
+            
+            // If on Live Server, use full URL to avoid 404 errors
+            if (isLiveServer) {
+                // Check if path includes /POC/ (Live Server from workspace root)
+                if (currentPath.includes('/POC/')) {
+                    redirectPath = 'http://127.0.0.1:5503/POC/pages/admin/index.html';
+                } else {
+                    // Live Server root is POC folder
+                    redirectPath = 'http://127.0.0.1:5503/POC/pages/admin/index.html';
+                }
+            } else {
+                // For other servers, use relative paths
+                // Determine redirect path based on current location
+                // If accessing /admin/ or /admin, we're in the admin folder
+                if (currentPath === '/admin/' || currentPath === '/admin' || currentPath.endsWith('/admin/') || currentPath.endsWith('/admin')) {
+                    // If path includes /POC/, server root is workspace root
+                    if (currentPath.includes('/POC/')) {
+                        redirectPath = '/POC/pages/admin/index.html';
+                    } else {
+                        // Server root is POC folder
+                        redirectPath = 'pages/admin/index.html';
+                    }
+                }
+                // Check if path includes /POC/ (server from workspace root)
+                else if (currentPath.includes('/POC/')) {
+                    redirectPath = '/POC/pages/admin/index.html';
+                }
+                // Check if path starts with /admin (absolute path)
+                else if (currentPath.startsWith('/admin')) {
+                    // Try both possibilities
+                    redirectPath = window.location.href.includes('/POC/') 
+                        ? '/POC/pages/admin/index.html' 
+                        : 'pages/admin/index.html';
+                }
+                // Default: assume relative path from POC root
+                else {
+                    redirectPath = 'pages/admin/index.html';
+                }
+            }
+            
+            console.log('Redirecting to:', redirectPath);
+            
+            // Try immediate redirect
+            try {
+                window.location.replace(redirectPath);
+            } catch (e) {
+                console.error('Redirect error:', e);
+                // Fallback: try alternative paths
+                const alternatives = isLiveServer ? [
+                    'http://127.0.0.1:5503/POC/pages/admin/index.html',
+                    'http://127.0.0.1:5503/pages/admin/index.html'
+                ] : [
+                    '../pages/admin/index.html',
+                    '../../pages/admin/index.html',
+                    '/POC/pages/admin/index.html',
+                    '/pages/admin/index.html'
+                ];
+                
+                let altIndex = 0;
+                function tryAlternative() {
+                    if (altIndex < alternatives.length) {
+                        console.log('Trying alternative:', alternatives[altIndex]);
+                        try {
+                            window.location.href = alternatives[altIndex];
+                        } catch (err) {
+                            altIndex++;
+                            setTimeout(tryAlternative, 100);
+                        }
+                    }
+                }
+                setTimeout(tryAlternative, 200);
+            }
+        })();
+    </script>
+    <!-- Fallback meta refresh -->
+    <meta http-equiv="refresh" content="0; url=http://127.0.0.1:5503/POC/pages/admin/index.html">
+</head>
+<body style="font-family: system-ui, -apple-system, sans-serif; padding: 2rem; text-align: center; background: #f5f5f5;">
+    <div style="max-width: 600px; margin: 4rem auto; background: white; padding: 2rem; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+        <h1 style="color: #0066CC; margin-bottom: 1rem;">Redirecting to Admin Dashboard...</h1>
+        <p style="color: #666; margin-bottom: 2rem;">If you're not redirected automatically, please click one of the links below:</p>
+        <div style="display: flex; flex-direction: column; gap: 1rem; margin-bottom: 2rem;">
+            <a href="http://127.0.0.1:5503/POC/pages/admin/index.html" style="display: block; padding: 0.75rem 1.5rem; background: #0066CC; color: white; text-decoration: none; border-radius: 4px; text-align: center;">http://127.0.0.1:5503/POC/pages/admin/index.html</a>
+            <a href="pages/admin/index.html" style="display: block; padding: 0.75rem 1.5rem; background: #0066CC; color: white; text-decoration: none; border-radius: 4px; text-align: center;">pages/admin/index.html</a>
+            <a href="../pages/admin/index.html" style="display: block; padding: 0.75rem 1.5rem; background: #0066CC; color: white; text-decoration: none; border-radius: 4px; text-align: center;">../pages/admin/index.html</a>
+            <a href="/POC/pages/admin/index.html" style="display: block; padding: 0.75rem 1.5rem; background: #0066CC; color: white; text-decoration: none; border-radius: 4px; text-align: center;">/POC/pages/admin/index.html</a>
+        </div>
+        <div style="padding: 1rem; background: #fff3cd; border-left: 4px solid #ffc107; border-radius: 4px; margin-top: 2rem;">
+            <p style="margin: 0; color: #856404; font-size: 0.9rem;">
+                <strong>💡 Tip:</strong> For best results, use the Node.js server:<br>
+                <code style="background: #f8f9fa; padding: 0.25rem 0.5rem; border-radius: 3px; display: inline-block; margin-top: 0.5rem;">cd POC && node server.js</code><br>
+                Then access: <code style="background: #f8f9fa; padding: 0.25rem 0.5rem; border-radius: 3px;">http://localhost:3000/admin/</code>
+            </p>
+        </div>
+        <div style="margin-top: 1.5rem; padding: 1rem; background: #f8f9fa; border-radius: 4px;">
+            <p style="margin: 0; font-size: 0.85rem; color: #666;">
+                <strong>Why this happens:</strong> Live Server doesn't support URL rewriting.<br>
+                The Node.js server handles routing properly and avoids 404 errors.
+            </p>
+        </div>
+    </div>
+</body>
+</html>
