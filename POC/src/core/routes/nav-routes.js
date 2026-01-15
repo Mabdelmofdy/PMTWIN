@@ -24,20 +24,22 @@
     'discovery': '/POC/pages/discovery/index.html',
     'merchant-portal': '/POC/pages/merchant-portal/index.html',
 
-    // Projects
-    'projects': '/POC/pages/projects/index.html',
-    'my-projects': '/POC/pages/my-projects/index.html',
-    'create-project': '/POC/pages/projects/create/index.html',
-    'project-view': '/POC/pages/projects/view/index.html',
+    // Projects (DEPRECATED - Redirects to Opportunities)
+    'projects': '/POC/pages/opportunities/index.html', // Redirect to opportunities
+    'my-projects': '/POC/pages/opportunities/index.html', // Redirect to opportunities
+    'create-project': '/POC/pages/opportunities/create/index.html', // Redirect to opportunity creation
+    'project-view': '/POC/pages/opportunities/index.html', // Redirect to opportunities list
 
     // Proposals
     'proposals': '/POC/pages/proposals/index.html',
     'proposals-list': '/POC/pages/proposals/list/index.html',
     'create-proposal': '/POC/pages/proposals/create/index.html',
+    'proposal-view': '/POC/pages/proposals/view/index.html',
 
     // Matches & Opportunities
     'matches': '/POC/pages/matches/index.html',
     'opportunities': '/POC/pages/opportunities/index.html',
+    'create-opportunity': '/POC/pages/opportunities/create/index.html',
     'pipeline': '/POC/pages/pipeline/index.html',
 
     // Collaboration

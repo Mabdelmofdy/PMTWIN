@@ -25,14 +25,14 @@ const adminData = {
     },
     {
       id: 'opp-002',
-      title: 'Dubai Marina Towers - MEP Design Consultation',
+      title: 'Jeddah Marina Towers - MEP Design Consultation',
       type: 'Task-Based Engagement',
       status: 'active',
-      createdBy: 'Dubai Infrastructure Partners',
-      createdByEmail: 'info@dubaiinfra.com',
+      createdBy: 'Jeddah Infrastructure Partners',
+      createdByEmail: 'info@jeddahinfra.com',
       createdAt: '2024-01-18T14:20:00Z',
-      budget: { min: 300000, max: 500000, currency: 'AED' },
-      location: { city: 'Dubai', region: 'Dubai', country: 'UAE' },
+      budget: { min: 300000, max: 500000, currency: 'SAR' },
+      location: { city: 'Jeddah', region: 'Makkah Province', country: 'Saudi Arabia' },
       description: 'Seeking MEP design consultation for luxury residential towers including HVAC, electrical, and plumbing systems optimization.',
       applicants: 8,
       views: 32,
@@ -59,14 +59,14 @@ const adminData = {
     },
     {
       id: 'opp-004',
-      title: 'Cairo Airport Terminal - Project JV Partner',
+      title: 'Riyadh Airport Terminal - Project JV Partner',
       type: 'Project-Specific Joint Venture',
       status: 'active',
-      createdBy: 'Egyptian Construction Group',
-      createdByEmail: 'contact@egyptconstruction.com',
+      createdBy: 'Riyadh Construction Group',
+      createdByEmail: 'contact@riyadhconstruction.com',
       createdAt: '2024-01-20T11:45:00Z',
-      budget: { min: 200000000, max: 300000000, currency: 'EGP' },
-      location: { city: 'Cairo', region: 'Cairo Governorate', country: 'Egypt' },
+      budget: { min: 200000000, max: 300000000, currency: 'SAR' },
+      location: { city: 'Riyadh', region: 'Riyadh Province', country: 'Saudi Arabia' },
       description: 'Seeking JV partner for airport terminal expansion project. Require partner with international airport construction experience and financial capacity.',
       applicants: 6,
       views: 52,
@@ -76,14 +76,14 @@ const adminData = {
     },
     {
       id: 'opp-005',
-      title: 'Abu Dhabi Cultural District - SPV Formation',
+      title: 'Riyadh Cultural District - SPV Formation',
       type: 'Special Purpose Vehicle (SPV)',
       status: 'active',
-      createdBy: 'Abu Dhabi Development Authority',
-      createdByEmail: 'projects@addauthority.ae',
+      createdBy: 'Riyadh Development Authority',
+      createdByEmail: 'projects@riyadhda.gov.sa',
       createdAt: '2024-01-12T08:00:00Z',
-      budget: { min: 1500000000, max: 2000000000, currency: 'AED' },
-      location: { city: 'Abu Dhabi', region: 'Abu Dhabi', country: 'UAE' },
+      budget: { min: 1500000000, max: 2000000000, currency: 'SAR' },
+      location: { city: 'Riyadh', region: 'Riyadh Province', country: 'Saudi Arabia' },
       description: 'Forming SPV for cultural district development including museums, theaters, and exhibition spaces. Seeking investors and development partners.',
       applicants: 9,
       views: 65,
@@ -130,11 +130,11 @@ const adminData = {
       title: 'Senior Project Manager - Full-Time Position',
       type: 'Professional Hiring',
       status: 'active',
-      createdBy: 'Dubai Mega Projects LLC',
-      createdByEmail: 'hr@dubaimegaprojects.com',
+      createdBy: 'Riyadh Mega Projects LLC',
+      createdByEmail: 'hr@riyadhmegaprojects.com',
       createdAt: '2024-01-28T09:20:00Z',
       budget: { min: 25000, max: 35000, currency: 'AED' },
-      location: { city: 'Dubai', region: 'Dubai', country: 'UAE' },
+      location: { city: 'Riyadh', region: 'Riyadh Province', country: 'Saudi Arabia' },
       description: 'Hiring senior project manager for mega infrastructure project. Require PMP certification, 10+ years experience, and mega-project track record.',
       applicants: 24,
       views: 156,
@@ -236,7 +236,7 @@ const adminData = {
       createdByEmail: 'alliances@premiereng.com',
       createdAt: '2024-02-10T09:45:00Z',
       budget: { min: 0, max: 0, currency: 'SAR' },
-      location: { city: 'Dubai', region: 'Dubai', country: 'UAE' },
+      location: { city: 'Riyadh', region: 'Riyadh Province', country: 'Saudi Arabia' },
       description: 'Seeking strategic alliance partner for ongoing collaboration. Preferred partner status, cross-referrals, and joint bidding on opportunities.',
       applicants: 6,
       views: 38,
@@ -253,7 +253,7 @@ const adminData = {
       createdByEmail: 'careers@advancedeng.com',
       createdAt: '2024-01-05T10:00:00Z',
       budget: { min: 18000, max: 25000, currency: 'AED' },
-      location: { city: 'Abu Dhabi', region: 'Abu Dhabi', country: 'UAE' },
+      location: { city: 'Dammam', region: 'Eastern Province', country: 'Saudi Arabia' },
       description: 'Hiring structural engineer for permanent position. Position filled - opportunity closed.',
       applicants: 28,
       views: 189,
@@ -302,7 +302,7 @@ const adminData = {
     {
       id: 'prop-003',
       opportunityId: 'opp-002',
-      opportunityTitle: 'Dubai Marina Towers - MEP Design Consultation',
+      opportunityTitle: 'Jeddah Marina Towers - MEP Design Consultation',
       submittedBy: 'MEP Excellence Consultants',
       submittedByEmail: 'contact@mepexcellence.com',
       status: 'approved',
@@ -336,7 +336,7 @@ const adminData = {
     {
       id: 'prop-005',
       opportunityId: 'opp-004',
-      opportunityTitle: 'Cairo Airport Terminal - Project JV Partner',
+      opportunityTitle: 'Riyadh Airport Terminal - Project JV Partner',
       submittedBy: 'International Airport Builders',
       submittedByEmail: 'projects@airportbuilders.com',
       status: 'rejected',
@@ -457,7 +457,7 @@ const adminData = {
         count: 5,
         opportunities: [
           { id: 'opp-001', title: 'Riyadh Metro Station Design', createdBy: 'Al-Mansouri Construction Group' },
-          { id: 'opp-002', title: 'Dubai Marina Towers - MEP Design', createdBy: 'Dubai Infrastructure Partners' },
+          { id: 'opp-002', title: 'Jeddah Marina Towers - MEP Design', createdBy: 'Jeddah Infrastructure Partners' },
           { id: 'opp-006', title: 'Steel Reinforcement - Bulk Purchasing', createdBy: 'Riyadh Builders Association' }
         ]
       },
@@ -467,7 +467,7 @@ const adminData = {
         count: 4,
         opportunities: [
           { id: 'opp-003', title: 'NEOM Industrial Zone - Consortium', createdBy: 'Saudi Industrial Development Co.' },
-          { id: 'opp-004', title: 'Cairo Airport Terminal - Project JV', createdBy: 'Egyptian Construction Group' },
+          { id: 'opp-004', title: 'Riyadh Airport Terminal - Project JV', createdBy: 'Riyadh Construction Group' },
           { id: 'opp-005', title: 'Abu Dhabi Cultural District - SPV', createdBy: 'Abu Dhabi Development Authority' }
         ]
       },
@@ -523,10 +523,10 @@ const adminData = {
     },
     {
       id: 'proj-002',
-      title: 'Dubai Marina Luxury Residences',
+      title: 'Jeddah Marina Luxury Residences',
       status: 'active',
-      owner: 'Dubai Infrastructure Partners',
-      ownerEmail: 'info@dubaiinfra.com',
+      owner: 'Jeddah Infrastructure Partners',
+      ownerEmail: 'info@jeddahinfra.com',
       startDate: '2023-09-15',
       endDate: '2026-03-31',
       budget: { total: 1200000000, spent: 360000000, currency: 'AED' },
@@ -576,10 +576,10 @@ const adminData = {
     },
     {
       id: 'proj-004',
-      title: 'Cairo Airport Terminal 3 Expansion',
+      title: 'Riyadh Airport Terminal 3 Expansion',
       status: 'planning',
-      owner: 'Egyptian Construction Group',
-      ownerEmail: 'contact@egyptconstruction.com',
+      owner: 'Riyadh Construction Group',
+      ownerEmail: 'contact@riyadhconstruction.com',
       startDate: '2024-06-01',
       endDate: '2027-05-31',
       budget: { total: 1800000000, spent: 0, currency: 'EGP' },
@@ -667,8 +667,8 @@ const adminData = {
     },
     {
       id: 'user-002',
-      name: 'Dubai Infrastructure Partners',
-      email: 'info@dubaiinfra.com',
+      name: 'Jeddah Infrastructure Partners',
+      email: 'info@jeddahinfra.com',
       role: 'entity',
       userType: 'company',
       status: 'active',
@@ -676,7 +676,7 @@ const adminData = {
       lastActive: '2024-02-09T16:20:00Z',
       profileCompletion: 88,
       verificationStatus: 'verified',
-      location: { city: 'Dubai', country: 'UAE' }
+      location: { city: 'Jeddah', country: 'Saudi Arabia' }
     },
     {
       id: 'user-003',
@@ -689,7 +689,7 @@ const adminData = {
       lastActive: '2024-02-11T09:45:00Z',
       profileCompletion: 75,
       verificationStatus: 'verified',
-      location: { city: 'Dubai', country: 'UAE' }
+      location: { city: 'Jeddah', country: 'Saudi Arabia' }
     },
     {
       id: 'user-004',
@@ -715,7 +715,7 @@ const adminData = {
       lastActive: '2024-02-11T11:30:00Z',
       profileCompletion: 90,
       verificationStatus: 'verified',
-      location: { city: 'Dubai', country: 'UAE' }
+      location: { city: 'Jeddah', country: 'Saudi Arabia' }
     },
     {
       id: 'user-006',
@@ -767,7 +767,7 @@ const adminData = {
       lastActive: '2024-02-11T13:45:00Z',
       profileCompletion: 87,
       verificationStatus: 'verified',
-      location: { city: 'Dubai', country: 'UAE' }
+      location: { city: 'Jeddah', country: 'Saudi Arabia' }
     },
     {
       id: 'user-010',
@@ -780,7 +780,7 @@ const adminData = {
       lastActive: '2024-02-10T16:30:00Z',
       profileCompletion: 65,
       verificationStatus: 'verified',
-      location: { city: 'Cairo', country: 'Egypt' }
+      location: { city: 'Riyadh', country: 'Saudi Arabia' }
     }
   ],
 

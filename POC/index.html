@@ -10,6 +10,13 @@
 <body>
     <!-- Redirecting to home page... -->
     <script>
+        // Load unified storage adapter first to clean up legacy keys
+        if (typeof UnifiedStorage === 'undefined') {
+          const script = document.createElement('script');
+          script.src = 'src/core/storage/storage-adapter.js';
+          document.head.appendChild(script);
+        }
+        
         // Redirect to home page
         window.location.href = 'pages/home/';
     </script>

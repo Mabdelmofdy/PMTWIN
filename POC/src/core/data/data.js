@@ -14,16 +14,16 @@
     skipAuditLogs = value;
   }
 
-  // Storage keys
+  // Storage keys (UNIFIED - Legacy keys removed)
   const STORAGE_KEYS = {
     USERS: 'pmtwin_users',
     SESSIONS: 'pmtwin_sessions',
-    PROJECTS: 'pmtwin_projects',
     PROPOSALS: 'pmtwin_proposals',
     MATCHES: 'pmtwin_matches',
     AUDIT: 'pmtwin_audit',
     NOTIFICATIONS: 'pmtwin_notifications',
-    COLLABORATION_OPPORTUNITIES: 'pmtwin_collaboration_opportunities',
+    OPPORTUNITIES: 'pmtwin_opportunities', // Unified key for all opportunities
+    COLLABORATION_OPPORTUNITIES: 'pmtwin_opportunities', // Alias for backward compatibility (deprecated) for clarity
     COLLABORATION_APPLICATIONS: 'pmtwin_collaboration_applications',
     SYSTEM_SETTINGS: 'pmtwin_system_settings',
     SERVICE_PROVIDERS_INDEX: 'pmtwin_service_providers_index',
@@ -32,16 +32,14 @@
     SERVICE_OFFERINGS_INDEX: 'pmtwin_service_offerings_index',
     VENDOR_SUBCONTRACTOR_RELATIONSHIPS: 'pmtwin_vendor_subcontractor_relationships',
     SERVICE_PROVIDER_PROFILES: 'pmtwin_service_provider_profiles',
-    SERVICE_REQUESTS: 'pmtwin_service_requests',
-    SERVICE_OFFERS: 'pmtwin_service_offers',
-    SERVICE_ENGAGEMENTS: 'pmtwin_service_engagements',
     CONTRACTS: 'pmtwin_contracts',
     ENGAGEMENTS: 'pmtwin_engagements',
     MILESTONES: 'pmtwin_milestones',
     VERSION: 'pmtwin_data_version'
+    // REMOVED: PROJECTS, SERVICE_REQUESTS, SERVICE_OFFERS, SERVICE_ENGAGEMENTS (legacy)
   };
 
-  const DATA_VERSION = '2.5.0'; // Updated for Product Vision: IntentType, PaymentMode, Barter/Hybrid support
+  const DATA_VERSION = '3.0.0'; // Updated for Unified Opportunity Model: Intent, ServiceItems, PaymentTerms, Location, Versioned Proposals
 
   // ============================================
   // User Type & Role Mapping
@@ -137,7 +135,7 @@
       document.head.appendChild(script);
     }
     
-    // Load sample collaboration opportunities if none exist (keep for now)
+    // Load sample collaboration opportunities if none exist (UNIFIED - uses Opportunities model)
     loadSampleCollaborationOpportunities();
     
     // Load sample collaboration applications if none exist (after opportunities are loaded)
@@ -159,8 +157,22 @@
     // Migrate proposals to new model
     migrateProposalsToNewModel();
     
-    // Ensure golden seed projects are public
-    migrateGoldenSeedProjectsVisibility();
+    // Migrate to unified Opportunities model
+    migrateToUnifiedOpportunityModel();
+    
+    // Remove legacy storage keys
+    if (typeof UnifiedStorage !== 'undefined') {
+      UnifiedStorage.removeLegacyKeys();
+    } else {
+      // Fallback: remove legacy keys directly
+      const legacyKeys = ['pmtwin_projects', 'pmtwin_service_requests', 'pmtwin_service_offers'];
+      legacyKeys.forEach(key => {
+        if (localStorage.getItem(key)) {
+          localStorage.removeItem(key);
+          console.log(`✓ Removed legacy key: ${key}`);
+        }
+      });
+    }
     
     // Run workflow validation (after data is loaded)
     setTimeout(() => {
@@ -209,7 +221,7 @@
   }
 
   // ============================================
-  // Migration: Update Proposals to New Model
+  // Migration: Update Proposals to New Model with Versioning
   // ============================================
   function migrateProposalsToNewModel() {
     try {
@@ -234,6 +246,47 @@
         let needsUpdate = false;
         const updates = {};
         
+        // Migrate to versions[] array structure if not already migrated
+        if (!proposal.versions || !Array.isArray(proposal.versions) || proposal.versions.length === 0) {
+          // Create initial version from existing proposal data
+          const versionData = {
+            version: proposal.version || 1,
+            proposalData: {
+              ...proposal,
+              // Remove versioning fields
+              version: undefined,
+              versions: undefined,
+              versionHistory: undefined,
+              currentVersion: undefined,
+              acceptance: undefined,
+              parentProposalId: undefined
+            },
+            createdAt: proposal.createdAt || new Date().toISOString(),
+            createdBy: proposal.providerId || proposal.bidderCompanyId || 'system',
+            status: proposal.status || 'SUBMITTED',
+            changes: []
+          };
+          
+          updates.versions = [versionData];
+          updates.currentVersion = proposal.version || 1;
+          updates.acceptance = {
+            providerAccepted: false,
+            ownerAccepted: false,
+            mutuallyAcceptedVersion: null,
+            acceptedAt: null
+          };
+          
+          // If proposal was already approved/awarded, mark as mutually accepted
+          if (proposal.status === 'AWARDED' || proposal.status === 'approved') {
+            updates.acceptance.providerAccepted = true;
+            updates.acceptance.ownerAccepted = true;
+            updates.acceptance.mutuallyAcceptedVersion = proposal.version || 1;
+            updates.acceptance.acceptedAt = proposal.approvedAt || proposal.awardedAt || new Date().toISOString();
+          }
+          
+          needsUpdate = true;
+        }
+        
         // Migrate status to new enum
         if (proposal.status && statusMapping[proposal.status.toLowerCase()]) {
           const newStatus = statusMapping[proposal.status.toLowerCase()];
@@ -247,16 +300,17 @@
           needsUpdate = true;
         }
         
+        // Add opportunityId if missing
+        if (!proposal.opportunityId && (proposal.targetId || proposal.projectId)) {
+          updates.opportunityId = proposal.targetId || proposal.projectId;
+          needsUpdate = true;
+        }
+        
         // Add proposalType if missing
         if (!proposal.proposalType) {
-          if (proposal.projectId) {
-            const project = Projects.getById(proposal.projectId);
-            if (project && project.projectType === 'mega') {
-              updates.proposalType = 'PROJECT_BID';
-            } else {
-              updates.proposalType = 'PROJECT_BID';
-            }
-          } else if (proposal.serviceRequestId || proposal.serviceOfferingId) {
+          if (proposal.projectId || proposal.targetType === 'PROJECT' || proposal.targetType === 'MEGA_PROJECT') {
+            updates.proposalType = 'PROJECT_BID';
+          } else if (proposal.serviceRequestId || proposal.serviceOfferingId || proposal.targetType === 'SERVICE_REQUEST') {
             updates.proposalType = 'SERVICE_OFFER';
           } else {
             updates.proposalType = 'PROJECT_BID'; // Default
@@ -285,7 +339,13 @@
         
         // Add ownerCompanyId if missing
         if (!proposal.ownerCompanyId) {
-          if (proposal.targetId && proposal.targetType) {
+          if (proposal.opportunityId && typeof Opportunities !== 'undefined') {
+            const opportunity = Opportunities.getById(proposal.opportunityId);
+            if (opportunity) {
+              updates.ownerCompanyId = opportunity.createdBy || opportunity.creatorId;
+            }
+          }
+          if (!updates.ownerCompanyId && proposal.targetId && proposal.targetType) {
             if (proposal.targetType === 'PROJECT' || proposal.targetType === 'MEGA_PROJECT') {
               const project = Projects.getById(proposal.targetId);
               updates.ownerCompanyId = project?.ownerCompanyId || project?.creatorId;
@@ -293,13 +353,19 @@
               const serviceRequest = ServiceRequests.getById(proposal.targetId);
               updates.ownerCompanyId = serviceRequest?.ownerCompanyId || serviceRequest?.requesterId;
             }
-          } else if (proposal.projectId) {
+          } else if (!updates.ownerCompanyId && proposal.projectId) {
             const project = Projects.getById(proposal.projectId);
             updates.ownerCompanyId = project?.ownerCompanyId || project?.creatorId;
           }
           if (updates.ownerCompanyId) {
             needsUpdate = true;
           }
+        }
+        
+        // Ensure parentProposalId is set (same as id for root proposals)
+        if (!proposal.parentProposalId) {
+          updates.parentProposalId = proposal.id;
+          needsUpdate = true;
         }
         
         if (needsUpdate) {
@@ -309,7 +375,7 @@
       });
       
       if (proposalsUpdated > 0) {
-        console.log(`✅ Migrated ${proposalsUpdated} proposals to new model`);
+        console.log(`✅ Migrated ${proposalsUpdated} proposals to new model with versioning`);
       }
     } catch (error) {
       console.error('Error migrating proposals:', error);
@@ -3414,7 +3480,7 @@
   // ============================================
   // Load Sample Projects
   // ============================================
-  async function loadSampleProjects(forceReload = false) {
+  async function loadSampleProjects_DUPLICATE_DISABLED(forceReload = false) {
     const existingProjects = Projects.getAll();
     
     // Only load if no projects exist, unless forceReload is true
@@ -3473,132 +3539,165 @@
   // ============================================
   // Projects CRUD
   // ============================================
+  // ============================================
+  // Projects Wrapper (DEPRECATED - Redirects to Opportunities)
+  // ============================================
   const Projects = {
     getAll() {
-      return get(STORAGE_KEYS.PROJECTS);
+      console.warn('⚠️ Projects.getAll() is deprecated. Use Opportunities.getAll() instead.');
+      // Return opportunities converted to legacy project format for backward compatibility
+      const opportunities = Opportunities.getAll();
+      return opportunities.map(opp => ({
+        id: opp.id,
+        title: opp.title,
+        name: opp.title,
+        description: opp.description,
+        category: opp.category,
+        status: opp.status === 'published' ? 'active' : opp.status,
+        projectType: opp.subModel === '1.4' ? 'mega' : 'single',
+        visibility: opp.status === 'published' ? 'public' : 'private',
+        location: opp.location,
+        scope: {
+          skillRequirements: opp.skills,
+          requiredServices: opp.skills
+        },
+        creatorId: opp.createdBy || opp.creatorId,
+        ownerCompanyId: opp.createdBy || opp.creatorId,
+        createdAt: opp.createdAt,
+        updatedAt: opp.updatedAt,
+        views: opp.views || 0,
+        matchesGenerated: opp.matchesGenerated || 0,
+        proposalsReceived: opp.applicationsReceived || 0,
+        proposalsApproved: opp.applicationsApproved || 0
+      }));
     },
 
     getById(id) {
-      const projects = this.getAll();
-      return projects.find(p => p.id === id) || null;
+      console.warn('⚠️ Projects.getById() is deprecated. Use Opportunities.getById() instead.');
+      const opportunity = Opportunities.getById(id);
+      if (!opportunity) return null;
+      
+      return {
+        id: opportunity.id,
+        title: opportunity.title,
+        name: opportunity.title,
+        description: opportunity.description,
+        category: opportunity.category,
+        status: opportunity.status === 'published' ? 'active' : opportunity.status,
+        projectType: opportunity.subModel === '1.4' ? 'mega' : 'single',
+        visibility: opportunity.status === 'published' ? 'public' : 'private',
+        location: opportunity.location,
+        scope: {
+          skillRequirements: opportunity.skills,
+          requiredServices: opportunity.skills
+        },
+        creatorId: opportunity.createdBy || opportunity.creatorId,
+        ownerCompanyId: opportunity.createdBy || opportunity.creatorId,
+        createdAt: opportunity.createdAt,
+        updatedAt: opportunity.updatedAt
+      };
     },
 
     getByCreator(creatorId) {
-      const projects = this.getAll();
-      return projects.filter(p => p.creatorId === creatorId);
+      console.warn('⚠️ Projects.getByCreator() is deprecated. Use Opportunities.getByCreator() instead.');
+      return Opportunities.getByCreator(creatorId).map(opp => this.getById(opp.id));
     },
 
     getByOwnerCompany(ownerCompanyId) {
-      const projects = this.getAll();
-      return projects.filter(p => p.ownerCompanyId === ownerCompanyId);
+      console.warn('⚠️ Projects.getByOwnerCompany() is deprecated. Use Opportunities.getByCreator() instead.');
+      return Opportunities.getByCreator(ownerCompanyId).map(opp => this.getById(opp.id));
     },
 
     getByStatus(status) {
-      const projects = this.getAll();
-      return projects.filter(p => p.status === status);
+      console.warn('⚠️ Projects.getByStatus() is deprecated. Use Opportunities.getByStatus() instead.');
+      const oppStatus = status === 'active' ? 'published' : status;
+      return Opportunities.getByStatus(oppStatus).map(opp => this.getById(opp.id));
     },
 
     getActive() {
-      return this.getByStatus('active');
+      console.warn('⚠️ Projects.getActive() is deprecated. Use Opportunities.getActive() instead.');
+      return Opportunities.getActive().map(opp => this.getById(opp.id));
     },
 
     create(projectData) {
-      const projects = this.getAll();
-      const project = {
-        id: generateId('project'),
-        ...projectData,
-        status: projectData.status || 'draft',
-        views: 0,
-        matchesGenerated: 0,
-        proposalsReceived: 0,
-        proposalsApproved: 0,
-        // Set ownerCompanyId from creatorId if not provided (users represent companies)
-        ownerCompanyId: projectData.ownerCompanyId || projectData.creatorId,
-        createdAt: new Date().toISOString()
+      console.warn('⚠️ Projects.create() is deprecated. Use Opportunities.create() instead.');
+      
+      const opportunityData = {
+        id: projectData.id || generateId('opp'),
+        title: projectData.title || projectData.name || '',
+        description: projectData.description || '',
+        intent: 'REQUEST_SERVICE',
+        model: projectData.projectType === 'mega' ? '1' : '1',
+        subModel: projectData.projectType === 'mega' ? '1.4' : '1.1',
+        modelName: projectData.projectType === 'mega' ? 'Special Purpose Vehicle (SPV)' : 'Task-Based Engagement',
+        category: projectData.category || 'Project-Based Collaboration',
+        status: projectData.status === 'active' ? 'published' : (projectData.status || 'draft'),
+        skills: projectData.scope?.skillRequirements || projectData.scope?.requiredServices || [],
+        serviceItems: [],
+        paymentTerms: {
+          mode: 'CASH',
+          barterRule: null,
+          cashSettlement: 0,
+          acknowledgedDifference: false
+        },
+        location: projectData.location || {
+          country: 'Saudi Arabia',
+          city: '',
+          area: null,
+          address: null,
+          geo: null,
+          isRemoteAllowed: false
+        },
+        createdBy: projectData.ownerCompanyId || projectData.creatorId,
+        createdAt: projectData.createdAt || new Date().toISOString(),
+        updatedAt: projectData.updatedAt || new Date().toISOString(),
+        attributes: projectData.scope || {}
       };
-      projects.push(project);
-      if (set(STORAGE_KEYS.PROJECTS, projects)) {
-        this.createAuditLog('project_creation', project.id, {
-          description: `Project created: ${project.title}`,
-          creatorId: project.creatorId
-        });
-        return project;
-      }
-      return null;
+      
+      const opportunity = Opportunities.create(opportunityData);
+      return opportunity ? this.getById(opportunity.id) : null;
     },
 
     update(id, updates) {
-      const projects = this.getAll();
-      const index = projects.findIndex(p => p.id === id);
-      if (index === -1) return null;
-
-      const oldProject = { ...projects[index] };
-      projects[index] = {
-        ...projects[index],
-        ...updates,
-        updatedAt: new Date().toISOString()
-      };
-
-      if (set(STORAGE_KEYS.PROJECTS, projects)) {
-        if (updates.status === 'active' && oldProject.status === 'draft') {
-          projects[index].publishedAt = new Date().toISOString();
-          set(STORAGE_KEYS.PROJECTS, projects);
-        }
-        this.createAuditLog('project_update', id, {
-          description: `Project updated: ${projects[index].title}`,
-          changes: { before: oldProject, after: projects[index] }
-        });
-        return projects[index];
+      console.warn('⚠️ Projects.update() is deprecated. Use Opportunities.update() instead.');
+      const opportunity = Opportunities.getById(id);
+      if (!opportunity) return null;
+      
+      const oppUpdates = {};
+      if (updates.status) {
+        oppUpdates.status = updates.status === 'active' ? 'published' : updates.status;
       }
-      return null;
+      if (updates.title) oppUpdates.title = updates.title;
+      if (updates.description) oppUpdates.description = updates.description;
+      if (updates.location) oppUpdates.location = updates.location;
+      if (updates.scope) {
+        oppUpdates.skills = updates.scope.skillRequirements || updates.scope.requiredServices || [];
+      }
+      
+      const updated = Opportunities.update(id, oppUpdates);
+      return updated ? this.getById(id) : null;
     },
 
     delete(id) {
-      const projects = this.getAll();
-      const filtered = projects.filter(p => p.id !== id);
-      return set(STORAGE_KEYS.PROJECTS, filtered);
+      console.warn('⚠️ Projects.delete() is deprecated. Use Opportunities.delete() instead.');
+      return Opportunities.delete(id);
     },
 
     incrementViews(id) {
-      const project = this.getById(id);
-      if (project) {
-        project.views = (project.views || 0) + 1;
-        return this.update(id, { views: project.views });
-      }
-      return null;
+      console.warn('⚠️ Projects.incrementViews() is deprecated. Use Opportunities.incrementViews() instead.');
+      return Opportunities.incrementViews(id);
     },
 
     createAuditLog(action, entityId, details) {
-      const auditLogs = Audit.getAll();
-      const currentUser = Sessions.getCurrentUser();
-      auditLogs.push({
-        id: generateId('audit'),
-        timestamp: new Date().toISOString(),
-        userId: currentUser?.id || 'system',
-        userRole: currentUser?.role || 'system',
-        userEmail: currentUser?.email || 'system',
-        userName: currentUser?.profile?.name || 'System',
-        action: action,
-        actionCategory: 'project',
-        entityType: 'project',
-        entityId: entityId,
-        description: details.description,
-        changes: details.changes || null,
-        context: {
-          portal: 'user_portal',
-          projectId: entityId,
-          creatorId: details.creatorId
-        },
-        metadata: {}
-      });
-      set(STORAGE_KEYS.AUDIT, auditLogs);
+      // Redirect to Opportunities audit log
+      Opportunities.createAuditLog(action, entityId, details);
     }
   };
 
   // ============================================
   // Load Sample Projects
   // ============================================
-  async function loadSampleProjects(forceReload = false) {
+  async function loadSampleProjects_DUPLICATE_DISABLED(forceReload = false) {
     const existingProjects = Projects.getAll();
     
     // Only load if no projects exist, unless forceReload is true
@@ -3685,13 +3784,25 @@
       
       // Determine ownerCompanyId from target opportunity
       let ownerCompanyId = proposalData.ownerCompanyId;
-      if (!ownerCompanyId && proposalData.targetId) {
-        if (proposalData.targetType === 'PROJECT' || proposalData.targetType === 'MEGA_PROJECT') {
-          const project = Projects.getById(proposalData.targetId);
-          ownerCompanyId = project?.ownerCompanyId || project?.creatorId;
-        } else if (proposalData.targetType === 'SERVICE_REQUEST') {
-          const serviceRequest = ServiceRequests.getById(proposalData.targetId);
-          ownerCompanyId = serviceRequest?.ownerCompanyId || serviceRequest?.requesterId;
+      let opportunityId = proposalData.opportunityId || proposalData.targetId;
+      
+      if (!ownerCompanyId && opportunityId) {
+        // Try to get from Opportunities first
+        if (typeof Opportunities !== 'undefined') {
+          const opportunity = Opportunities.getById(opportunityId);
+          if (opportunity) {
+            ownerCompanyId = opportunity.createdBy || opportunity.creatorId;
+          }
+        }
+        // Fallback to Projects/ServiceRequests for backward compatibility
+        if (!ownerCompanyId && proposalData.targetType) {
+          if (proposalData.targetType === 'PROJECT' || proposalData.targetType === 'MEGA_PROJECT') {
+            const project = Projects.getById(opportunityId);
+            ownerCompanyId = project?.ownerCompanyId || project?.creatorId;
+          } else if (proposalData.targetType === 'SERVICE_REQUEST') {
+            const serviceRequest = ServiceRequests.getById(opportunityId);
+            ownerCompanyId = serviceRequest?.ownerCompanyId || serviceRequest?.requesterId;
+          }
         }
       }
       
@@ -3699,26 +3810,60 @@
       if (!ownerCompanyId && proposalData.projectId) {
         const project = Projects.getById(proposalData.projectId);
         ownerCompanyId = project?.ownerCompanyId || project?.creatorId;
+        if (!opportunityId) opportunityId = proposalData.projectId;
       }
       
+      const providerId = proposalData.providerId || proposalData.bidderCompanyId;
+      const currentUser = Sessions.getCurrentUser();
+      const createdBy = proposalData.createdBy || providerId || currentUser?.id || 'system';
+      
+      // Create initial version
+      const initialVersion = {
+        version: 1,
+        proposalData: {
+          ...proposalData,
+          // Remove versioning fields from proposalData
+          version: undefined,
+          versions: undefined,
+          versionHistory: undefined,
+          currentVersion: undefined,
+          acceptance: undefined
+        },
+        createdAt: proposalData.createdAt || new Date().toISOString(),
+        createdBy: createdBy,
+        status: proposalData.status || 'SUBMITTED',
+        changes: [] // No changes for initial version
+      };
+      
       const proposal = {
-        id: generateId('proposal'),
-        ...proposalData,
-        serviceOfferingId: proposalData.serviceOfferingId || null, // Link to service offering
-        // New fields for role-aware proposals
+        id: proposalData.id || generateId('proposal'),
+        proposalId: proposalData.proposalId || generateId('proposal'), // Alias for clarity
+        opportunityId: opportunityId,
+        providerId: providerId,
+        // Versioning (immutable list)
+        versions: [initialVersion],
+        currentVersion: 1,
+        // Acceptance states
+        acceptance: {
+          providerAccepted: false,
+          ownerAccepted: false,
+          mutuallyAcceptedVersion: null,
+          acceptedAt: null
+        },
+        // Legacy fields for backward compatibility
+        serviceOfferingId: proposalData.serviceOfferingId || null,
         proposalType: proposalData.proposalType || (proposalData.projectId ? 'PROJECT_BID' : 'SERVICE_OFFER'),
         targetType: proposalData.targetType || (proposalData.projectId ? 'PROJECT' : 'SERVICE_REQUEST'),
-        targetId: proposalData.targetId || proposalData.projectId,
-        bidderCompanyId: proposalData.bidderCompanyId || proposalData.providerId,
+        targetId: opportunityId,
+        projectId: proposalData.projectId || opportunityId, // Backward compatibility
+        bidderCompanyId: providerId,
         ownerCompanyId: ownerCompanyId,
-        // Status: DRAFT | SUBMITTED | UNDER_REVIEW | SHORTLISTED | NEGOTIATION | AWARDED | REJECTED | WITHDRAWN
         status: proposalData.status || 'SUBMITTED',
         submittedAt: proposalData.status === 'DRAFT' ? null : (proposalData.submittedAt || new Date().toISOString()),
-        // Versioning fields
-        version: proposalData.version || 1,
-        parentProposalId: proposalData.parentProposalId || null, // Root proposal ID for version chains
-        versionHistory: proposalData.versionHistory || [],
-        negotiationStatus: proposalData.negotiationStatus || 'INITIAL', // INITIAL | COUNTEROFFER | REVISION | ACCEPTED | REJECTED
+        version: 1, // Current version number
+        parentProposalId: null, // Root proposal ID (same as id for first version)
+        versionHistory: [], // Legacy field
+        negotiationStatus: proposalData.negotiationStatus || 'INITIAL',
         negotiationThread: proposalData.negotiationThread || [],
         createdAt: proposalData.createdAt || new Date().toISOString(),
         updatedAt: proposalData.updatedAt || new Date().toISOString()
@@ -3732,20 +3877,28 @@
       
       proposals.push(proposal);
       if (set(STORAGE_KEYS.PROPOSALS, proposals)) {
-        // Update project proposal count (backward compatibility)
-        if (proposal.projectId || proposal.targetType === 'PROJECT' || proposal.targetType === 'MEGA_PROJECT') {
-          const projectId = proposal.projectId || proposal.targetId;
-          const project = Projects.getById(projectId);
+        // Update opportunity/project proposal count
+        if (opportunityId) {
+          if (typeof Opportunities !== 'undefined') {
+            const opportunity = Opportunities.getById(opportunityId);
+            if (opportunity) {
+              const currentCount = opportunity.applicationsReceived || 0;
+              Opportunities.update(opportunityId, { applicationsReceived: currentCount + 1 });
+            }
+          }
+          // Backward compatibility with Projects
+          const project = Projects.getById(opportunityId);
           if (project) {
             project.proposalsReceived = (project.proposalsReceived || 0) + 1;
-            Projects.update(projectId, { proposalsReceived: project.proposalsReceived });
+            Projects.update(opportunityId, { proposalsReceived: project.proposalsReceived });
           }
         }
         this.createAuditLog('proposal_submission', proposal.id, {
           description: `Proposal submitted: ${proposal.proposalType} for ${proposal.targetType}`,
-          projectId: proposal.projectId || proposal.targetId,
-          providerId: proposal.providerId || proposal.bidderCompanyId,
-          type: proposal.type || proposal.proposalType
+          projectId: opportunityId,
+          providerId: providerId,
+          type: proposal.proposalType,
+          version: 1
         });
         return proposal;
       }
@@ -3758,20 +3911,59 @@
       if (index === -1) return null;
 
       const oldProposal = { ...proposals[index] };
+      
+      // If updating acceptance states, handle separately
+      if (updates.acceptance) {
+        proposals[index].acceptance = {
+          ...proposals[index].acceptance,
+          ...updates.acceptance
+        };
+        
+        // Check if mutually accepted
+        if (proposals[index].acceptance.providerAccepted && 
+            proposals[index].acceptance.ownerAccepted &&
+            !proposals[index].acceptance.mutuallyAcceptedVersion) {
+          proposals[index].acceptance.mutuallyAcceptedVersion = proposals[index].currentVersion;
+          proposals[index].acceptance.acceptedAt = new Date().toISOString();
+        }
+      }
+      
+      // Update current version data if provided (but don't modify versions array directly)
+      if (updates.versions && Array.isArray(updates.versions)) {
+        proposals[index].versions = updates.versions;
+        proposals[index].currentVersion = updates.currentVersion || proposals[index].currentVersion;
+      }
+      
+      // Update other fields
+      const fieldsToUpdate = { ...updates };
+      delete fieldsToUpdate.acceptance;
+      delete fieldsToUpdate.versions;
+      delete fieldsToUpdate.currentVersion;
+      
       proposals[index] = {
         ...proposals[index],
-        ...updates,
+        ...fieldsToUpdate,
         updatedAt: new Date().toISOString()
       };
+      
+      // Sync legacy fields
+      if (updates.status) {
+        proposals[index].status = updates.status;
+        // Update current version status
+        if (proposals[index].versions && proposals[index].versions.length > 0) {
+          const currentVersionIndex = proposals[index].versions.length - 1;
+          proposals[index].versions[currentVersionIndex].status = updates.status;
+        }
+      }
 
       // Set timestamps for status changes
-      if (updates.status === 'approved' && oldProposal.status !== 'approved') {
-        proposals[index].approvedAt = new Date().toISOString();
+      if (updates.status === 'AWARDED' && oldProposal.status !== 'AWARDED') {
+        proposals[index].awardedAt = new Date().toISOString();
       }
-      if (updates.status === 'rejected' && oldProposal.status !== 'rejected') {
+      if (updates.status === 'REJECTED' && oldProposal.status !== 'REJECTED') {
         proposals[index].rejectedAt = new Date().toISOString();
       }
-      if (updates.status === 'completed' && oldProposal.status !== 'completed') {
+      if (updates.status === 'COMPLETED' && oldProposal.status !== 'COMPLETED') {
         proposals[index].completedAt = new Date().toISOString();
       }
 
@@ -3783,6 +3975,103 @@
         return proposals[index];
       }
       return null;
+    },
+    
+    /**
+     * Create a new version of a proposal
+     * @param {string} proposalId - Proposal ID
+     * @param {Object} updates - Updates to apply to new version
+     * @param {string} updatedBy - User ID making the update
+     * @returns {Object} - Updated proposal or null
+     */
+    createVersion(proposalId, updates, updatedBy) {
+      const proposal = this.getById(proposalId);
+      if (!proposal) {
+        console.error('Proposal not found:', proposalId);
+        return null;
+      }
+      
+      const currentVersion = proposal.currentVersion || proposal.versions.length;
+      const newVersion = currentVersion + 1;
+      
+      // Get current version data
+      const currentVersionData = proposal.versions[proposal.versions.length - 1]?.proposalData || {};
+      
+      // Create new version with updates
+      const newVersionData = {
+        ...currentVersionData,
+        ...updates
+      };
+      
+      // Determine what changed
+      const changes = [];
+      Object.keys(updates).forEach(key => {
+        if (key !== 'updatedAt' && key !== 'createdAt' && currentVersionData[key] !== updates[key]) {
+          changes.push(key);
+        }
+      });
+      
+      // Create version snapshot
+      const versionSnapshot = {
+        version: newVersion,
+        proposalData: newVersionData,
+        createdAt: new Date().toISOString(),
+        createdBy: updatedBy || proposal.providerId,
+        status: updates.status || proposal.status || 'NEGOTIATION',
+        changes: changes
+      };
+      
+      // Add to versions array (immutable)
+      proposal.versions = [...proposal.versions, versionSnapshot];
+      proposal.currentVersion = newVersion;
+      proposal.updatedAt = new Date().toISOString();
+      
+      // Update legacy fields for backward compatibility
+      proposal.version = newVersion;
+      proposal.versionHistory = proposal.versions.map(v => ({
+        version: v.version,
+        createdAt: v.createdAt,
+        createdBy: v.createdBy,
+        status: v.status,
+        changes: v.changes
+      }));
+      
+      // Update status if provided
+      if (updates.status) {
+        proposal.status = updates.status;
+      }
+      
+      // Update proposal
+      const proposals = this.getAll();
+      const index = proposals.findIndex(p => p.id === proposalId);
+      if (index !== -1) {
+        proposals[index] = proposal;
+        if (set(STORAGE_KEYS.PROPOSALS, proposals)) {
+          this.createAuditLog('proposal_version_created', proposalId, {
+            description: `Proposal version ${newVersion} created`,
+            version: newVersion,
+            changes: changes,
+            updatedBy: updatedBy
+          });
+          return proposal;
+        }
+      }
+      
+      return null;
+    },
+    
+    /**
+     * Get a specific version of a proposal
+     * @param {string} proposalId - Proposal ID
+     * @param {number} version - Version number
+     * @returns {Object} - Version data or null
+     */
+    getVersion(proposalId, version) {
+      const proposal = this.getById(proposalId);
+      if (!proposal || !proposal.versions) return null;
+      
+      const versionData = proposal.versions.find(v => v.version === version);
+      return versionData || null;
     },
 
     delete(id) {
@@ -4562,14 +4851,11 @@
   }
 
   // ============================================
-  // Collaboration Opportunities CRUD
+  // Unified Opportunities CRUD (Replaces CollaborationOpportunities)
   // ============================================
-  // ============================================
-  // Collaboration Opportunities CRUD
-  // ============================================
-  const CollaborationOpportunities = {
+  const Opportunities = {
     getAll() {
-      return get(STORAGE_KEYS.COLLABORATION_OPPORTUNITIES);
+      return get(STORAGE_KEYS.OPPORTUNITIES);
     },
 
     getById(id) {
@@ -4579,12 +4865,12 @@
 
     getByCreator(creatorId) {
       const opportunities = this.getAll();
-      return opportunities.filter(o => o.creatorId === creatorId);
+      return opportunities.filter(o => o.createdBy === creatorId || o.creatorId === creatorId);
     },
 
     getByModelType(modelType) {
       const opportunities = this.getAll();
-      return opportunities.filter(o => o.modelType === modelType);
+      return opportunities.filter(o => o.modelType === modelType || o.subModel === modelType);
     },
 
     getByStatus(status) {
@@ -4595,64 +4881,155 @@
     create(opportunityData) {
       const opportunities = this.getAll();
       
-      // Intent type: REQUEST_SERVICE | OFFER_SERVICE | BOTH
-      // Default: infer from model type or set to BOTH for collaboration models
-      let intentType = opportunityData.intentType;
-      if (!intentType) {
+      // Validate serviceItems if provided
+      if (opportunityData.serviceItems && typeof ServiceItemModel !== 'undefined') {
+        const validation = ServiceItemModel.validateArray(opportunityData.serviceItems);
+        if (!validation.valid) {
+          console.error('Invalid serviceItems:', validation.errors);
+          return null;
+        }
+      }
+      
+      // Intent: REQUEST_SERVICE | OFFER_SERVICE | BOTH
+      let intent = opportunityData.intent || opportunityData.intentType;
+      if (!intent) {
         // Infer from context
         if (opportunityData.serviceRequestId || opportunityData.requestType === 'SERVICE_REQUEST') {
-          intentType = 'REQUEST_SERVICE';
+          intent = 'REQUEST_SERVICE';
         } else if (opportunityData.serviceOfferingId || opportunityData.offerType === 'SERVICE_OFFER') {
-          intentType = 'OFFER_SERVICE';
+          intent = 'OFFER_SERVICE';
         } else {
-          intentType = 'BOTH'; // Default for collaboration opportunities
+          intent = 'BOTH'; // Default for collaboration opportunities
         }
       }
       
-      // Payment mode: Cash | Barter | Hybrid
-      // Default: Cash unless barter-related fields are present
-      let paymentMode = opportunityData.paymentMode;
-      if (!paymentMode) {
-        if (opportunityData.exchangeType === 'Barter' || opportunityData.barterOffer) {
-          paymentMode = 'Barter';
-        } else if (opportunityData.exchangeType === 'Mixed' || 
-                   (opportunityData.cashComponent && opportunityData.serviceComponents)) {
-          paymentMode = 'Hybrid';
-        } else {
-          paymentMode = 'Cash';
+      // Extract model and subModel from modelId/modelType
+      let model = opportunityData.model;
+      let subModel = opportunityData.subModel || opportunityData.modelId || opportunityData.modelType;
+      if (!model && subModel) {
+        model = subModel.split('.')[0]; // Extract main model number
+      }
+      if (!subModel && opportunityData.modelId) {
+        subModel = opportunityData.modelId;
+      }
+      
+      // Payment Terms structure
+      let paymentTerms = opportunityData.paymentTerms;
+      if (!paymentTerms || typeof paymentTerms !== 'object') {
+        // Build from legacy fields
+        let mode = opportunityData.paymentMode || opportunityData.paymentTerms?.mode;
+        if (!mode) {
+          if (opportunityData.exchangeType === 'Barter' || opportunityData.barterOffer) {
+            mode = 'BARTER';
+          } else if (opportunityData.exchangeType === 'Mixed' || 
+                     (opportunityData.cashComponent && opportunityData.serviceComponents)) {
+            mode = 'HYBRID';
+          } else {
+            mode = 'CASH';
+          }
+        }
+        
+        paymentTerms = {
+          mode: mode.toUpperCase(),
+          barterRule: null,
+          cashSettlement: 0,
+          acknowledgedDifference: false
+        };
+        
+        // Set barter rule if BARTER or HYBRID
+        if (mode === 'BARTER' || mode === 'HYBRID') {
+          paymentTerms.barterRule = opportunityData.barterSettlementRule || 
+                                    opportunityData.barterRule || 
+                                    'ALLOW_DIFFERENCE_CASH';
+          if (opportunityData.cashComponent) {
+            paymentTerms.cashSettlement = parseFloat(opportunityData.cashComponent) || 0;
+          }
+          if (opportunityData.acknowledgedDifference) {
+            paymentTerms.acknowledgedDifference = true;
+          }
         }
       }
       
-      // Barter settlement rule (only for Barter/Hybrid)
-      const barterSettlementRule = (paymentMode === 'Barter' || paymentMode === 'Hybrid') 
-        ? (opportunityData.barterSettlementRule || 'ALLOW_DIFFERENCE_WITH_CASH')
-        : null;
+      // Location structure (standardize)
+      let location = opportunityData.location;
+      if (!location || typeof location !== 'object') {
+        // Build from legacy fields
+        location = {
+          country: opportunityData.location?.country || opportunityData.attributes?.projectLocation?.split(',')[1]?.trim() || 'Saudi Arabia',
+          city: opportunityData.location?.city || opportunityData.attributes?.projectLocation?.split(',')[0]?.trim() || '',
+          area: opportunityData.location?.area || null,
+          address: opportunityData.location?.address || null,
+          geo: {
+            lat: opportunityData.location?.geo?.lat || opportunityData.location?.coordinates?.lat || null,
+            lng: opportunityData.location?.geo?.lng || opportunityData.location?.coordinates?.lng || null
+          },
+          isRemoteAllowed: opportunityData.location?.isRemoteAllowed !== undefined 
+            ? opportunityData.location.isRemoteAllowed 
+            : (opportunityData.attributes?.locationRequirement === 'Remote' || 
+               opportunityData.attributes?.locationRequirement === 'Hybrid')
+        };
+      }
+      
+      // Skills array
+      let skills = opportunityData.skills || [];
+      if (!Array.isArray(skills)) {
+        // Extract from attributes
+        skills = opportunityData.attributes?.requiredSkills || 
+                 opportunityData.attributes?.skills || 
+                 [];
+      }
+      
+      // Service Items (convert legacy formats if needed)
+      let serviceItems = opportunityData.serviceItems || [];
+      if (!Array.isArray(serviceItems) && typeof ServiceItemModel !== 'undefined') {
+        // Try to convert legacy formats
+        if (opportunityData.attributes?.serviceItems) {
+          serviceItems = ServiceItemModel.convertLegacyArray(opportunityData.attributes.serviceItems);
+        }
+      }
       
       const opportunity = {
-        id: generateId('collab'),
-        ...opportunityData,
-        // New fields for product vision alignment
-        intentType: intentType,
-        paymentMode: paymentMode,
-        barterSettlementRule: barterSettlementRule,
-        // Standard fields
+        id: opportunityData.id || generateId('opp'),
+        title: opportunityData.title || '',
+        description: opportunityData.description || '',
+        intent: intent,
+        model: model || '1',
+        subModel: subModel || '1.1',
+        modelName: opportunityData.modelName || opportunityData.attributes?.modelName || '',
+        category: opportunityData.category || opportunityData.attributes?.category || '',
         status: opportunityData.status || 'draft',
-        views: 0,
-        matchesGenerated: 0,
-        applicationsReceived: 0,
-        applicationsApproved: 0,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString()
+        skills: skills,
+        serviceItems: serviceItems,
+        paymentTerms: paymentTerms,
+        location: location,
+        createdBy: opportunityData.createdBy || opportunityData.creatorId || null,
+        createdAt: opportunityData.createdAt || new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+        // Legacy fields for backward compatibility
+        creatorId: opportunityData.createdBy || opportunityData.creatorId || null,
+        modelType: subModel,
+        modelId: subModel,
+        intentType: intent,
+        paymentMode: paymentTerms.mode,
+        barterSettlementRule: paymentTerms.barterRule,
+        // Metadata
+        views: opportunityData.views || 0,
+        matchesGenerated: opportunityData.matchesGenerated || 0,
+        applicationsReceived: opportunityData.applicationsReceived || 0,
+        applicationsApproved: opportunityData.applicationsApproved || 0,
+        // Model-specific attributes
+        attributes: opportunityData.attributes || {}
       };
       
       opportunities.push(opportunity);
-      if (set(STORAGE_KEYS.COLLABORATION_OPPORTUNITIES, opportunities)) {
-        this.createAuditLog('collaboration_opportunity_creation', opportunity.id, {
-          description: `Collaboration opportunity created: ${opportunity.modelName || opportunity.modelType}`,
-          creatorId: opportunity.creatorId,
-          modelType: opportunity.modelType,
-          intentType: intentType,
-          paymentMode: paymentMode
+      if (set(STORAGE_KEYS.OPPORTUNITIES || STORAGE_KEYS.COLLABORATION_OPPORTUNITIES, opportunities)) {
+        this.createAuditLog('opportunity_creation', opportunity.id, {
+          description: `Opportunity created: ${opportunity.title || opportunity.modelName}`,
+          creatorId: opportunity.createdBy,
+          model: opportunity.model,
+          subModel: opportunity.subModel,
+          intent: intent,
+          paymentMode: paymentTerms.mode
         });
         return opportunity;
       }
@@ -4665,15 +5042,43 @@
       if (index === -1) return null;
 
       const oldOpportunity = { ...opportunities[index] };
+      
+      // Validate serviceItems if being updated
+      if (updates.serviceItems && typeof ServiceItemModel !== 'undefined') {
+        const validation = ServiceItemModel.validateArray(updates.serviceItems);
+        if (!validation.valid) {
+          console.error('Invalid serviceItems:', validation.errors);
+          return null;
+        }
+      }
+      
+      // Sync legacy fields for backward compatibility
+      if (updates.intent && !updates.intentType) {
+        updates.intentType = updates.intent;
+      }
+      if (updates.paymentTerms && !updates.paymentMode) {
+        updates.paymentMode = updates.paymentTerms.mode;
+        if (updates.paymentTerms.barterRule) {
+          updates.barterSettlementRule = updates.paymentTerms.barterRule;
+        }
+      }
+      if (updates.subModel && !updates.modelType && !updates.modelId) {
+        updates.modelType = updates.subModel;
+        updates.modelId = updates.subModel;
+      }
+      if (updates.createdBy && !updates.creatorId) {
+        updates.creatorId = updates.createdBy;
+      }
+      
       opportunities[index] = {
         ...opportunities[index],
         ...updates,
         updatedAt: new Date().toISOString()
       };
 
-      if (set(STORAGE_KEYS.COLLABORATION_OPPORTUNITIES, opportunities)) {
-        this.createAuditLog('collaboration_opportunity_update', id, {
-          description: `Collaboration opportunity updated: ${opportunities[index].modelName || opportunities[index].modelType}`,
+      if (set(STORAGE_KEYS.OPPORTUNITIES, opportunities)) {
+        this.createAuditLog('opportunity_update', id, {
+          description: `Opportunity updated: ${opportunities[index].title || opportunities[index].modelName}`,
           changes: updates
         });
         return opportunities[index];
@@ -4683,7 +5088,7 @@
 
     getByModelType(modelType) {
       const opportunities = this.getAll();
-      return opportunities.filter(o => o.modelType === modelType);
+      return opportunities.filter(o => o.modelType === modelType || o.subModel === modelType);
     },
 
     getByStatus(status) {
@@ -4692,7 +5097,7 @@
     },
 
     getActive() {
-      return this.getByStatus('active');
+      return this.getByStatus('active') || this.getByStatus('published');
     },
 
     getByRelationshipType(relationshipType) {
@@ -4702,7 +5107,7 @@
 
     getByModel(modelId) {
       const opportunities = this.getAll();
-      return opportunities.filter(o => o.modelId === modelId || o.modelType === modelId);
+      return opportunities.filter(o => o.model === modelId || o.modelId === modelId || o.modelType === modelId);
     },
 
     getByCategory(category) {
@@ -4713,8 +5118,17 @@
     getWithFilters(filters = {}) {
       let opportunities = this.getAll();
       
-      if (filters.modelId) {
-        opportunities = opportunities.filter(o => o.modelId === filters.modelId || o.modelType === filters.modelId);
+      if (filters.modelId || filters.model) {
+        const modelFilter = filters.modelId || filters.model;
+        opportunities = opportunities.filter(o => 
+          o.model === modelFilter || 
+          o.modelId === modelFilter || 
+          o.modelType === modelFilter ||
+          o.subModel === modelFilter
+        );
+      }
+      if (filters.subModel) {
+        opportunities = opportunities.filter(o => o.subModel === filters.subModel);
       }
       if (filters.category) {
         opportunities = opportunities.filter(o => o.category === filters.category);
@@ -4722,14 +5136,30 @@
       if (filters.status) {
         opportunities = opportunities.filter(o => o.status === filters.status);
       }
-      if (filters.creatorId) {
-        opportunities = opportunities.filter(o => o.creatorId === filters.creatorId);
+      if (filters.creatorId || filters.createdBy) {
+        const creatorFilter = filters.creatorId || filters.createdBy;
+        opportunities = opportunities.filter(o => o.createdBy === creatorFilter || o.creatorId === creatorFilter);
       }
-      if (filters.intentType) {
-        opportunities = opportunities.filter(o => o.intentType === filters.intentType);
+      if (filters.intent || filters.intentType) {
+        const intentFilter = filters.intent || filters.intentType;
+        opportunities = opportunities.filter(o => o.intent === intentFilter || o.intentType === intentFilter);
       }
-      if (filters.paymentMode) {
-        opportunities = opportunities.filter(o => o.paymentMode === filters.paymentMode);
+      if (filters.paymentMode || filters.paymentTerms) {
+        const paymentFilter = filters.paymentMode || filters.paymentTerms?.mode;
+        opportunities = opportunities.filter(o => 
+          o.paymentTerms?.mode === paymentFilter || 
+          o.paymentMode === paymentFilter
+        );
+      }
+      // Location filters
+      if (filters.country) {
+        opportunities = opportunities.filter(o => o.location?.country === filters.country);
+      }
+      if (filters.city) {
+        opportunities = opportunities.filter(o => o.location?.city === filters.city);
+      }
+      if (filters.remoteAllowed !== undefined) {
+        opportunities = opportunities.filter(o => o.location?.isRemoteAllowed === filters.remoteAllowed);
       }
       if (filters.dateFrom) {
         opportunities = opportunities.filter(o => new Date(o.createdAt) >= new Date(filters.dateFrom));
@@ -4741,14 +5171,26 @@
       return opportunities;
     },
     
-    getByIntentType(intentType) {
+    getByIntent(intent) {
       const opportunities = this.getAll();
-      return opportunities.filter(o => o.intentType === intentType);
+      return opportunities.filter(o => o.intent === intent || o.intentType === intent);
     },
     
     getByPaymentMode(paymentMode) {
       const opportunities = this.getAll();
-      return opportunities.filter(o => o.paymentMode === paymentMode);
+      return opportunities.filter(o => 
+        o.paymentTerms?.mode === paymentMode || 
+        o.paymentMode === paymentMode
+      );
+    },
+    
+    getByLocation(country, city) {
+      const opportunities = this.getAll();
+      return opportunities.filter(o => {
+        if (country && o.location?.country !== country) return false;
+        if (city && o.location?.city !== city) return false;
+        return true;
+      });
     },
 
     getStatistics(modelId = null) {
@@ -4760,12 +5202,23 @@
         byStatus: {
           draft: 0,
           pending: 0,
+          published: 0,
           active: 0,
           closed: 0,
           rejected: 0,
           cancelled: 0
         },
         byModel: {},
+        byIntent: {
+          REQUEST_SERVICE: 0,
+          OFFER_SERVICE: 0,
+          BOTH: 0
+        },
+        byPaymentMode: {
+          CASH: 0,
+          BARTER: 0,
+          HYBRID: 0
+        },
         totalApplications: 0,
         approvedApplications: 0,
         totalValue: 0,
@@ -4774,17 +5227,33 @@
       
       opportunities.forEach(opp => {
         // Count by status
-        stats.byStatus[opp.status] = (stats.byStatus[opp.status] || 0) + 1;
+        const status = opp.status || 'draft';
+        stats.byStatus[status] = (stats.byStatus[status] || 0) + 1;
         
         // Count by model
-        const model = opp.modelId || opp.modelType || 'unknown';
+        const model = opp.subModel || opp.modelId || opp.modelType || 'unknown';
         stats.byModel[model] = (stats.byModel[model] || 0) + 1;
         
-        // Calculate value if available
-        if (opp.attributes && opp.attributes.budgetRange) {
-          const value = opp.attributes.budgetRange.max || opp.attributes.budgetRange.min || 0;
-          stats.totalValue += value;
+        // Count by intent
+        const intent = opp.intent || opp.intentType || 'BOTH';
+        stats.byIntent[intent] = (stats.byIntent[intent] || 0) + 1;
+        
+        // Count by payment mode
+        const paymentMode = opp.paymentTerms?.mode || opp.paymentMode || 'CASH';
+        stats.byPaymentMode[paymentMode] = (stats.byPaymentMode[paymentMode] || 0) + 1;
+        
+        // Calculate value from serviceItems or attributes
+        let value = 0;
+        if (opp.serviceItems && Array.isArray(opp.serviceItems) && opp.serviceItems.length > 0) {
+          if (typeof ServiceItemModel !== 'undefined') {
+            value = ServiceItemModel.calculateTotal(opp.serviceItems);
+          } else {
+            value = opp.serviceItems.reduce((sum, item) => sum + (item.totalRef || 0), 0);
+          }
+        } else if (opp.attributes && opp.attributes.budgetRange) {
+          value = opp.attributes.budgetRange.max || opp.attributes.budgetRange.min || 0;
         }
+        stats.totalValue += value;
         
         // Count applications
         const oppApplications = applications.filter(a => a.opportunityId === opp.id);
@@ -4800,7 +5269,7 @@
     delete(id) {
       const opportunities = this.getAll();
       const filtered = opportunities.filter(o => o.id !== id);
-      return set(STORAGE_KEYS.COLLABORATION_OPPORTUNITIES, filtered);
+      return set(STORAGE_KEYS.OPPORTUNITIES || STORAGE_KEYS.COLLABORATION_OPPORTUNITIES, filtered);
     },
 
     incrementViews(id) {
@@ -4823,8 +5292,8 @@
         userEmail: currentUser?.email || 'system',
         userName: currentUser?.profile?.name || 'System',
         action: action,
-        actionCategory: 'collaboration',
-        entityType: 'collaboration_opportunity',
+        actionCategory: 'opportunity',
+        entityType: 'opportunity',
         entityId: entityId,
         description: details.description,
         changes: details.changes || null,
@@ -4832,13 +5301,19 @@
           portal: 'user_portal',
           opportunityId: entityId,
           creatorId: details.creatorId,
-          modelType: details.modelType
+          model: details.model,
+          subModel: details.subModel,
+          intent: details.intent,
+          paymentMode: details.paymentMode
         },
         metadata: {}
       });
       set(STORAGE_KEYS.AUDIT, auditLogs);
     }
   };
+  
+  // Backward compatibility alias
+  const CollaborationOpportunities = Opportunities;
 
   // ============================================
   // Load Sample Collaboration Opportunities
@@ -4873,13 +5348,60 @@
     const sampleOpportunities = [
       // Model 1.1: Task-Based Engagement
       {
+        id: generateId('opp'),
+        title: 'Structural Engineering Review for Riyadh Metro Station',
+        description: 'Review and approve shop drawings for structural elements including foundations, columns, beams, and slabs. Provide structural calculations and ensure compliance with Saudi Building Code.',
+        intent: 'REQUEST_SERVICE',
+        model: '1',
+        subModel: '1.1',
         modelId: '1.1',
         modelType: '1.1',
         modelName: 'Task-Based Engagement',
         category: 'Project-Based Collaboration',
         relationshipType: 'B2B',
+        createdBy: testUsers[0]?.id || 'user-1',
         creatorId: testUsers[0]?.id || 'user-1',
-        status: 'active',
+        status: 'published',
+        skills: ['Structural Engineering', 'Foundation Design', 'Seismic Analysis', 'SBC Code'],
+        serviceItems: [
+          {
+            id: 'item_1',
+            name: 'Shop Drawing Review',
+            description: 'Review structural shop drawings',
+            unit: 'drawing',
+            qty: 50,
+            unitPriceRef: 1000,
+            totalRef: 50000,
+            currency: 'SAR'
+          },
+          {
+            id: 'item_2',
+            name: 'Structural Calculations',
+            description: 'Provide structural calculations',
+            unit: 'calculation',
+            qty: 20,
+            unitPriceRef: 1500,
+            totalRef: 30000,
+            currency: 'SAR'
+          }
+        ],
+        paymentTerms: {
+          mode: 'CASH',
+          barterRule: null,
+          cashSettlement: 0,
+          acknowledgedDifference: false
+        },
+        location: {
+          country: 'Saudi Arabia',
+          city: 'Riyadh',
+          area: 'Al Olaya',
+          address: 'King Fahd Road, Metro Station Site',
+          geo: {
+            lat: 24.7136,
+            lng: 46.6753
+          },
+          isRemoteAllowed: true
+        },
         attributes: {
           taskTitle: 'Structural Engineering Review for Riyadh Metro Station',
           taskType: 'Engineering',
@@ -4899,7 +5421,9 @@
         views: 45,
         matchesGenerated: 8,
         applicationsReceived: 12,
-        applicationsApproved: 3
+        applicationsApproved: 3,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
       },
       // Model 1.2: Consortium
       {
@@ -7185,7 +7709,7 @@
 
     if (forceReload) {
       // Clear existing opportunities
-      set(STORAGE_KEYS.COLLABORATION_OPPORTUNITIES, []);
+      set(STORAGE_KEYS.OPPORTUNITIES, []);
     }
 
     // Helper function to generate random views and applications
@@ -7603,12 +8127,7 @@
       if (!localStorage.getItem(STORAGE_KEYS.SERVICE_PROVIDER_PROFILES)) {
         localStorage.setItem(STORAGE_KEYS.SERVICE_PROVIDER_PROFILES, JSON.stringify([]));
       }
-      if (!localStorage.getItem(STORAGE_KEYS.SERVICE_REQUESTS)) {
-        localStorage.setItem(STORAGE_KEYS.SERVICE_REQUESTS, JSON.stringify([]));
-      }
-      if (!localStorage.getItem(STORAGE_KEYS.SERVICE_OFFERS)) {
-        localStorage.setItem(STORAGE_KEYS.SERVICE_OFFERS, JSON.stringify([]));
-      }
+      // REMOVED: SERVICE_REQUESTS and SERVICE_OFFERS initialization (legacy - use Opportunities instead)
       if (!localStorage.getItem(STORAGE_KEYS.SERVICE_ENGAGEMENTS)) {
         localStorage.setItem(STORAGE_KEYS.SERVICE_ENGAGEMENTS, JSON.stringify([]));
       }
@@ -7929,6 +8448,242 @@
     }
     return 0;
   }
+  
+  // ============================================
+  // Migration: Convert to Unified Opportunity Model
+  // ============================================
+  function migrateToUnifiedOpportunityModel() {
+    const currentVersion = localStorage.getItem(STORAGE_KEYS.VERSION) || '0.0.0';
+    
+    // Only migrate if version is less than 3.0.0
+    if (compareVersions(currentVersion, '3.0.0') < 0) {
+      console.log('🔄 Migrating to Unified Opportunity Model (v3.0.0)...');
+      
+      let migratedCount = 0;
+      
+      // 1. Migrate existing CollaborationOpportunities
+      const existingOpportunities = CollaborationOpportunities.getAll();
+      existingOpportunities.forEach(opp => {
+        if (!opp.intent || !opp.paymentTerms || !opp.location || !opp.serviceItems) {
+          // Convert to new structure
+          const updates = {};
+          
+          // Intent
+          if (!opp.intent) {
+            updates.intent = opp.intentType || 'BOTH';
+          }
+          
+          // Model/SubModel
+          if (!opp.model || !opp.subModel) {
+            const subModel = opp.modelId || opp.modelType || '1.1';
+            updates.subModel = subModel;
+            updates.model = subModel.split('.')[0];
+          }
+          
+          // Payment Terms
+          if (!opp.paymentTerms || typeof opp.paymentTerms !== 'object') {
+            const mode = opp.paymentMode || 'CASH';
+            updates.paymentTerms = {
+              mode: mode.toUpperCase(),
+              barterRule: (mode === 'BARTER' || mode === 'HYBRID') 
+                ? (opp.barterSettlementRule || 'ALLOW_DIFFERENCE_CASH') 
+                : null,
+              cashSettlement: opp.cashComponent || 0,
+              acknowledgedDifference: opp.acknowledgedDifference || false
+            };
+          }
+          
+          // Location
+          if (!opp.location || typeof opp.location !== 'object') {
+            const locationRequirement = opp.attributes?.locationRequirement || '';
+            updates.location = {
+              country: opp.location?.country || opp.attributes?.projectLocation?.split(',')[1]?.trim() || 'Saudi Arabia',
+              city: opp.location?.city || opp.attributes?.projectLocation?.split(',')[0]?.trim() || '',
+              area: opp.location?.area || null,
+              address: opp.location?.address || null,
+              geo: {
+                lat: opp.location?.geo?.lat || opp.location?.coordinates?.lat || null,
+                lng: opp.location?.geo?.lng || opp.location?.coordinates?.lng || null
+              },
+              isRemoteAllowed: locationRequirement === 'Remote' || locationRequirement === 'Hybrid'
+            };
+          }
+          
+          // Skills
+          if (!opp.skills || !Array.isArray(opp.skills)) {
+            updates.skills = opp.attributes?.requiredSkills || opp.attributes?.skills || [];
+          }
+          
+          // Service Items
+          if (!opp.serviceItems || !Array.isArray(opp.serviceItems)) {
+            if (typeof ServiceItemModel !== 'undefined' && opp.attributes?.serviceItems) {
+              updates.serviceItems = ServiceItemModel.convertLegacyArray(opp.attributes.serviceItems);
+            } else {
+              updates.serviceItems = [];
+            }
+          }
+          
+          // CreatedBy
+          if (!opp.createdBy && opp.creatorId) {
+            updates.createdBy = opp.creatorId;
+          }
+          
+          if (Object.keys(updates).length > 0) {
+            Opportunities.update(opp.id, updates);
+            migratedCount++;
+          }
+        }
+      });
+      
+      // 2. Migrate Projects to Opportunities
+      const projects = Projects.getAll();
+      projects.forEach(project => {
+        // Check if already migrated (exists as opportunity)
+        const existingOpp = Opportunities.getById(project.id);
+        if (!existingOpp) {
+          const opportunityData = {
+            id: project.id,
+            title: project.title || project.name || '',
+            description: project.description || '',
+            intent: 'REQUEST_SERVICE',
+            model: project.projectType === 'mega' ? '1' : '1',
+            subModel: project.projectType === 'mega' ? '1.4' : '1.1', // Default to SPV for mega, Task-Based for regular
+            modelName: project.projectType === 'mega' ? 'Special Purpose Vehicle (SPV)' : 'Task-Based Engagement',
+            category: 'Project-Based Collaboration',
+            status: project.status === 'active' ? 'published' : project.status || 'draft',
+            skills: project.scope?.skillRequirements || project.scope?.requiredServices || [],
+            serviceItems: [],
+            paymentTerms: {
+              mode: 'CASH',
+              barterRule: null,
+              cashSettlement: 0,
+              acknowledgedDifference: false
+            },
+            location: {
+              country: project.location?.country || 'Saudi Arabia',
+              city: project.location?.city || '',
+              area: project.location?.area || null,
+              address: project.location?.address || null,
+              geo: {
+                lat: project.location?.geo?.lat || null,
+                lng: project.location?.geo?.lng || null
+              },
+              isRemoteAllowed: false
+            },
+            createdBy: project.ownerCompanyId || project.creatorId,
+            createdAt: project.createdAt || new Date().toISOString(),
+            updatedAt: project.updatedAt || new Date().toISOString(),
+            attributes: project.scope || {}
+          };
+          
+          Opportunities.create(opportunityData);
+          migratedCount++;
+        }
+      });
+      
+      // 3. Migrate ServiceRequests to Opportunities
+      const serviceRequests = ServiceRequests.getAll();
+      serviceRequests.forEach(request => {
+        const existingOpp = Opportunities.getById(request.id);
+        if (!existingOpp) {
+          const opportunityData = {
+            id: request.id,
+            title: request.title || '',
+            description: request.description || '',
+            intent: 'REQUEST_SERVICE',
+            model: '1',
+            subModel: '1.1',
+            modelName: 'Task-Based Engagement',
+            category: 'Project-Based Collaboration',
+            status: request.status === 'OPEN' ? 'published' : 'draft',
+            skills: request.requiredSkills || [],
+            serviceItems: [],
+            paymentTerms: {
+              mode: request.exchangeType === 'Barter' ? 'BARTER' : 
+                    request.exchangeType === 'Mixed' ? 'HYBRID' : 'CASH',
+              barterRule: request.exchangeType === 'Barter' || request.exchangeType === 'Mixed'
+                ? 'ALLOW_DIFFERENCE_CASH' : null,
+              cashSettlement: request.cashComponent || 0,
+              acknowledgedDifference: false
+            },
+            location: {
+              country: request.location?.country || 'Saudi Arabia',
+              city: request.location?.city || '',
+              area: request.location?.area || null,
+              address: null,
+              geo: {
+                lat: request.location?.geo?.lat || null,
+                lng: request.location?.geo?.lng || null
+              },
+              isRemoteAllowed: request.deliveryMode === 'Remote' || request.deliveryMode === 'Hybrid'
+            },
+            createdBy: request.ownerCompanyId || request.requesterId,
+            createdAt: request.createdAt || new Date().toISOString(),
+            updatedAt: request.updatedAt || new Date().toISOString(),
+            attributes: {}
+          };
+          
+          Opportunities.create(opportunityData);
+          migratedCount++;
+        }
+      });
+      
+      // 4. Migrate ServiceOffers to Opportunities
+      const serviceOffers = ServiceOffers.getAll();
+      serviceOffers.forEach(offer => {
+        const existingOpp = Opportunities.getById(offer.id);
+        if (!existingOpp) {
+          const opportunityData = {
+            id: offer.id,
+            title: offer.title || '',
+            description: offer.description || '',
+            intent: 'OFFER_SERVICE',
+            model: '1',
+            subModel: '1.1',
+            modelName: 'Task-Based Engagement',
+            category: 'Project-Based Collaboration',
+            status: offer.status === 'Active' ? 'published' : 'draft',
+            skills: offer.skills || [],
+            serviceItems: [],
+            paymentTerms: {
+              mode: offer.exchange_type === 'Barter' ? 'BARTER' :
+                    offer.exchange_type === 'Mixed' ? 'HYBRID' : 'CASH',
+              barterRule: offer.exchange_type === 'Barter' || offer.exchange_type === 'Mixed'
+                ? 'ALLOW_DIFFERENCE_CASH' : null,
+              cashSettlement: 0,
+              acknowledgedDifference: false
+            },
+            location: {
+              country: offer.location?.country || 'Saudi Arabia',
+              city: offer.location?.city || '',
+              area: offer.location?.area || null,
+              address: null,
+              geo: {
+                lat: offer.location?.geo?.lat || null,
+                lng: offer.location?.geo?.lng || null
+              },
+              isRemoteAllowed: offer.delivery_mode === 'Remote' || offer.delivery_mode === 'Hybrid'
+            },
+            createdBy: offer.providerId,
+            createdAt: offer.createdAt || new Date().toISOString(),
+            updatedAt: offer.updatedAt || new Date().toISOString(),
+            attributes: {}
+          };
+          
+          Opportunities.create(opportunityData);
+          migratedCount++;
+        }
+      });
+      
+      if (migratedCount > 0) {
+        console.log(`✅ Migrated ${migratedCount} items to Unified Opportunity Model`);
+      }
+      
+      // Update version
+      localStorage.setItem(STORAGE_KEYS.VERSION, '3.0.0');
+      console.log('✅ Unified Opportunity Model migration completed');
+    }
+  }
 
   // ============================================
   // Service Provider Profiles CRUD
@@ -7999,169 +8754,265 @@
   };
 
   // ============================================
-  // Service Requests CRUD
+  // ServiceRequests Wrapper (DEPRECATED - Redirects to Opportunities)
   // ============================================
   const ServiceRequests = {
     getAll() {
-      return get(STORAGE_KEYS.SERVICE_REQUESTS);
+      console.warn('⚠️ ServiceRequests.getAll() is deprecated. Use Opportunities.getByIntent("REQUEST_SERVICE") instead.');
+      return Opportunities.getByIntent('REQUEST_SERVICE').map(opp => ({
+        id: opp.id,
+        title: opp.title,
+        description: opp.description,
+        requesterId: opp.createdBy || opp.creatorId,
+        ownerCompanyId: opp.createdBy || opp.creatorId,
+        requiredSkills: opp.skills,
+        status: opp.status === 'published' ? 'OPEN' : opp.status,
+        requestType: opp.attributes?.requestType || 'NORMAL',
+        location: opp.location,
+        createdAt: opp.createdAt,
+        updatedAt: opp.updatedAt
+      }));
     },
 
     getById(id) {
-      const requests = this.getAll();
-      return requests.find(r => r.id === id) || null;
+      console.warn('⚠️ ServiceRequests.getById() is deprecated. Use Opportunities.getById() instead.');
+      const opportunity = Opportunities.getById(id);
+      if (!opportunity || (opportunity.intent !== 'REQUEST_SERVICE' && opportunity.intent !== 'BOTH')) {
+        return null;
+      }
+      return {
+        id: opportunity.id,
+        title: opportunity.title,
+        description: opportunity.description,
+        requesterId: opportunity.createdBy || opportunity.creatorId,
+        ownerCompanyId: opportunity.createdBy || opportunity.creatorId,
+        requiredSkills: opportunity.skills,
+        status: opportunity.status === 'published' ? 'OPEN' : opportunity.status,
+        requestType: opportunity.attributes?.requestType || 'NORMAL',
+        location: opportunity.location,
+        createdAt: opportunity.createdAt,
+        updatedAt: opportunity.updatedAt
+      };
     },
 
     getByRequester(requesterId) {
-      const requests = this.getAll();
-      return requests.filter(r => r.requesterId === requesterId);
+      console.warn('⚠️ ServiceRequests.getByRequester() is deprecated. Use Opportunities.getByCreator() instead.');
+      return Opportunities.getByCreator(requesterId)
+        .filter(opp => opp.intent === 'REQUEST_SERVICE' || opp.intent === 'BOTH')
+        .map(opp => this.getById(opp.id));
     },
 
     getByOwnerCompany(ownerCompanyId) {
-      const requests = this.getAll();
-      return requests.filter(r => r.ownerCompanyId === ownerCompanyId);
+      console.warn('⚠️ ServiceRequests.getByOwnerCompany() is deprecated. Use Opportunities.getByCreator() instead.');
+      return this.getByRequester(ownerCompanyId);
     },
 
     getByStatus(status) {
-      const requests = this.getAll();
-      return requests.filter(r => r.status === status);
+      console.warn('⚠️ ServiceRequests.getByStatus() is deprecated. Use Opportunities.getByStatus() instead.');
+      const oppStatus = status === 'OPEN' ? 'published' : status;
+      return Opportunities.getByStatus(oppStatus)
+        .filter(opp => opp.intent === 'REQUEST_SERVICE' || opp.intent === 'BOTH')
+        .map(opp => this.getById(opp.id));
     },
 
     create(requestData) {
-      const requests = this.getAll();
-      const request = {
-        id: generateId('sr'),
-        requesterType: requestData.requesterType,
-        requesterId: requestData.requesterId,
-        title: requestData.title,
-        description: requestData.description,
-        requiredSkills: requestData.requiredSkills || [],
-        status: 'OPEN',
-        budget: requestData.budget || { min: 0, max: 0, currency: 'SAR' },
-        timeline: requestData.timeline || { startDate: null, duration: 0 },
-        bids: requestData.bids || [], // Array of bids from entities/vendors
-        // Set ownerCompanyId from requesterId if not provided (users represent companies)
-        ownerCompanyId: requestData.ownerCompanyId || requestData.requesterId,
-        requestType: requestData.requestType || 'NORMAL', // NORMAL | ADVISORY
-        scopeType: requestData.scopeType || null, // PROJECT | MEGA_PROJECT | SUB_PROJECT
-        scopeId: requestData.scopeId || null,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString()
+      console.warn('⚠️ ServiceRequests.create() is deprecated. Use Opportunities.create() with intent: REQUEST_SERVICE instead.');
+      
+      const opportunityData = {
+        id: requestData.id || generateId('opp'),
+        title: requestData.title || '',
+        description: requestData.description || '',
+        intent: 'REQUEST_SERVICE',
+        model: '1',
+        subModel: '1.1',
+        modelName: 'Task-Based Engagement',
+        category: 'Project-Based Collaboration',
+        status: requestData.status === 'OPEN' ? 'published' : 'draft',
+        skills: requestData.requiredSkills || [],
+        serviceItems: [],
+        paymentTerms: {
+          mode: requestData.exchangeType === 'Barter' ? 'BARTER' : 
+                requestData.exchangeType === 'Mixed' ? 'HYBRID' : 'CASH',
+          barterRule: requestData.exchangeType === 'Barter' || requestData.exchangeType === 'Mixed'
+            ? 'ALLOW_DIFFERENCE_CASH' : null,
+          cashSettlement: requestData.cashComponent || 0,
+          acknowledgedDifference: false
+        },
+        location: requestData.location || {
+          country: 'Saudi Arabia',
+          city: '',
+          area: null,
+          address: null,
+          geo: null,
+          isRemoteAllowed: requestData.deliveryMode === 'Remote' || requestData.deliveryMode === 'Hybrid'
+        },
+        createdBy: requestData.ownerCompanyId || requestData.requesterId,
+        createdAt: requestData.createdAt || new Date().toISOString(),
+        updatedAt: requestData.updatedAt || new Date().toISOString(),
+        attributes: {
+          requestType: requestData.requestType || 'NORMAL',
+          scopeType: requestData.scopeType,
+          scopeId: requestData.scopeId
+        }
       };
-      requests.push(request);
-      if (set(STORAGE_KEYS.SERVICE_REQUESTS, requests)) {
-        return request;
-      }
-      return null;
+      
+      const opportunity = Opportunities.create(opportunityData);
+      return opportunity ? this.getById(opportunity.id) : null;
     },
 
     update(id, updates) {
-      const requests = this.getAll();
-      const index = requests.findIndex(r => r.id === id);
-      if (index === -1) return null;
-
-      requests[index] = {
-        ...requests[index],
-        ...updates,
-        updatedAt: new Date().toISOString()
-      };
-      if (set(STORAGE_KEYS.SERVICE_REQUESTS, requests)) {
-        return requests[index];
+      console.warn('⚠️ ServiceRequests.update() is deprecated. Use Opportunities.update() instead.');
+      const opportunity = Opportunities.getById(id);
+      if (!opportunity) return null;
+      
+      const oppUpdates = {};
+      if (updates.status) {
+        oppUpdates.status = updates.status === 'OPEN' ? 'published' : updates.status;
       }
-      return null;
+      if (updates.title) oppUpdates.title = updates.title;
+      if (updates.description) oppUpdates.description = updates.description;
+      if (updates.requiredSkills) oppUpdates.skills = updates.requiredSkills;
+      if (updates.location) oppUpdates.location = updates.location;
+      
+      const updated = Opportunities.update(id, oppUpdates);
+      return updated ? this.getById(id) : null;
     },
 
     delete(id) {
-      const requests = this.getAll();
-      const filtered = requests.filter(r => r.id !== id);
-      return set(STORAGE_KEYS.SERVICE_REQUESTS, filtered);
+      console.warn('⚠️ ServiceRequests.delete() is deprecated. Use Opportunities.delete() instead.');
+      return Opportunities.delete(id);
     }
   };
 
   // ============================================
-  // Service Offers CRUD
+  // ServiceOffers Wrapper (DEPRECATED - Redirects to Opportunities)
   // ============================================
   const ServiceOffers = {
     getAll() {
-      return get(STORAGE_KEYS.SERVICE_OFFERS);
+      console.warn('⚠️ ServiceOffers.getAll() is deprecated. Use Opportunities.getByIntent("OFFER_SERVICE") instead.');
+      return Opportunities.getByIntent('OFFER_SERVICE').map(opp => ({
+        id: opp.id,
+        title: opp.title,
+        description: opp.description,
+        providerId: opp.createdBy || opp.creatorId,
+        serviceProviderUserId: opp.createdBy || opp.creatorId,
+        skills: opp.skills,
+        status: opp.status === 'published' ? 'Active' : opp.status,
+        location: opp.location,
+        createdAt: opp.createdAt,
+        updatedAt: opp.updatedAt
+      }));
     },
 
     getById(id) {
-      const offers = this.getAll();
-      return offers.find(o => o.id === id) || null;
+      console.warn('⚠️ ServiceOffers.getById() is deprecated. Use Opportunities.getById() instead.');
+      const opportunity = Opportunities.getById(id);
+      if (!opportunity || (opportunity.intent !== 'OFFER_SERVICE' && opportunity.intent !== 'BOTH')) {
+        return null;
+      }
+      return {
+        id: opportunity.id,
+        title: opportunity.title,
+        description: opportunity.description,
+        providerId: opportunity.createdBy || opportunity.creatorId,
+        serviceProviderUserId: opportunity.createdBy || opportunity.creatorId,
+        skills: opportunity.skills,
+        status: opportunity.status === 'published' ? 'Active' : opportunity.status,
+        location: opportunity.location,
+        createdAt: opportunity.createdAt,
+        updatedAt: opportunity.updatedAt
+      };
     },
 
     getByServiceRequest(serviceRequestId) {
-      const offers = this.getAll();
-      return offers.filter(o => o.serviceRequestId === serviceRequestId);
+      console.warn('⚠️ ServiceOffers.getByServiceRequest() is deprecated. Use Proposals.getByOpportunity() instead.');
+      // This is now handled by Proposals, not standalone offers
+      return [];
     },
 
     getByServiceProvider(serviceProviderUserId) {
-      const offers = this.getAll();
-      return offers.filter(o => o.serviceProviderUserId === serviceProviderUserId);
+      console.warn('⚠️ ServiceOffers.getByServiceProvider() is deprecated. Use Opportunities.getByCreator() instead.');
+      return Opportunities.getByCreator(serviceProviderUserId)
+        .filter(opp => opp.intent === 'OFFER_SERVICE' || opp.intent === 'BOTH')
+        .map(opp => this.getById(opp.id));
     },
 
     getByStatus(status) {
-      const offers = this.getAll();
-      return offers.filter(o => o.status === status);
+      console.warn('⚠️ ServiceOffers.getByStatus() is deprecated. Use Opportunities.getByStatus() instead.');
+      const oppStatus = status === 'Active' ? 'published' : status;
+      return Opportunities.getByStatus(oppStatus)
+        .filter(opp => opp.intent === 'OFFER_SERVICE' || opp.intent === 'BOTH')
+        .map(opp => this.getById(opp.id));
     },
 
     create(offerData) {
-      const offers = this.getAll();
-      const offer = {
-        id: generateId('so'),
-        serviceRequestId: offerData.serviceRequestId,
-        serviceProviderUserId: offerData.serviceProviderUserId,
-        proposedPricing: offerData.proposedPricing || {
-          model: 'HOURLY',
-          amount: 0,
-          currency: 'SAR',
-          breakdown: null
-        },
-        message: offerData.message || '',
-        status: 'SUBMITTED',
-        submittedAt: new Date().toISOString(),
-        respondedAt: null,
-        respondedBy: null
-      };
-      offers.push(offer);
-      if (set(STORAGE_KEYS.SERVICE_OFFERS, offers)) {
-        return offer;
+      console.warn('⚠️ ServiceOffers.create() is deprecated. Use Opportunities.create() with intent: OFFER_SERVICE instead.');
+      
+      // Only create if standalone offer (not linked to request)
+      if (offerData.serviceRequestId) {
+        console.warn('⚠️ ServiceOffers linked to requests should use Proposals instead.');
+        return null;
       }
-      return null;
+      
+      const opportunityData = {
+        id: offerData.id || generateId('opp'),
+        title: offerData.title || '',
+        description: offerData.description || '',
+        intent: 'OFFER_SERVICE',
+        model: '1',
+        subModel: '1.1',
+        modelName: 'Task-Based Engagement',
+        category: 'Project-Based Collaboration',
+        status: offerData.status === 'Active' ? 'published' : 'draft',
+        skills: offerData.skills || [],
+        serviceItems: [],
+        paymentTerms: {
+          mode: offerData.exchange_type === 'Barter' ? 'BARTER' :
+                offerData.exchange_type === 'Mixed' ? 'HYBRID' : 'CASH',
+          barterRule: offerData.exchange_type === 'Barter' || offerData.exchange_type === 'Mixed'
+            ? 'ALLOW_DIFFERENCE_CASH' : null,
+          cashSettlement: 0,
+          acknowledgedDifference: false
+        },
+        location: offerData.location || {
+          country: 'Saudi Arabia',
+          city: '',
+          area: null,
+          address: null,
+          geo: null,
+          isRemoteAllowed: offerData.delivery_mode === 'Remote' || offerData.delivery_mode === 'Hybrid'
+        },
+        createdBy: offerData.providerId,
+        createdAt: offerData.createdAt || new Date().toISOString(),
+        updatedAt: offerData.updatedAt || new Date().toISOString(),
+        attributes: {}
+      };
+      
+      const opportunity = Opportunities.create(opportunityData);
+      return opportunity ? this.getById(opportunity.id) : null;
     },
 
     update(id, updates) {
-      const offers = this.getAll();
-      const index = offers.findIndex(o => o.id === id);
-      if (index === -1) return null;
-
-      const oldOffer = { ...offers[index] };
-      offers[index] = {
-        ...offers[index],
-        ...updates,
-        updatedAt: new Date().toISOString()
-      };
-
-      // Set respondedAt when status changes
-      if (updates.status && updates.status !== oldOffer.status && 
-          (updates.status === 'ACCEPTED' || updates.status === 'REJECTED')) {
-        offers[index].respondedAt = new Date().toISOString();
-        const currentUser = Sessions.getCurrentUser();
-        if (currentUser) {
-          offers[index].respondedBy = currentUser.id;
-        }
+      console.warn('⚠️ ServiceOffers.update() is deprecated. Use Opportunities.update() instead.');
+      const opportunity = Opportunities.getById(id);
+      if (!opportunity) return null;
+      
+      const oppUpdates = {};
+      if (updates.status) {
+        oppUpdates.status = updates.status === 'Active' ? 'published' : updates.status;
       }
-
-      if (set(STORAGE_KEYS.SERVICE_OFFERS, offers)) {
-        return offers[index];
-      }
-      return null;
+      if (updates.title) oppUpdates.title = updates.title;
+      if (updates.description) oppUpdates.description = updates.description;
+      if (updates.skills) oppUpdates.skills = updates.skills;
+      if (updates.location) oppUpdates.location = updates.location;
+      
+      const updated = Opportunities.update(id, oppUpdates);
+      return updated ? this.getById(id) : null;
     },
 
     delete(id) {
-      const offers = this.getAll();
-      const filtered = offers.filter(o => o.id !== id);
-      return set(STORAGE_KEYS.SERVICE_OFFERS, filtered);
+      console.warn('⚠️ ServiceOffers.delete() is deprecated. Use Opportunities.delete() instead.');
+      return Opportunities.delete(id);
     }
   };
 
@@ -8317,13 +9168,101 @@
       
       // Determine if multi-party contract
       const isMultiParty = contractData.isMultiParty === true || 
-                          (contractData.parties && Array.isArray(contractData.parties) && contractData.parties.length > 0);
+                          (contractData.parties && Array.isArray(contractData.parties) && contractData.parties.length > 0) ||
+                          (contractData.multiPartyMetadata && contractData.multiPartyMetadata.structureType);
+      
+      // Extract proposal version ID
+      let generatedFromProposalVersionId = contractData.generatedFromProposalVersionId;
+      let proposalId = contractData.proposalId || contractData.sourceProposalId;
+      let opportunityId = contractData.opportunityId || contractData.scopeId;
+      
+      // If proposalId provided, try to get version info
+      if (proposalId && !generatedFromProposalVersionId) {
+        const proposal = Proposals.getById(proposalId);
+        if (proposal && proposal.acceptance && proposal.acceptance.mutuallyAcceptedVersion) {
+          generatedFromProposalVersionId = `${proposalId}_v${proposal.acceptance.mutuallyAcceptedVersion}`;
+        } else if (proposal && proposal.currentVersion) {
+          generatedFromProposalVersionId = `${proposalId}_v${proposal.currentVersion}`;
+        }
+      }
+      
+      // Build servicesSchedule from proposal or contractData
+      let servicesSchedule = contractData.servicesSchedule || [];
+      if (servicesSchedule.length === 0 && proposalId) {
+        const proposal = Proposals.getById(proposalId);
+        if (proposal) {
+          const version = proposal.acceptance?.mutuallyAcceptedVersion || proposal.currentVersion || 1;
+          const versionData = proposal.versions?.find(v => v.version === version);
+          if (versionData && versionData.proposalData) {
+            // Extract serviceItems from proposal
+            const serviceItems = versionData.proposalData.serviceItems || 
+                               versionData.proposalData.servicesOffered ||
+                               versionData.proposalData.serviceComponents || [];
+            servicesSchedule = serviceItems.map((item, index) => ({
+              serviceItemId: item.id || `item_${index}`,
+              name: item.name || item.serviceName || '',
+              qty: item.qty || item.quantity || 1,
+              unitPrice: item.unitPriceRef || item.unitPrice || 0,
+              total: item.totalRef || item.total || 0,
+              deliveryDate: item.deliveryDate || null
+            }));
+          }
+        }
+      }
+      
+      // Build paymentTerms from opportunity or proposal
+      let paymentTerms = contractData.paymentTerms;
+      if (!paymentTerms && opportunityId) {
+        if (typeof Opportunities !== 'undefined') {
+          const opportunity = Opportunities.getById(opportunityId);
+          if (opportunity && opportunity.paymentTerms) {
+            paymentTerms = opportunity.paymentTerms;
+          }
+        }
+      }
+      if (!paymentTerms && proposalId) {
+        const proposal = Proposals.getById(proposalId);
+        if (proposal) {
+          const version = proposal.acceptance?.mutuallyAcceptedVersion || proposal.currentVersion || 1;
+          const versionData = proposal.versions?.find(v => v.version === version);
+          if (versionData && versionData.proposalData && versionData.proposalData.paymentTerms) {
+            paymentTerms = versionData.proposalData.paymentTerms;
+          }
+        }
+      }
+      if (!paymentTerms) {
+        paymentTerms = {
+          mode: 'CASH',
+          barterRule: null,
+          cashSettlement: 0,
+          acknowledgedDifference: false
+        };
+      }
+      
+      // Build multiPartyMetadata
+      let multiPartyMetadata = contractData.multiPartyMetadata || null;
+      if (isMultiParty && !multiPartyMetadata && contractData.parties) {
+        const structureType = contractData.contractType?.includes('SPV') ? 'SPV' :
+                             contractData.contractType?.includes('JV') ? 'JV' :
+                             contractData.contractType?.includes('CONSORTIUM') ? 'CONSORTIUM' : null;
+        if (structureType) {
+          multiPartyMetadata = {
+            structureType: structureType,
+            workPackages: contractData.workPackages || []
+          };
+        }
+      }
       
       const contract = {
         id: contractData.id || generateId('contract'),
+        contractId: contractData.contractId || generateId('contract'), // Alias for clarity
         contractType: contractData.contractType, // PROJECT_CONTRACT, MEGA_PROJECT_CONTRACT, SERVICE_CONTRACT, ADVISORY_CONTRACT, SUB_CONTRACT, SPV_CONTRACT, JV_CONTRACT, CONSORTIUM_CONTRACT
-        scopeType: contractData.scopeType, // PROJECT, MEGA_PROJECT, SUB_PROJECT, SERVICE_REQUEST
-        scopeId: contractData.scopeId,
+        scopeType: contractData.scopeType, // PROJECT, MEGA_PROJECT, SUB_PROJECT, SERVICE_REQUEST, OPPORTUNITY
+        scopeId: contractData.scopeId || opportunityId,
+        opportunityId: opportunityId,
+        // Proposal version reference
+        generatedFromProposalVersionId: generatedFromProposalVersionId,
+        proposalId: proposalId,
         // Single-party fields (backward compatibility)
         buyerPartyId: contractData.buyerPartyId || (isMultiParty ? null : contractData.buyerPartyId),
         buyerPartyType: contractData.buyerPartyType,
@@ -8333,19 +9272,24 @@
         isMultiParty: isMultiParty,
         parties: isMultiParty ? (contractData.parties || []) : null,
         governanceStructure: isMultiParty ? (contractData.governanceStructure || null) : null,
+        multiPartyMetadata: multiPartyMetadata,
         parentContractId: contractData.parentContractId || null, // For SUB_CONTRACT only
         status: contractData.status || 'DRAFT', // DRAFT, SENT, SIGNED, ACTIVE, COMPLETED, TERMINATED
         startDate: contractData.startDate || null,
         endDate: contractData.endDate || null,
         signedAt: contractData.signedAt || null,
         signedBy: contractData.signedBy || null,
+        // Services schedule (from serviceItems)
+        servicesSchedule: servicesSchedule,
+        // Payment terms (from opportunity/proposal)
+        paymentTerms: paymentTerms,
         termsJSON: contractData.termsJSON || {
           pricing: { amount: 0, currency: 'SAR' },
-          paymentTerms: 'milestone_based',
+          paymentTerms: paymentTerms.mode || 'milestone_based',
           deliverables: [],
           milestones: []
         },
-        sourceProposalId: contractData.sourceProposalId || null,
+        sourceProposalId: proposalId, // Legacy field
         sourceServiceOfferId: contractData.sourceServiceOfferId || null,
         createdAt: contractData.createdAt || new Date().toISOString(),
         updatedAt: new Date().toISOString(),
@@ -8362,8 +9306,12 @@
             contractType: contract.contractType,
             scopeType: contract.scopeType,
             scopeId: contract.scopeId,
+            opportunityId: opportunityId,
+            proposalId: proposalId,
+            generatedFromProposalVersionId: generatedFromProposalVersionId,
             buyerPartyId: contract.buyerPartyId,
-            providerPartyId: contract.providerPartyId
+            providerPartyId: contract.providerPartyId,
+            isMultiParty: isMultiParty
           }
         });
         return contract;
@@ -9832,7 +10780,8 @@
     Matches,
     Audit,
     Notifications,
-    CollaborationOpportunities,
+    Opportunities, // Unified Opportunity model
+    CollaborationOpportunities, // Backward compatibility alias
     CollaborationApplications,
     SystemSettings,
     ServiceProviders,
@@ -9958,7 +10907,7 @@
     },
     
     resetCollaborationTestData() {
-      set(STORAGE_KEYS.COLLABORATION_OPPORTUNITIES, []);
+      set(STORAGE_KEYS.OPPORTUNITIES, []);
       set(STORAGE_KEYS.COLLABORATION_APPLICATIONS, []);
       loadSampleCollaborationOpportunities(true);
       setTimeout(() => {

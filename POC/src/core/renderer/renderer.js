@@ -262,7 +262,8 @@
                 <p style="color: var(--text-secondary); margin-bottom: var(--spacing-2);">${opp.description || 'No description available.'}</p>
                 <div style="display: flex; gap: var(--spacing-4); flex-wrap: wrap; margin-top: var(--spacing-3);">
                   <span style="color: var(--text-secondary);"><strong>Type:</strong> ${opp.type}</span>
-                  <span style="color: var(--text-secondary);"><strong>Location:</strong> ${opp.location?.city || 'N/A'}, ${opp.location?.country || ''}</span>
+                  <span style="color: var(--text-secondary);"><strong>Location:</strong> ${opp.location?.city || 'N/A'}, ${opp.location?.country || 'Not specified'}</span>
+                  ${opp.location?.isRemoteAllowed ? '<span class="badge badge-success" style="margin-left: 0.5rem;"><i class="ph ph-globe"></i> Remote</span>' : ''}
                   <span style="color: var(--text-secondary);"><strong>Budget:</strong> ${budgetText}</span>
                   ${daysRemaining !== null ? `<span style="color: ${daysRemaining < 7 ? '#ef4444' : daysRemaining < 30 ? '#f59e0b' : '#10b981'};"><strong>Deadline:</strong> ${daysRemaining} days remaining</span>` : ''}
                 </div>

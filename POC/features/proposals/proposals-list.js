@@ -348,6 +348,12 @@
         'WITHDRAWN': 'secondary'
       };
       
+      // Get version information
+      const currentVersion = proposal.currentVersion || proposal.version || 1;
+      const versionCount = proposal.versions ? proposal.versions.length : 1;
+      const acceptance = proposal.acceptance || {};
+      const isMutuallyAccepted = acceptance.mutuallyAcceptedVersion !== null;
+      
       // Format dates
       const submittedDate = proposal.submittedAt ? new Date(proposal.submittedAt).toLocaleDateString() : 'N/A';
       const commentsCount = proposal.comments ? proposal.comments.length : 0;
@@ -367,10 +373,23 @@
                 ${currentTab === 'incoming' && provider ? `<p style="margin: 0.25rem 0 0 0; color: var(--text-secondary); font-size: 0.85rem;">
                   <strong>Bidder:</strong> ${provider.profile?.name || provider.email || 'Unknown'}
                 </p>` : ''}
+                ${versionCount > 1 ? `
+                  <p style="margin: 0.25rem 0 0 0; color: var(--text-secondary); font-size: 0.85rem;">
+                    <strong>Version:</strong> ${currentVersion} of ${versionCount}
+                    ${isMutuallyAccepted ? ' • <span class="badge badge-success" style="font-size: 0.75rem;">Mutually Accepted</span>' : ''}
+                  </p>
+                ` : ''}
               </div>
-              <span class="badge badge-${statusColors[proposal.status] || 'secondary'}" style="margin-left: 1rem;">
-                ${(proposal.status || 'unknown').replace('_', ' ')}
-              </span>
+              <div style="display: flex; flex-direction: column; gap: 0.5rem; align-items: flex-end;">
+                <span class="badge badge-${statusColors[proposal.status] || 'secondary'}">
+                  ${(proposal.status || 'unknown').replace('_', ' ')}
+                </span>
+                ${versionCount > 1 ? `
+                  <span class="badge badge-info" style="font-size: 0.75rem;">
+                    v${currentVersion}
+                  </span>
+                ` : ''}
+              </div>
             </div>
             
             <p style="margin-bottom: 1rem; color: var(--text-primary);">
@@ -402,9 +421,10 @@
             ` : ''}
             
             <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
-              <button onclick="proposalsListComponent.viewProposal('${proposal.id}')" class="btn btn-primary btn-sm">
+              <a href="${getProposalViewUrl(proposal.id)}" class="btn btn-primary btn-sm">
                 <i class="ph ph-eye"></i> View Details
-              </button>
+                ${versionCount > 1 ? ` <span class="badge badge-light">${versionCount} versions</span>` : ''}
+              </a>
               ${currentTab === 'incoming' && isOwner ? `
                 ${proposal.status === 'SUBMITTED' || proposal.status === 'UNDER_REVIEW' ? `
                   <button onclick="proposalsListComponent.updateStatus('${proposal.id}', 'SHORTLISTED')" class="btn btn-info btn-sm">
@@ -444,6 +464,16 @@
     
     html += '</div>';
     container.innerHTML = html;
+  }
+
+  // ============================================
+  // Helper: Get Proposal View URL
+  // ============================================
+  function getProposalViewUrl(proposalId) {
+    if (typeof window.NavRoutes !== 'undefined') {
+      return window.NavRoutes.getRouteWithQuery('proposal-view', { id: proposalId });
+    }
+    return `/POC/pages/proposals/view/index.html?id=${proposalId}`;
   }
 
   function viewProposal(proposalId) {

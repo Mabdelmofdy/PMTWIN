@@ -204,8 +204,8 @@
         
         if (isPlatformAdminEmail) {
           console.log('🚀🚀🚀 Platform Administrator detected IMMEDIATELY after login success - FORCING redirect 🚀🚀🚀');
-          // Platform admin ALWAYS redirects to full Live Server URL
-          const adminRedirectPath = 'http://127.0.0.1:5503/POC/pages/admin/index.html';
+          // Platform admin - use NAV_ROUTES
+          const adminRedirectPath = getNormalizedRoute('admin');
           
           console.log('🔄 IMMEDIATE redirect to admin portal:', adminRedirectPath);
           console.log('🔄 Current location:', window.location.href);
@@ -309,17 +309,30 @@
         });
         
         // Determine redirect based on user role - ALWAYS use full absolute URLs
-        // Helper to get normalized route
+        // Helper to get normalized route using NAV_ROUTES
         function getNormalizedRoute(routeKey) {
-          if (typeof window.NavRoutes !== 'undefined' && window.NavRoutes.NAV_ROUTES[routeKey]) {
-            return window.NavRoutes.getRoute(routeKey, { useLiveServer: true });
+          if (typeof window.NavRoutes !== 'undefined') {
+            // Use NavRoutes.getRoute which handles Live Server URLs automatically
+            const route = window.NavRoutes.getRoute(routeKey, { useLiveServer: true });
+            if (route && route !== routeKey) {
+              return route; // Valid route returned
+            }
+            // If routeKey not found, try toHtmlUrl
+            if (window.NavRoutes.toHtmlUrl) {
+              return window.NavRoutes.toHtmlUrl(`/POC/pages/${routeKey}/index.html`);
+            }
           }
-          // Fallback: normalize to full URL
-          if (typeof window.NavRoutes !== 'undefined' && window.NavRoutes.toHtmlUrl) {
-            return window.NavRoutes.toHtmlUrl(`/POC/pages/${routeKey}/index.html`);
+          // Final fallback: construct from NAV_ROUTES if available
+          if (typeof window.NavRoutes !== 'undefined' && window.NavRoutes.NAV_ROUTES) {
+            const baseRoute = window.NavRoutes.NAV_ROUTES[routeKey] || `/POC/pages/${routeKey}/index.html`;
+            // Convert to Live Server URL if needed
+            if (window.location.port === '5503' || window.location.hostname === '127.0.0.1') {
+              return `http://127.0.0.1:5503${baseRoute}`;
+            }
+            return baseRoute;
           }
-          // Final fallback: hardcode Live Server URL
-          return 'http://127.0.0.1:5503/POC/pages/' + routeKey + '/index.html';
+          // Absolute last fallback
+          return `/POC/pages/${routeKey}/index.html`;
         }
         
         // Check for admin roles (case-insensitive)
@@ -346,25 +359,25 @@
         let redirectPath;
         
         if (isAdmin) {
-          // Platform admin ALWAYS redirects to full Live Server URL
-          redirectPath = 'http://127.0.0.1:5503/POC/pages/admin/index.html';
+          // Platform admin - use NAV_ROUTES
+          redirectPath = getNormalizedRoute('admin');
           console.log('🔐 Admin user detected in demo credentials, redirecting to admin portal:', redirectPath);
         } else if (roleLower === 'beneficiary' || roleLower === 'entity' || roleLower === 'project_lead' ||
                    roleLower === 'vendor' || roleLower === 'service_provider' || roleLower === 'skill_service_provider' ||
                    roleLower === 'consultant' || roleLower === 'sub_contractor' || roleLower === 'professional' ||
                    roleLower === 'supplier' || roleLower === 'individual') {
-          // Regular users redirect to dashboard - use full URL
+          // Regular users redirect to dashboard - use NAV_ROUTES
           redirectPath = getNormalizedRoute('dashboard');
           console.log('👤 User detected in demo credentials, redirecting to dashboard:', redirectPath);
         } else if (isAdminEmail) {
           // Email-based admin detection (fallback if role detection fails)
           console.warn('⚠️ Admin detected by email but not by role, forcing admin redirect');
-          redirectPath = 'http://127.0.0.1:5503/POC/pages/admin/index.html';
+          redirectPath = getNormalizedRoute('admin');
           console.log('🔐 Admin email detected, forcing admin redirect:', redirectPath);
           isAdmin = true; // Update flag
         } else {
           console.warn('⚠️ Unknown role in demo credentials. Role:', role, 'RoleLower:', roleLower, 'DemoUserRole:', user.role, 'Email:', userEmail);
-          // Default to dashboard for unknown roles - use full URL
+          // Default to dashboard for unknown roles - use NAV_ROUTES
           redirectPath = getNormalizedRoute('dashboard');
         }
         
@@ -376,7 +389,7 @@
         if (!redirectPath || redirectPath === 'undefined' || redirectPath.includes('undefined')) {
           console.error('❌ Invalid redirect path:', redirectPath);
           redirectPath = isAdmin 
-            ? 'http://127.0.0.1:5503/POC/pages/admin/index.html'
+            ? getNormalizedRoute('admin')
             : getNormalizedRoute('dashboard');
           console.log('🔄 Using fallback redirect path:', redirectPath);
         }
@@ -389,7 +402,7 @@
         // Double-check: If admin was detected but redirect path doesn't contain 'admin', fix it
         if (isAdmin && !redirectPath.includes('admin')) {
           console.warn('⚠️ Admin detected but redirect path incorrect, fixing...');
-          redirectPath = 'http://127.0.0.1:5503/POC/pages/admin/index.html';
+          redirectPath = getNormalizedRoute('admin');
           console.log('🔄 Fixed admin redirect path:', redirectPath);
         }
         
@@ -422,8 +435,8 @@
         const adminEmailCheck = isAdminEmail || resultIsAdminEmail || userEmail === 'admin@pmtwin.com' || user.email === 'admin@pmtwin.com' || loggedInUser?.email === 'admin@pmtwin.com';
         
         if (adminEmailCheck) {
-          // Platform admin ALWAYS redirects to full Live Server URL
-          const adminRedirectPath = 'http://127.0.0.1:5503/POC/pages/admin/index.html';
+          // Platform admin - use NAV_ROUTES
+          const adminRedirectPath = getNormalizedRoute('admin');
           
           console.log('🚀 Platform Administrator detected - FORCING admin redirect');
           console.log('🔍 Admin email check (ALL SOURCES):', { 

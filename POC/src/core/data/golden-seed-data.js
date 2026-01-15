@@ -38,18 +38,25 @@
     }
 
     // Create data in correct order (dependencies first)
+    // SEED v2 - KSA Opportunity Workflow Only
     const seedResults = {
       users: createGoldenUsers(forceReload),
-      projects: createGoldenProjects(forceReload),
-      serviceRequests: createGoldenServiceRequests(forceReload),
-      proposals: createGoldenProposals(forceReload),
-      serviceOffers: createGoldenServiceOffers(forceReload),
-      contracts: createGoldenContracts(forceReload),
+      opportunityWorkflow: SeedNewOpportunityWorkflow(forceReload), // NEW: Comprehensive KSA-only workflow
+      // Legacy seed functions disabled - using SeedNewOpportunityWorkflow instead
+      // opportunities: createGoldenOpportunities(forceReload), // DEPRECATED
+      // proposals: createGoldenProposals(forceReload), // DEPRECATED
+      // contracts: createGoldenContracts(forceReload), // DEPRECATED
       engagements: createGoldenEngagements(forceReload),
       milestones: createGoldenMilestones(forceReload),
       serviceProviderProfiles: createGoldenServiceProviderProfiles(forceReload),
       beneficiaries: createGoldenBeneficiaries(forceReload)
+      // REMOVED: projects, serviceRequests, serviceOffers (legacy - use opportunities instead)
     };
+    
+    // Remove legacy storage keys after seeding
+    if (typeof UnifiedStorage !== 'undefined') {
+      UnifiedStorage.removeLegacyKeys();
+    }
 
     console.log('✅ Golden Seed Data Loaded:', seedResults);
     
@@ -1847,7 +1854,1200 @@
   // ============================================
   // B) Project Structure
   // ============================================
+  // ============================================
+  // Create Golden Opportunities (Unified Model)
+  // ============================================
+  function createGoldenOpportunities(forceReload = false) {
+    if (typeof PMTwinData === 'undefined' || !PMTwinData.Opportunities) {
+      console.warn('Opportunities model not available');
+      return { created: 0, skipped: 0 };
+    }
+
+    const opportunities = PMTwinData.Opportunities.getAll();
+    const users = PMTwinData.Users.getAll();
+    
+    const beneficiaryA = users.find(u => u.email === 'beneficiary@pmtwin.com');
+    const beneficiaryB = users.find(u => u.email === 'entity2@pmtwin.com');
+    const serviceProviderA = users.find(u => u.email === 'bim@pmtwin.com');
+    const serviceProviderB = users.find(u => u.email === 'legal@pmtwin.com');
+
+    if (!beneficiaryA || !beneficiaryB) {
+      console.warn('Beneficiaries not found, skipping opportunity creation');
+      return { created: 0, skipped: 0 };
+    }
+
+    const created = [];
+    const skipped = [];
+
+    // Helper to create opportunity if not exists
+    function createOpportunityIfNotExists(opportunityData) {
+      const exists = opportunities.some(o => o.id === opportunityData.id);
+      if (exists && !forceReload) {
+        skipped.push(opportunityData.id);
+        return null;
+      }
+      
+      if (exists && forceReload) {
+        PMTwinData.Opportunities.delete(opportunityData.id);
+      }
+
+      const opportunity = PMTwinData.Opportunities.create(opportunityData);
+      if (opportunity) {
+        created.push(opportunity.id);
+      }
+      return opportunity;
+    }
+
+    const now = new Date();
+    const baseDate = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+
+    // 1. REQUEST_SERVICE - Riyadh (Structural Engineering)
+    createOpportunityIfNotExists({
+      id: 'opp_request_riyadh_001',
+      title: 'Structural Engineering Review for Riyadh Metro Station',
+      description: 'Review and approve shop drawings for structural elements including foundations, columns, beams, and slabs. Provide structural calculations and ensure compliance with Saudi Building Code.',
+      intent: 'REQUEST_SERVICE',
+      model: '1',
+      subModel: '1.1',
+      modelName: 'Task-Based Engagement',
+      category: 'Project-Based Collaboration',
+      status: 'published',
+      skills: ['Structural Engineering', 'Foundation Design', 'Seismic Analysis', 'SBC Code'],
+      serviceItems: [
+        {
+          id: 'item_1',
+          name: 'Shop Drawing Review',
+          description: 'Review structural shop drawings for compliance',
+          unit: 'drawing',
+          qty: 50,
+          unitPriceRef: 500,
+          totalRef: 25000,
+          currency: 'SAR'
+        },
+        {
+          id: 'item_2',
+          name: 'Structural Calculations',
+          description: 'Provide detailed structural calculations',
+          unit: 'calculation',
+          qty: 20,
+          unitPriceRef: 1500,
+          totalRef: 30000,
+          currency: 'SAR'
+        },
+        {
+          id: 'item_3',
+          name: 'Code Compliance Report',
+          description: 'SBC code compliance verification report',
+          unit: 'report',
+          qty: 1,
+          unitPriceRef: 25000,
+          totalRef: 25000,
+          currency: 'SAR'
+        }
+      ],
+      paymentTerms: {
+        mode: 'CASH',
+        barterRule: null,
+        cashSettlement: 0,
+        acknowledgedDifference: false
+      },
+      location: {
+        country: 'Saudi Arabia',
+        city: 'Riyadh',
+        area: 'Al Olaya',
+        address: 'King Fahd Road, Metro Station Site',
+        geo: {
+          lat: 24.7136,
+          lng: 46.6753
+        },
+        isRemoteAllowed: false
+      },
+      createdBy: beneficiaryA.id,
+      createdAt: baseDate.toISOString(),
+      updatedAt: baseDate.toISOString(),
+      attributes: {
+        duration: 45,
+        startDate: '2024-03-01',
+        experienceLevel: 'Senior'
+      }
+    });
+
+    // 2. REQUEST_SERVICE - Jeddah (MEP Design)
+    createOpportunityIfNotExists({
+      id: 'opp_request_jeddah_001',
+      title: 'MEP Design Consultation for Luxury Residential Towers',
+      description: 'Seeking MEP design consultation for luxury residential towers including HVAC, electrical, and plumbing systems optimization.',
+      intent: 'REQUEST_SERVICE',
+      model: '1',
+      subModel: '1.1',
+      modelName: 'Task-Based Engagement',
+      category: 'Project-Based Collaboration',
+      status: 'published',
+      skills: ['MEP Design', 'HVAC Systems', 'Building Services', 'Electrical Design'],
+      serviceItems: [
+        {
+          id: 'item_4',
+          name: 'HVAC System Design',
+          description: 'Complete HVAC system design and optimization',
+          unit: 'system',
+          qty: 2,
+          unitPriceRef: 150000,
+          totalRef: 300000,
+          currency: 'SAR'
+        },
+        {
+          id: 'item_5',
+          name: 'Electrical System Design',
+          description: 'Electrical distribution and lighting design',
+          unit: 'system',
+          qty: 2,
+          unitPriceRef: 100000,
+          totalRef: 200000,
+          currency: 'SAR'
+        }
+      ],
+      paymentTerms: {
+        mode: 'CASH',
+        barterRule: null,
+        cashSettlement: 0,
+        acknowledgedDifference: false
+      },
+      location: {
+        country: 'Saudi Arabia',
+        city: 'Jeddah',
+        area: 'Corniche',
+        address: 'Corniche Road, Marina Towers Site',
+        geo: {
+          lat: 21.5433,
+          lng: 39.1728
+        },
+        isRemoteAllowed: false
+      },
+      createdBy: beneficiaryB.id,
+      createdAt: new Date(baseDate.getTime() + 3 * 24 * 60 * 60 * 1000).toISOString(),
+      updatedAt: new Date(baseDate.getTime() + 3 * 24 * 60 * 60 * 1000).toISOString(),
+      attributes: {
+        duration: 60,
+        startDate: '2024-04-01',
+        experienceLevel: 'Expert'
+      }
+    });
+
+    // 3. OFFER_SERVICE - Riyadh (BIM Services)
+    if (serviceProviderA) {
+      createOpportunityIfNotExists({
+        id: 'opp_offer_riyadh_001',
+        title: 'BIM Coordination Services',
+        description: 'Professional BIM coordination services for construction projects. 3D modeling, clash detection, and coordination drawings.',
+        intent: 'OFFER_SERVICE',
+        model: '1',
+        subModel: '1.1',
+        modelName: 'Task-Based Engagement',
+        category: 'Project-Based Collaboration',
+        status: 'published',
+        skills: ['BIM Coordination', '3D Modeling', 'Clash Detection', 'Revit'],
+        serviceItems: [
+          {
+            id: 'item_6',
+            name: 'BIM Model Creation',
+            description: 'Create comprehensive BIM models',
+            unit: 'model',
+            qty: 1,
+            unitPriceRef: 50000,
+            totalRef: 50000,
+            currency: 'SAR'
+          },
+          {
+            id: 'item_7',
+            name: 'Clash Detection',
+            description: 'Perform clash detection and resolution',
+            unit: 'session',
+            qty: 5,
+            unitPriceRef: 10000,
+            totalRef: 50000,
+            currency: 'SAR'
+          }
+        ],
+        paymentTerms: {
+          mode: 'CASH',
+          barterRule: null,
+          cashSettlement: 0,
+          acknowledgedDifference: false
+        },
+        location: {
+          country: 'Saudi Arabia',
+          city: 'Riyadh',
+          area: 'Al Malaz',
+          address: null,
+          geo: {
+            lat: 24.6408,
+            lng: 46.7728
+          },
+          isRemoteAllowed: true
+        },
+        createdBy: serviceProviderA.id,
+        createdAt: new Date(baseDate.getTime() + 5 * 24 * 60 * 60 * 1000).toISOString(),
+        updatedAt: new Date(baseDate.getTime() + 5 * 24 * 60 * 60 * 1000).toISOString(),
+        attributes: {
+          availability: 'Available immediately',
+          responseTime: '24 hours'
+        }
+      });
+    }
+
+    // 4. OFFER_SERVICE - Remote (Legal Consultation)
+    if (serviceProviderB) {
+      createOpportunityIfNotExists({
+        id: 'opp_offer_remote_001',
+        title: 'Legal Consultation for Construction Contracts',
+        description: 'Expert legal consultation services for construction contracts, procurement agreements, and regulatory compliance.',
+        intent: 'OFFER_SERVICE',
+        model: '1',
+        subModel: '1.1',
+        modelName: 'Task-Based Engagement',
+        category: 'Project-Based Collaboration',
+        status: 'published',
+        skills: ['Legal Consultation', 'Contract Review', 'Construction Law', 'Regulatory Compliance'],
+        serviceItems: [
+          {
+            id: 'item_8',
+            name: 'Contract Review',
+            description: 'Review and advise on construction contracts',
+            unit: 'contract',
+            qty: 1,
+            unitPriceRef: 15000,
+            totalRef: 15000,
+            currency: 'SAR'
+          },
+          {
+            id: 'item_9',
+            name: 'Legal Consultation',
+            description: 'Hourly legal consultation services',
+            unit: 'hour',
+            qty: 10,
+            unitPriceRef: 2000,
+            totalRef: 20000,
+            currency: 'SAR'
+          }
+        ],
+        paymentTerms: {
+          mode: 'BARTER',
+          barterRule: 'ALLOW_DIFFERENCE_CASH',
+          cashSettlement: 0,
+          acknowledgedDifference: false
+        },
+        location: {
+          country: 'Saudi Arabia',
+          city: 'Riyadh',
+          area: null,
+          address: null,
+          geo: null,
+          isRemoteAllowed: true
+        },
+        createdBy: serviceProviderB.id,
+        createdAt: new Date(baseDate.getTime() + 7 * 24 * 60 * 60 * 1000).toISOString(),
+        updatedAt: new Date(baseDate.getTime() + 7 * 24 * 60 * 60 * 1000).toISOString(),
+        attributes: {
+          availability: 'Available for remote consultation',
+          responseTime: '48 hours'
+        }
+      });
+    }
+
+    // 5. MEGA PROJECT - SPV (NEOM Infrastructure)
+    createOpportunityIfNotExists({
+      id: 'opp_mega_spv_001',
+      title: 'NEOM Infrastructure Development - SPV Structure',
+      description: 'Comprehensive infrastructure development for NEOM including roads, utilities, and facilities. Structured as Special Purpose Vehicle (SPV) for risk isolation and financing.',
+      intent: 'REQUEST_SERVICE',
+      model: '1',
+      subModel: '1.4',
+      modelName: 'Special Purpose Vehicle (SPV)',
+      category: 'Project-Based Collaboration',
+      status: 'published',
+      skills: ['Infrastructure Development', 'Civil Engineering', 'Project Finance', 'SPV Structuring'],
+      serviceItems: [
+        {
+          id: 'item_10',
+          name: 'Road Infrastructure',
+          description: 'Design and construction of road network',
+          unit: 'km',
+          qty: 50,
+          unitPriceRef: 5000000,
+          totalRef: 250000000,
+          currency: 'SAR'
+        },
+        {
+          id: 'item_11',
+          name: 'Utilities Infrastructure',
+          description: 'Water, sewer, and electrical utilities',
+          unit: 'package',
+          qty: 1,
+          unitPriceRef: 150000000,
+          totalRef: 150000000,
+          currency: 'SAR'
+        },
+        {
+          id: 'item_12',
+          name: 'Facilities Development',
+          description: 'Administrative and support facilities',
+          unit: 'facility',
+          qty: 5,
+          unitPriceRef: 20000000,
+          totalRef: 100000000,
+          currency: 'SAR'
+        }
+      ],
+      paymentTerms: {
+        mode: 'CASH',
+        barterRule: null,
+        cashSettlement: 0,
+        acknowledgedDifference: false
+      },
+      location: {
+        country: 'Saudi Arabia',
+        city: 'NEOM',
+        area: 'Tabuk Province',
+        address: 'NEOM Development Zone',
+        geo: {
+          lat: 28.0339,
+          lng: 35.0000
+        },
+        isRemoteAllowed: false
+      },
+      createdBy: beneficiaryA.id,
+      createdAt: baseDate.toISOString(),
+      updatedAt: baseDate.toISOString(),
+      attributes: {
+        projectValue: 500000000,
+        spvValue: 500000000,
+        duration: 36,
+        workPackages: [
+          {
+            packageId: 'wp_1',
+            title: 'Road Infrastructure Package',
+            assignedPartyId: null,
+            value: 250000000
+          },
+          {
+            packageId: 'wp_2',
+            title: 'Utilities Infrastructure Package',
+            assignedPartyId: null,
+            value: 150000000
+          },
+          {
+            packageId: 'wp_3',
+            title: 'Facilities Development Package',
+            assignedPartyId: null,
+            value: 100000000
+          }
+        ]
+      }
+    });
+
+    console.log(`✅ Created ${created.length} golden opportunities, skipped ${skipped.length}`);
+    return { created: created.length, skipped: skipped.length };
+  }
+
+  // ============================================
+  // Seed v2: New Opportunity Workflow (KSA Only)
+  // ============================================
+  function SeedNewOpportunityWorkflow(forceReload = false) {
+    console.log('🌱 Seed v2: Loading KSA Opportunity Workflow Data...');
+    
+    if (typeof PMTwinData === 'undefined') {
+      console.error('PMTwinData not available');
+      return { created: 0, skipped: 0 };
+    }
+
+    // Step 1: Clear legacy keys explicitly
+    if (typeof UnifiedStorage !== 'undefined') {
+      UnifiedStorage.removeLegacyKeys();
+    }
+
+    const users = PMTwinData.Users.getAll();
+    const opportunities = PMTwinData.Opportunities.getAll();
+    const proposals = PMTwinData.Proposals.getAll();
+    const contracts = PMTwinData.Contracts.getAll();
+
+    const now = new Date();
+    const baseDate = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+
+    // Helper to create or get user
+    function getOrCreateUser(userData) {
+      let user = users.find(u => u.email === userData.email);
+      if (!user || forceReload) {
+        if (user && forceReload) {
+          PMTwinData.Users.delete(user.id);
+        }
+        user = PMTwinData.Users.create(userData);
+      }
+      return user;
+    }
+
+    // Helper to create opportunity
+    function createOpportunityIfNotExists(opportunityData) {
+      const exists = opportunities.some(o => o.id === opportunityData.id);
+      if (exists && !forceReload) {
+        return null;
+      }
+      if (exists && forceReload) {
+        PMTwinData.Opportunities.delete(opportunityData.id);
+      }
+      return PMTwinData.Opportunities.create(opportunityData);
+    }
+
+    // Helper to create proposal
+    function createProposalIfNotExists(proposalData) {
+      const exists = proposals.some(p => p.id === proposalData.id);
+      if (exists && !forceReload) {
+        return null;
+      }
+      if (exists && forceReload) {
+        PMTwinData.Proposals.delete(proposalData.id);
+      }
+      return PMTwinData.Proposals.create(proposalData);
+    }
+
+    // Helper to create contract
+    function createContractIfNotExists(contractData) {
+      const exists = contracts.some(c => c.id === contractData.id);
+      if (exists && !forceReload) {
+        return null;
+      }
+      if (exists && forceReload) {
+        PMTwinData.Contracts.delete(contractData.id);
+      }
+      return PMTwinData.Contracts.create(contractData);
+    }
+
+    // Step 2: Create/Update KSA Users
+    const adminUser = getOrCreateUser({
+      id: 'user-admin-001',
+      email: 'admin@pmtwin.com',
+      password: btoa('Admin123'),
+      role: 'admin',
+      userType: 'admin',
+      onboardingStage: 'approved',
+      emailVerified: true,
+      mobile: '+966500000000',
+      mobileVerified: true,
+      identity: {
+        fullLegalName: 'Platform Administrator',
+        nationalId: '0000000000',
+        nationalIdVerified: true
+      },
+      profile: {
+        name: 'Platform Administrator',
+        status: 'approved',
+        createdAt: baseDate.toISOString()
+      },
+      createdAt: baseDate.toISOString()
+    });
+
+    const beneficiaryA = getOrCreateUser({
+      email: 'beneficiary.riyadh@pmtwin.com',
+      password: btoa('Beneficiary123'),
+      role: 'beneficiary',
+      userType: 'beneficiary',
+      onboardingStage: 'approved',
+      emailVerified: true,
+      mobile: '+966501234567',
+      mobileVerified: true,
+      identity: {
+        legalEntityName: 'Riyadh Development Company',
+        crNumber: 'CR-RDC-001',
+        crVerified: true,
+        authorizedRepresentativeName: 'Ahmed Al-Riyadh'
+      },
+      profile: {
+        name: 'Riyadh Development Company',
+        companyName: 'Riyadh Development Company',
+        status: 'approved',
+        location: {
+          headquarters: {
+            address: 'King Fahd Road',
+            city: 'Riyadh',
+            area: 'Olaya',
+            region: 'Riyadh Province',
+            country: 'Saudi Arabia'
+          }
+        },
+        createdAt: baseDate.toISOString()
+      },
+      createdAt: baseDate.toISOString()
+    });
+
+    const beneficiaryB = getOrCreateUser({
+      email: 'beneficiary.jeddah@pmtwin.com',
+      password: btoa('Beneficiary123'),
+      role: 'beneficiary',
+      userType: 'beneficiary',
+      onboardingStage: 'approved',
+      emailVerified: true,
+      mobile: '+966502345678',
+      mobileVerified: true,
+      identity: {
+        legalEntityName: 'Jeddah Construction Group',
+        crNumber: 'CR-JCG-002',
+        crVerified: true,
+        authorizedRepresentativeName: 'Mohammed Al-Jeddah'
+      },
+      profile: {
+        name: 'Jeddah Construction Group',
+        companyName: 'Jeddah Construction Group',
+        status: 'approved',
+        location: {
+          headquarters: {
+            address: 'Corniche Road',
+            city: 'Jeddah',
+            area: 'Al Hamra',
+            region: 'Makkah Province',
+            country: 'Saudi Arabia'
+          }
+        },
+        createdAt: baseDate.toISOString()
+      },
+      createdAt: baseDate.toISOString()
+    });
+
+    const providerCorp1 = getOrCreateUser({
+      email: 'provider.riyadh@pmtwin.com',
+      password: btoa('Provider123'),
+      role: 'service_provider',
+      userType: 'vendor_corporate',
+      onboardingStage: 'approved',
+      emailVerified: true,
+      mobile: '+966503456789',
+      mobileVerified: true,
+      identity: {
+        legalEntityName: 'Riyadh Engineering Services',
+        crNumber: 'CR-RES-003',
+        crVerified: true,
+        authorizedRepresentativeName: 'Khalid Al-Malaz'
+      },
+      profile: {
+        name: 'Riyadh Engineering Services',
+        companyName: 'Riyadh Engineering Services',
+        status: 'approved',
+        location: {
+          headquarters: {
+            city: 'Riyadh',
+            area: 'Al Malaz',
+            region: 'Riyadh Province',
+            country: 'Saudi Arabia'
+          }
+        },
+        createdAt: baseDate.toISOString()
+      },
+      createdAt: baseDate.toISOString()
+    });
+
+    const providerCorp2 = getOrCreateUser({
+      email: 'provider.dammam@pmtwin.com',
+      password: btoa('Provider123'),
+      role: 'service_provider',
+      userType: 'vendor_corporate',
+      onboardingStage: 'approved',
+      emailVerified: true,
+      mobile: '+966504567890',
+      mobileVerified: true,
+      identity: {
+        legalEntityName: 'Dammam Surveying Co',
+        crNumber: 'CR-DSC-004',
+        crVerified: true,
+        authorizedRepresentativeName: 'Omar Al-Dammam'
+      },
+      profile: {
+        name: 'Dammam Surveying Co',
+        companyName: 'Dammam Surveying Co',
+        status: 'approved',
+        location: {
+          headquarters: {
+            city: 'Dammam',
+            area: 'Al Faisaliyah',
+            region: 'Eastern Province',
+            country: 'Saudi Arabia'
+          }
+        },
+        createdAt: baseDate.toISOString()
+      },
+      createdAt: baseDate.toISOString()
+    });
+
+    const consultant1 = getOrCreateUser({
+      email: 'consultant.jeddah@pmtwin.com',
+      password: btoa('Consultant123'),
+      role: 'consultant',
+      userType: 'consultant',
+      onboardingStage: 'approved',
+      emailVerified: true,
+      mobile: '+966505678901',
+      mobileVerified: true,
+      identity: {
+        legalEntityName: 'Jeddah Consulting Group',
+        crNumber: 'CR-JCG-005',
+        crVerified: true,
+        authorizedRepresentativeName: 'Fatima Al-Rawdah'
+      },
+      profile: {
+        name: 'Jeddah Consulting Group',
+        companyName: 'Jeddah Consulting Group',
+        status: 'approved',
+        location: {
+          headquarters: {
+            city: 'Jeddah',
+            area: 'Al Rawdah',
+            region: 'Makkah Province',
+            country: 'Saudi Arabia'
+          }
+        },
+        createdAt: baseDate.toISOString()
+      },
+      createdAt: baseDate.toISOString()
+    });
+
+    const individual1 = getOrCreateUser({
+      email: 'individual.khobar@pmtwin.com',
+      password: btoa('Individual123'),
+      role: 'service_provider',
+      userType: 'vendor_individual',
+      onboardingStage: 'approved',
+      emailVerified: true,
+      mobile: '+966506789012',
+      mobileVerified: true,
+      identity: {
+        fullLegalName: 'Saeed Al-Khobar',
+        nationalId: '1111111111',
+        nationalIdVerified: true
+      },
+      profile: {
+        name: 'Saeed Al-Khobar',
+        status: 'approved',
+        location: {
+          city: 'Khobar',
+          area: 'Al Ulaya',
+          region: 'Eastern Province',
+          country: 'Saudi Arabia'
+        },
+        createdAt: baseDate.toISOString()
+      },
+      createdAt: baseDate.toISOString()
+    });
+
+    const createdOpps = [];
+    const createdProps = [];
+    const createdContracts = [];
+
+    // Step 3: Create 7+ Opportunities (ALL KSA)
+    
+    // 1. REQUEST_SERVICE - Riyadh, Olaya, not remote - HVAC/MEP
+    const opp1 = createOpportunityIfNotExists({
+      id: 'opp_ksa_001',
+      title: 'HVAC and MEP System Design for Commercial Building',
+      description: 'Require comprehensive HVAC and MEP system design for new commercial building in Riyadh. Must comply with Saudi Building Code and energy efficiency standards.',
+      intent: 'REQUEST_SERVICE',
+      model: '1',
+      subModel: '1.1',
+      modelName: 'Task-Based Engagement',
+      category: 'Project-Based Collaboration',
+      status: 'published',
+      skills: ['HVAC', 'MEP', 'Building Services', 'Energy Efficiency'],
+      serviceItems: [
+        { id: 'item_1', name: 'HVAC Design', description: 'Complete HVAC system design', unit: 'system', qty: 1, unitPriceRef: 150000, totalRef: 150000, currency: 'SAR' },
+        { id: 'item_2', name: 'MEP Coordination', description: 'MEP coordination drawings', unit: 'drawing', qty: 50, unitPriceRef: 500, totalRef: 25000, currency: 'SAR' }
+      ],
+      paymentTerms: { mode: 'CASH', barterRule: null, cashSettlement: 0, acknowledgedDifference: false },
+      location: {
+        country: 'Saudi Arabia',
+        city: 'Riyadh',
+        area: 'Olaya',
+        address: 'King Fahd Road, Commercial District',
+        geo: { lat: 24.7136, lng: 46.6753 },
+        isRemoteAllowed: false
+      },
+      createdBy: beneficiaryA.id,
+      createdAt: baseDate.toISOString(),
+      updatedAt: baseDate.toISOString()
+    });
+    if (opp1) createdOpps.push(opp1.id);
+
+    // 2. REQUEST_SERVICE - Jeddah, Al Hamra, remote allowed - BIM/Design review
+    const opp2 = createOpportunityIfNotExists({
+      id: 'opp_ksa_002',
+      title: 'BIM Coordination and Design Review Services',
+      description: 'Seeking BIM coordination services and design review for residential tower project. Remote work acceptable for coordination tasks.',
+      intent: 'REQUEST_SERVICE',
+      model: '1',
+      subModel: '1.1',
+      modelName: 'Task-Based Engagement',
+      category: 'Project-Based Collaboration',
+      status: 'published',
+      skills: ['BIM', 'Design Review', '3D Modeling', 'Clash Detection'],
+      serviceItems: [
+        { id: 'item_3', name: 'BIM Model Creation', description: 'Create comprehensive BIM models', unit: 'model', qty: 1, unitPriceRef: 80000, totalRef: 80000, currency: 'SAR' },
+        { id: 'item_4', name: 'Design Review', description: 'Review architectural and structural designs', unit: 'review', qty: 1, unitPriceRef: 50000, totalRef: 50000, currency: 'SAR' }
+      ],
+      paymentTerms: { mode: 'CASH', barterRule: null, cashSettlement: 0, acknowledgedDifference: false },
+      location: {
+        country: 'Saudi Arabia',
+        city: 'Jeddah',
+        area: 'Al Hamra',
+        address: 'Al Hamra District, Residential Tower Site',
+        geo: { lat: 21.5433, lng: 39.1728 },
+        isRemoteAllowed: true
+      },
+      createdBy: beneficiaryB.id,
+      createdAt: new Date(baseDate.getTime() + 2 * 24 * 60 * 60 * 1000).toISOString(),
+      updatedAt: new Date(baseDate.getTime() + 2 * 24 * 60 * 60 * 1000).toISOString()
+    });
+    if (opp2) createdOpps.push(opp2.id);
+
+    // 3. OFFER_SERVICE - Riyadh, Al Nakheel - Concrete supply
+    const opp3 = createOpportunityIfNotExists({
+      id: 'opp_ksa_003',
+      title: 'Ready-Mix Concrete Supply Services',
+      description: 'Professional ready-mix concrete supply for construction projects. High-quality concrete meeting Saudi standards with timely delivery.',
+      intent: 'OFFER_SERVICE',
+      model: '1',
+      subModel: '1.1',
+      modelName: 'Task-Based Engagement',
+      category: 'Project-Based Collaboration',
+      status: 'published',
+      skills: ['Concrete Supply', 'Material Supply', 'Construction Materials'],
+      serviceItems: [
+        { id: 'item_5', name: 'Ready-Mix Concrete', description: 'High-quality ready-mix concrete', unit: 'cubic_meter', qty: 1000, unitPriceRef: 350, totalRef: 350000, currency: 'SAR' }
+      ],
+      paymentTerms: { mode: 'CASH', barterRule: null, cashSettlement: 0, acknowledgedDifference: false },
+      location: {
+        country: 'Saudi Arabia',
+        city: 'Riyadh',
+        area: 'Al Nakheel',
+        address: 'Al Nakheel Industrial Area',
+        geo: { lat: 24.6408, lng: 46.7728 },
+        isRemoteAllowed: false
+      },
+      createdBy: providerCorp1.id,
+      createdAt: new Date(baseDate.getTime() + 4 * 24 * 60 * 60 * 1000).toISOString(),
+      updatedAt: new Date(baseDate.getTime() + 4 * 24 * 60 * 60 * 1000).toISOString()
+    });
+    if (opp3) createdOpps.push(opp3.id);
+
+    // 4. OFFER_SERVICE - Dammam, Al Faisaliyah, remote allowed - Quantity surveying
+    const opp4 = createOpportunityIfNotExists({
+      id: 'opp_ksa_004',
+      title: 'Quantity Surveying and Cost Estimation Services',
+      description: 'Expert quantity surveying services including BOQ preparation, cost estimation, and project cost management. Remote work available.',
+      intent: 'OFFER_SERVICE',
+      model: '1',
+      subModel: '1.1',
+      modelName: 'Task-Based Engagement',
+      category: 'Project-Based Collaboration',
+      status: 'published',
+      skills: ['Quantity Surveying', 'Cost Estimation', 'BOQ Preparation', 'Cost Management'],
+      serviceItems: [
+        { id: 'item_6', name: 'BOQ Preparation', description: 'Bill of Quantities preparation', unit: 'project', qty: 1, unitPriceRef: 45000, totalRef: 45000, currency: 'SAR' },
+        { id: 'item_7', name: 'Cost Estimation', description: 'Detailed cost estimation', unit: 'estimation', qty: 1, unitPriceRef: 35000, totalRef: 35000, currency: 'SAR' }
+      ],
+      paymentTerms: { mode: 'CASH', barterRule: null, cashSettlement: 0, acknowledgedDifference: false },
+      location: {
+        country: 'Saudi Arabia',
+        city: 'Dammam',
+        area: 'Al Faisaliyah',
+        address: 'Al Faisaliyah Business District',
+        geo: { lat: 26.4207, lng: 50.0888 },
+        isRemoteAllowed: true
+      },
+      createdBy: providerCorp2.id,
+      createdAt: new Date(baseDate.getTime() + 6 * 24 * 60 * 60 * 1000).toISOString(),
+      updatedAt: new Date(baseDate.getTime() + 6 * 24 * 60 * 60 * 1000).toISOString()
+    });
+    if (opp4) createdOpps.push(opp4.id);
+
+    // 5. OFFER_SERVICE - Khobar, Al Ulaya, remote allowed - Sustainability consulting
+    const opp5 = createOpportunityIfNotExists({
+      id: 'opp_ksa_005',
+      title: 'Sustainability and Green Building Consulting',
+      description: 'Expert sustainability consulting services including LEED certification support, energy audits, and green building design. Remote consultations available.',
+      intent: 'OFFER_SERVICE',
+      model: '1',
+      subModel: '1.1',
+      modelName: 'Task-Based Engagement',
+      category: 'Project-Based Collaboration',
+      status: 'published',
+      skills: ['Sustainability', 'Green Building', 'LEED Certification', 'Energy Audits'],
+      serviceItems: [
+        { id: 'item_8', name: 'Sustainability Assessment', description: 'Comprehensive sustainability assessment', unit: 'assessment', qty: 1, unitPriceRef: 60000, totalRef: 60000, currency: 'SAR' },
+        { id: 'item_9', name: 'LEED Certification Support', description: 'LEED certification guidance and documentation', unit: 'project', qty: 1, unitPriceRef: 80000, totalRef: 80000, currency: 'SAR' }
+      ],
+      paymentTerms: { mode: 'HYBRID', barterRule: 'ALLOW_DIFFERENCE_CASH', cashSettlement: 20000, acknowledgedDifference: false },
+      location: {
+        country: 'Saudi Arabia',
+        city: 'Khobar',
+        area: 'Al Ulaya',
+        address: 'Al Ulaya Business Center',
+        geo: { lat: 26.2172, lng: 50.1971 },
+        isRemoteAllowed: true
+      },
+      createdBy: individual1.id,
+      createdAt: new Date(baseDate.getTime() + 8 * 24 * 60 * 60 * 1000).toISOString(),
+      updatedAt: new Date(baseDate.getTime() + 8 * 24 * 60 * 60 * 1000).toISOString()
+    });
+    if (opp5) createdOpps.push(opp5.id);
+
+    // 6. REQUEST_SERVICE - Makkah, Al Aziziyah, not remote - Logistics
+    const opp6 = createOpportunityIfNotExists({
+      id: 'opp_ksa_006',
+      title: 'Construction Logistics and Material Handling Services',
+      description: 'Require professional logistics services for construction project including material transportation, storage management, and site logistics coordination.',
+      intent: 'REQUEST_SERVICE',
+      model: '1',
+      subModel: '1.1',
+      modelName: 'Task-Based Engagement',
+      category: 'Project-Based Collaboration',
+      status: 'published',
+      skills: ['Logistics', 'Material Handling', 'Transportation', 'Site Management'],
+      serviceItems: [
+        { id: 'item_10', name: 'Material Transportation', description: 'Transportation of construction materials', unit: 'trip', qty: 200, unitPriceRef: 500, totalRef: 100000, currency: 'SAR' },
+        { id: 'item_11', name: 'Storage Management', description: 'On-site storage and inventory management', unit: 'month', qty: 12, unitPriceRef: 15000, totalRef: 180000, currency: 'SAR' }
+      ],
+      paymentTerms: { mode: 'CASH', barterRule: null, cashSettlement: 0, acknowledgedDifference: false },
+      location: {
+        country: 'Saudi Arabia',
+        city: 'Makkah',
+        area: 'Al Aziziyah',
+        address: 'Al Aziziyah Development Site',
+        geo: { lat: 21.3891, lng: 39.8579 },
+        isRemoteAllowed: false
+      },
+      createdBy: beneficiaryA.id,
+      createdAt: new Date(baseDate.getTime() + 10 * 24 * 60 * 60 * 1000).toISOString(),
+      updatedAt: new Date(baseDate.getTime() + 10 * 24 * 60 * 60 * 1000).toISOString()
+    });
+    if (opp6) createdOpps.push(opp6.id);
+
+    // 7. MEGA - NEOM/Tabuk region, not remote - SPV with work packages
+    const opp7 = createOpportunityIfNotExists({
+      id: 'opp_ksa_007',
+      title: 'NEOM Infrastructure Mega-Project - SPV Structure',
+      description: 'Comprehensive infrastructure development for NEOM including design, procurement, and execution phases. Structured as Special Purpose Vehicle (SPV) for risk isolation.',
+      intent: 'REQUEST_SERVICE',
+      model: '1',
+      subModel: '1.4',
+      modelName: 'Special Purpose Vehicle (SPV)',
+      category: 'Project-Based Collaboration',
+      status: 'published',
+      skills: ['Infrastructure Development', 'Civil Engineering', 'Project Finance', 'SPV Structuring', 'Mega-Project Management'],
+      serviceItems: [
+        { id: 'item_12', name: 'Design Phase', description: 'Complete design and engineering', unit: 'phase', qty: 1, unitPriceRef: 100000000, totalRef: 100000000, currency: 'SAR' },
+        { id: 'item_13', name: 'Procurement Phase', description: 'Procurement and supply chain management', unit: 'phase', qty: 1, unitPriceRef: 150000000, totalRef: 150000000, currency: 'SAR' },
+        { id: 'item_14', name: 'Execution Phase', description: 'Construction and execution', unit: 'phase', qty: 1, unitPriceRef: 250000000, totalRef: 250000000, currency: 'SAR' }
+      ],
+      paymentTerms: { mode: 'CASH', barterRule: null, cashSettlement: 0, acknowledgedDifference: false },
+      location: {
+        country: 'Saudi Arabia',
+        city: 'Tabuk (NEOM)',
+        area: 'Tabuk Region',
+        address: 'NEOM Development Zone',
+        geo: { lat: 28.0339, lng: 35.0000 },
+        isRemoteAllowed: false
+      },
+      createdBy: beneficiaryA.id,
+      createdAt: baseDate.toISOString(),
+      updatedAt: baseDate.toISOString(),
+      attributes: {
+        projectValue: 500000000,
+        spvValue: 500000000,
+        duration: 36,
+        workPackages: [
+          { packageId: 'wp_design', title: 'Design Package', assignedPartyId: null, value: 100000000 },
+          { packageId: 'wp_procurement', title: 'Procurement Package', assignedPartyId: null, value: 150000000 },
+          { packageId: 'wp_execution', title: 'Execution Package', assignedPartyId: null, value: 250000000 }
+        ],
+        jvStructure: '50-50',
+        spvStructure: 'SPV'
+      }
+    });
+    if (opp7) createdOpps.push(opp7.id);
+
+    // 8. OFFER_SERVICE - United Arab Emirates, Dubai, remote allowed (cross-border example)
+    const opp8 = createOpportunityIfNotExists({
+      id: 'opp_uae_001',
+      title: 'International Project Management Consulting Services',
+      description: 'Expert project management consulting services for international projects. Remote collaboration available for cross-border engagements.',
+      intent: 'OFFER_SERVICE',
+      model: '1',
+      subModel: '1.1',
+      modelName: 'Task-Based Engagement',
+      category: 'Project-Based Collaboration',
+      status: 'published',
+      skills: ['Project Management', 'International Projects', 'Cross-Border Consulting', 'PMO Setup'],
+      serviceItems: [
+        { id: 'item_15', name: 'PMO Setup', description: 'Project Management Office setup and governance', unit: 'project', qty: 1, unitPriceRef: 120000, totalRef: 120000, currency: 'SAR' },
+        { id: 'item_16', name: 'Project Management Consulting', description: 'Expert project management consulting', unit: 'month', qty: 6, unitPriceRef: 25000, totalRef: 150000, currency: 'SAR' }
+      ],
+      paymentTerms: { mode: 'CASH', barterRule: null, cashSettlement: 0, acknowledgedDifference: false },
+      location: {
+        country: 'United Arab Emirates',
+        city: 'Dubai',
+        area: null,
+        address: 'Dubai Marina, Business Bay',
+        geo: { lat: 25.2048, lng: 55.2708 },
+        isRemoteAllowed: true
+      },
+      createdBy: providerCorp2.id,
+      createdAt: new Date(baseDate.getTime() + 12 * 24 * 60 * 60 * 1000).toISOString(),
+      updatedAt: new Date(baseDate.getTime() + 12 * 24 * 60 * 60 * 1000).toISOString()
+    });
+    if (opp8) createdOpps.push(opp8.id);
+
+    // 9. REQUEST_SERVICE - Egypt, Cairo, not remote (cross-border example)
+    const opp9 = createOpportunityIfNotExists({
+      id: 'opp_egypt_001',
+      title: 'Architectural Design Services for Commercial Complex',
+      description: 'Seeking architectural design services for a large commercial complex in Cairo. On-site presence required for site visits and coordination.',
+      intent: 'REQUEST_SERVICE',
+      model: '1',
+      subModel: '1.1',
+      modelName: 'Task-Based Engagement',
+      category: 'Project-Based Collaboration',
+      status: 'published',
+      skills: ['Architectural Design', 'Commercial Architecture', '3D Visualization', 'Building Design'],
+      serviceItems: [
+        { id: 'item_17', name: 'Conceptual Design', description: 'Initial conceptual design and master planning', unit: 'phase', qty: 1, unitPriceRef: 180000, totalRef: 180000, currency: 'SAR' },
+        { id: 'item_18', name: 'Detailed Design', description: 'Detailed architectural drawings and specifications', unit: 'drawing_set', qty: 1, unitPriceRef: 220000, totalRef: 220000, currency: 'SAR' }
+      ],
+      paymentTerms: { mode: 'CASH', barterRule: null, cashSettlement: 0, acknowledgedDifference: false },
+      location: {
+        country: 'Egypt',
+        city: 'Cairo',
+        area: null,
+        address: 'New Cairo, Commercial District',
+        geo: { lat: 30.0444, lng: 31.2357 },
+        isRemoteAllowed: false
+      },
+      createdBy: beneficiaryB.id,
+      createdAt: new Date(baseDate.getTime() + 14 * 24 * 60 * 60 * 1000).toISOString(),
+      updatedAt: new Date(baseDate.getTime() + 14 * 24 * 60 * 60 * 1000).toISOString()
+    });
+    if (opp9) createdOpps.push(opp9.id);
+
+    // Step 4: Create Proposals with Versioning
+    
+    // Proposal 1: Provider Corp1 → Opp1 (HVAC/MEP) - with versioning V1→V2→V3
+    if (opp1 && providerCorp1) {
+      const prop1_v1 = createProposalIfNotExists({
+        id: 'prop_ksa_001_v1',
+        opportunityId: opp1.id,
+        providerId: providerCorp1.id,
+        bidderCompanyId: providerCorp1.id,
+        ownerCompanyId: beneficiaryA.id,
+        targetType: 'OPPORTUNITY',
+        targetId: opp1.id,
+        status: 'SUBMITTED',
+        total: 175000,
+        currency: 'SAR',
+        serviceDescription: 'Initial proposal for HVAC and MEP design services',
+        timeline: { startDate: '2024-03-01', duration: 60, endDate: '2024-04-30' },
+        submittedAt: new Date(baseDate.getTime() + 12 * 24 * 60 * 60 * 1000).toISOString(),
+        createdAt: new Date(baseDate.getTime() + 12 * 24 * 60 * 60 * 1000).toISOString(),
+        versions: [{
+          version: 1,
+          proposalData: { total: 175000, serviceDescription: 'Initial proposal' },
+          createdAt: new Date(baseDate.getTime() + 12 * 24 * 60 * 60 * 1000).toISOString(),
+          status: 'SUBMITTED'
+        }],
+        currentVersion: 1
+      });
+      if (prop1_v1) {
+        // Create V2
+        const prop1_v2_data = {
+          ...prop1_v1,
+          id: 'prop_ksa_001_v2',
+          total: 165000,
+          serviceDescription: 'Revised proposal with updated pricing',
+          versions: [
+            ...prop1_v1.versions,
+            {
+              version: 2,
+              proposalData: { total: 165000, serviceDescription: 'Revised proposal with updated pricing' },
+              createdAt: new Date(baseDate.getTime() + 14 * 24 * 60 * 60 * 1000).toISOString(),
+              status: 'NEGOTIATION'
+            }
+          ],
+          currentVersion: 2,
+          status: 'NEGOTIATION',
+          updatedAt: new Date(baseDate.getTime() + 14 * 24 * 60 * 60 * 1000).toISOString()
+        };
+        PMTwinData.Proposals.update(prop1_v1.id, prop1_v2_data);
+        
+        // Create V3 (accepted)
+        const prop1_v3_data = {
+          ...prop1_v2_data,
+          total: 160000,
+          serviceDescription: 'Final accepted proposal',
+          versions: [
+            ...prop1_v2_data.versions,
+            {
+              version: 3,
+              proposalData: { total: 160000, serviceDescription: 'Final accepted proposal' },
+              createdAt: new Date(baseDate.getTime() + 16 * 24 * 60 * 60 * 1000).toISOString(),
+              status: 'AWARDED'
+            }
+          ],
+          currentVersion: 3,
+          status: 'AWARDED',
+          acceptance: {
+            providerAccepted: true,
+            ownerAccepted: true,
+            mutuallyAcceptedVersion: 3,
+            acceptedAt: new Date(baseDate.getTime() + 16 * 24 * 60 * 60 * 1000).toISOString()
+          },
+          updatedAt: new Date(baseDate.getTime() + 16 * 24 * 60 * 60 * 1000).toISOString()
+        };
+        PMTwinData.Proposals.update(prop1_v1.id, prop1_v3_data);
+        createdProps.push(prop1_v1.id);
+      }
+    }
+
+    // Proposal 2: Consultant1 → Opp2 (BIM) - with versioning
+    if (opp2 && consultant1) {
+      const prop2_v1 = createProposalIfNotExists({
+        id: 'prop_ksa_002_v1',
+        opportunityId: opp2.id,
+        providerId: consultant1.id,
+        bidderCompanyId: consultant1.id,
+        ownerCompanyId: beneficiaryB.id,
+        targetType: 'OPPORTUNITY',
+        targetId: opp2.id,
+        status: 'SUBMITTED',
+        total: 130000,
+        currency: 'SAR',
+        serviceDescription: 'BIM coordination and design review proposal',
+        timeline: { startDate: '2024-04-01', duration: 45, endDate: '2024-05-15' },
+        submittedAt: new Date(baseDate.getTime() + 13 * 24 * 60 * 60 * 1000).toISOString(),
+        createdAt: new Date(baseDate.getTime() + 13 * 24 * 60 * 60 * 1000).toISOString(),
+        versions: [{
+          version: 1,
+          proposalData: { total: 130000 },
+          createdAt: new Date(baseDate.getTime() + 13 * 24 * 60 * 60 * 1000).toISOString(),
+          status: 'SUBMITTED'
+        }],
+        currentVersion: 1
+      });
+      if (prop2_v1) {
+        // Create V2
+        PMTwinData.Proposals.update(prop2_v1.id, {
+          ...prop2_v1,
+          total: 125000,
+          versions: [
+            ...prop2_v1.versions,
+            {
+              version: 2,
+              proposalData: { total: 125000 },
+              createdAt: new Date(baseDate.getTime() + 15 * 24 * 60 * 60 * 1000).toISOString(),
+              status: 'UNDER_REVIEW'
+            }
+          ],
+          currentVersion: 2,
+          status: 'UNDER_REVIEW',
+          updatedAt: new Date(baseDate.getTime() + 15 * 24 * 60 * 60 * 1000).toISOString()
+        });
+        createdProps.push(prop2_v1.id);
+      }
+    }
+
+    // Step 5: Create Contracts
+    
+    // Contract 1: From accepted proposal (prop1_v3)
+    if (opp1 && providerCorp1 && beneficiaryA) {
+      const contract1 = createContractIfNotExists({
+        id: 'contract_ksa_001',
+        contractType: 'SERVICE_CONTRACT',
+        scopeType: 'OPPORTUNITY',
+        scopeId: opp1.id,
+        opportunityId: opp1.id,
+        buyerPartyId: beneficiaryA.id,
+        buyerPartyType: 'BENEFICIARY',
+        providerPartyId: providerCorp1.id,
+        providerPartyType: 'VENDOR_CORPORATE',
+        status: 'SIGNED',
+        startDate: '2024-03-01',
+        endDate: '2024-04-30',
+        signedAt: new Date(baseDate.getTime() + 17 * 24 * 60 * 60 * 1000).toISOString(),
+        signedBy: beneficiaryA.id,
+        sourceProposalId: 'prop_ksa_001_v1',
+        termsJSON: {
+          pricing: { amount: 160000, currency: 'SAR' },
+          paymentTerms: 'milestone_based',
+          deliverables: ['HVAC Design', 'MEP Coordination Drawings'],
+          milestones: [
+            { name: 'Design Phase Complete', percentage: 50 },
+            { name: 'Final Deliverables', percentage: 50 }
+          ]
+        },
+        createdAt: new Date(baseDate.getTime() + 17 * 24 * 60 * 60 * 1000).toISOString()
+      });
+      if (contract1) createdContracts.push(contract1.id);
+    }
+
+    // Contract 2: Mega work package contract
+    if (opp7 && providerCorp1 && beneficiaryA) {
+      const contract2 = createContractIfNotExists({
+        id: 'contract_ksa_002',
+        contractType: 'MEGA_PROJECT_CONTRACT',
+        scopeType: 'OPPORTUNITY',
+        scopeId: opp7.id,
+        opportunityId: opp7.id,
+        buyerPartyId: beneficiaryA.id,
+        buyerPartyType: 'BENEFICIARY',
+        providerPartyId: providerCorp1.id,
+        providerPartyType: 'VENDOR_CORPORATE',
+        status: 'DRAFT',
+        startDate: '2024-06-01',
+        endDate: '2027-05-31',
+        workPackageId: 'wp_design',
+        termsJSON: {
+          pricing: { amount: 100000000, currency: 'SAR' },
+          paymentTerms: 'milestone_based',
+          deliverables: ['Design Package Complete'],
+          milestones: [
+            { name: 'Concept Design', percentage: 30 },
+            { name: 'Detailed Design', percentage: 50 },
+            { name: 'Design Finalization', percentage: 20 }
+          ]
+        },
+        createdAt: new Date(baseDate.getTime() + 18 * 24 * 60 * 60 * 1000).toISOString()
+      });
+      if (contract2) createdContracts.push(contract2.id);
+    }
+
+    console.log(`✅ Seed v2 Complete:`);
+    console.log(`   - Opportunities: ${createdOpps.length}`);
+    console.log(`   - Proposals: ${createdProps.length}`);
+    console.log(`   - Contracts: ${createdContracts.length}`);
+    console.log(`   - Locations: Config-driven (Saudi Arabia, UAE, Egypt)`);
+
+    return {
+      opportunities: { created: createdOpps.length, ids: createdOpps },
+      proposals: { created: createdProps.length, ids: createdProps },
+      contracts: { created: createdContracts.length, ids: createdContracts }
+    };
+  }
+
+  // DEPRECATED: Use createGoldenOpportunities instead
+  function createGoldenProjects_DEPRECATED(forceReload = false) {
+    console.warn('⚠️ createGoldenProjects() is deprecated. Use createGoldenOpportunities() instead.');
+    return { created: 0, skipped: 0 };
+  }
+  
+  // Legacy wrapper
   function createGoldenProjects(forceReload = false) {
+    return createGoldenProjects_DEPRECATED(forceReload);
+  }
+  
+  // Original function disabled:
+  function createGoldenProjects_ORIGINAL_DISABLED(forceReload = false) {
     const projects = PMTwinData.Projects.getAll();
     const users = PMTwinData.Users.getAll();
     
@@ -2368,7 +3568,19 @@
   // ============================================
   // E) Service Offers
   // ============================================
+  // DEPRECATED: Use createGoldenOpportunities instead
+  function createGoldenServiceOffers_DEPRECATED(forceReload = false) {
+    console.warn('⚠️ createGoldenServiceOffers() is deprecated. Use createGoldenOpportunities() instead.');
+    return { created: 0, skipped: 0 };
+  }
+  
+  // Legacy wrapper
   function createGoldenServiceOffers(forceReload = false) {
+    return createGoldenServiceOffers_DEPRECATED(forceReload);
+  }
+  
+  // Original function disabled:
+  function createGoldenServiceOffers_ORIGINAL_DISABLED(forceReload = false) {
     const offers = PMTwinData.ServiceOffers.getAll();
     const users = PMTwinData.Users.getAll();
     const requests = PMTwinData.ServiceRequests.getAll();
@@ -3371,8 +4583,9 @@
     window.GoldenSeedData = {
       load: loadGoldenSeedData,
       createUsers: createGoldenUsers,
-      createProjects: createGoldenProjects,
-      createServiceRequests: createGoldenServiceRequests,
+      createOpportunities: createGoldenOpportunities, // DEPRECATED - Use SeedNewOpportunityWorkflow instead
+      SeedNewOpportunityWorkflow: SeedNewOpportunityWorkflow, // NEW: KSA-only comprehensive workflow
+      // REMOVED: createProjects, createServiceRequests (legacy)
       createServiceOffers: createGoldenServiceOffers,
       createContracts: createGoldenContracts,
       createEngagements: createGoldenEngagements,

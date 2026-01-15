@@ -32,9 +32,9 @@
       'signup': '/POC/pages/auth/signup/index.html',
       'dashboard': '/POC/pages/dashboard/index.html',
       'merchant-portal': '/POC/pages/merchant-portal/index.html',
-      'projects': '/POC/pages/projects/index.html',
-      'create-project': '/POC/pages/projects/create/index.html',
-      'project': '/POC/pages/projects/view/index.html',
+      'projects': '/POC/pages/opportunities/index.html', // Redirect to opportunities
+      'create-project': '/POC/pages/opportunities/create/index.html', // Redirect to opportunity creation
+      'project': '/POC/pages/opportunities/index.html', // Redirect to opportunities (legacy)
       'opportunities': '/POC/pages/opportunities/index.html',
       'matches': '/POC/pages/matches/index.html',
       'proposals': '/POC/pages/proposals/index.html',
@@ -91,11 +91,11 @@
       const id = parts[1];
       
       if (baseRoute === 'project' && id) {
-        // Use NAV_ROUTES if available
-        if (typeof window.NavRoutes !== 'undefined' && window.NavRoutes.NAV_ROUTES['project-view']) {
-          targetFile = window.NavRoutes.NAV_ROUTES['project-view'];
+        // Redirect legacy project routes to opportunities
+        if (typeof window.NavRoutes !== 'undefined' && window.NavRoutes.NAV_ROUTES['opportunities']) {
+          targetFile = window.NavRoutes.NAV_ROUTES['opportunities'];
         } else {
-          targetFile = '/POC/pages/projects/view/index.html';
+          targetFile = '/POC/pages/opportunities/index.html';
         }
         queryParams = `?id=${id}`;
       } else if (routeMap[baseRoute]) {

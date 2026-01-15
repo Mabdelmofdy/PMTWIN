@@ -20,6 +20,18 @@
                 </div>
             </div>
 
+            <!-- Filters -->
+            <div class="content-section">
+                <div class="card enhanced-card">
+                    <div class="card-body">
+                        <h2 class="section-title spacing-section">Filters</h2>
+                        <div id="opportunitiesFilters">
+                            <!-- Filters will be rendered here -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <!-- Opportunities List -->
             <div class="content-section">
                 <div id="opportunitiesList">
@@ -31,6 +43,7 @@
 
     <!-- Configuration (must load first) -->
     <script src="../../src/config/config.js"></script>
+    <script src="../../src/core/config/location.config.js"></script>
     
     <!-- API Layer (for future Java backend integration) -->
     <script src="../../src/core/api/api-client.js"></script>
@@ -51,7 +64,7 @@
     <script src="../../src/core/init/app-init.js"></script>
     
     <!-- Component Scripts -->
-    <script src="../../features/matching/opportunities.js"></script>
+    <script src="../../features/opportunities/opportunities-list.js"></script>
     
     <!-- Initialize Component -->
     <script>
@@ -60,10 +73,10 @@
             const isAuth = await AuthCheck.checkAuth({ requireAuth: true });
             if (!isAuth) return;
             
-            // Initialize opportunities
+            // Initialize opportunities list
             // Note: Sidebar and navbar are automatically initialized by app-init.js
-            if (window.matching && window.matching.opportunities) {
-                window.matching.opportunities.init();
+            if (window.opportunitiesList) {
+                window.opportunitiesList.init();
             }
         });
     </script>

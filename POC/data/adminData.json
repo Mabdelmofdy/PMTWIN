@@ -31,21 +31,21 @@
     },
     {
       "id": "opp-002",
-      "title": "Dubai Marina Towers - MEP Design Consultation",
+      "title": "Jeddah Marina Towers - MEP Design Consultation",
       "type": "Task-Based Engagement",
       "status": "active",
-      "createdBy": "Dubai Infrastructure Partners",
-      "createdByEmail": "info@dubaiinfra.com",
+      "createdBy": "Jeddah Infrastructure Partners",
+      "createdByEmail": "info@jeddahinfra.com",
       "createdAt": "2024-01-18T14:20:00Z",
       "budget": {
         "min": 300000,
         "max": 500000,
-        "currency": "AED"
+        "currency": "SAR"
       },
       "location": {
-        "city": "Dubai",
-        "region": "Dubai",
-        "country": "UAE"
+        "city": "Jeddah",
+        "region": "Makkah Province",
+        "country": "Saudi Arabia"
       },
       "description": "Seeking MEP design consultation for luxury residential towers including HVAC, electrical, and plumbing systems optimization.",
       "applicants": 8,
@@ -89,21 +89,21 @@
     },
     {
       "id": "opp-004",
-      "title": "Cairo Airport Terminal - Project JV Partner",
+      "title": "Riyadh Airport Terminal - Project JV Partner",
       "type": "Project-Specific Joint Venture",
       "status": "active",
-      "createdBy": "Egyptian Construction Group",
-      "createdByEmail": "contact@egyptconstruction.com",
+      "createdBy": "Riyadh Construction Group",
+      "createdByEmail": "contact@riyadhconstruction.com",
       "createdAt": "2024-01-20T11:45:00Z",
       "budget": {
         "min": 200000000,
         "max": 300000000,
-        "currency": "EGP"
+        "currency": "SAR"
       },
       "location": {
-        "city": "Cairo",
-        "region": "Cairo Governorate",
-        "country": "Egypt"
+        "city": "Riyadh",
+        "region": "Riyadh Province",
+        "country": "Saudi Arabia"
       },
       "description": "Seeking JV partner for airport terminal expansion project. Require partner with international airport construction experience and financial capacity.",
       "applicants": 6,
@@ -127,12 +127,12 @@
       "budget": {
         "min": 1500000000,
         "max": 2000000000,
-        "currency": "AED"
+        "currency": "SAR"
       },
       "location": {
         "city": "Abu Dhabi",
         "region": "Abu Dhabi",
-        "country": "UAE"
+        "country": "Saudi Arabia"
       },
       "description": "Forming SPV for cultural district development including museums, theaters, and exhibition spaces. Seeking investors and development partners.",
       "applicants": 9,
@@ -206,18 +206,18 @@
       "title": "Senior Project Manager - Full-Time Position",
       "type": "Professional Hiring",
       "status": "active",
-      "createdBy": "Dubai Mega Projects LLC",
-      "createdByEmail": "hr@dubaimegaprojects.com",
+      "createdBy": "Riyadh Mega Projects LLC",
+      "createdByEmail": "hr@riyadhmegaprojects.com",
       "createdAt": "2024-01-28T09:20:00Z",
       "budget": {
         "min": 25000,
         "max": 35000,
-        "currency": "AED"
+        "currency": "SAR"
       },
       "location": {
-        "city": "Dubai",
-        "region": "Dubai",
-        "country": "UAE"
+        "city": "Riyadh",
+        "region": "Riyadh Province",
+        "country": "Saudi Arabia"
       },
       "description": "Hiring senior project manager for mega infrastructure project. Require PMP certification, 10+ years experience, and mega-project track record.",
       "applicants": 24,
@@ -387,9 +387,9 @@
         "currency": "SAR"
       },
       "location": {
-        "city": "Dubai",
-        "region": "Dubai",
-        "country": "UAE"
+        "city": "Riyadh",
+        "region": "Riyadh Province",
+        "country": "Saudi Arabia"
       },
       "description": "Seeking strategic alliance partner for ongoing collaboration. Preferred partner status, cross-referrals, and joint bidding on opportunities.",
       "applicants": 6,
@@ -412,12 +412,12 @@
       "budget": {
         "min": 18000,
         "max": 25000,
-        "currency": "AED"
+        "currency": "SAR"
       },
       "location": {
         "city": "Abu Dhabi",
         "region": "Abu Dhabi",
-        "country": "UAE"
+        "country": "Saudi Arabia"
       },
       "description": "Hiring structural engineer for permanent position. Position filled - opportunity closed.",
       "applicants": 28,
@@ -480,14 +480,14 @@
     {
       "id": "prop-003",
       "opportunityId": "opp-002",
-      "opportunityTitle": "Dubai Marina Towers - MEP Design Consultation",
+      "opportunityTitle": "Jeddah Marina Towers - MEP Design Consultation",
       "submittedBy": "MEP Excellence Consultants",
       "submittedByEmail": "contact@mepexcellence.com",
       "status": "approved",
       "submittedAt": "2024-01-25T11:20:00Z",
       "budget": {
         "amount": 450000,
-        "currency": "AED"
+        "currency": "SAR"
       },
       "timeline": "60 days",
       "reviewStatus": "approved",
@@ -526,14 +526,14 @@
     {
       "id": "prop-005",
       "opportunityId": "opp-004",
-      "opportunityTitle": "Cairo Airport Terminal - Project JV Partner",
+      "opportunityTitle": "Riyadh Airport Terminal - Project JV Partner",
       "submittedBy": "International Airport Builders",
       "submittedByEmail": "projects@airportbuilders.com",
       "status": "rejected",
       "submittedAt": "2024-01-30T13:10:00Z",
       "budget": {
         "amount": 250000000,
-        "currency": "EGP"
+        "currency": "SAR"
       },
       "timeline": "48 months",
       "reviewStatus": "rejected",
@@ -578,7 +578,7 @@
       "submittedAt": "2024-02-05T15:20:00Z",
       "budget": {
         "amount": 30000,
-        "currency": "AED"
+        "currency": "SAR"
       },
       "timeline": "Immediate",
       "reviewStatus": "under_review",
@@ -703,8 +703,8 @@
           },
           {
             "id": "opp-002",
-            "title": "Dubai Marina Towers - MEP Design",
-            "createdBy": "Dubai Infrastructure Partners"
+            "title": "Jeddah Marina Towers - MEP Design",
+            "createdBy": "Jeddah Infrastructure Partners"
           },
           {
             "id": "opp-006",
@@ -725,8 +725,8 @@
           },
           {
             "id": "opp-004",
-            "title": "Cairo Airport Terminal - Project JV",
-            "createdBy": "Egyptian Construction Group"
+            "title": "Riyadh Airport Terminal - Project JV",
+            "createdBy": "Riyadh Construction Group"
           },
           {
             "id": "opp-005",
@@ -840,16 +840,16 @@
     },
     {
       "id": "proj-002",
-      "title": "Dubai Marina Luxury Residences",
+      "title": "Jeddah Marina Luxury Residences",
       "status": "active",
-      "owner": "Dubai Infrastructure Partners",
-      "ownerEmail": "info@dubaiinfra.com",
+      "owner": "Jeddah Infrastructure Partners",
+      "ownerEmail": "info@jeddahinfra.com",
       "startDate": "2023-09-15",
       "endDate": "2026-03-31",
       "budget": {
         "total": 1200000000,
         "spent": 360000000,
-        "currency": "AED"
+        "currency": "SAR"
       },
       "progress": 30,
       "teamMembers": [
@@ -968,16 +968,16 @@
     },
     {
       "id": "proj-004",
-      "title": "Cairo Airport Terminal 3 Expansion",
+      "title": "Riyadh Airport Terminal 3 Expansion",
       "status": "planning",
-      "owner": "Egyptian Construction Group",
-      "ownerEmail": "contact@egyptconstruction.com",
+      "owner": "Riyadh Construction Group",
+      "ownerEmail": "contact@riyadhconstruction.com",
       "startDate": "2024-06-01",
       "endDate": "2027-05-31",
       "budget": {
         "total": 1800000000,
         "spent": 0,
-        "currency": "EGP"
+        "currency": "SAR"
       },
       "progress": 5,
       "teamMembers": [
@@ -1039,7 +1039,7 @@
       "budget": {
         "total": 3200000000,
         "spent": 1280000000,
-        "currency": "AED"
+        "currency": "SAR"
       },
       "progress": 40,
       "teamMembers": [
@@ -1158,8 +1158,8 @@
     },
     {
       "id": "user-002",
-      "name": "Dubai Infrastructure Partners",
-      "email": "info@dubaiinfra.com",
+      "name": "Jeddah Infrastructure Partners",
+      "email": "info@jeddahinfra.com",
       "role": "entity",
       "userType": "company",
       "status": "active",
@@ -1168,8 +1168,8 @@
       "profileCompletion": 88,
       "verificationStatus": "verified",
       "location": {
-        "city": "Dubai",
-        "country": "UAE"
+        "city": "Jeddah",
+        "country": "Saudi Arabia"
       }
     },
     {
@@ -1184,8 +1184,8 @@
       "profileCompletion": 75,
       "verificationStatus": "verified",
       "location": {
-        "city": "Dubai",
-        "country": "UAE"
+        "city": "Jeddah",
+        "country": "Saudi Arabia"
       }
     },
     {
@@ -1216,8 +1216,8 @@
       "profileCompletion": 90,
       "verificationStatus": "verified",
       "location": {
-        "city": "Dubai",
-        "country": "UAE"
+        "city": "Jeddah",
+        "country": "Saudi Arabia"
       }
     },
     {
@@ -1249,7 +1249,7 @@
       "verificationStatus": "verified",
       "location": {
         "city": "Abu Dhabi",
-        "country": "UAE"
+        "country": "Saudi Arabia"
       }
     },
     {
@@ -1280,8 +1280,8 @@
       "profileCompletion": 87,
       "verificationStatus": "verified",
       "location": {
-        "city": "Dubai",
-        "country": "UAE"
+        "city": "Jeddah",
+        "country": "Saudi Arabia"
       }
     },
     {
@@ -1297,7 +1297,7 @@
       "verificationStatus": "verified",
       "location": {
         "city": "Cairo",
-        "country": "Egypt"
+        "country": "Saudi Arabia"
       }
     }
   ],

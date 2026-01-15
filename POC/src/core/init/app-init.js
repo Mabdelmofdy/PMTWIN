@@ -12,6 +12,13 @@
   async function initApp() {
     console.log('[AppInit] Initializing application...');
 
+    // Clean up legacy workflow data first
+    if (typeof UnifiedStorage !== 'undefined' && UnifiedStorage.migrateAndCleanupLegacyWorkflowData) {
+      UnifiedStorage.migrateAndCleanupLegacyWorkflowData();
+    } else if (typeof StorageAdapter !== 'undefined' && StorageAdapter.migrateAndCleanupLegacyWorkflowData) {
+      StorageAdapter.migrateAndCleanupLegacyWorkflowData();
+    }
+
     // Wait for all core scripts to load
     const maxWait = 5000; // 5 seconds max wait
     const startTime = Date.now();

@@ -135,12 +135,19 @@
 
     const allItems = [
       { id: 'dashboard', label: 'Dashboard', route: getRouteForMenu('dashboard', 'dashboard/'), icon: '<i class="ph ph-gauge"></i>', roles: ['admin', 'entity', 'individual'] },
-      { id: 'projects', label: 'My Projects', route: getRouteForMenu('projects', 'projects/'), icon: '<i class="ph ph-buildings"></i>', roles: ['admin', 'entity', 'individual'] },
-      { id: 'create-project', label: 'Create Project', route: getRouteForMenu('create-project', 'projects/create/'), icon: '<i class="ph ph-plus-circle"></i>', roles: ['admin', 'entity'] },
-      { id: 'proposals', label: 'Proposals', route: getRouteForMenu('proposals', 'proposals/'), icon: '<i class="ph ph-file-text"></i>', roles: ['admin', 'entity', 'individual'] },
-      { id: 'matches', label: 'Matches', route: getRouteForMenu('matches', 'matches/'), icon: '<i class="ph ph-link"></i>', roles: ['admin', 'entity', 'individual'] },
+      
+      // NEW OPPORTUNITY WORKFLOW ITEMS ONLY:
       { id: 'opportunities', label: 'Opportunities', route: getRouteForMenu('opportunities', 'opportunities/'), icon: '<i class="ph ph-sparkle"></i>', roles: ['admin', 'entity', 'individual'] },
-      { id: 'pipeline', label: 'Pipeline', route: getRouteForMenu('pipeline', 'pipeline/'), icon: '<i class="ph ph-trend-up"></i>', roles: ['admin', 'entity', 'individual'] },
+      { id: 'create-opportunity', label: 'Create Opportunity', route: getRouteForMenu('create-opportunity', 'opportunities/create/'), icon: '<i class="ph ph-plus-circle"></i>', roles: ['admin', 'entity', 'individual'] },
+      { id: 'matches', label: 'Matches', route: getRouteForMenu('matches', 'matches/'), icon: '<i class="ph ph-link"></i>', roles: ['admin', 'entity', 'individual'] },
+      { id: 'proposals', label: 'Proposals', route: getRouteForMenu('proposals', 'proposals/'), icon: '<i class="ph ph-file-text"></i>', roles: ['admin', 'entity', 'individual'] },
+      
+      // REMOVED LEGACY ITEMS:
+      // - My Projects (legacy - removed)
+      // - Projects (legacy - removed)
+      // - Create Project (legacy - removed)
+      // - Pipeline (legacy - removed)
+      // - My Services (legacy - removed)
       { 
         id: 'collaboration', 
         label: 'Collaboration', 

@@ -1087,43 +1087,40 @@
     
     const basePath = getBasePath();
     
-    // Core menu items matching the new design (8 items)
+    // Core menu items - Opportunity Workflow Only (legacy removed)
     const coreMenuItems = [
       // 1. Dashboard
       { id: 'dashboard', label: 'Dashboard', route: getRouteForMenu('dashboard', 'dashboard/'), feature: 'user_dashboard', icon: '<i class="ph ph-gauge"></i>' },
       
-      // 2. My Projects (new page)
-      { id: 'my-projects', label: 'My Projects', route: getRouteForMenu('my-projects', 'my-projects/'), feature: 'view_my_projects', icon: '<i class="ph ph-folder"></i>', alternativeFeatures: ['project_management'] },
-      // 2b. Projects (legacy, for browsing)
-      { id: 'projects', label: 'Projects', route: getRouteForMenu('projects', 'projects/'), feature: 'project_browsing', icon: '<i class="ph ph-buildings"></i>', alternativeFeatures: ['project_management'] },
-      
-      // 3. Create Project
-      { id: 'create-project', label: 'Create Project', route: getRouteForMenu('create-project', 'projects/create/'), feature: 'project_creation', icon: '<i class="ph ph-plus-circle"></i>' },
-      
-      // 4. Opportunities
+      // 2. Opportunities (NEW WORKFLOW)
       { id: 'opportunities', label: 'Opportunities', route: getRouteForMenu('opportunities', 'opportunities/'), feature: 'matches_view', icon: '<i class="ph ph-sparkle"></i>' },
       
-      // 5. Matches / Opportunities
-      { id: 'matches', label: 'Matches', route: getRouteForMenu('matches', 'matches/'), feature: 'view_matches', icon: '<i class="ph ph-link"></i>', alternativeFeatures: ['matches_view'] },
-      // 6. Proposals
-      { id: 'proposals', label: 'Proposals', route: getRouteForMenu('proposals', 'proposals/'), feature: 'proposal_management', icon: '<i class="ph ph-file-text"></i>', alternativeFeatures: ['view_own_proposals', 'view_incoming_proposals'] },
-      // 7. Pipeline
-      { id: 'pipeline', label: 'Pipeline', route: getRouteForMenu('pipeline', 'pipeline/'), feature: 'pipeline_management', icon: '<i class="ph ph-git-branch"></i>', alternativeFeatures: ['proposal_management'] },
+      // 3. Create Opportunity (NEW WORKFLOW)
+      { id: 'create-opportunity', label: 'Create Opportunity', route: getRouteForMenu('create-opportunity', 'opportunities/create/'), feature: 'matches_view', icon: '<i class="ph ph-plus-circle"></i>', alternativeFeatures: ['project_creation'] },
       
-      // 8. My Services
-      { id: 'my-services', label: 'My Services', route: getRouteForMenu('my-services', 'my-services/'), feature: 'service_portfolio', icon: '<i class="ph ph-briefcase"></i>', alternativeFeatures: ['service_providers'] }
+      // 4. Matches (NEW WORKFLOW)
+      { id: 'matches', label: 'Matches', route: getRouteForMenu('matches', 'matches/'), feature: 'view_matches', icon: '<i class="ph ph-link"></i>', alternativeFeatures: ['matches_view'] },
+      
+      // 5. Proposals (NEW WORKFLOW)
+      { id: 'proposals', label: 'Proposals', route: getRouteForMenu('proposals', 'proposals/'), feature: 'proposal_management', icon: '<i class="ph ph-file-text"></i>', alternativeFeatures: ['view_own_proposals', 'view_incoming_proposals'] }
+      
+      // REMOVED LEGACY ITEMS:
+      // - My Projects (legacy)
+      // - Projects (legacy)
+      // - Create Project (legacy)
+      // - Pipeline (legacy)
+      // - My Services (legacy)
     ];
     
     // Additional menu items (for admin or future expansion)
     const additionalMenuItems = [
-      { id: 'services-marketplace', label: 'Service Marketplace', route: getRouteForMenu('services-marketplace', 'services-marketplace/'), feature: 'service_providers', icon: '<i class="ph ph-storefront"></i>' },
-      { id: 'service-evaluations', label: 'Service Evaluations', route: getRouteForMenu('service-providers', 'service-providers/'), feature: 'service_evaluations', icon: '<i class="ph ph-star"></i>', alternativeFeatures: ['service_providers'] },
-      
-      // Service Provider & Service Request Section (New)
-      { id: 'service-provider-profile', label: 'Service Provider Profile', route: getRouteForMenu('service-provider-profile', 'service-providers/profile/'), feature: 'service_provider_profile', icon: '<i class="ph ph-user-circle"></i>' },
-      { id: 'service-requests', label: 'Service Requests', route: getRouteForMenu('service-requests', 'service-requests/'), feature: 'service_requests_browse', icon: '<i class="ph ph-clipboard-text"></i>', alternativeFeatures: ['create_service_requests'] },
-      { id: 'skills-search', label: 'Search Provider Skills', route: getRouteForMenu('skills-search', 'service-providers/skills-search.html'), feature: 'search_service_provider_skills', icon: '<i class="ph ph-magnifying-glass"></i>', roles: ['vendor', 'entity', 'beneficiary'] },
-      { id: 'service-engagements', label: 'Service Engagements', route: getRouteForMenu('service-engagements', 'service-engagements/'), feature: 'service_engagements_view', icon: '<i class="ph ph-handshake"></i>' },
+      // REMOVED LEGACY SERVICE ITEMS:
+      // - Service Marketplace (legacy)
+      // - Service Evaluations (legacy)
+      // - Service Provider Profile (legacy)
+      // - Service Requests (legacy - replaced by Opportunities)
+      // - Skills Search (legacy)
+      // - Service Engagements (legacy)
       
       { id: 'notifications', label: 'Notifications', route: getRouteForMenu('notifications', 'notifications/'), feature: 'notifications', icon: '<i class="ph ph-bell"></i>' },
       

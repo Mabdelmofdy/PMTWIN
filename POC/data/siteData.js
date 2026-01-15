@@ -234,7 +234,7 @@ const siteData = {
       link: "../discovery/"
     },
     {
-      title: "Dubai Marina Towers",
+      title: "Jeddah Marina Towers",
       category: "Residential",
       description: "Luxury residential complex with sustainable design and smart building technologies.",
       image: "https://picsum.photos/400/300?random=project2",
@@ -248,14 +248,14 @@ const siteData = {
       link: "../discovery/"
     },
     {
-      title: "Cairo Airport Terminal",
+      title: "Riyadh Airport Terminal",
       category: "Infrastructure",
       description: "Modern airport terminal expansion with advanced passenger processing systems.",
       image: "https://picsum.photos/400/300?random=project4",
       link: "../discovery/"
     },
     {
-      title: "Abu Dhabi Cultural District",
+      title: "Riyadh Cultural District",
       category: "Cultural",
       description: "World-class cultural complex featuring museums, theaters, and exhibition spaces.",
       image: "https://picsum.photos/400/300?random=project5",
@@ -296,7 +296,7 @@ const siteData = {
     {
       name: "Fatima Al-Zahra",
       role: "Operations Manager",
-      company: "Cairo Builders Co.",
+      company: "Riyadh Builders Co.",
       comment: "The barter exchange network helped us trade excess materials for services we needed, improving cash flow and reducing waste. It's a game-changer for the industry.",
       avatar: "https://picsum.photos/100/100?random=person4"
     }
@@ -349,9 +349,9 @@ const siteData = {
   contact: {
     address: {
       street: "Business Bay, Dubai",
-      city: "Dubai",
-      country: "United Arab Emirates",
-      full: "Business Bay, Dubai, United Arab Emirates"
+      city: "Riyadh",
+      country: "Saudi Arabia",
+      full: "King Fahd Road, Olaya, Riyadh, Saudi Arabia"
     },
     phone: "+971 4 XXX XXXX",
     email: "contact@pmtwin.com",

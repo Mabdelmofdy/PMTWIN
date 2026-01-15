@@ -7,25 +7,78 @@
   'use strict';
 
   // ============================================
-  // Calculate Match Score
+  // Calculate Location Score (Config-Driven)
   // ============================================
-  function calculateMatchScore(opportunity, companyId) {
+  function calculateLocationScore(opportunity, providerLocation) {
+    if (!opportunity.location || !providerLocation) {
+      return { score: 1.0, reason: 'No location data available' }; // No location data = no penalty
+    }
+    
+    const oppLocation = opportunity.location;
+    const isRemoteAllowed = oppLocation.isRemoteAllowed === true;
+    
+    // Get countries (normalize to lowercase for comparison)
+    const oppCountry = (oppLocation.country || '').trim();
+    const providerCountry = (providerLocation.country || providerLocation.headquarters?.country || '').trim();
+    
+    // Validate opportunity country is allowed
+    if (oppCountry && typeof window.LocationConfig !== 'undefined') {
+      if (!window.LocationConfig.isCountryAllowed(oppCountry)) {
+        return { score: 0.0, reason: `Opportunity country "${oppCountry}" is not allowed` };
+      }
+    }
+    
+    // Extract cities
+    const providerCity = (providerLocation.city || providerLocation.headquarters?.city || '').trim();
+    const oppCity = (oppLocation.city || '').trim();
+    
+    // Same country
+    if (oppCountry && providerCountry && oppCountry.toLowerCase() === providerCountry.toLowerCase()) {
+      // Same city
+      if (oppCity && providerCity && oppCity.toLowerCase() === providerCity.toLowerCase()) {
+        return { score: 1.0, reason: `Same city: ${oppCity}, ${oppCountry}` };
+      }
+      
+      // Same country, different city
+      if (isRemoteAllowed) {
+        return { score: 0.7, reason: `Same country (${oppCountry}), remote allowed` };
+      } else {
+        return { score: 0.4, reason: `Same country (${oppCountry}), different city, on-site required` };
+      }
+    }
+    
+    // Different country
+    if (isRemoteAllowed) {
+      return { score: 0.2, reason: `Different country (${oppCountry} vs ${providerCountry}), remote allowed` };
+    } else {
+      return { score: 0.0, reason: `Different country (${oppCountry} vs ${providerCountry}), on-site required` };
+    }
+  }
+
+  // ============================================
+  // Calculate Match Score (with Location)
+  // ============================================
+  function calculateMatchScore(opportunity, companyId, providerLocation = null) {
     if (typeof PMTwinData === 'undefined') {
-      return { score: 0, matchedSkills: [], missingSkills: [] };
+      return { score: 0, matchedSkills: [], missingSkills: [], locationScore: 0 };
     }
 
     // Get company skills (users represent companies)
     const companySkills = PMTwinData.getCompanySkills ? PMTwinData.getCompanySkills(companyId) : [];
     if (!Array.isArray(companySkills) || companySkills.length === 0) {
-      return { score: 0, matchedSkills: [], missingSkills: [] };
+      return { score: 0, matchedSkills: [], missingSkills: [], locationScore: 0 };
     }
 
     // Get required skills from opportunity
     let requiredSkills = [];
-    if (opportunity.scope && opportunity.scope.skillRequirements) {
+    if (opportunity.skills && Array.isArray(opportunity.skills)) {
+      requiredSkills = opportunity.skills;
+    } else if (opportunity.scope && opportunity.scope.skillRequirements) {
       requiredSkills = opportunity.scope.skillRequirements;
     } else if (opportunity.requiredSkills) {
       requiredSkills = opportunity.requiredSkills;
+    } else if (opportunity.attributes && opportunity.attributes.requiredSkills) {
+      requiredSkills = opportunity.attributes.requiredSkills;
     } else if (opportunity.scope && Array.isArray(opportunity.scope)) {
       // For mega-projects with sub-projects, aggregate skills
       opportunity.scope.forEach(subProject => {
@@ -37,41 +90,66 @@
       requiredSkills = [...new Set(requiredSkills)];
     }
 
-    if (!Array.isArray(requiredSkills) || requiredSkills.length === 0) {
-      // No requirements = perfect match
-      return { score: 100, matchedSkills: [], missingSkills: [] };
-    }
-
-    // Normalize skills to lowercase for comparison
-    const normalizedCompanySkills = companySkills.map(s => s.toLowerCase().trim());
-    const normalizedRequiredSkills = requiredSkills.map(s => s.toLowerCase().trim());
-
-    // Find matched and missing skills
+    // Calculate skills score
+    let skillsScore = 100;
     const matchedSkills = [];
     const missingSkills = [];
 
-    normalizedRequiredSkills.forEach(requiredSkill => {
-      // Check for exact match
-      if (normalizedCompanySkills.includes(requiredSkill)) {
-        matchedSkills.push(requiredSkill);
-      } else {
-        // Check for partial match (contains)
-        const hasPartialMatch = normalizedCompanySkills.some(companySkill =>
-          companySkill.includes(requiredSkill) || requiredSkill.includes(companySkill)
-        );
-        if (hasPartialMatch) {
-          matchedSkills.push(requiredSkill); // Count partial as match
-        } else {
-          missingSkills.push(requiredSkill);
-        }
-      }
-    });
+    if (Array.isArray(requiredSkills) && requiredSkills.length > 0) {
+      // Normalize skills to lowercase for comparison
+      const normalizedCompanySkills = companySkills.map(s => s.toLowerCase().trim());
+      const normalizedRequiredSkills = requiredSkills.map(s => s.toLowerCase().trim());
 
-    // Calculate score: (#matched / #required) * 100
-    const score = Math.round((matchedSkills.length / normalizedRequiredSkills.length) * 100);
+      normalizedRequiredSkills.forEach(requiredSkill => {
+        // Check for exact match
+        if (normalizedCompanySkills.includes(requiredSkill)) {
+          matchedSkills.push(requiredSkill);
+        } else {
+          // Check for partial match (contains)
+          const hasPartialMatch = normalizedCompanySkills.some(companySkill =>
+            companySkill.includes(requiredSkill) || requiredSkill.includes(companySkill)
+          );
+          if (hasPartialMatch) {
+            matchedSkills.push(requiredSkill); // Count partial as match
+          } else {
+            missingSkills.push(requiredSkill);
+          }
+        }
+      });
+
+      // Calculate skills score: (#matched / #required) * 100
+      skillsScore = Math.round((matchedSkills.length / normalizedRequiredSkills.length) * 100);
+    }
+
+    // Calculate location score
+    let locationScore = 1.0;
+    let locationReason = 'No location data';
+    if (providerLocation) {
+      const locationResult = calculateLocationScore(opportunity, providerLocation);
+      locationScore = locationResult.score;
+      locationReason = locationResult.reason;
+    } else {
+      // Try to get provider location from user profile
+      const user = PMTwinData.Users.getById(companyId);
+      if (user && user.profile && user.profile.location) {
+        const userLocation = {
+          city: user.profile.location.city || user.profile.location.headquarters?.city,
+          country: user.profile.location.country || user.profile.location.headquarters?.country
+        };
+        const locationResult = calculateLocationScore(opportunity, userLocation);
+        locationScore = locationResult.score;
+        locationReason = locationResult.reason;
+      }
+    }
+
+    // Combined score: 70% skills, 30% location
+    const finalScore = Math.round(skillsScore * 0.7 + (locationScore * 100) * 0.3);
 
     return {
-      score: score,
+      score: finalScore,
+      skillsScore: skillsScore,
+      locationScore: Math.round(locationScore * 100),
+      locationReason: locationReason,
       matchedSkills: matchedSkills,
       missingSkills: missingSkills
     };
@@ -80,76 +158,109 @@
   // ============================================
   // Find Matches for Company
   // ============================================
-  function findMatchesForCompany(companyId, role) {
+  function findMatchesForCompany(companyId, role, providerLocation = null) {
     if (typeof PMTwinData === 'undefined') {
       return [];
     }
 
     const matches = [];
+    
+    // Get provider location if not provided
+    if (!providerLocation) {
+      const user = PMTwinData.Users.getById(companyId);
+      if (user && user.profile && user.profile.location) {
+        providerLocation = {
+          city: user.profile.location.city || user.profile.location.headquarters?.city,
+          country: user.profile.location.country || user.profile.location.headquarters?.country
+        };
+      }
+    }
 
-    // Get all opportunities where ownerCompanyId !== companyId
-    const allProjects = PMTwinData.Projects.getAll().filter(p => 
-      p.ownerCompanyId !== companyId && 
-      p.status === 'active' && 
-      p.visibility === 'public'
-    );
-
-    const allServiceRequests = PMTwinData.ServiceRequests.getAll().filter(sr =>
-      sr.ownerCompanyId !== companyId &&
-      sr.status === 'OPEN'
-    );
-
-    // Filter by role
-    if (role === 'vendor' || role === 'vendor_corporate' || role === 'vendor_individual') {
-      // Vendor: Projects + MegaProjects
-      allProjects.forEach(project => {
-        const matchResult = calculateMatchScore(project, companyId);
-        if (matchResult.score > 0) {
-          matches.push({
-            targetType: project.projectType === 'mega' ? 'MEGA_PROJECT' : 'PROJECT',
-            targetId: project.id,
-            target: project,
-            matchScore: matchResult.score,
-            matchedSkills: matchResult.matchedSkills,
-            missingSkills: matchResult.missingSkills
-          });
-        }
-      });
-    } else if (role === 'service_provider' || role === 'skill_service_provider') {
-      // Service Provider: ServiceRequests (requestType !== ADVISORY)
-      allServiceRequests.forEach(request => {
-        if (request.requestType !== 'ADVISORY') {
-          const matchResult = calculateMatchScore(request, companyId);
-          if (matchResult.score > 0) {
-            matches.push({
-              targetType: 'SERVICE_REQUEST',
-              targetId: request.id,
-              target: request,
-              matchScore: matchResult.score,
-              matchedSkills: matchResult.matchedSkills,
-              missingSkills: matchResult.missingSkills
-            });
-          }
-        }
-      });
-    } else if (role === 'consultant') {
-      // Consultant: ServiceRequests (requestType === ADVISORY) or Advisory requests
-      allServiceRequests.forEach(request => {
-        if (request.requestType === 'ADVISORY') {
-          const matchResult = calculateMatchScore(request, companyId);
-          if (matchResult.score > 0) {
-            matches.push({
-              targetType: 'SERVICE_REQUEST', // Could be ADVISORY_REQUEST if we add that type
-              targetId: request.id,
-              target: request,
-              matchScore: matchResult.score,
-              matchedSkills: matchResult.matchedSkills,
-              missingSkills: matchResult.missingSkills
-            });
-          }
-        }
+    // Use unified Opportunities model
+    let allOpportunities = [];
+    if (PMTwinData.Opportunities) {
+      allOpportunities = PMTwinData.Opportunities.getAll().filter(opp => {
+        const createdBy = opp.createdBy || opp.creatorId;
+        return createdBy !== companyId && 
+               (opp.status === 'published' || opp.status === 'active');
       });
     }
+
+    // Fallback to legacy models for backward compatibility
+    if (allOpportunities.length === 0) {
+      const allProjects = PMTwinData.Projects ? PMTwinData.Projects.getAll().filter(p => 
+        p.ownerCompanyId !== companyId && 
+        p.status === 'active' && 
+        p.visibility === 'public'
+      ) : [];
+
+      const allServiceRequests = PMTwinData.ServiceRequests ? PMTwinData.ServiceRequests.getAll().filter(sr =>
+        sr.ownerCompanyId !== companyId &&
+        sr.status === 'OPEN'
+      ) : [];
+
+      // Convert Projects to opportunity format
+      allProjects.forEach(project => {
+        allOpportunities.push({
+          id: project.id,
+          intent: 'REQUEST_SERVICE',
+          skills: project.scope?.skillRequirements || [],
+          location: project.location || {},
+          ...project
+        });
+      });
+
+      // Convert ServiceRequests to opportunity format
+      allServiceRequests.forEach(request => {
+        allOpportunities.push({
+          id: request.id,
+          intent: 'REQUEST_SERVICE',
+          skills: request.requiredSkills || [],
+          location: request.location || {},
+          ...request
+        });
+      });
+    }
+
+    // Filter by role and intent
+    let filteredOpportunities = allOpportunities;
+    
+    if (role === 'vendor' || role === 'vendor_corporate' || role === 'vendor_individual') {
+      // Vendor: REQUEST_SERVICE opportunities (projects)
+      filteredOpportunities = allOpportunities.filter(opp => 
+        opp.intent === 'REQUEST_SERVICE' || opp.intent === 'BOTH' ||
+        !opp.intent // Legacy: assume REQUEST_SERVICE
+      );
+    } else if (role === 'service_provider' || role === 'skill_service_provider') {
+      // Service Provider: REQUEST_SERVICE opportunities (not ADVISORY)
+      filteredOpportunities = allOpportunities.filter(opp => 
+        (opp.intent === 'REQUEST_SERVICE' || opp.intent === 'BOTH' || !opp.intent) &&
+        opp.requestType !== 'ADVISORY'
+      );
+    } else if (role === 'consultant') {
+      // Consultant: REQUEST_SERVICE opportunities (ADVISORY only)
+      filteredOpportunities = allOpportunities.filter(opp => 
+        opp.requestType === 'ADVISORY'
+      );
+    }
+
+    // Calculate match scores
+    filteredOpportunities.forEach(opportunity => {
+      const matchResult = calculateMatchScore(opportunity, companyId, providerLocation);
+      if (matchResult.score > 0) {
+        matches.push({
+          targetType: 'OPPORTUNITY',
+          targetId: opportunity.id,
+          target: opportunity,
+          matchScore: matchResult.score,
+          skillsScore: matchResult.skillsScore,
+          locationScore: matchResult.locationScore,
+          locationReason: matchResult.locationReason,
+          matchedSkills: matchResult.matchedSkills,
+          missingSkills: matchResult.missingSkills
+        });
+      }
+    });
 
     // Sort by match score descending
     matches.sort((a, b) => b.matchScore - a.matchScore);

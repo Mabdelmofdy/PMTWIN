@@ -9,6 +9,31 @@
   let modelData = {}; // Stores field values by model ID
 
   // ============================================
+  // Fields to exclude in Opportunity workflow (already handled in wizard steps)
+  // ============================================
+  const EXCLUDED_FIELDS_IN_OPPORTUNITY_WORKFLOW = [
+    'intentType',           // Handled in Step 0 (Intent Selection)
+    'paymentMode',          // Handled in Step 3 (Payment)
+    'paymentTerms',         // Handled in Step 3 (Payment)
+    'barterOffer',          // Handled in Step 3 (Payment)
+    'barterSettlementRule', // Handled in Step 3 (Payment)
+    'locationRequirement',  // Handled in Step 3.5 (Location)
+    'projectLocation',      // Handled in Step 3.5 (Location)
+    'requiredSkills',       // Handled in Step 2 (Details - Skills)
+    'budgetRange',          // Handled in Step 2 (Details - Service Items)
+    'budgetType'            // Handled in Step 2 (Details - Service Items)
+  ];
+
+  // ============================================
+  // Check if we're in Opportunity workflow context
+  // ============================================
+  function isOpportunityWorkflow() {
+    // Check if opportunityCreate wizard is active
+    return typeof window.opportunityCreate !== 'undefined' && 
+           document.getElementById('opportunityWizardContainer') !== null;
+  }
+
+  // ============================================
   // Render Fields for Selected Models
   // ============================================
   function renderFields(selectedModelIds) {
@@ -34,6 +59,7 @@
       return;
     }
 
+    const isOpportunityContext = isOpportunityWorkflow();
     let html = '';
 
     selectedModelIds.forEach(modelId => {
@@ -67,12 +93,18 @@
               </span>
             </h3>
             <p style="color: var(--text-secondary); margin-bottom: 1.5rem;">${model.description}</p>
+            ${isOpportunityContext ? '<p style="color: var(--color-info); font-size: 0.875rem; margin-bottom: 1rem;"><i class="ph ph-info"></i> Note: Intent, Payment, Location, and Skills are captured in the wizard steps above. These fields are optional additional details.</p>' : ''}
             
             <div class="model-fields-container" data-model-id="${modelId}">
       `;
 
       // Render each attribute as a field
       model.attributes.forEach(attr => {
+        // Skip excluded fields in Opportunity workflow context
+        if (isOpportunityContext && EXCLUDED_FIELDS_IN_OPPORTUNITY_WORKFLOW.includes(attr.name)) {
+          return; // Skip this field
+        }
+
         // Check conditional fields
         if (attr.conditional) {
           const conditionField = attr.conditional.field;
@@ -112,8 +144,10 @@
     const fieldId = `collab_${modelId}_${attr.name}`;
     const fieldName = `collaborationModels[${modelId}][${attr.name}]`;
     const currentValue = modelData[modelId][attr.name] || '';
-    const requiredAttr = attr.required ? 'required' : '';
-    const requiredClass = attr.required ? 'required' : '';
+    // In opportunity workflow, all fields are optional (no required validation)
+    const isOpportunityContext = isOpportunityWorkflow();
+    const requiredAttr = (attr.required && !isOpportunityContext) ? 'required' : '';
+    const requiredClass = (attr.required && !isOpportunityContext) ? 'required' : '';
 
     switch (attr.type) {
       case 'String':
@@ -206,7 +240,7 @@
         return `
           <div class="form-group">
             <label class="form-label ${requiredClass}">
-              ${attr.question || attr.name} ${attr.required ? '*' : ''}
+              ${attr.question || attr.name} ${(attr.required && !isOpportunityContext) ? '*' : ''}
             </label>
             <div class="content-grid-2">
               <div>
@@ -327,7 +361,7 @@
         return `
           <div class="form-group">
             <label for="${fieldId}" class="form-label">
-              ${attr.question || attr.name} ${attr.required ? '*' : ''}
+              ${attr.question || attr.name} ${(attr.required && !isOpportunityContext) ? '*' : ''}
             </label>
             <input type="text" 
                    id="${fieldId}" 

@@ -16,15 +16,30 @@
     // Calculate relative path from current page to POC root
     // For local development: count all path segments to determine depth
     const currentPath = window.location.pathname;
+    
     // Remove leading/trailing slashes and split, filter out empty strings and HTML files
-    const segments = currentPath.split('/').filter(p => p && !p.endsWith('.html'));
+    // Also filter out 'POC' if it's in the path
+    const segments = currentPath.split('/').filter(p => p && !p.endsWith('.html') && p !== 'POC');
     
     // Count how many directory levels deep we are
-    // For example: /pages/auth/login/ = 3 levels deep, need ../../../ to reach POC root
+    // For example: /POC/pages/auth/login/index.html = 2 levels deep (pages, auth, login), need ../../../ to reach POC root
+    // But if path is /pages/opportunities/create/index.html, we need ../../../ to reach POC root
     const depth = segments.length;
     
     // Generate the appropriate number of ../ to reach POC root
-    return depth > 0 ? '../'.repeat(depth) : '';
+    const basePath = depth > 0 ? '../'.repeat(depth) : '';
+    
+    // Debug logging in development
+    if (window.location.hostname === '127.0.0.1' || window.location.hostname === 'localhost') {
+      console.log('[RoleService] Path calculation:', {
+        pathname: currentPath,
+        segments: segments,
+        depth: depth,
+        basePath: basePath
+      });
+    }
+    
+    return basePath;
   }
 
   // ============================================

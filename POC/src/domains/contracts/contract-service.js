@@ -220,11 +220,12 @@
   }
 
   /**
-   * Create contract from approved proposal
+   * Create contract from approved proposal (using specific version)
    * @param {string} proposalId - Proposal ID
+   * @param {number} version - Optional version number (defaults to mutually accepted version)
    * @returns {Object} - Created contract or error
    */
-  function createContractFromProposal(proposalId) {
+  function createContractFromProposal(proposalId, version = null) {
     if (typeof PMTwinData === 'undefined' || !PMTwinData.Proposals) {
       return { success: false, error: 'Data service not available' };
     }
@@ -234,75 +235,170 @@
       return { success: false, error: 'Proposal not found' };
     }
 
-    if (proposal.status !== 'approved' && proposal.status !== 'AWARDED') {
-      return { success: false, error: 'Proposal must be approved or awarded to create contract' };
+    if (proposal.status !== 'AWARDED' && proposal.status !== 'approved') {
+      return { success: false, error: 'Proposal must be awarded to create contract' };
+    }
+
+    // Determine which version to use
+    let versionToUse = version;
+    if (!versionToUse) {
+      // Use mutually accepted version if available
+      if (proposal.acceptance && proposal.acceptance.mutuallyAcceptedVersion) {
+        versionToUse = proposal.acceptance.mutuallyAcceptedVersion;
+      } else {
+        // Fallback to current version
+        versionToUse = proposal.currentVersion || proposal.version || 1;
+      }
+    }
+
+    // Get version data
+    const versionData = PMTwinData.Proposals.getVersion ? 
+      PMTwinData.Proposals.getVersion(proposalId, versionToUse) : null;
+    
+    if (!versionData && proposal.versions && proposal.versions.length > 0) {
+      versionData = proposal.versions.find(v => v.version === versionToUse);
+    }
+
+    const proposalData = versionData?.proposalData || proposal;
+    const generatedFromProposalVersionId = `${proposalId}_v${versionToUse}`;
+
+    // Get opportunity
+    const opportunityId = proposal.opportunityId || proposal.targetId || proposal.projectId;
+    let opportunity = null;
+    if (PMTwinData.Opportunities && opportunityId) {
+      opportunity = PMTwinData.Opportunities.getById(opportunityId);
+    }
+    
+    // Fallback to Projects for backward compatibility
+    if (!opportunity && PMTwinData.Projects && opportunityId) {
+      const project = PMTwinData.Projects.getById(opportunityId);
+      if (project) {
+        opportunity = {
+          id: project.id,
+          paymentTerms: { mode: 'CASH' },
+          serviceItems: []
+        };
+      }
     }
 
     // Check if this is a multi-party scenario (SPV, JV, Consortium)
-    const opportunity = getOpportunityFromProposal(proposal);
     if (opportunity) {
-      const modelType = opportunity.modelType || opportunity.modelId;
+      const modelType = opportunity.subModel || opportunity.modelType || opportunity.modelId;
       
       // Multi-party models: 1.2 (Consortium), 1.3 (JV), 1.4 (SPV)
       if (modelType === '1.2' || modelType === '1.3' || modelType === '1.4') {
         if (typeof MultiPartyContractService !== 'undefined') {
           // Use multi-party contract service
           if (modelType === '1.4') {
-            return MultiPartyContractService.generateSPVContract(proposalId);
+            return MultiPartyContractService.generateSPVContract(proposalId, versionToUse);
           } else if (modelType === '1.3') {
-            return MultiPartyContractService.generateJVContract(proposalId);
+            return MultiPartyContractService.generateJVContract(proposalId, versionToUse);
           } else if (modelType === '1.2') {
-            return MultiPartyContractService.generateConsortiumContract(proposalId);
+            return MultiPartyContractService.generateConsortiumContract(proposalId, versionToUse);
           }
         }
       }
     }
 
-    // Single-party contract (existing logic)
-    const project = PMTwinData.Projects?.getById(proposal.projectId || proposal.targetId);
-    if (!project && !opportunity) {
-      return { success: false, error: 'Project or opportunity not found' };
+    // Single-party contract
+    if (!opportunity) {
+      return { success: false, error: 'Opportunity not found' };
     }
 
+    // Extract servicesSchedule from proposal version
+    let servicesSchedule = [];
+    if (proposalData.serviceItems && Array.isArray(proposalData.serviceItems)) {
+      servicesSchedule = proposalData.serviceItems.map((item, index) => ({
+        serviceItemId: item.id || `item_${index}`,
+        name: item.name || item.serviceName || '',
+        qty: item.qty || item.quantity || 1,
+        unitPrice: item.unitPriceRef || item.unitPrice || 0,
+        total: item.totalRef || item.total || 0,
+        deliveryDate: item.deliveryDate || null
+      }));
+    } else if (proposalData.servicesOffered && Array.isArray(proposalData.servicesOffered)) {
+      // Legacy format
+      servicesSchedule = proposalData.servicesOffered.map((item, index) => ({
+        serviceItemId: item.id || `item_${index}`,
+        name: item.name || item.serviceName || '',
+        qty: item.qty || item.quantity || 1,
+        unitPrice: item.unitPrice || 0,
+        total: item.total || 0,
+        deliveryDate: null
+      }));
+    }
+
+    // Get payment terms from opportunity
+    const paymentTerms = opportunity.paymentTerms || {
+      mode: 'CASH',
+      barterRule: null,
+      cashSettlement: 0,
+      acknowledgedDifference: false
+    };
+
     // Determine contract type
-    const contractType = (project?.projectType === 'mega' || opportunity?.projectType === 'mega')
-      ? 'MEGA_PROJECT_CONTRACT' 
-      : 'PROJECT_CONTRACT';
+    const isMegaProject = opportunity.subModel === '1.4' || 
+                         opportunity.subModel === '1.2' || 
+                         opportunity.subModel === '1.3' ||
+                         opportunity.model === '1' && (opportunity.subModel === '1.4' || opportunity.subModel === '1.2' || opportunity.subModel === '1.3');
+    
+    let contractType = 'PROJECT_CONTRACT';
+    if (isMegaProject) {
+      if (opportunity.subModel === '1.4') {
+        contractType = 'SPV_CONTRACT';
+      } else if (opportunity.subModel === '1.3') {
+        contractType = 'JV_CONTRACT';
+      } else if (opportunity.subModel === '1.2') {
+        contractType = 'CONSORTIUM_CONTRACT';
+      } else {
+        contractType = 'MEGA_PROJECT_CONTRACT';
+      }
+    } else {
+      contractType = 'PROJECT_CONTRACT';
+    }
 
     // Get user type for provider
     let providerPartyType = 'VENDOR_CORPORATE';
     if (typeof PMTwinData !== 'undefined' && PMTwinData.Users) {
       const providerUser = PMTwinData.Users.getById(proposal.providerId || proposal.bidderCompanyId);
       if (providerUser) {
-        // Use mapRoleToUserType if available
-        if (typeof mapRoleToUserType === 'function') {
-          const userType = mapRoleToUserType(providerUser.role, providerUser.userType);
-          if (userType === 'vendor_corporate') {
-            providerPartyType = 'VENDOR_CORPORATE';
-          } else if (userType === 'vendor_individual') {
-            providerPartyType = 'VENDOR_INDIVIDUAL';
-          }
+        const userType = providerUser.userType || providerUser.role;
+        if (userType === 'vendor_corporate' || userType === 'vendor') {
+          providerPartyType = 'VENDOR_CORPORATE';
+        } else if (userType === 'vendor_individual') {
+          providerPartyType = 'VENDOR_INDIVIDUAL';
         }
       }
     }
 
+    // Calculate total value from servicesSchedule
+    const totalValue = servicesSchedule.reduce((sum, item) => sum + (item.total || 0), 0);
+
     // Create contract data
     const contractData = {
       contractType: contractType,
-      scopeType: (project?.projectType === 'mega' || opportunity?.projectType === 'mega') ? 'MEGA_PROJECT' : 'PROJECT',
-      scopeId: project?.id || opportunity?.id || proposal.targetId,
-      buyerPartyId: project?.creatorId || project?.ownerCompanyId || opportunity?.creatorId || opportunity?.ownerCompanyId,
+      scopeType: isMegaProject ? 'MEGA_PROJECT' : 'OPPORTUNITY',
+      scopeId: opportunityId,
+      opportunityId: opportunityId,
+      generatedFromProposalVersionId: generatedFromProposalVersionId,
+      proposalId: proposalId,
+      buyerPartyId: opportunity.createdBy || opportunity.creatorId,
       buyerPartyType: 'BENEFICIARY',
       providerPartyId: proposal.providerId || proposal.bidderCompanyId,
       providerPartyType: providerPartyType,
       status: 'DRAFT', // Will be signed separately
-      startDate: proposal.timeline?.startDate || new Date().toISOString(),
-      endDate: proposal.timeline?.completionDate || null,
+      startDate: proposalData.timeline?.startDate || new Date().toISOString(),
+      endDate: proposalData.timeline?.endDate || proposalData.timeline?.completionDate || null,
+      servicesSchedule: servicesSchedule,
+      paymentTerms: paymentTerms,
       termsJSON: {
-        pricing: proposal.cashDetails || proposal.barterDetails || { amount: 0, currency: 'SAR' },
-        paymentTerms: project.paymentTerms || 'milestone_based',
-        deliverables: [],
-        milestones: []
+        pricing: { 
+          amount: totalValue, 
+          currency: proposalData.currency || 'SAR' 
+        },
+        paymentTerms: paymentTerms.mode === 'CASH' ? 'milestone_based' : paymentTerms.mode.toLowerCase(),
+        deliverables: proposalData.deliverables || [],
+        milestones: proposalData.milestones || []
       },
       sourceProposalId: proposal.id
     };
@@ -317,6 +413,32 @@
    */
   function getOpportunityFromProposal(proposal) {
     if (!proposal) return null;
+    
+    // Try Opportunities first
+    const opportunityId = proposal.opportunityId || proposal.targetId || proposal.projectId;
+    if (opportunityId && PMTwinData.Opportunities) {
+      const opportunity = PMTwinData.Opportunities.getById(opportunityId);
+      if (opportunity) return opportunity;
+    }
+    
+    // Fallback to Projects for backward compatibility
+    if (opportunityId && PMTwinData.Projects) {
+      const project = PMTwinData.Projects.getById(opportunityId);
+      if (project) {
+        // Convert project to opportunity-like structure
+        return {
+          id: project.id,
+          subModel: project.projectType === 'mega' ? '1.4' : '1.1',
+          modelType: project.projectType === 'mega' ? '1.4' : '1.1',
+          paymentTerms: { mode: 'CASH' },
+          serviceItems: [],
+          createdBy: project.ownerCompanyId || project.creatorId,
+          ...project
+        };
+      }
+    }
+    
+    return null;
 
     // Try collaboration opportunity
     if (proposal.targetId && proposal.targetType) {

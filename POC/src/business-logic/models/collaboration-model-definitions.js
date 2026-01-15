@@ -21,137 +21,79 @@
       supportedIntentTypes: ['REQUEST_SERVICE', 'OFFER_SERVICE', 'BOTH'],
       supportedPaymentModes: ['Cash', 'Barter', 'Hybrid'],
       attributes: [
-        {
-          name: 'intentType',
-          type: 'Enum',
-          required: true,
-          question: 'What is your intent?',
-          options: ['REQUEST_SERVICE', 'OFFER_SERVICE', 'BOTH'],
-          placeholder: 'Select intent type',
-          default: 'BOTH'
-        },
+        // Note: intentType removed - intent is already selected in Step 0 (Intent Selection)
+        // Note: paymentMode, paymentTerms, barterOffer, barterSettlementRule removed - handled in Step 3 (Payment)
+        // Note: locationRequirement removed - handled in Step 3.5 (Location)
+        
         {
           name: 'taskTitle',
           type: 'String',
           maxLength: 100,
-          required: true,
-          question: 'What is the task you need completed?',
-          placeholder: 'e.g., Review shop drawings for structural approval'
+          required: false,
+          question: 'Task Title (Optional)',
+          placeholder: 'e.g., Review shop drawings for structural approval',
+          description: 'A brief title for the task (optional - main title is captured separately)'
         },
         {
           name: 'taskType',
           type: 'Enum',
-          required: true,
+          required: false,
           question: 'What type of work is this?',
-          options: ['Design', 'Engineering', 'Consultation', 'Review', 'Analysis', 'Other'],
-          placeholder: 'Select task type'
+          options: ['Design', 'Engineering', 'Consultation', 'Review', 'Analysis', 'Construction', 'Management', 'Other'],
+          placeholder: 'Select task type',
+          description: 'Categorize the type of work involved'
         },
         {
           name: 'detailedScope',
           type: 'Text',
           maxLength: 2000,
-          required: true,
-          question: 'Please describe the detailed scope and deliverables',
-          placeholder: 'Provide full description of what needs to be delivered...'
+          required: false,
+          question: 'Detailed Scope and Deliverables (Optional)',
+          placeholder: 'Provide full description of what needs to be delivered...',
+          description: 'Additional details beyond the main description (optional - main description is captured separately)'
         },
         {
-          name: 'duration',
+          name: 'expectedDuration',
           type: 'Integer',
-          required: true,
-          question: 'How many days/weeks do you expect this to take?',
+          required: false,
+          question: 'Expected Duration (Optional)',
           placeholder: 'Enter duration in days',
-          min: 1
-        },
-        {
-          name: 'budgetRange',
-          type: 'CurrencyRange',
-          required: true,
-          question: 'What is your budget range?',
-          placeholder: 'Enter min and max budget',
-          currency: 'SAR'
-        },
-        {
-          name: 'budgetType',
-          type: 'Enum',
-          required: true,
-          question: 'What is your budget structure?',
-          options: ['Fixed Price', 'Hourly Rate', 'Budget Range'],
-          placeholder: 'Select budget type'
-        },
-        {
-          name: 'requiredSkills',
-          type: 'Array',
-          itemType: 'String',
-          required: true,
-          question: 'What skills or certifications are required?',
-          placeholder: 'Add required skills (e.g., Structural Engineering, PMP)'
+          min: 1,
+          description: 'Estimated duration in days (optional - can be specified in service items)'
         },
         {
           name: 'experienceLevel',
           type: 'Enum',
-          required: true,
-          question: 'What experience level do you need?',
-          options: ['Junior', 'Mid-Level', 'Senior', 'Expert'],
-          placeholder: 'Select experience level'
-        },
-        {
-          name: 'locationRequirement',
-          type: 'Enum',
           required: false,
-          question: 'Does this work require on-site presence?',
-          options: ['Remote', 'On-Site', 'Hybrid'],
-          placeholder: 'Select location requirement'
+          question: 'Required Experience Level (Optional)',
+          options: ['Junior', 'Mid-Level', 'Senior', 'Expert'],
+          placeholder: 'Select experience level',
+          description: 'Preferred experience level for this engagement'
         },
         {
           name: 'startDate',
           type: 'Date',
-          required: true,
-          question: 'When do you need this to start?',
-          placeholder: 'Select start date'
+          required: false,
+          question: 'Preferred Start Date (Optional)',
+          placeholder: 'Select start date',
+          description: 'When you would like the work to begin'
         },
         {
           name: 'deliverableFormat',
           type: 'String',
-          required: true,
-          question: 'What format should the deliverables be in?',
-          placeholder: 'e.g., PDF report, CAD files, Excel spreadsheet'
+          required: false,
+          question: 'Deliverable Format (Optional)',
+          placeholder: 'e.g., PDF report, CAD files, Excel spreadsheet',
+          description: 'Specify the expected format of deliverables'
         },
         {
-          name: 'paymentTerms',
-          type: 'Enum',
-          required: true,
-          question: 'What are the payment terms?',
-          options: ['Upfront', 'Milestone-Based', 'Upon Completion', 'Monthly'],
-          placeholder: 'Select payment terms'
-        },
-        {
-          name: 'paymentMode',
-          type: 'Enum',
-          required: true,
-          question: 'What payment mode will you use?',
-          options: ['Cash', 'Barter', 'Hybrid'],
-          placeholder: 'Select payment mode',
-          default: 'Cash'
-        },
-        {
-          name: 'barterOffer',
+          name: 'specialRequirements',
           type: 'Text',
-          maxLength: 500,
+          maxLength: 1000,
           required: false,
-          conditional: { field: 'paymentMode', value: ['Barter', 'Hybrid'] },
-          question: 'What are you offering in exchange?',
-          placeholder: 'Describe what you can offer in barter...'
-        },
-        {
-          name: 'barterSettlementRule',
-          type: 'Enum',
-          required: false,
-          conditional: { field: 'paymentMode', value: ['Barter', 'Hybrid'] },
-          question: 'How should value differences be handled?',
-          options: ['EQUAL_VALUE_ONLY', 'ALLOW_DIFFERENCE_WITH_CASH', 'ACCEPT_AS_IS'],
-          placeholder: 'Select barter settlement rule',
-          default: 'ALLOW_DIFFERENCE_WITH_CASH',
-          description: 'EQUAL_VALUE_ONLY: Values must match exactly | ALLOW_DIFFERENCE_WITH_CASH: Cash component allowed | ACCEPT_AS_IS: Value difference waived'
+          question: 'Special Requirements or Notes (Optional)',
+          placeholder: 'Any special requirements, certifications, or notes...',
+          description: 'Additional requirements or important notes for this engagement'
         }
       ],
       matchingMetrics: [
