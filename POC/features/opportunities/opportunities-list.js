@@ -21,7 +21,23 @@
   // ============================================
   function init() {
     renderFilters();
-    loadOpportunities();
+    
+    // Wait a bit for OpportunityStore to be available
+    if (typeof window.OpportunityStore === 'undefined') {
+      console.log('[OpportunitiesList] Waiting for OpportunityStore to load...');
+      setTimeout(() => {
+        if (typeof window.OpportunityStore !== 'undefined') {
+          console.log('[OpportunitiesList] OpportunityStore loaded, loading opportunities');
+          loadOpportunities();
+        } else {
+          console.warn('[OpportunitiesList] OpportunityStore not available, using fallback');
+          loadOpportunities();
+        }
+      }, 500);
+    } else {
+      loadOpportunities();
+    }
+    
     attachEventListeners();
   }
 
@@ -120,36 +136,137 @@
     const container = document.getElementById('opportunitiesList');
     if (!container) return;
 
-    if (typeof PMTwinData === 'undefined' || !PMTwinData.Opportunities) {
+    // Use OpportunityStore if available, otherwise fallback to PMTwinData
+    let opportunities = [];
+    let userId = null;
+
+    if (typeof window.OpportunityStore !== 'undefined') {
+      // Use new OpportunityStore
+      opportunities = window.OpportunityStore.getAllOpportunities();
+      console.log('[OpportunitiesList] Loaded opportunities from OpportunityStore:', opportunities.length);
+      
+      // Get current user - try multiple methods
+      try {
+        // Method 1: Check localStorage session
+        const sessionStr = localStorage.getItem('pmtwin_current_user') || localStorage.getItem('pmtwin_session');
+        if (sessionStr) {
+          const session = JSON.parse(sessionStr);
+          userId = session.userId || session.id;
+        }
+        
+        // Method 2: Check window.currentUser
+        if (!userId && typeof window.currentUser !== 'undefined' && window.currentUser) {
+          userId = window.currentUser.userId || window.currentUser.id;
+        }
+        
+        // Method 3: Check PMTwinData if available
+        if (!userId && typeof PMTwinData !== 'undefined' && PMTwinData.Sessions) {
+          const currentUser = PMTwinData.Sessions.getCurrentUser();
+          if (currentUser) {
+            userId = currentUser.id;
+          }
+        }
+        
+        console.log('[OpportunitiesList] Current userId:', userId);
+      } catch (e) {
+        console.error('Error getting current user:', e);
+      }
+    } else if (typeof PMTwinData !== 'undefined' && PMTwinData.Opportunities) {
+      // Fallback to PMTwinData
+      const currentUser = PMTwinData.Sessions.getCurrentUser();
+      userId = currentUser?.id;
+      opportunities = PMTwinData.Opportunities.getWithFilters ? 
+        PMTwinData.Opportunities.getWithFilters(currentFilters) : 
+        PMTwinData.Opportunities.getAll();
+    } else {
       container.innerHTML = '<p class="alert alert-error">Opportunities service not available</p>';
       return;
     }
 
-    // Get current user to filter out own opportunities
-    const currentUser = PMTwinData.Sessions.getCurrentUser();
-    const userId = currentUser?.id;
-
     // Apply filters
-    let opportunities = PMTwinData.Opportunities.getWithFilters(currentFilters);
-    
-    // Filter out own opportunities
-    if (userId) {
+    if (currentFilters.intent) {
+      opportunities = opportunities.filter(opp => opp.intent === currentFilters.intent);
+    }
+    if (currentFilters.paymentMode) {
+      const paymentType = opportunities[0]?.paymentTerms?.type || opportunities[0]?.paymentTerms?.mode || opportunities[0]?.paymentMode;
       opportunities = opportunities.filter(opp => {
-        const createdBy = opp.createdBy || opp.creatorId;
-        return createdBy !== userId;
+        const oppPayment = opp.paymentTerms?.type || opp.paymentTerms?.mode || opp.paymentMode;
+        return oppPayment === currentFilters.paymentMode;
       });
     }
+    if (currentFilters.country) {
+      opportunities = opportunities.filter(opp => 
+        (opp.location?.country || '').toLowerCase() === currentFilters.country.toLowerCase()
+      );
+    }
+    if (currentFilters.city) {
+      opportunities = opportunities.filter(opp => 
+        (opp.location?.city || '').toLowerCase() === currentFilters.city.toLowerCase()
+      );
+    }
+    if (currentFilters.remoteAllowed !== null) {
+      opportunities = opportunities.filter(opp => 
+        (opp.location?.isRemoteAllowed || false) === currentFilters.remoteAllowed
+      );
+    }
+    if (currentFilters.model) {
+      opportunities = opportunities.filter(opp => opp.model === currentFilters.model);
+    }
+    
+    // Filter out own opportunities (only if userId is set and matches)
+    if (userId) {
+      const beforeOwnFilter = opportunities.length;
+      opportunities = opportunities.filter(opp => {
+        const createdBy = opp.createdByUserId || opp.createdBy || opp.creatorId;
+        const shouldShow = createdBy !== userId;
+        if (!shouldShow) {
+          console.log('[OpportunitiesList] Filtering out own opportunity:', opp.id, 'createdBy:', createdBy, 'userId:', userId);
+        }
+        return shouldShow;
+      });
+      console.log('[OpportunitiesList] After filtering own opportunities:', opportunities.length, 'out of', beforeOwnFilter);
+    }
 
-    // Filter by status (only show published/active)
-    opportunities = opportunities.filter(opp => 
-      opp.status === 'published' || opp.status === 'active'
-    );
+    // Filter by status (only show PUBLISHED/ACTIVE, but be lenient)
+    const beforeStatusFilter = opportunities.length;
+    opportunities = opportunities.filter(opp => {
+      const status = (opp.status || '').toUpperCase();
+      // Accept PUBLISHED, ACTIVE, or if status is empty/null, show it (might be from store)
+      return status === 'PUBLISHED' || status === 'ACTIVE' || status === '' || !opp.status;
+    });
+    console.log('[OpportunitiesList] After status filter:', opportunities.length, 'out of', beforeStatusFilter);
+    
+    // If no opportunities after status filter, but we had some before, show all (for debugging)
+    if (opportunities.length === 0 && beforeStatusFilter > 0) {
+      console.warn('[OpportunitiesList] All opportunities filtered out by status. Showing all for debugging.');
+      opportunities = typeof window.OpportunityStore !== 'undefined' ? 
+        window.OpportunityStore.getAllOpportunities() : [];
+      // Re-apply other filters but skip status
+      if (currentFilters.intent) {
+        opportunities = opportunities.filter(opp => opp.intent === currentFilters.intent);
+      }
+      if (userId) {
+        opportunities = opportunities.filter(opp => {
+          const createdBy = opp.createdByUserId || opp.createdBy || opp.creatorId;
+          return createdBy !== userId;
+        });
+      }
+    }
 
+    console.log('[OpportunitiesList] Final opportunities count:', opportunities.length);
+    console.log('[OpportunitiesList] Sample opportunity:', opportunities[0]);
+    
     if (opportunities.length === 0) {
+      // Check if we have any opportunities at all before filtering
+      const allOpps = typeof window.OpportunityStore !== 'undefined' ? 
+        window.OpportunityStore.getAllOpportunities() : [];
+      console.log('[OpportunitiesList] Total opportunities in store:', allOpps.length);
+      
       container.innerHTML = `
         <div class="card">
           <div class="card-body" style="text-align: center; padding: 3rem;">
             <p>No opportunities found matching your filters.</p>
+            ${allOpps.length > 0 ? `<p style="color: var(--text-secondary); font-size: 0.9rem;">Found ${allOpps.length} total opportunities in store. Try clearing filters.</p>` : ''}
             <button type="button" class="btn btn-secondary" onclick="opportunitiesList.clearFilters()" style="margin-top: 1rem;">
               Clear Filters
             </button>
@@ -264,10 +381,16 @@
   // Helper: Get Opportunity View URL
   // ============================================
   function getOpportunityViewUrl(opportunityId) {
-    if (typeof window.NavRoutes !== 'undefined') {
-      return window.NavRoutes.getRouteWithQuery('opportunity-view', { id: opportunityId });
+    // Use URL helper if available
+    if (typeof window.UrlHelper !== 'undefined') {
+      return window.UrlHelper.buildUrlWithQuery('pages/opportunities/details.html', { id: opportunityId });
     }
-    return `/POC/pages/opportunities/view/index.html?id=${opportunityId}`;
+    // Fallback to NavRoutes
+    if (typeof window.NavRoutes !== 'undefined') {
+      return window.NavRoutes.getRouteWithQuery('opportunities/details', { id: opportunityId });
+    }
+    // Final fallback
+    return `/POC/pages/opportunities/details.html?id=${opportunityId}`;
   }
 
   // ============================================

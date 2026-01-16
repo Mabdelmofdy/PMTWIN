@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Opportunities - PMTwin</title>
+    <title>Pipeline - PMTwin</title>
     <link rel="stylesheet" href="../../assets/css/main.css">
 </head>
 <body>
@@ -14,33 +14,45 @@
             <div class="page-header">
                 <div class="page-header-content">
                     <div>
-                        <h1>Opportunities</h1>
-                        <p>View projects that match your profile and skills</p>
-                    </div>
-                    <div class="page-actions">
-                        <a href="create/" class="btn btn-primary">
-                            <i class="ph ph-plus"></i> Create Opportunity
-                        </a>
+                        <h1>My Pipeline</h1>
+                        <p>Track your opportunities and proposals</p>
                     </div>
                 </div>
             </div>
 
-            <!-- Filters -->
+            <!-- Tabs -->
             <div class="content-section">
+                <div class="tabs">
+                    <button class="tab-btn active" id="beneficiaryTab" onclick="pipelineComponent.showTab('beneficiary')">
+                        Beneficiary Pipeline
+                    </button>
+                    <button class="tab-btn" id="providerTab" onclick="pipelineComponent.showTab('provider')">
+                        Provider Pipeline
+                    </button>
+                </div>
+            </div>
+
+            <!-- Beneficiary Pipeline -->
+            <div class="content-section" id="beneficiaryPipeline">
                 <div class="card enhanced-card">
                     <div class="card-body">
-                        <h2 class="section-title spacing-section">Filters</h2>
-                        <div id="opportunitiesFilters">
-                            <!-- Filters will be rendered here -->
+                        <h2 class="section-title">My Opportunities</h2>
+                        <div id="beneficiaryOpportunitiesList">
+                            <!-- Opportunities will be loaded here -->
                         </div>
                     </div>
                 </div>
             </div>
 
-            <!-- Opportunities List -->
-            <div class="content-section">
-                <div id="opportunitiesList">
-                    <!-- Opportunities will be loaded here -->
+            <!-- Provider Pipeline -->
+            <div class="content-section" id="providerPipeline" style="display: none;">
+                <div class="card enhanced-card">
+                    <div class="card-body">
+                        <h2 class="section-title">My Proposals</h2>
+                        <div id="providerProposalsList">
+                            <!-- Proposals will be loaded here -->
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -84,41 +96,23 @@
     <!-- Load renderer -->
     <script src="../../src/core/renderer/renderer.js"></script>
     
-    <!-- Component Scripts -->
-    <script src="../../features/opportunities/opportunities-list.js"></script>
+    <!-- Feature Scripts -->
+    <script src="../../features/pipeline/pipeline.js"></script>
     
     <!-- Initialize Component -->
     <script>
         document.addEventListener('DOMContentLoaded', async function() {
-            // Check authentication (but don't block if not authenticated for demo)
-            try {
-                const isAuth = await AuthCheck.checkAuth({ requireAuth: false });
-                console.log('[OpportunitiesPage] Auth check:', isAuth);
-            } catch (e) {
-                console.warn('[OpportunitiesPage] Auth check failed:', e);
-            }
+            // Check authentication
+            const isAuth = await AuthCheck.checkAuth({ requireAuth: true });
+            if (!isAuth) return;
             
-            // Wait for OpportunityStore to be available
-            function initOpportunities() {
-                if (typeof window.OpportunityStore !== 'undefined') {
-                    console.log('[OpportunitiesPage] OpportunityStore available, initializing list');
-                    if (window.opportunitiesList) {
-                        window.opportunitiesList.init();
-                    } else {
-                        console.error('[OpportunitiesPage] opportunitiesList component not found');
-                    }
-                } else {
-                    console.log('[OpportunitiesPage] Waiting for OpportunityStore...');
-                    setTimeout(initOpportunities, 100);
-                }
+            // Initialize pipeline
+            if (window.pipelineComponent) {
+                window.pipelineComponent.init();
+            } else {
+                console.error('pipelineComponent not found');
             }
-            
-            // Start initialization
-            initOpportunities();
         });
     </script>
 </body>
 </html>
-
-
-

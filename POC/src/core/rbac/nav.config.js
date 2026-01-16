@@ -12,7 +12,9 @@
       menuItems: [
         { id: 'dashboard', label: 'Dashboard', route: 'dashboard', feature: 'user_dashboard', icon: '<i class="ph ph-gauge"></i>' },
         { id: 'opportunities', label: 'Opportunities', route: 'opportunities', feature: 'matches_view', icon: '<i class="ph ph-sparkle"></i>' },
+        { id: 'opportunities-my', label: 'My Opportunities', route: 'opportunities/my', feature: 'project_management', icon: '<i class="ph ph-folder"></i>' },
         { id: 'opportunities-create', label: 'Create Opportunity', route: 'opportunities/create', feature: 'project_creation', icon: '<i class="ph ph-plus-circle"></i>' },
+        { id: 'pipeline', label: 'Pipeline', route: 'pipeline', feature: 'pipeline_management', icon: '<i class="ph ph-flow-arrow"></i>' },
         { id: 'matches', label: 'Matches', route: 'matches', feature: 'view_matches', icon: '<i class="ph ph-link"></i>' },
         { id: 'proposals', label: 'Proposals', route: 'proposals', feature: 'proposal_management', icon: '<i class="ph ph-file-text"></i>' },
         { id: 'contracts', label: 'Contracts', route: 'contracts', feature: 'contract_management', icon: '<i class="ph ph-file-doc"></i>' }
@@ -23,6 +25,7 @@
         { id: 'dashboard', label: 'Dashboard', route: 'dashboard', feature: 'user_dashboard', icon: '<i class="ph ph-gauge"></i>' },
         { id: 'opportunities', label: 'Opportunities', route: 'opportunities', feature: 'matches_view', icon: '<i class="ph ph-sparkle"></i>', filter: 'OFFER_SERVICE' },
         { id: 'opportunities-create', label: 'Create Offer', route: 'opportunities/create', feature: 'project_creation', icon: '<i class="ph ph-plus-circle"></i>' },
+        { id: 'pipeline', label: 'Pipeline', route: 'pipeline', feature: 'pipeline_management', icon: '<i class="ph ph-flow-arrow"></i>' },
         { id: 'proposals', label: 'Proposals', route: 'proposals', feature: 'proposal_management', icon: '<i class="ph ph-file-text"></i>' },
         { id: 'contracts', label: 'Contracts', route: 'contracts', feature: 'contract_management', icon: '<i class="ph ph-file-doc"></i>', filter: 'own' }
       ]
@@ -32,6 +35,7 @@
         { id: 'dashboard', label: 'Dashboard', route: 'dashboard', feature: 'user_dashboard', icon: '<i class="ph ph-gauge"></i>' },
         { id: 'opportunities', label: 'Opportunities', route: 'opportunities', feature: 'matches_view', icon: '<i class="ph ph-sparkle"></i>', filter: 'OFFER_SERVICE' },
         { id: 'opportunities-create', label: 'Create Offer', route: 'opportunities/create', feature: 'project_creation', icon: '<i class="ph ph-plus-circle"></i>' },
+        { id: 'pipeline', label: 'Pipeline', route: 'pipeline', feature: 'pipeline_management', icon: '<i class="ph ph-flow-arrow"></i>' },
         { id: 'proposals', label: 'Proposals', route: 'proposals', feature: 'proposal_management', icon: '<i class="ph ph-file-text"></i>' },
         { id: 'contracts', label: 'Contracts', route: 'contracts', feature: 'contract_management', icon: '<i class="ph ph-file-doc"></i>' }
       ]
@@ -41,6 +45,7 @@
         { id: 'dashboard', label: 'Dashboard', route: 'dashboard', feature: 'user_dashboard', icon: '<i class="ph ph-gauge"></i>' },
         { id: 'opportunities', label: 'Opportunities', route: 'opportunities', feature: 'matches_view', icon: '<i class="ph ph-sparkle"></i>', filter: 'OFFER_SERVICE' },
         { id: 'opportunities-create', label: 'Create Offer', route: 'opportunities/create', feature: 'project_creation', icon: '<i class="ph ph-plus-circle"></i>' },
+        { id: 'pipeline', label: 'Pipeline', route: 'pipeline', feature: 'pipeline_management', icon: '<i class="ph ph-flow-arrow"></i>' },
         { id: 'proposals', label: 'Proposals', route: 'proposals', feature: 'proposal_management', icon: '<i class="ph ph-file-text"></i>' },
         { id: 'contracts', label: 'Contracts', route: 'contracts', feature: 'contract_management', icon: '<i class="ph ph-file-doc"></i>' }
       ]
@@ -49,6 +54,7 @@
       menuItems: [
         { id: 'dashboard', label: 'Dashboard', route: 'dashboard', feature: 'user_dashboard', icon: '<i class="ph ph-gauge"></i>' },
         { id: 'opportunities', label: 'Opportunities', route: 'opportunities', feature: 'matches_view', icon: '<i class="ph ph-sparkle"></i>' },
+        { id: 'pipeline', label: 'Pipeline', route: 'pipeline', feature: 'pipeline_management', icon: '<i class="ph ph-flow-arrow"></i>' },
         { id: 'proposals', label: 'Proposals', route: 'proposals', feature: 'proposal_management', icon: '<i class="ph ph-file-text"></i>', conditional: true },
         { id: 'contracts', label: 'Contracts', route: 'contracts', feature: 'contract_management', icon: '<i class="ph ph-file-doc"></i>', filter: 'own' }
       ]
@@ -65,6 +71,8 @@
         { id: 'dashboard', label: 'Dashboard', route: 'dashboard', feature: 'user_dashboard', icon: '<i class="ph ph-gauge"></i>' },
         { id: 'admin', label: 'Admin Dashboard', route: 'admin', feature: 'admin_dashboard', icon: '<i class="ph ph-gear"></i>' },
         { id: 'opportunities', label: 'Opportunities', route: 'opportunities', feature: 'matches_view', icon: '<i class="ph ph-sparkle"></i>', access: 'monitor' },
+        { id: 'opportunities-my', label: 'My Opportunities', route: 'opportunities/my', feature: 'project_management', icon: '<i class="ph ph-folder"></i>', access: 'monitor' },
+        { id: 'pipeline', label: 'Pipeline', route: 'pipeline', feature: 'pipeline_management', icon: '<i class="ph ph-flow-arrow"></i>', access: 'monitor' },
         { id: 'proposals', label: 'Proposals', route: 'proposals', feature: 'proposal_management', icon: '<i class="ph ph-file-text"></i>', access: 'monitor' },
         { id: 'contracts', label: 'Contracts', route: 'contracts', feature: 'contract_management', icon: '<i class="ph ph-file-doc"></i>', access: 'monitor' },
         { id: 'admin-vetting', label: 'User Vetting', route: 'admin-vetting', feature: 'user_vetting', icon: '<i class="ph ph-check-circle"></i>' },

@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Opportunities - PMTwin</title>
+    <link rel="stylesheet" href="../../../assets/css/main.css">
+</head>
+<body>
+    <!-- Main Content - Sidebar and Navbar are automatically added by layout system -->
+    <main class="page-wrapper">
+        <div class="container">
+            <!-- Page Header -->
+            <div class="page-header">
+                <div class="page-header-content">
+                    <div>
+                        <h1>My Opportunities</h1>
+                        <p>Manage opportunities you've created</p>
+                    </div>
+                    <div class="page-actions">
+                        <a href="../create/" class="btn btn-primary">
+                            <i class="ph ph-plus"></i> Create Opportunity
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Filters -->
+            <div class="content-section">
+                <div class="card enhanced-card">
+                    <div class="card-body">
+                        <h2 class="section-title spacing-section">Filters</h2>
+                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">
+                            <div class="form-group">
+                                <label for="filterIntent" class="form-label">Intent</label>
+                                <select id="filterIntent" class="form-control" onchange="myOpportunities.updateFilter('intent', this.value)">
+                                    <option value="">All</option>
+                                    <option value="REQUEST_SERVICE">Request Service</option>
+                                    <option value="OFFER_SERVICE">Offer Service</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="filterStatus" class="form-label">Status</label>
+                                <select id="filterStatus" class="form-control" onchange="myOpportunities.updateFilter('status', this.value)">
+                                    <option value="">All</option>
+                                    <option value="DRAFT">Draft</option>
+                                    <option value="PUBLISHED">Published</option>
+                                    <option value="CLOSED">Closed</option>
+                                </select>
+                            </div>
+                            <div class="form-group" style="display: flex; align-items: flex-end;">
+                                <button type="button" class="btn btn-secondary" onclick="myOpportunities.clearFilters()" style="width: 100%;">
+                                    <i class="ph ph-x"></i> Clear Filters
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Opportunities List -->
+            <div class="content-section">
+                <div id="myOpportunitiesList">
+                    <!-- Opportunities will be loaded here -->
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Configuration (must load first) -->
+    <script src="../../../src/config/config.js"></script>
+    <script src="../../../src/core/config/location.config.js"></script>
+    
+    <!-- Unified Storage Adapter (must load before data.js) -->
+    <script src="../../../src/core/storage/storage-adapter.js"></script>
+    
+    <!-- API Layer (for future Java backend integration) -->
+    <script src="../../../src/core/api/api-client.js"></script>
+    <script src="../../../src/core/api/api-service.js"></script>
+    
+    <!-- Core Scripts -->
+    <script src="../../../src/core/data/golden-seed-data.js"></script>
+    <script src="../../../src/core/data/data.js"></script>
+    <script src="../../../src/core/auth/user-manager.js"></script>
+    <script src="../../../src/core/auth/auth.js"></script>
+    <script src="../../../src/core/auth/auth-check.js"></script>
+    <script src="../../../src/utils/demo-credentials.js"></script>
+    <script src="../../../src/services/services-loader.js"></script>
+    <script src="../../../data/data-loader.js"></script>
+    
+    <!-- Opportunity Store (NEW) -->
+    <script src="../../../assets/js/data/opportunityStore.js"></script>
+    
+    <!-- URL Helper -->
+    <script src="../../../assets/js/utils/url.js"></script>
+    
+    <!-- Navigation Routes (must load before navigation.js) -->
+    <script src="../../../src/core/routes/nav-routes.js"></script>
+    
+    <!-- Layout System (automatically includes sidebar and navbar) -->
+    <script src="../../../src/core/layout/layout.js"></script>
+    <script src="../../../src/core/layout/navigation.js"></script>
+    <script src="../../../src/core/init/app-init.js"></script>
+    
+    <!-- Load renderer -->
+    <script src="../../../src/core/renderer/renderer.js"></script>
+    
+    <!-- Feature Scripts -->
+    <script src="../../../features/opportunities/my-opportunities.js"></script>
+    
+    <!-- Initialize Component -->
+    <script>
+        document.addEventListener('DOMContentLoaded', async function() {
+            // Check authentication
+            const isAuth = await AuthCheck.checkAuth({ requireAuth: true });
+            if (!isAuth) return;
+            
+            // Wait for OpportunityStore
+            function initMyOpportunities() {
+                if (typeof window.OpportunityStore !== 'undefined' && window.myOpportunities) {
+                    window.myOpportunities.init();
+                } else {
+                    setTimeout(initMyOpportunities, 100);
+                }
+            }
+            
+            initMyOpportunities();
+        });
+    </script>
+</body>
+</html>

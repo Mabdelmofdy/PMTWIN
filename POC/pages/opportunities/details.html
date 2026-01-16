@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Opportunities - PMTwin</title>
+    <title>Opportunity Details - PMTwin</title>
     <link rel="stylesheet" href="../../assets/css/main.css">
 </head>
 <body>
@@ -14,33 +14,47 @@
             <div class="page-header">
                 <div class="page-header-content">
                     <div>
-                        <h1>Opportunities</h1>
-                        <p>View projects that match your profile and skills</p>
+                        <h1>Opportunity Details</h1>
+                        <p id="opportunityStatusBadge"></p>
                     </div>
-                    <div class="page-actions">
-                        <a href="create/" class="btn btn-primary">
-                            <i class="ph ph-plus"></i> Create Opportunity
-                        </a>
+                    <div class="page-actions" id="opportunityActions">
+                        <!-- Actions will be rendered here -->
                     </div>
                 </div>
             </div>
 
-            <!-- Filters -->
+            <!-- Opportunity Details -->
             <div class="content-section">
                 <div class="card enhanced-card">
                     <div class="card-body">
-                        <h2 class="section-title spacing-section">Filters</h2>
-                        <div id="opportunitiesFilters">
-                            <!-- Filters will be rendered here -->
+                        <div id="opportunityDetails">
+                            <!-- Opportunity details will be loaded here -->
                         </div>
                     </div>
                 </div>
             </div>
 
-            <!-- Opportunities List -->
+            <!-- Matches Section -->
+            <div class="content-section" id="matchesSection" style="display: none;">
+                <div class="card enhanced-card">
+                    <div class="card-body">
+                        <h2 class="section-title">Compatible Providers</h2>
+                        <div id="matchesList">
+                            <!-- Matches will be rendered here -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Proposals Section -->
             <div class="content-section">
-                <div id="opportunitiesList">
-                    <!-- Opportunities will be loaded here -->
+                <div class="card enhanced-card">
+                    <div class="card-body">
+                        <h2 class="section-title">Proposals</h2>
+                        <div id="proposalsList">
+                            <!-- Proposals will be rendered here -->
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -84,41 +98,33 @@
     <!-- Load renderer -->
     <script src="../../src/core/renderer/renderer.js"></script>
     
-    <!-- Component Scripts -->
-    <script src="../../features/opportunities/opportunities-list.js"></script>
+    <!-- Feature Scripts -->
+    <script src="../../features/opportunities/opportunity-details.js"></script>
     
     <!-- Initialize Component -->
     <script>
         document.addEventListener('DOMContentLoaded', async function() {
-            // Check authentication (but don't block if not authenticated for demo)
-            try {
-                const isAuth = await AuthCheck.checkAuth({ requireAuth: false });
-                console.log('[OpportunitiesPage] Auth check:', isAuth);
-            } catch (e) {
-                console.warn('[OpportunitiesPage] Auth check failed:', e);
+            // Check authentication
+            const isAuth = await AuthCheck.checkAuth({ requireAuth: true });
+            if (!isAuth) return;
+            
+            // Get opportunity ID from query string
+            const urlParams = new URLSearchParams(window.location.search);
+            const opportunityId = urlParams.get('id');
+            
+            if (!opportunityId) {
+                document.getElementById('opportunityDetails').innerHTML = 
+                    '<p class="alert alert-error">No opportunity ID provided.</p>';
+                return;
             }
             
-            // Wait for OpportunityStore to be available
-            function initOpportunities() {
-                if (typeof window.OpportunityStore !== 'undefined') {
-                    console.log('[OpportunitiesPage] OpportunityStore available, initializing list');
-                    if (window.opportunitiesList) {
-                        window.opportunitiesList.init();
-                    } else {
-                        console.error('[OpportunitiesPage] opportunitiesList component not found');
-                    }
-                } else {
-                    console.log('[OpportunitiesPage] Waiting for OpportunityStore...');
-                    setTimeout(initOpportunities, 100);
-                }
+            // Initialize opportunity details
+            if (window.opportunityDetails) {
+                window.opportunityDetails.init(opportunityId);
+            } else {
+                console.error('opportunityDetails component not found');
             }
-            
-            // Start initialization
-            initOpportunities();
         });
     </script>
 </body>
 </html>
-
-
-

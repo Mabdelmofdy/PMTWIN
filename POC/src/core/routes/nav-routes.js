@@ -25,7 +25,9 @@
     'opportunities': '/POC/pages/opportunities/index.html',
     'opportunities/create': '/POC/pages/opportunities/create/index.html',
     'opportunities/view': '/POC/pages/opportunities/view/index.html',
+    'opportunities/details': '/POC/pages/opportunities/details.html',
     'opportunities/my': '/POC/pages/opportunities/my/index.html',
+    'my-opportunities': '/POC/pages/opportunities/my/index.html', // Alias
     
     // Matches
     'matches': '/POC/pages/matches/index.html',
@@ -33,8 +35,15 @@
     // Proposals
     'proposals': '/POC/pages/proposals/index.html',
     'proposals/create': '/POC/pages/proposals/create/index.html',
+    'proposals/submit': '/POC/pages/proposals/submit.html',
     'proposals/view': '/POC/pages/proposals/view/index.html',
     'create-proposal': '/POC/pages/proposals/create/index.html', // Alias
+    
+    // Pipeline
+    'pipeline': '/POC/pages/pipeline/index.html',
+    
+    // Auth
+    'demo-login': '/POC/pages/auth/demo-login.html',
     
     // Contracts
     'contracts': '/POC/pages/contracts/index.html',

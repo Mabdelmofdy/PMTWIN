@@ -2734,21 +2734,55 @@
     }
 
     try {
-      if (typeof PMTwinData === 'undefined' || !PMTwinData.Opportunities) {
+      // Get current user ID
+      let createdByUserId = null;
+      try {
+        const sessionStr = localStorage.getItem('pmtwin_current_user') || localStorage.getItem('pmtwin_session');
+        if (sessionStr) {
+          const session = JSON.parse(sessionStr);
+          createdByUserId = session.userId || session.id;
+        }
+      } catch (e) {
+        console.error('Error getting current user:', e);
+      }
+
+      opportunityData.createdByUserId = createdByUserId;
+      opportunityData.skillsTags = formData.skills || []; // Map skills to skillsTags
+      opportunityData.paymentTerms = {
+        type: formData.paymentTerms?.mode || formData.paymentTerms?.type || 'CASH',
+        barterRule: formData.paymentTerms?.barterRule || null
+      };
+
+      let opportunity = null;
+
+      // Use OpportunityStore if available, otherwise fallback to PMTwinData
+      if (typeof window.OpportunityStore !== 'undefined') {
+        opportunity = window.OpportunityStore.createOpportunity(opportunityData);
+      } else if (typeof PMTwinData !== 'undefined' && PMTwinData.Opportunities) {
+        opportunity = PMTwinData.Opportunities.create(opportunityData);
+      } else {
         alert('Opportunities service not available');
         return;
       }
-
-      const opportunity = PMTwinData.Opportunities.create(opportunityData);
       
       if (opportunity) {
+        // If status is PUBLISHED, publish it
+        if (status === 'published' || status === 'PUBLISHED') {
+          if (typeof window.OpportunityStore !== 'undefined') {
+            window.OpportunityStore.publishOpportunity(opportunity.id);
+          }
+        }
+
         alert('Opportunity created successfully!');
-        // Redirect to opportunity view
-        if (typeof window.NavRoutes !== 'undefined') {
-          const viewUrl = window.NavRoutes.getRouteWithQuery('opportunities', { id: opportunity.id });
+        // Redirect to opportunity details
+        if (typeof window.UrlHelper !== 'undefined') {
+          const detailsUrl = window.UrlHelper.buildUrlWithQuery('pages/opportunities/details.html', { id: opportunity.id });
+          window.location.href = detailsUrl;
+        } else if (typeof window.NavRoutes !== 'undefined') {
+          const viewUrl = window.NavRoutes.getRouteWithQuery('opportunities/details', { id: opportunity.id });
           window.location.href = viewUrl;
         } else {
-          window.location.href = `/POC/pages/opportunities/index.html?id=${opportunity.id}`;
+          window.location.href = `/POC/pages/opportunities/details.html?id=${opportunity.id}`;
         }
       } else {
         alert('Failed to create opportunity');
