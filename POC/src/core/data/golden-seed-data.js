@@ -2381,6 +2381,40 @@
       createdAt: baseDate.toISOString()
     });
 
+    // 3. Project Lead B (Jeddah)
+    const projectLeadB = getOrCreateUser({
+      email: 'project.lead.jeddah@pmtwin.com',
+      password: btoa('ProjectLead123'),
+      role: 'project_lead',
+      userType: 'beneficiary',
+      onboardingStage: 'approved',
+      emailVerified: true,
+      mobile: '+966502345678',
+      mobileVerified: true,
+      identity: {
+        legalEntityName: 'Jeddah Construction Group',
+        crNumber: 'CR-JCG-002',
+        crVerified: true,
+        authorizedRepresentativeName: 'Mohammed Al-Jeddah'
+      },
+      profile: {
+        name: 'Jeddah Construction Group',
+        companyName: 'Jeddah Construction Group',
+        status: 'approved',
+        location: {
+          headquarters: {
+            address: 'Corniche Road',
+            city: 'Jeddah',
+            area: 'Al Hamra',
+            region: 'Makkah Province',
+            country: 'Saudi Arabia'
+          }
+        },
+        createdAt: baseDate.toISOString()
+      },
+      createdAt: baseDate.toISOString()
+    });
+
     const beneficiaryB = getOrCreateUser({
       email: 'beneficiary.jeddah@pmtwin.com',
       password: btoa('Beneficiary123'),

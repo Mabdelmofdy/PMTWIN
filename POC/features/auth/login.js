@@ -249,7 +249,22 @@
         const storedRedirect = typeof AuthCheck !== 'undefined' ? AuthCheck.getLoginRedirect() : null;
         if (storedRedirect) {
           console.log('🚀 Using stored redirect:', storedRedirect);
-          window.location.replace(storedRedirect);
+          
+          // Ensure stored redirect is an absolute URL
+          let redirectUrl = storedRedirect;
+          if (!redirectUrl.startsWith('http://') && !redirectUrl.startsWith('https://')) {
+            const isLiveServer = window.location.port === '5503' || 
+                                (window.location.hostname === '127.0.0.1' && window.location.port === '5503');
+            if (isLiveServer && redirectUrl.startsWith('/POC/')) {
+              redirectUrl = `http://127.0.0.1:5503${redirectUrl}`;
+            } else if (!redirectUrl.startsWith('/')) {
+              // If it's a relative path, convert to absolute
+              redirectUrl = window.location.origin + '/' + redirectUrl.replace(/^\/+/, '');
+            }
+          }
+          
+          console.log('🚀 Final redirect URL:', redirectUrl);
+          window.location.replace(redirectUrl);
           return;
         }
         

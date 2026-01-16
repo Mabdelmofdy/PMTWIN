@@ -4,7 +4,24 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Login - PMTwin</title>
+    <!-- Very permissive CSP for local development - MUST be first to prevent CSP errors -->
+    <meta http-equiv="Content-Security-Policy" content="default-src * 'unsafe-inline' 'unsafe-eval' data: blob:; connect-src * 'unsafe-inline' 'unsafe-eval' ws: wss: http://127.0.0.1:* http://localhost:*; script-src * 'unsafe-inline' 'unsafe-eval'; style-src * 'unsafe-inline'; font-src * data:; img-src * data: blob:; frame-src *; object-src *; media-src *;">
     <link rel="stylesheet" href="../../../assets/css/main.css">
+    <script>
+        // CRITICAL: Set CSP via meta tag immediately to prevent browser default CSP
+        (function() {
+            // Remove any existing CSP meta tags
+            const existingCSP = document.querySelector('meta[http-equiv="Content-Security-Policy"]');
+            if (existingCSP) {
+                existingCSP.remove();
+            }
+            // Create new permissive CSP meta tag
+            const cspMeta = document.createElement('meta');
+            cspMeta.setAttribute('http-equiv', 'Content-Security-Policy');
+            cspMeta.setAttribute('content', "default-src * 'unsafe-inline' 'unsafe-eval' data: blob:; connect-src * 'unsafe-inline' 'unsafe-eval' ws: wss: http://127.0.0.1:* http://localhost:*; script-src * 'unsafe-inline' 'unsafe-eval'; style-src * 'unsafe-inline'; font-src * data:; img-src * data: blob:; frame-src *;");
+            document.head.insertBefore(cspMeta, document.head.firstChild);
+        })();
+    </script>
 </head>
 <body class="login-page">
     <!-- Navigation -->

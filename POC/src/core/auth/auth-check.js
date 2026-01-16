@@ -39,10 +39,19 @@
     
     if (!isAuthenticated) {
       console.log('User not authenticated, redirecting to login');
-      // Store intended destination
+      // Store intended destination - ensure it's an absolute path
       if (redirectTo && !redirectTo.includes('login')) {
-        sessionStorage.setItem('loginRedirect', redirectTo);
-        console.log('Stored redirect path:', redirectTo);
+        // Convert to absolute path if it's relative
+        let absoluteRedirect = redirectTo;
+        if (!redirectTo.startsWith('http://') && !redirectTo.startsWith('https://') && !redirectTo.startsWith('/')) {
+          // It's a relative path, make it absolute
+          absoluteRedirect = window.location.origin + (redirectTo.startsWith('/') ? redirectTo : '/' + redirectTo);
+        } else if (!redirectTo.startsWith('http://') && !redirectTo.startsWith('https://')) {
+          // It's an absolute path but not a full URL, ensure it starts with /
+          absoluteRedirect = redirectTo.startsWith('/') ? redirectTo : '/' + redirectTo;
+        }
+        sessionStorage.setItem('loginRedirect', absoluteRedirect);
+        console.log('Stored redirect path:', absoluteRedirect);
       }
         // Determine correct login path based on current location
       const currentPath = window.location.pathname;
@@ -212,6 +221,20 @@
     const redirect = sessionStorage.getItem('loginRedirect');
     if (redirect) {
       sessionStorage.removeItem('loginRedirect');
+      
+      // Ensure redirect is an absolute URL for Live Server
+      if (redirect && !redirect.startsWith('http://') && !redirect.startsWith('https://')) {
+        const isLiveServer = window.location.port === '5503' || 
+                            (window.location.hostname === '127.0.0.1' && window.location.port === '5503');
+        if (isLiveServer && redirect.startsWith('/POC/')) {
+          return `http://127.0.0.1:5503${redirect}`;
+        }
+        // If it's an absolute path, ensure it's used correctly
+        if (redirect.startsWith('/')) {
+          return redirect;
+        }
+      }
+      
       return redirect;
     }
     return null;
