@@ -98,42 +98,71 @@
       };
       const totalProposals = proposals.length;
 
-      const statusColors = {
-        'DRAFT': 'alert-warning',
-        'PUBLISHED': 'alert-success',
-        'CLOSED': 'alert-secondary'
-      };
+      const intentBadge = opp.intent === 'REQUEST_SERVICE' ? 
+        '<span class="badge badge-info"><i class="ph ph-hand"></i> Request Service</span>' :
+        '<span class="badge badge-success"><i class="ph ph-handshake"></i> Offer Service</span>';
 
       const detailsUrl = window.UrlHelper ? 
         window.UrlHelper.buildUrlWithQuery('pages/opportunities/details.html', { id: opp.id }) :
         `../opportunities/details.html?id=${opp.id}`;
 
       return `
-        <div class="card" style="margin-bottom: 1rem;">
+        <div class="card enhanced-card" style="margin-bottom: 1rem;">
           <div class="card-body">
-            <div style="display: flex; justify-content: space-between; align-items: start;">
+            <div style="display: flex; justify-content: space-between; align-items: start; gap: 1.5rem;">
               <div style="flex: 1;">
-                <h3 style="margin: 0 0 0.5rem 0;">
-                  <a href="${detailsUrl}">${escapeHtml(opp.title)}</a>
-                </h3>
-                <p style="margin: 0; color: var(--text-secondary);">
-                  ${escapeHtml(opp.description.substring(0, 150))}${opp.description.length > 150 ? '...' : ''}
-                </p>
-                <div style="margin-top: 1rem;">
-                  <span class="badge ${statusColors[opp.status] || ''}">${opp.status}</span>
-                  <span style="margin-left: 1rem; color: var(--text-secondary);">
-                    Intent: ${opp.intent}
-                  </span>
+                <div style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.5rem;">
+                  <h3 style="margin: 0; flex: 1;">
+                    <a href="${detailsUrl}" style="text-decoration: none; color: inherit;">${escapeHtml(opp.title)}</a>
+                  </h3>
+                  ${getStatusBadge(opp.status)}
                 </div>
-                <div style="margin-top: 0.5rem;">
-                  <strong>Proposals:</strong> ${totalProposals} total
-                  ${proposalCounts.SUBMITTED > 0 ? ` | ${proposalCounts.SUBMITTED} submitted` : ''}
-                  ${proposalCounts.RESUBMITTED > 0 ? ` | ${proposalCounts.RESUBMITTED} resubmitted` : ''}
-                  ${proposalCounts.CHANGES_REQUESTED > 0 ? ` | ${proposalCounts.CHANGES_REQUESTED} changes requested` : ''}
+                <p style="margin: 0 0 1rem 0; color: var(--text-secondary); line-height: 1.6;">
+                  ${escapeHtml(opp.description.substring(0, 200))}${opp.description.length > 200 ? '...' : ''}
+                </p>
+                <div style="display: flex; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 1rem;">
+                  ${intentBadge}
+                  ${opp.location.city && opp.location.country ? 
+                    `<span class="badge badge-secondary"><i class="ph ph-map-pin"></i> ${escapeHtml(opp.location.city)}, ${escapeHtml(opp.location.country)}</span>` : ''}
+                </div>
+                <div style="padding: 1rem; background: var(--bg-secondary); border-radius: var(--border-radius);">
+                  <strong style="font-size: 0.875rem; color: var(--text-secondary);">Proposal Statistics:</strong>
+                  <div style="margin-top: 0.75rem; display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 0.75rem;">
+                    <div>
+                      <div style="font-size: 1.5rem; font-weight: 700; color: var(--color-primary);">${totalProposals}</div>
+                      <div style="font-size: 0.875rem; color: var(--text-secondary);">Total</div>
+                    </div>
+                    ${proposalCounts.SUBMITTED > 0 ? `
+                      <div>
+                        <div style="font-size: 1.5rem; font-weight: 700; color: var(--color-info);">${proposalCounts.SUBMITTED}</div>
+                        <div style="font-size: 0.875rem; color: var(--text-secondary);">Submitted</div>
+                      </div>
+                    ` : ''}
+                    ${proposalCounts.RESUBMITTED > 0 ? `
+                      <div>
+                        <div style="font-size: 1.5rem; font-weight: 700; color: var(--color-success);">${proposalCounts.RESUBMITTED}</div>
+                        <div style="font-size: 0.875rem; color: var(--text-secondary);">Resubmitted</div>
+                      </div>
+                    ` : ''}
+                    ${proposalCounts.CHANGES_REQUESTED > 0 ? `
+                      <div>
+                        <div style="font-size: 1.5rem; font-weight: 700; color: var(--color-warning);">${proposalCounts.CHANGES_REQUESTED}</div>
+                        <div style="font-size: 0.875rem; color: var(--text-secondary);">Changes Req.</div>
+                      </div>
+                    ` : ''}
+                    ${proposalCounts.ACCEPTED > 0 ? `
+                      <div>
+                        <div style="font-size: 1.5rem; font-weight: 700; color: var(--color-success);">${proposalCounts.ACCEPTED}</div>
+                        <div style="font-size: 0.875rem; color: var(--text-secondary);">Accepted</div>
+                      </div>
+                    ` : ''}
+                  </div>
                 </div>
               </div>
-              <div style="margin-left: 1rem;">
-                <a href="${detailsUrl}" class="btn btn-outline">View Details</a>
+              <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+                <a href="${detailsUrl}" class="btn btn-primary">
+                  <i class="ph ph-eye"></i> View Details
+                </a>
               </div>
             </div>
           </div>
@@ -153,11 +182,19 @@
 
     if (proposals.length === 0) {
       container.innerHTML = `
-        <p class="alert alert-info">You haven't submitted any proposals yet.</p>
-        <a href="${window.UrlHelper ? window.UrlHelper.buildUrl('pages/opportunities/index.html') : '../opportunities/index.html'}" 
-           class="btn btn-primary">
-          Browse Opportunities
-        </a>
+        <div class="card enhanced-card">
+          <div class="card-body" style="text-align: center; padding: 3rem;">
+            <div style="font-size: 3rem; margin-bottom: 1rem; color: var(--text-secondary);">
+              <i class="ph ph-file-text"></i>
+            </div>
+            <h3 style="margin-bottom: 0.5rem;">No Proposals Yet</h3>
+            <p style="color: var(--text-secondary); margin-bottom: 2rem;">Start submitting proposals to see them here.</p>
+            <a href="${window.UrlHelper ? window.UrlHelper.buildUrl('pages/opportunities/index.html') : '../opportunities/index.html'}" 
+               class="btn btn-primary">
+              <i class="ph ph-sparkle"></i> Browse Opportunities
+            </a>
+          </div>
+        </div>
       `;
       return;
     }
@@ -165,14 +202,6 @@
     container.innerHTML = proposals.map(proposal => {
       const opportunity = window.OpportunityStore.getOpportunityById(proposal.opportunityId);
       const oppTitle = opportunity ? opportunity.title : 'Unknown Opportunity';
-
-      const statusColors = {
-        'SUBMITTED': 'alert-info',
-        'CHANGES_REQUESTED': 'alert-warning',
-        'RESUBMITTED': 'alert-success',
-        'ACCEPTED': 'alert-success',
-        'REJECTED': 'alert-error'
-      };
 
       const detailsUrl = window.UrlHelper ? 
         window.UrlHelper.buildUrlWithQuery('pages/opportunities/details.html', { id: proposal.opportunityId }) :
@@ -182,43 +211,49 @@
       if (proposal.status === 'CHANGES_REQUESTED') {
         actionsHTML += `
           <button class="btn btn-primary" onclick="pipelineComponent.resubmitProposal('${proposal.id}')">
-            Resubmit
+            <i class="ph ph-arrow-clockwise"></i> Resubmit
           </button>
         `;
       }
 
       return `
-        <div class="card" style="margin-bottom: 1rem;">
+        <div class="card enhanced-card" style="margin-bottom: 1rem;">
           <div class="card-body">
-            <div style="display: flex; justify-content: space-between; align-items: start;">
+            <div style="display: flex; justify-content: space-between; align-items: start; gap: 1.5rem;">
               <div style="flex: 1;">
-                <h3 style="margin: 0 0 0.5rem 0;">
-                  <a href="${detailsUrl}">${escapeHtml(oppTitle)}</a>
-                </h3>
-                <p style="margin: 0; color: var(--text-secondary);">
-                  <strong>Status:</strong> <span class="badge ${statusColors[proposal.status] || ''}">${proposal.status}</span>
-                </p>
-                <p style="margin: 0.5rem 0;">
-                  <strong>Price:</strong> ${proposal.priceTotal} ${proposal.currency}
-                </p>
-                <p style="margin: 0.5rem 0;">
-                  <strong>Timeline:</strong> ${escapeHtml(proposal.deliveryTimeline)}
-                </p>
+                <div style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.5rem;">
+                  <h3 style="margin: 0; flex: 1;">
+                    <a href="${detailsUrl}" style="text-decoration: none; color: inherit;">${escapeHtml(oppTitle)}</a>
+                  </h3>
+                  ${getStatusBadge(proposal.status)}
+                </div>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 1rem;">
+                  <div>
+                    <strong style="font-size: 0.875rem; color: var(--text-secondary);">Price:</strong>
+                    <div style="font-size: 1.125rem; font-weight: 600; color: var(--color-primary);">
+                      ${proposal.priceTotal.toLocaleString()} ${proposal.currency}
+                    </div>
+                  </div>
+                  <div>
+                    <strong style="font-size: 0.875rem; color: var(--text-secondary);">Timeline:</strong>
+                    <div>${escapeHtml(proposal.deliveryTimeline)}</div>
+                  </div>
+                </div>
                 ${proposal.messages.length > 0 ? `
-                  <div style="margin-top: 1rem; padding-top: 1rem; border-top: 1px solid var(--border-color);">
-                    <strong>Latest Message:</strong>
-                    <div style="margin-top: 0.5rem; padding: 0.5rem; background: var(--bg-secondary); border-radius: 4px;">
-                      ${escapeHtml(proposal.messages[proposal.messages.length - 1].text)}
-                      <div style="font-size: 0.85rem; color: var(--text-secondary); margin-top: 0.25rem;">
-                        ${formatDate(proposal.messages[proposal.messages.length - 1].at)}
-                      </div>
+                  <div style="padding: 1rem; background: var(--bg-secondary); border-radius: var(--border-radius); border-left: 3px solid var(--color-warning);">
+                    <strong style="font-size: 0.875rem; color: var(--text-secondary); margin-bottom: 0.5rem; display: block;">Latest Message:</strong>
+                    <p style="margin: 0 0 0.5rem 0; line-height: 1.6;">${escapeHtml(proposal.messages[proposal.messages.length - 1].text)}</p>
+                    <div style="font-size: 0.85rem; color: var(--text-secondary);">
+                      ${formatDate(proposal.messages[proposal.messages.length - 1].at)}
                     </div>
                   </div>
                 ` : ''}
               </div>
-              <div style="margin-left: 1rem;">
+              <div style="display: flex; flex-direction: column; gap: 0.5rem; min-width: 150px;">
                 ${actionsHTML}
-                <a href="${detailsUrl}" class="btn btn-outline">View</a>
+                <a href="${detailsUrl}" class="btn btn-outline">
+                  <i class="ph ph-eye"></i> View
+                </a>
               </div>
             </div>
           </div>
@@ -253,6 +288,26 @@
       renderProviderPipeline();
       alert('Proposal resubmitted successfully!');
     }
+  }
+
+  /**
+   * Get status badge with consistent styling
+   */
+  function getStatusBadge(status) {
+    if (!status) return '';
+    const statusUpper = status.toUpperCase();
+    const statusColors = {
+      'DRAFT': 'badge-warning',
+      'PUBLISHED': 'badge-success',
+      'CLOSED': 'badge-secondary',
+      'SUBMITTED': 'badge-info',
+      'CHANGES_REQUESTED': 'badge-warning',
+      'RESUBMITTED': 'badge-success',
+      'ACCEPTED': 'badge-success',
+      'REJECTED': 'badge-error'
+    };
+    const colorClass = statusColors[statusUpper] || 'badge-secondary';
+    return `<span class="badge ${colorClass}">${status}</span>`;
   }
 
   /**

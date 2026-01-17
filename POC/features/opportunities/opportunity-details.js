@@ -57,38 +57,49 @@
     const statusBadge = document.getElementById('opportunityStatusBadge');
     if (statusBadge) {
       const statusColors = {
-        'DRAFT': 'alert-warning',
-        'PUBLISHED': 'alert-success',
-        'CLOSED': 'alert-secondary'
+        'DRAFT': 'badge-warning',
+        'PUBLISHED': 'badge-success',
+        'CLOSED': 'badge-secondary'
       };
-      statusBadge.innerHTML = `<span class="badge ${statusColors[opp.status] || ''}">${opp.status}</span>`;
+      const colorClass = statusColors[opp.status] || 'badge-secondary';
+      statusBadge.innerHTML = `<span class="badge ${colorClass}">${opp.status}</span>`;
     }
 
     // Render details
     container.innerHTML = `
       <div class="opportunity-details">
-        <h2>${escapeHtml(opp.title)}</h2>
-        <p style="color: var(--text-secondary); margin-bottom: 2rem;">${escapeHtml(opp.description)}</p>
+        <div style="margin-bottom: 2rem;">
+          <h2 style="margin-bottom: 0.5rem;">${escapeHtml(opp.title)}</h2>
+          <p style="color: var(--text-secondary); line-height: 1.6;">${escapeHtml(opp.description)}</p>
+        </div>
         
-        <div class="content-grid-2" style="margin-bottom: 2rem;">
+        <div class="content-grid-2" style="margin-bottom: 2rem; padding: 1.5rem; background: var(--bg-secondary); border-radius: var(--border-radius);">
           <div>
-            <strong>Intent:</strong> ${opp.intent}
+            <strong style="color: var(--text-secondary); font-size: 0.875rem;">Intent:</strong>
+            <div style="margin-top: 0.25rem;">
+              ${opp.intent === 'REQUEST_SERVICE' ? '<span class="badge badge-info"><i class="ph ph-hand"></i> Request Service</span>' : '<span class="badge badge-success"><i class="ph ph-handshake"></i> Offer Service</span>'}
+            </div>
           </div>
           <div>
-            <strong>Status:</strong> ${opp.status}
+            <strong style="color: var(--text-secondary); font-size: 0.875rem;">Status:</strong>
+            <div style="margin-top: 0.25rem;">
+              ${getStatusBadge(opp.status)}
+            </div>
           </div>
           <div>
-            <strong>Model:</strong> ${opp.model}.${opp.subModel}
+            <strong style="color: var(--text-secondary); font-size: 0.875rem;">Model:</strong>
+            <div style="margin-top: 0.25rem;">${opp.model}.${opp.subModel}</div>
           </div>
           <div>
-            <strong>Created:</strong> ${formatDate(opp.createdAt)}
+            <strong style="color: var(--text-secondary); font-size: 0.875rem;">Created:</strong>
+            <div style="margin-top: 0.25rem;">${formatDate(opp.createdAt)}</div>
           </div>
         </div>
 
         <div style="margin-bottom: 2rem;">
-          <h3>Required Skills</h3>
-          <div class="tags-list">
-            ${opp.skillsTags.map(skill => `<span class="tag">${escapeHtml(skill)}</span>`).join('')}
+          <h3 style="margin-bottom: 1rem;">Required Skills</h3>
+          <div style="display: flex; flex-wrap: wrap; gap: 0.5rem;">
+            ${opp.skillsTags.map(skill => `<span class="badge badge-primary">${escapeHtml(skill)}</span>`).join('')}
           </div>
         </div>
 
@@ -201,7 +212,16 @@
     if (!section || !container) return;
 
     if (matches.length === 0) {
-      container.innerHTML = '<p class="alert alert-info">No compatible providers found.</p>';
+      container.innerHTML = `
+        <div class="card enhanced-card">
+          <div class="card-body" style="text-align: center; padding: 2rem;">
+            <div style="font-size: 2.5rem; margin-bottom: 1rem; color: var(--text-secondary);">
+              <i class="ph ph-users"></i>
+            </div>
+            <p style="color: var(--text-secondary);">No compatible providers found matching the opportunity requirements.</p>
+          </div>
+        </div>
+      `;
       section.style.display = 'block';
       return;
     }
@@ -210,25 +230,36 @@
     container.innerHTML = matches.map(match => {
       const provider = match.provider;
       return `
-        <div class="card" style="margin-bottom: 1rem;">
+        <div class="card enhanced-card" style="margin-bottom: 1rem;">
           <div class="card-body">
-            <div style="display: flex; justify-content: space-between; align-items: start;">
-              <div>
+            <div style="display: flex; justify-content: space-between; align-items: start; gap: 1.5rem;">
+              <div style="flex: 1;">
                 <h3 style="margin: 0 0 0.5rem 0;">${escapeHtml(provider.name)}</h3>
-                <p style="margin: 0; color: var(--text-secondary);">${escapeHtml(provider.email)}</p>
-                <p style="margin: 0.5rem 0 0 0;">
-                  <strong>Match Score:</strong> ${match.matchScore}%
+                <p style="margin: 0 0 0.75rem 0; color: var(--text-secondary);">
+                  <i class="ph ph-envelope"></i> ${escapeHtml(provider.email)}
+                  ${provider.phone ? `<br><i class="ph ph-phone"></i> ${escapeHtml(provider.phone)}` : ''}
                 </p>
-                <p style="margin: 0.5rem 0;">
-                  <strong>Matched Skills:</strong> ${match.matchedSkills.join(', ')}
-                </p>
-                <ul style="margin: 0.5rem 0; padding-left: 1.5rem; color: var(--text-secondary); font-size: 0.9rem;">
-                  ${match.reasons.map(r => `<li>${escapeHtml(r)}</li>`).join('')}
-                </ul>
+                <div style="margin-bottom: 0.75rem;">
+                  <span class="badge badge-success" style="font-size: 1rem; padding: 0.5rem 0.75rem;">
+                    <strong>${match.matchScore}%</strong> Match
+                  </span>
+                </div>
+                <div style="margin-bottom: 0.75rem;">
+                  <strong style="font-size: 0.875rem; color: var(--text-secondary);">Matched Skills:</strong>
+                  <div style="margin-top: 0.5rem; display: flex; flex-wrap: wrap; gap: 0.5rem;">
+                    ${match.matchedSkills.map(skill => `<span class="badge badge-primary">${escapeHtml(skill)}</span>`).join('')}
+                  </div>
+                </div>
+                <div style="padding: 0.75rem; background: var(--bg-secondary); border-radius: var(--border-radius);">
+                  <strong style="font-size: 0.875rem; color: var(--text-secondary);">Match Details:</strong>
+                  <ul style="margin: 0.5rem 0 0 0; padding-left: 1.5rem; color: var(--text-secondary); font-size: 0.9rem;">
+                    ${match.reasons.map(r => `<li>${escapeHtml(r)}</li>`).join('')}
+                  </ul>
+                </div>
               </div>
-              <div>
+              <div style="display: flex; flex-direction: column; gap: 0.5rem;">
                 <button class="btn btn-primary" onclick="opportunityDetails.submitProposal('${provider.id}')">
-                  Submit Proposal
+                  <i class="ph ph-paper-plane-tilt"></i> Submit Proposal
                 </button>
               </div>
             </div>
@@ -262,7 +293,17 @@
     const isOwner = currentUserId === currentOpportunity.createdByUserId;
 
     if (proposals.length === 0) {
-      container.innerHTML = '<p class="alert alert-info">No proposals yet.</p>';
+      container.innerHTML = `
+        <div class="card enhanced-card">
+          <div class="card-body" style="text-align: center; padding: 2rem;">
+            <div style="font-size: 2.5rem; margin-bottom: 1rem; color: var(--text-secondary);">
+              <i class="ph ph-file-text"></i>
+            </div>
+            <p style="color: var(--text-secondary);">No proposals have been submitted yet.</p>
+            ${isOwner ? '<p style="color: var(--text-secondary); font-size: 0.9rem; margin-top: 0.5rem;">Use "Find Matches" to discover compatible providers.</p>' : ''}
+          </div>
+        </div>
+      `;
       return;
     }
 
@@ -280,40 +321,62 @@
       }
 
       return `
-        <div class="card" style="margin-bottom: 1rem;">
+        <div class="card enhanced-card" style="margin-bottom: 1rem;">
           <div class="card-body">
-            <div style="display: flex; justify-content: space-between; align-items: start;">
+            <div style="display: flex; justify-content: space-between; align-items: start; gap: 1.5rem;">
               <div style="flex: 1;">
-                <h3 style="margin: 0 0 0.5rem 0;">${escapeHtml(providerName)}</h3>
-                <p style="margin: 0; color: var(--text-secondary);">
-                  <strong>Status:</strong> <span class="badge">${proposal.status}</span>
-                </p>
-                <p style="margin: 0.5rem 0;">
-                  <strong>Price:</strong> ${proposal.priceTotal} ${proposal.currency}
-                </p>
-                <p style="margin: 0.5rem 0;">
-                  <strong>Timeline:</strong> ${escapeHtml(proposal.deliveryTimeline)}
-                </p>
-                ${proposal.notes ? `<p style="margin: 0.5rem 0;">${escapeHtml(proposal.notes)}</p>` : ''}
+                <div style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.75rem;">
+                  <h3 style="margin: 0; flex: 1;">${escapeHtml(providerName)}</h3>
+                  ${getStatusBadge(proposal.status)}
+                </div>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 1rem;">
+                  <div>
+                    <strong style="font-size: 0.875rem; color: var(--text-secondary);">Price:</strong>
+                    <div style="font-size: 1.125rem; font-weight: 600; color: var(--color-primary);">
+                      ${proposal.priceTotal.toLocaleString()} ${proposal.currency}
+                    </div>
+                  </div>
+                  <div>
+                    <strong style="font-size: 0.875rem; color: var(--text-secondary);">Timeline:</strong>
+                    <div>${escapeHtml(proposal.deliveryTimeline)}</div>
+                  </div>
+                </div>
+                ${proposal.breakdown && proposal.breakdown.length > 0 ? `
+                  <div style="margin-bottom: 1rem; padding: 1rem; background: var(--bg-secondary); border-radius: var(--border-radius);">
+                    <strong style="font-size: 0.875rem; color: var(--text-secondary); margin-bottom: 0.5rem; display: block;">Breakdown:</strong>
+                    <ul style="margin: 0; padding-left: 1.5rem; list-style: disc;">
+                      ${proposal.breakdown.map(item => `
+                        <li style="margin-bottom: 0.25rem;">${escapeHtml(item.item)}: ${item.amount.toLocaleString()} ${proposal.currency}</li>
+                      `).join('')}
+                    </ul>
+                  </div>
+                ` : ''}
+                ${proposal.notes ? `
+                  <div style="padding: 1rem; background: var(--bg-secondary); border-radius: var(--border-radius); margin-bottom: 1rem;">
+                    <strong style="font-size: 0.875rem; color: var(--text-secondary);">Notes:</strong>
+                    <p style="margin: 0.5rem 0 0 0; line-height: 1.6;">${escapeHtml(proposal.notes)}</p>
+                  </div>
+                ` : ''}
                 ${proposal.messages.length > 0 ? `
                   <div style="margin-top: 1rem; padding-top: 1rem; border-top: 1px solid var(--border-color);">
-                    <strong>Messages:</strong>
+                    <strong style="font-size: 0.875rem; color: var(--text-secondary); margin-bottom: 0.75rem; display: block;">Messages:</strong>
                     ${proposal.messages.map(msg => {
                       const msgUser = window.OpportunityStore.getUserById(msg.fromUserId);
                       const msgUserName = msgUser ? msgUser.name : 'Unknown';
                       return `
-                        <div style="margin-top: 0.5rem; padding: 0.5rem; background: var(--bg-secondary); border-radius: 4px;">
-                          <strong>${escapeHtml(msgUserName)}:</strong> ${escapeHtml(msg.text)}
-                          <div style="font-size: 0.85rem; color: var(--text-secondary); margin-top: 0.25rem;">
-                            ${formatDate(msg.at)}
+                        <div style="margin-bottom: 0.75rem; padding: 0.75rem; background: var(--bg-secondary); border-radius: var(--border-radius); border-left: 3px solid var(--color-primary);">
+                          <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 0.5rem;">
+                            <strong>${escapeHtml(msgUserName)}</strong>
+                            <span style="font-size: 0.85rem; color: var(--text-secondary);">${formatDate(msg.at)}</span>
                           </div>
+                          <p style="margin: 0; line-height: 1.6;">${escapeHtml(msg.text)}</p>
                         </div>
                       `;
                     }).join('')}
                   </div>
                 ` : ''}
               </div>
-              <div style="margin-left: 1rem;">
+              <div style="display: flex; flex-direction: column; gap: 0.5rem; min-width: 150px;">
                 ${actionsHTML}
               </div>
             </div>
@@ -337,6 +400,26 @@
       renderProposals();
       alert('Changes requested successfully!');
     }
+  }
+
+  /**
+   * Get status badge with consistent styling
+   */
+  function getStatusBadge(status) {
+    if (!status) return '';
+    const statusUpper = status.toUpperCase();
+    const statusColors = {
+      'DRAFT': 'badge-warning',
+      'PUBLISHED': 'badge-success',
+      'CLOSED': 'badge-secondary',
+      'SUBMITTED': 'badge-info',
+      'CHANGES_REQUESTED': 'badge-warning',
+      'RESUBMITTED': 'badge-success',
+      'ACCEPTED': 'badge-success',
+      'REJECTED': 'badge-error'
+    };
+    const colorClass = statusColors[statusUpper] || 'badge-secondary';
+    return `<span class="badge ${colorClass}">${status}</span>`;
   }
 
   /**

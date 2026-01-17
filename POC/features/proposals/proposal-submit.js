@@ -71,19 +71,21 @@
 
     const itemId = `breakdown_${breakdownItemCount++}`;
     const itemHTML = `
-      <div class="breakdown-item" style="display: flex; gap: 1rem; margin-bottom: 1rem; align-items: end;">
-        <div style="flex: 1;">
-          <label class="form-label">Item Name</label>
-          <input type="text" class="form-control breakdown-item-name" placeholder="e.g., Site Management">
-        </div>
-        <div style="width: 150px;">
-          <label class="form-label">Amount</label>
-          <input type="number" class="form-control breakdown-item-amount" placeholder="0" min="0" step="0.01">
-        </div>
-        <div>
-          <button type="button" class="btn btn-outline" onclick="this.closest('.breakdown-item').remove()">
-            <i class="ph ph-x"></i>
-          </button>
+      <div class="breakdown-item card" style="padding: 1rem; margin-bottom: 1rem; background: var(--bg-secondary); border-radius: var(--border-radius);">
+        <div style="display: flex; gap: 1rem; align-items: end;">
+          <div style="flex: 1;">
+            <label class="form-label" style="font-size: 0.875rem;">Item Name</label>
+            <input type="text" class="form-control breakdown-item-name" placeholder="e.g., Site Management" style="margin-top: 0.25rem;">
+          </div>
+          <div style="width: 180px;">
+            <label class="form-label" style="font-size: 0.875rem;">Amount</label>
+            <input type="number" class="form-control breakdown-item-amount" placeholder="0.00" min="0" step="0.01" style="margin-top: 0.25rem;">
+          </div>
+          <div style="padding-top: 1.5rem;">
+            <button type="button" class="btn btn-outline" onclick="this.closest('.breakdown-item').remove()" style="padding: 0.5rem;">
+              <i class="ph ph-x"></i>
+            </button>
+          </div>
         </div>
       </div>
     `;

@@ -43,7 +43,7 @@
         '<p class="alert alert-error">Unable to identify current user. Please log in.</p>';
       return;
     }
-
+    
     loadOpportunities();
   }
 
@@ -71,12 +71,16 @@
 
     if (opportunities.length === 0) {
       container.innerHTML = `
-        <div class="card">
+        <div class="card enhanced-card">
           <div class="card-body" style="text-align: center; padding: 3rem;">
-            <p>You haven't created any opportunities yet.</p>
-            <a href="../create/" class="btn btn-primary" style="margin-top: 1rem;">
-              <i class="ph ph-plus"></i> Create Your First Opportunity
-            </a>
+            <div style="font-size: 3rem; margin-bottom: 1rem; color: var(--text-secondary);">
+              <i class="ph ph-folder-open"></i>
+            </div>
+            <h3 style="margin-bottom: 0.5rem;">No Opportunities Yet</h3>
+            <p style="color: var(--text-secondary); margin-bottom: 2rem;">Create your first opportunity to start connecting with providers.</p>
+            <a href="../create/" class="btn btn-primary">
+                <i class="ph ph-plus"></i> Create Your First Opportunity
+              </a>
           </div>
         </div>
       `;
@@ -94,15 +98,9 @@
       };
       const totalProposals = proposals.length;
 
-      const statusColors = {
-        'DRAFT': 'alert-warning',
-        'PUBLISHED': 'alert-success',
-        'CLOSED': 'alert-secondary'
-      };
-
       const intentBadge = opp.intent === 'REQUEST_SERVICE' ? 
-        '<span class="badge badge-info">Request Service</span>' :
-        '<span class="badge badge-success">Offer Service</span>';
+        '<span class="badge badge-info"><i class="ph ph-hand"></i> Request Service</span>' :
+        '<span class="badge badge-success"><i class="ph ph-handshake"></i> Offer Service</span>';
 
       const detailsUrl = window.UrlHelper ? 
         window.UrlHelper.buildUrlWithQuery('pages/opportunities/details.html', { id: opp.id }) :
@@ -111,41 +109,68 @@
       return `
         <div class="card enhanced-card" style="margin-bottom: 1.5rem;">
           <div class="card-body">
-            <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 1rem;">
+            <div style="display: flex; justify-content: space-between; align-items: start; gap: 1.5rem; margin-bottom: 1rem;">
               <div style="flex: 1;">
-                <h3 style="margin: 0 0 0.5rem 0;">
-                  <a href="${detailsUrl}">${escapeHtml(opp.title)}</a>
-                </h3>
-                <div style="display: flex; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 0.5rem;">
+                <div style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.5rem;">
+                  <h3 style="margin: 0; flex: 1;">
+                    <a href="${detailsUrl}" style="text-decoration: none; color: inherit;">${escapeHtml(opp.title)}</a>
+                  </h3>
+                  ${getStatusBadge(opp.status)}
+                </div>
+                <div style="display: flex; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 0.75rem;">
                   ${intentBadge}
-                  <span class="badge ${statusColors[opp.status] || ''}">${opp.status}</span>
                   ${opp.location.city && opp.location.country ? 
                     `<span class="badge badge-secondary"><i class="ph ph-map-pin"></i> ${escapeHtml(opp.location.city)}, ${escapeHtml(opp.location.country)}</span>` : ''}
                 </div>
-                <p style="margin: 0; color: var(--text-secondary);">
+                <p style="margin: 0 0 1rem 0; color: var(--text-secondary); line-height: 1.6;">
                   ${escapeHtml(opp.description.substring(0, 200))}${opp.description.length > 200 ? '...' : ''}
                 </p>
               </div>
             </div>
             
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 1rem; padding-top: 1rem; border-top: 1px solid var(--border-color);">
-              <div>
-                <strong>Proposals:</strong> ${totalProposals} total
-                ${proposalCounts.SUBMITTED > 0 ? ` | <span style="color: var(--color-info);">${proposalCounts.SUBMITTED} submitted</span>` : ''}
-                ${proposalCounts.RESUBMITTED > 0 ? ` | <span style="color: var(--color-success);">${proposalCounts.RESUBMITTED} resubmitted</span>` : ''}
-                ${proposalCounts.CHANGES_REQUESTED > 0 ? ` | <span style="color: var(--color-warning);">${proposalCounts.CHANGES_REQUESTED} changes requested</span>` : ''}
-                ${proposalCounts.ACCEPTED > 0 ? ` | <span style="color: var(--color-success);">${proposalCounts.ACCEPTED} accepted</span>` : ''}
-              </div>
-              <div style="display: flex; gap: 0.5rem;">
-                ${opp.status === 'DRAFT' ? `
-                  <button class="btn btn-success btn-sm" onclick="myOpportunities.publishOpportunity('${opp.id}')">
-                    <i class="ph ph-paper-plane-tilt"></i> Publish
-                  </button>
+            <div style="padding: 1rem; background: var(--bg-secondary); border-radius: var(--border-radius); margin-bottom: 1rem;">
+              <strong style="font-size: 0.875rem; color: var(--text-secondary); margin-bottom: 0.75rem; display: block;">Proposal Statistics:</strong>
+              <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 0.75rem;">
+                <div>
+                  <div style="font-size: 1.5rem; font-weight: 700; color: var(--color-primary);">${totalProposals}</div>
+                  <div style="font-size: 0.875rem; color: var(--text-secondary);">Total</div>
+                </div>
+                ${proposalCounts.SUBMITTED > 0 ? `
+                  <div>
+                    <div style="font-size: 1.5rem; font-weight: 700; color: var(--color-info);">${proposalCounts.SUBMITTED}</div>
+                    <div style="font-size: 0.875rem; color: var(--text-secondary);">Submitted</div>
+                  </div>
                 ` : ''}
-                <a href="${detailsUrl}" class="btn btn-outline btn-sm">
-                  <i class="ph ph-eye"></i> View Details
-                </a>
+                ${proposalCounts.RESUBMITTED > 0 ? `
+                  <div>
+                    <div style="font-size: 1.5rem; font-weight: 700; color: var(--color-success);">${proposalCounts.RESUBMITTED}</div>
+                    <div style="font-size: 0.875rem; color: var(--text-secondary);">Resubmitted</div>
+                  </div>
+                ` : ''}
+                ${proposalCounts.CHANGES_REQUESTED > 0 ? `
+                  <div>
+                    <div style="font-size: 1.5rem; font-weight: 700; color: var(--color-warning);">${proposalCounts.CHANGES_REQUESTED}</div>
+                    <div style="font-size: 0.875rem; color: var(--text-secondary);">Changes Req.</div>
+                </div>
+                ` : ''}
+                ${proposalCounts.ACCEPTED > 0 ? `
+                  <div>
+                    <div style="font-size: 1.5rem; font-weight: 700; color: var(--color-success);">${proposalCounts.ACCEPTED}</div>
+                    <div style="font-size: 0.875rem; color: var(--text-secondary);">Accepted</div>
               </div>
+            ` : ''}
+              </div>
+            </div>
+            
+            <div style="display: flex; gap: 0.75rem; padding-top: 1rem; border-top: 1px solid var(--border-color);">
+              ${opp.status === 'DRAFT' ? `
+                <button class="btn btn-success" onclick="myOpportunities.publishOpportunity('${opp.id}')">
+                  <i class="ph ph-paper-plane-tilt"></i> Publish
+                </button>
+              ` : ''}
+              <a href="${detailsUrl}" class="btn btn-primary">
+                <i class="ph ph-eye"></i> View Details
+              </a>
             </div>
           </div>
         </div>
@@ -187,6 +212,26 @@
     } else {
       alert('Failed to publish opportunity');
     }
+  }
+
+  /**
+   * Get status badge with consistent styling
+   */
+  function getStatusBadge(status) {
+    if (!status) return '';
+    const statusUpper = status.toUpperCase();
+    const statusColors = {
+      'DRAFT': 'badge-warning',
+      'PUBLISHED': 'badge-success',
+      'CLOSED': 'badge-secondary',
+      'SUBMITTED': 'badge-info',
+      'CHANGES_REQUESTED': 'badge-warning',
+      'RESUBMITTED': 'badge-success',
+      'ACCEPTED': 'badge-success',
+      'REJECTED': 'badge-error'
+    };
+    const colorClass = statusColors[statusUpper] || 'badge-secondary';
+    return `<span class="badge ${colorClass}">${status}</span>`;
   }
 
   /**

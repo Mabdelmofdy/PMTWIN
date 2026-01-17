@@ -44,13 +44,16 @@
 
                             <!-- Breakdown -->
                             <div class="form-group">
-                                <label class="form-label">Price Breakdown</label>
-                                <div id="breakdownItems">
+                                <label class="form-label">Price Breakdown <span style="color: var(--text-secondary); font-weight: normal;">(Optional)</span></label>
+                                <div id="breakdownItems" style="margin-bottom: 0.75rem;">
                                     <!-- Breakdown items will be added here -->
                                 </div>
                                 <button type="button" class="btn btn-outline" onclick="proposalSubmit.addBreakdownItem()">
-                                    <i class="ph ph-plus"></i> Add Item
+                                    <i class="ph ph-plus"></i> Add Breakdown Item
                                 </button>
+                                <small class="form-text" style="display: block; margin-top: 0.5rem; color: var(--text-secondary);">
+                                    Break down your total price into individual items for better transparency.
+                                </small>
                             </div>
 
                             <!-- Delivery Timeline -->
@@ -68,8 +71,8 @@
                             </div>
 
                             <!-- Submit Button -->
-                            <div class="form-actions">
-                                <button type="submit" class="btn btn-primary">
+                            <div class="form-actions" style="display: flex; gap: 1rem; margin-top: 2rem; padding-top: 2rem; border-top: 1px solid var(--border-color);">
+                                <button type="submit" class="btn btn-primary btn-lg">
                                     <i class="ph ph-paper-plane-tilt"></i> Submit Proposal
                                 </button>
                                 <a href="#" id="cancelLink" class="btn btn-secondary">Cancel</a>

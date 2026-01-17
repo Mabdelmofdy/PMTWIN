@@ -35,7 +35,7 @@
         }
       }, 500);
     } else {
-      loadOpportunities();
+    loadOpportunities();
     }
     
     attachEventListeners();
@@ -245,17 +245,17 @@
       if (currentFilters.intent) {
         opportunities = opportunities.filter(opp => opp.intent === currentFilters.intent);
       }
-      if (userId) {
-        opportunities = opportunities.filter(opp => {
+    if (userId) {
+      opportunities = opportunities.filter(opp => {
           const createdBy = opp.createdByUserId || opp.createdBy || opp.creatorId;
-          return createdBy !== userId;
-        });
-      }
+        return createdBy !== userId;
+      });
+    }
     }
 
     console.log('[OpportunitiesList] Final opportunities count:', opportunities.length);
     console.log('[OpportunitiesList] Sample opportunity:', opportunities[0]);
-    
+
     if (opportunities.length === 0) {
       // Check if we have any opportunities at all before filtering
       const allOpps = typeof window.OpportunityStore !== 'undefined' ? 
@@ -263,13 +263,24 @@
       console.log('[OpportunitiesList] Total opportunities in store:', allOpps.length);
       
       container.innerHTML = `
-        <div class="card">
+        <div class="card enhanced-card">
           <div class="card-body" style="text-align: center; padding: 3rem;">
-            <p>No opportunities found matching your filters.</p>
-            ${allOpps.length > 0 ? `<p style="color: var(--text-secondary); font-size: 0.9rem;">Found ${allOpps.length} total opportunities in store. Try clearing filters.</p>` : ''}
-            <button type="button" class="btn btn-secondary" onclick="opportunitiesList.clearFilters()" style="margin-top: 1rem;">
-              Clear Filters
-            </button>
+            <div style="font-size: 3rem; margin-bottom: 1rem; color: var(--text-secondary);">
+              <i class="ph ph-magnifying-glass"></i>
+            </div>
+            <h3 style="margin-bottom: 0.5rem;">No Opportunities Found</h3>
+            <p style="color: var(--text-secondary); margin-bottom: 1.5rem;">
+              ${allOpps.length > 0 ? `Found ${allOpps.length} total opportunities, but none match your current filters.` : 'No opportunities available at the moment.'}
+            </p>
+            ${allOpps.length > 0 ? `
+              <button type="button" class="btn btn-secondary" onclick="opportunitiesList.clearFilters()">
+                <i class="ph ph-x"></i> Clear Filters
+              </button>
+            ` : `
+              <a href="create/" class="btn btn-primary">
+                <i class="ph ph-plus"></i> Create Opportunity
+              </a>
+            `}
           </div>
         </div>
       `;
@@ -285,64 +296,62 @@
         : 0;
       
       const intentBadge = getIntentBadge(opportunity.intent || opportunity.intentType);
-      const paymentBadge = getPaymentBadge(opportunity.paymentTerms?.mode || opportunity.paymentMode);
+      const paymentType = opportunity.paymentTerms?.type || opportunity.paymentTerms?.mode || opportunity.paymentMode;
+      const paymentBadge = getPaymentBadge(paymentType);
+      const statusBadge = getStatusBadge(opportunity.status);
       // Display location as "City, Country" format
       const oppCity = opportunity.location?.city || 'TBD';
       const oppCountry = opportunity.location?.country || 'Not specified';
       const locationText = `${oppCity}, ${oppCountry}`;
       const isRemoteAllowed = opportunity.location?.isRemoteAllowed || false;
+      const skillsTags = opportunity.skillsTags || opportunity.skills || [];
       
       html += `
         <div class="card enhanced-card">
           <div class="card-body">
             <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 1rem;">
               <div style="flex: 1;">
-                <h3 style="margin: 0 0 0.5rem 0;">${opportunity.title || 'Untitled Opportunity'}</h3>
-                <div style="display: flex; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 0.5rem;">
+                <div style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.5rem;">
+                  <h3 style="margin: 0; flex: 1;">${opportunity.title || 'Untitled Opportunity'}</h3>
+                  ${statusBadge}
+                </div>
+                <div style="display: flex; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 0.75rem;">
                   ${intentBadge}
                   ${paymentBadge}
-                  ${isRemoteAllowed ? '<span class="badge badge-success"><i class="ph ph-globe"></i> Remote</span>' : ''}
-                  <span class="badge badge-secondary">${opportunity.subModel || opportunity.modelName || 'Model ' + (opportunity.model || '1')}</span>
+                  ${isRemoteAllowed ? '<span class="badge badge-success"><i class="ph ph-globe"></i> Remote</span>' : '<span class="badge badge-secondary"><i class="ph ph-map-pin"></i> On-Site</span>'}
                 </div>
-                <p style="margin: 0; color: var(--text-secondary);">
+                <p style="margin: 0 0 0.75rem 0; color: var(--text-secondary);">
                   <i class="ph ph-map-pin"></i> ${locationText}
-                  ${totalValue > 0 ? ` • <strong>${totalValue.toLocaleString()} SAR</strong>` : ''}
                 </p>
-              </div>
-            </div>
             
             <p style="margin-bottom: 1rem;">${(opportunity.description || '').substring(0, 200)}${opportunity.description && opportunity.description.length > 200 ? '...' : ''}</p>
             
-            ${opportunity.skills && opportunity.skills.length > 0 ? `
+            ${skillsTags.length > 0 ? `
               <div style="margin-bottom: 1rem;">
+                <strong style="font-size: 0.875rem; color: var(--text-secondary); margin-bottom: 0.5rem; display: block;">Required Skills:</strong>
                 <div style="display: flex; flex-wrap: wrap; gap: 0.5rem;">
-                  ${opportunity.skills.slice(0, 5).map(skill => `<span class="badge badge-primary">${skill}</span>`).join('')}
-                  ${opportunity.skills.length > 5 ? `<span class="badge badge-secondary">+${opportunity.skills.length - 5} more</span>` : ''}
+                  ${skillsTags.slice(0, 6).map(skill => `<span class="badge badge-primary">${escapeHtml(skill)}</span>`).join('')}
+                  ${skillsTags.length > 6 ? `<span class="badge badge-secondary">+${skillsTags.length - 6} more</span>` : ''}
                 </div>
               </div>
             ` : ''}
             
             ${opportunity.serviceItems && opportunity.serviceItems.length > 0 ? `
               <div style="margin-bottom: 1rem; padding: 1rem; background: var(--bg-secondary); border-radius: var(--border-radius);">
-                <strong>Service Items:</strong>
-                <ul style="margin: 0.5rem 0 0 0; padding-left: 1.5rem;">
+                <strong style="display: block; margin-bottom: 0.5rem;">Service Items (${opportunity.serviceItems.length}):</strong>
+                <ul style="margin: 0; padding-left: 1.5rem; list-style: disc;">
                   ${opportunity.serviceItems.slice(0, 3).map(item => `
-                    <li>${item.name || 'Service'} - ${item.qty || 1} ${item.unit || 'unit'} × ${(item.unitPriceRef || 0).toLocaleString()} SAR</li>
+                    <li style="margin-bottom: 0.25rem;">${escapeHtml(item.name || 'Service')} - ${item.qty || 1} ${escapeHtml(item.unit || 'unit')} (${escapeHtml(item.priceRef || 'negotiable')})</li>
                   `).join('')}
-                  ${opportunity.serviceItems.length > 3 ? `<li><em>+${opportunity.serviceItems.length - 3} more items</em></li>` : ''}
+                  ${opportunity.serviceItems.length > 3 ? `<li style="color: var(--text-secondary);"><em>+${opportunity.serviceItems.length - 3} more items</em></li>` : ''}
                 </ul>
               </div>
             ` : ''}
             
-            <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
-              <a href="${getOpportunityViewUrl(opportunity.id)}" class="btn btn-primary btn-sm">
+            <div style="display: flex; gap: 0.75rem; flex-wrap: wrap; padding-top: 1rem; border-top: 1px solid var(--border-color);">
+              <a href="${getOpportunityViewUrl(opportunity.id)}" class="btn btn-primary">
                 <i class="ph ph-eye"></i> View Details
               </a>
-              ${shouldShowEngagementRequestButton(opportunity) ? `
-                <a href="${getEngagementRequestUrl(opportunity.id)}" class="btn btn-success btn-sm">
-                  <i class="ph ph-paper-plane-tilt"></i> Send Engagement Request
-                </a>
-              ` : ''}
             </div>
           </div>
         </div>
@@ -354,12 +363,32 @@
   }
 
   // ============================================
+  // Helper: Get Status Badge (consistent styling)
+  // ============================================
+  function getStatusBadge(status) {
+    if (!status) return '';
+    const statusUpper = status.toUpperCase();
+    const statusColors = {
+      'DRAFT': 'badge-warning',
+      'PUBLISHED': 'badge-success',
+      'CLOSED': 'badge-secondary',
+      'SUBMITTED': 'badge-info',
+      'CHANGES_REQUESTED': 'badge-warning',
+      'RESUBMITTED': 'badge-success',
+      'ACCEPTED': 'badge-success',
+      'REJECTED': 'badge-error'
+    };
+    const colorClass = statusColors[statusUpper] || 'badge-secondary';
+    return `<span class="badge ${colorClass}">${status}</span>`;
+  }
+
+  // ============================================
   // Helper: Get Intent Badge
   // ============================================
   function getIntentBadge(intent) {
     const badges = {
-      'REQUEST_SERVICE': '<span class="badge badge-warning">Request</span>',
-      'OFFER_SERVICE': '<span class="badge badge-info">Offer</span>',
+      'REQUEST_SERVICE': '<span class="badge badge-info"><i class="ph ph-hand"></i> Request Service</span>',
+      'OFFER_SERVICE': '<span class="badge badge-success"><i class="ph ph-handshake"></i> Offer Service</span>',
       'BOTH': '<span class="badge badge-primary">Both</span>'
     };
     return badges[intent] || '';
@@ -369,12 +398,14 @@
   // Helper: Get Payment Badge
   // ============================================
   function getPaymentBadge(mode) {
+    if (!mode) return '';
+    const modeUpper = (mode.type || mode).toUpperCase();
     const badges = {
-      'CASH': '<span class="badge badge-success">Cash</span>',
-      'BARTER': '<span class="badge badge-purple">Barter</span>',
-      'HYBRID': '<span class="badge badge-secondary">Hybrid</span>'
+      'CASH': '<span class="badge badge-success"><i class="ph ph-currency-circle-dollar"></i> Cash</span>',
+      'BARTER': '<span class="badge badge-warning"><i class="ph ph-arrows-clockwise"></i> Barter</span>',
+      'HYBRID': '<span class="badge badge-info"><i class="ph ph-currency-circle-dollar"></i> Hybrid</span>'
     };
-    return badges[mode] || '';
+    return badges[modeUpper] || '<span class="badge badge-secondary">' + mode + '</span>';
   }
 
   // ============================================
@@ -391,6 +422,16 @@
     }
     // Final fallback
     return `/POC/pages/opportunities/details.html?id=${opportunityId}`;
+  }
+
+  // ============================================
+  // Helper: Escape HTML
+  // ============================================
+  function escapeHtml(text) {
+    if (!text) return '';
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
   }
 
   // ============================================
