@@ -187,6 +187,10 @@
             // Get demo users from OpportunityStore
             const users = window.OpportunityStore ? window.OpportunityStore.getAllUsers() : [];
             
+            // Debug logging
+            console.log('[Quick Login] Total users loaded:', users.length);
+            console.log('[Quick Login] Users:', users.map(u => ({ id: u.id, name: u.name, role: u.role })));
+            
             if (users.length === 0) {
                 container.innerHTML = '<p class="alert alert-warning">No demo users available.</p>';
                 return;

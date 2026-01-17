@@ -1088,7 +1088,12 @@
       'beneficiary': 'project_lead',
       'individual': 'professional',
       'vendor': 'service_provider',
-      'sub_contractor': 'professional'
+      'sub_contractor': 'professional',
+      // OpportunityStore mapped roles (already in RBAC format, but keep for consistency)
+      'project_lead': 'project_lead',
+      'skill_service_provider': 'skill_service_provider',
+      'consultant': 'consultant',
+      'supplier': 'supplier'
     };
     
     // Apply role mapping if needed

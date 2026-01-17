@@ -20,6 +20,16 @@
         { id: 'contracts', label: 'Contracts', route: 'contracts', feature: 'contract_management', icon: '<i class="ph ph-file-doc"></i>' }
       ]
     },
+    vendor: {
+      menuItems: [
+        { id: 'dashboard', label: 'Dashboard', route: 'dashboard', feature: 'user_dashboard', icon: '<i class="ph ph-gauge"></i>' },
+        { id: 'opportunities', label: 'Opportunities', route: 'opportunities', feature: 'matches_view', icon: '<i class="ph ph-sparkle"></i>', filter: 'OFFER_SERVICE' },
+        { id: 'opportunities-create', label: 'Create Offer', route: 'opportunities/create', feature: 'project_creation', icon: '<i class="ph ph-plus-circle"></i>' },
+        { id: 'pipeline', label: 'Pipeline', route: 'pipeline', feature: 'pipeline_management', icon: '<i class="ph ph-flow-arrow"></i>' },
+        { id: 'proposals', label: 'Proposals', route: 'proposals', feature: 'proposal_management', icon: '<i class="ph ph-file-text"></i>' },
+        { id: 'contracts', label: 'Contracts', route: 'contracts', feature: 'contract_management', icon: '<i class="ph ph-file-doc"></i>' }
+      ]
+    },
     supplier: {
       menuItems: [
         { id: 'dashboard', label: 'Dashboard', route: 'dashboard', feature: 'user_dashboard', icon: '<i class="ph ph-gauge"></i>' },
@@ -31,6 +41,16 @@
       ]
     },
     service_provider: {
+      menuItems: [
+        { id: 'dashboard', label: 'Dashboard', route: 'dashboard', feature: 'user_dashboard', icon: '<i class="ph ph-gauge"></i>' },
+        { id: 'opportunities', label: 'Opportunities', route: 'opportunities', feature: 'matches_view', icon: '<i class="ph ph-sparkle"></i>', filter: 'OFFER_SERVICE' },
+        { id: 'opportunities-create', label: 'Create Offer', route: 'opportunities/create', feature: 'project_creation', icon: '<i class="ph ph-plus-circle"></i>' },
+        { id: 'pipeline', label: 'Pipeline', route: 'pipeline', feature: 'pipeline_management', icon: '<i class="ph ph-flow-arrow"></i>' },
+        { id: 'proposals', label: 'Proposals', route: 'proposals', feature: 'proposal_management', icon: '<i class="ph ph-file-text"></i>' },
+        { id: 'contracts', label: 'Contracts', route: 'contracts', feature: 'contract_management', icon: '<i class="ph ph-file-doc"></i>' }
+      ]
+    },
+    skill_service_provider: {
       menuItems: [
         { id: 'dashboard', label: 'Dashboard', route: 'dashboard', feature: 'user_dashboard', icon: '<i class="ph ph-gauge"></i>' },
         { id: 'opportunities', label: 'Opportunities', route: 'opportunities', feature: 'matches_view', icon: '<i class="ph ph-sparkle"></i>', filter: 'OFFER_SERVICE' },

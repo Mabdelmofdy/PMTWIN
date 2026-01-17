@@ -2,6 +2,9 @@
  * Unified Opportunity Store
  * In-memory data store for Opportunities and Proposals
  * Implements the unified Opportunity/Proposal workflow
+ * 
+ * Version: 2.0 - Added 8 new users (3 beneficiaries, 5 providers) - Total: 14 users
+ * Last Updated: 2024
  */
 
 (function() {
@@ -1261,6 +1264,7 @@
       opportunities: opportunities.length,
       proposals: proposals.length
     });
+    console.log('[OpportunityStore] User list:', users.map(u => ({ id: u.id, name: u.name, role: u.role })));
   }
 
   // ============================================
@@ -1271,6 +1275,10 @@
   
   // Log initialization
   console.log('[OpportunityStore] Initialized with', opportunities.length, 'opportunities,', proposals.length, 'proposals,', users.length, 'users');
+  if (users.length !== 14) {
+    console.warn('[OpportunityStore] WARNING: Expected 14 users but found', users.length, 'users!');
+    console.log('[OpportunityStore] User IDs:', users.map(u => u.id));
+  }
 
   // ============================================
   // Public API

@@ -10,6 +10,7 @@
   let isLoading = false;
 
   // Portal type to role mapping
+  // Updated to include all RBAC roles and mapped OpportunityStore roles
   const PORTAL_ROLE_MAP = {
     'admin': ['platform_admin', 'admin', 'auditor'],
     'user': ['beneficiary', 'project_lead', 'entity', 'vendor', 'professional', 'supplier', 'service_provider', 'skill_service_provider', 'consultant', 'sub_contractor', 'mentor', 'individual'],
@@ -25,6 +26,106 @@
     const segments = currentPath.split('/').filter(p => p && !p.endsWith('.html') && p !== 'POC' && p !== '');
     const depth = segments.length;
     return depth > 0 ? '../'.repeat(depth) : '';
+  }
+
+  // ============================================
+  // Map OpportunityStore Role to RBAC Role
+  // ============================================
+  function mapOpportunityStoreRoleToRBAC(user) {
+    // Map OpportunityStore simplified roles to RBAC roles first
+    if (user.role === 'beneficiary') {
+      return 'project_lead'; // Beneficiaries are project leads in RBAC system
+    }
+    
+    if (user.role === 'provider') {
+      // Map based on userType
+      switch(user.userType) {
+        case 'vendor_corporate':
+          return 'vendor';
+        case 'service_provider':
+          return 'skill_service_provider';
+        case 'consultant':
+          return 'consultant';
+        case 'supplier':
+          return 'supplier';
+        default:
+          return 'service_provider'; // Default fallback
+      }
+    }
+    
+    // If user already has a valid RBAC role (and not beneficiary/provider), use it
+    const validRBACRoles = ['platform_admin', 'admin', 'auditor', 'project_lead', 'entity', 
+                            'vendor', 'professional', 'supplier', 'service_provider', 'skill_service_provider', 
+                            'consultant', 'sub_contractor', 'mentor', 'individual'];
+    
+    if (validRBACRoles.includes(user.role)) {
+      return user.role;
+    }
+    
+    // Fallback to original role
+    return user.role;
+  }
+
+  // ============================================
+  // Load Users from OpportunityStore
+  // ============================================
+  function loadOpportunityStoreUsers() {
+    try {
+      if (!window.OpportunityStore) {
+        console.warn('[DemoCredentials] OpportunityStore not available');
+        return [];
+      }
+
+      const oppUsers = window.OpportunityStore.getAllUsers();
+      console.log(`✅ Loaded ${oppUsers.length} users from OpportunityStore`);
+
+      // Convert OpportunityStore format to DemoCredentials format
+      const convertedUsers = oppUsers.map(user => {
+        const rbacRole = mapOpportunityStoreRoleToRBAC(user);
+        
+        // Generate description based on mapped RBAC role and user info
+        let description = '';
+        const bio = user.bio || '';
+        
+        // Generate role-specific description
+        switch(rbacRole) {
+          case 'project_lead':
+            description = `Project Lead - Creates opportunities, reviews proposals, accepts service offers. Manages project lifecycle and collaborates with providers. ${bio}`;
+            break;
+          case 'vendor':
+            description = `Vendor - Executes project contracts, manages sub-contractors. Provides full project services. ${bio}`;
+            break;
+          case 'skill_service_provider':
+            const skills = user.skills && user.skills.length > 0 
+              ? user.skills.slice(0, 3).join(', ') + (user.skills.length > 3 ? '...' : '')
+              : 'various services';
+            description = `Service Provider - Offers ${skills}. Submits proposals, manages service engagements. ${bio}`;
+            break;
+          case 'consultant':
+            description = `Consultant - Provides advisory services, feasibility studies, expert reviews. ${bio}`;
+            break;
+          case 'supplier':
+            description = `Supplier - Provides materials and resources. Participates in bulk purchasing, manages inventory. ${bio}`;
+            break;
+          default:
+            description = bio || user.description || 'User account for testing workflows.';
+        }
+
+        return {
+          userId: user.id,
+          email: user.email,
+          password: 'Demo123!', // Standard demo password
+          role: rbacRole,
+          name: user.name,
+          description: description.trim()
+        };
+      });
+
+      return convertedUsers;
+    } catch (error) {
+      console.error('[DemoCredentials] Error loading OpportunityStore users:', error);
+      return [];
+    }
   }
 
   // ============================================
@@ -50,19 +151,55 @@
     isLoading = true;
 
     try {
+      // Load users from demo-users.json
       const basePath = getDataBasePath();
       const response = await fetch(basePath + 'data/demo-users.json');
-      if (!response.ok) {
-        throw new Error(`Failed to load demo users: ${response.status}`);
+      let jsonUsers = [];
+      
+      if (response.ok) {
+        const data = await response.json();
+        jsonUsers = data.users || [];
+        console.log(`✅ Loaded ${jsonUsers.length} users from demo-users.json`);
+      } else {
+        console.warn(`⚠️ Failed to load demo-users.json: ${response.status}`);
       }
-      const data = await response.json();
-      demoUsers = data.users || [];
-      console.log(`✅ Loaded ${demoUsers.length} demo users`);
+
+      // Load users from OpportunityStore
+      const oppUsers = loadOpportunityStoreUsers();
+      
+      // Merge users, removing duplicates by email (prefer demo-users.json entries)
+      const userMap = new Map();
+      
+      // First, add OpportunityStore users
+      oppUsers.forEach(user => {
+        userMap.set(user.email.toLowerCase(), user);
+      });
+      
+      // Then, add demo-users.json users (these will overwrite duplicates)
+      jsonUsers.forEach(user => {
+        userMap.set(user.email.toLowerCase(), user);
+      });
+      
+      // Convert map back to array
+      demoUsers = Array.from(userMap.values());
+      
+      // Log user breakdown by role
+      const roleCounts = {};
+      demoUsers.forEach(user => {
+        roleCounts[user.role] = (roleCounts[user.role] || 0) + 1;
+      });
+      
+      console.log(`✅ Total demo users loaded: ${demoUsers.length} (${jsonUsers.length} from JSON, ${oppUsers.length} from OpportunityStore)`);
+      console.log(`✅ Users by role:`, roleCounts);
+      console.log(`✅ User list:`, demoUsers.map(u => ({ name: u.name, email: u.email, role: u.role })));
+      
       return demoUsers;
     } catch (error) {
       console.error('Error loading demo users:', error);
-      // Return empty array on error
-      return [];
+      // Try to load from OpportunityStore as fallback
+      const oppUsers = loadOpportunityStoreUsers();
+      demoUsers = oppUsers;
+      return demoUsers;
     } finally {
       isLoading = false;
     }
@@ -138,18 +275,200 @@
       console.log('🔍 Pre-login check - Platform Administrator:', isPlatformAdmin, 'Email:', user.email);
       console.log('🔍 User object:', user);
       
-      // Try AuthService first, then fallback to PMTwinAuth
+      // Check if user is from OpportunityStore (users not in demo-users.json)
+      // Check by userId first, then by email as fallback
+      let isOpportunityStoreUser = false;
+      let oppUser = null;
+      
+      if (window.OpportunityStore && window.OpportunityStore.getUserById) {
+        oppUser = window.OpportunityStore.getUserById(user.userId);
+        if (oppUser) {
+          isOpportunityStoreUser = true;
+        } else {
+          // Try finding by email as fallback
+          const allOppUsers = window.OpportunityStore.getAllUsers();
+          oppUser = allOppUsers.find(u => u.email.toLowerCase() === user.email.toLowerCase());
+          if (oppUser) {
+            isOpportunityStoreUser = true;
+            console.log('🔍 Found OpportunityStore user by email:', user.email);
+          }
+        }
+      }
+      
+      console.log('🔍 Is OpportunityStore user:', isOpportunityStoreUser, 'UserId:', user.userId, 'Email:', user.email);
+      
       let result;
-      if (typeof AuthService !== 'undefined') {
-        console.log('🔐 Using AuthService.login for:', user.email);
-        result = await AuthService.login(user.email, user.password);
-      } else if (typeof PMTwinAuth !== 'undefined') {
-        console.log('🔐 Using PMTwinAuth.login for:', user.email);
-        result = await PMTwinAuth.login(user.email, user.password);
+      
+      // If user is from OpportunityStore, create session directly
+      if (isOpportunityStoreUser && oppUser) {
+        console.log('🔐 Creating session directly for OpportunityStore user:', user.email);
+        
+        // Ensure userId is a string (not an object) - do this once at the start
+        const userIdString = String(oppUser.id);
+        const userRole = user.role || 'individual'; // Ensure role is set
+        
+        // Step 1: Register user in PMTwinData.Users if not already registered
+        let registeredUser = null;
+        if (typeof PMTwinData !== 'undefined' && PMTwinData.Users) {
+          try {
+            // Check if user already exists
+            registeredUser = PMTwinData.Users.getByEmail(oppUser.email);
+            
+            if (!registeredUser) {
+              // Create user in PMTwinData.Users
+              console.log('📝 Registering OpportunityStore user in PMTwinData.Users:', oppUser.email, 'with ID:', userIdString);
+              const userData = {
+                id: userIdString,
+                email: oppUser.email,
+                password: btoa(user.password || 'Demo123!'), // Store password hash
+                role: user.role, // Use mapped RBAC role
+                userType: oppUser.userType || user.role,
+                name: oppUser.name,
+                phone: oppUser.phone || null,
+                mobile: oppUser.phone || null,
+                onboardingStage: 'approved', // Demo users are pre-approved
+                emailVerified: true,
+                mobileVerified: oppUser.phone ? true : false,
+                profile: {
+                  name: oppUser.name,
+                  status: 'approved',
+                  bio: oppUser.bio || '',
+                  companyInfo: oppUser.companyInfo || null,
+                  createdAt: new Date().toISOString(),
+                  approvedAt: new Date().toISOString(),
+                  approvedBy: 'system'
+                },
+                location: oppUser.location || null,
+                skills: oppUser.skills || [],
+                paymentPreferences: oppUser.paymentPreferences || null
+              };
+              
+              registeredUser = PMTwinData.Users.create(userData);
+              console.log('✅ User registered in PMTwinData.Users:', registeredUser.id, 'Type:', typeof registeredUser.id);
+            } else {
+              console.log('✅ User already exists in PMTwinData.Users:', registeredUser.id);
+              // Update role if it has changed
+              if (registeredUser.role !== userRole) {
+                console.log(`🔄 Updating user role from ${registeredUser.role} to ${userRole}`);
+                PMTwinData.Users.update(registeredUser.id, { role: userRole });
+                registeredUser.role = userRole;
+              }
+            }
+          } catch (e) {
+            console.error('❌ Error registering user in PMTwinData.Users:', e);
+          }
+        }
+        
+        // Step 2: Assign RBAC role
+        if (typeof PMTwinRBAC !== 'undefined' && PMTwinRBAC.assignRoleToUser) {
+          try {
+            console.log('🔐 Assigning RBAC role:', userRole, 'to user:', userIdString);
+            await PMTwinRBAC.assignRoleToUser(userIdString, userRole, 'system', oppUser.email);
+            console.log('✅ RBAC role assigned successfully');
+          } catch (e) {
+            console.error('❌ Error assigning RBAC role:', e);
+          }
+        }
+        
+        // Step 3: Create session with string userId
+        const userType = oppUser.userType || user.role || 'individual';
+        
+        console.log('🔐 Creating session with userId:', userIdString, 'role:', userRole, 'userType:', userType);
+        
+        // Step 4: Create session using PMTwinData.Sessions.create() with correct signature
+        let session = null;
+        if (typeof PMTwinData !== 'undefined' && PMTwinData.Sessions) {
+          try {
+            // Sessions.create(userId, role, userType, onboardingStage)
+            session = PMTwinData.Sessions.create(
+              userIdString,
+              userRole,
+              userType,
+              'approved' // Demo users are pre-approved
+            );
+            console.log('✅ Session created in PMTwinData:', session);
+          } catch (e) {
+            console.error('❌ Error creating session in PMTwinData:', e);
+            // Fallback: create minimal session object
+            session = {
+              userId: userIdString,
+              email: oppUser.email,
+              userEmail: oppUser.email,
+              role: userRole,
+              name: oppUser.name,
+              loginTime: new Date().toISOString(),
+              expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString() // 24 hours
+            };
+          }
+        } else {
+          // Fallback: create minimal session object
+          session = {
+            userId: userIdString,
+            email: oppUser.email,
+            userEmail: oppUser.email,
+            role: userRole,
+            name: oppUser.name,
+            loginTime: new Date().toISOString(),
+            expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString() // 24 hours
+          };
+        }
+        
+        // Store in localStorage (compatible with existing auth system)
+        localStorage.setItem('pmtwin_current_user', JSON.stringify({
+          userId: userIdString,
+          email: oppUser.email,
+          userEmail: oppUser.email,
+          role: userRole,
+          name: oppUser.name
+        }));
+        localStorage.setItem('pmtwin_session', JSON.stringify(session));
+        
+        // Update window.currentUser if it exists
+        if (typeof window !== 'undefined') {
+          window.currentUser = {
+            id: userIdString,
+            userId: userIdString,
+            email: oppUser.email,
+            role: userRole,
+            name: oppUser.name
+          };
+        }
+        
+        // Create result object matching auth service format
+        // Use registeredUser if available, otherwise create minimal user object
+        const resultUser = registeredUser || {
+          id: userIdString,
+          userId: userIdString,
+          email: oppUser.email,
+          role: userRole,
+          name: oppUser.name
+        };
+        
+        result = {
+          success: true,
+          user: resultUser,
+          session: session
+        };
+        
+        console.log('✅ Session created for OpportunityStore user:', {
+          userId: userIdString,
+          email: oppUser.email,
+          role: userRole,
+          sessionCreated: !!session
+        });
       } else {
-        console.error('❌ No auth service available!');
-        // Fallback: try to find and submit form
-        return fallbackToFormFill(user);
+        // Try AuthService first, then fallback to PMTwinAuth for demo-users.json users
+        if (typeof AuthService !== 'undefined') {
+          console.log('🔐 Using AuthService.login for:', user.email);
+          result = await AuthService.login(user.email, user.password);
+        } else if (typeof PMTwinAuth !== 'undefined') {
+          console.log('🔐 Using PMTwinAuth.login for:', user.email);
+          result = await PMTwinAuth.login(user.email, user.password);
+        } else {
+          console.error('❌ No auth service available!');
+          // Fallback: try to find and submit form
+          return fallbackToFormFill(user);
+        }
       }
       
       console.log('🔍 Login result:', {
@@ -168,7 +487,7 @@
           const button = card.querySelector('.demo-user-select-btn');
           if (button) {
             button.disabled = false;
-            button.innerHTML = '<i class="ph ph-sign-in"></i> Login';
+            button.innerHTML = '<span class="login-icon"><i class="ph ph-lock"></i></span> Login Now';
           }
           // Re-enable all cards
           document.querySelectorAll('.demo-user-card').forEach(c => {
@@ -177,6 +496,11 @@
         }
         alert('Login failed: ' + (result?.error || 'Unknown error') + '\n\nPlease check console for details.');
         return false;
+      }
+      
+      // Trigger userLoggedIn event for OpportunityStore users
+      if (isOpportunityStoreUser && result.success) {
+        window.dispatchEvent(new CustomEvent('userLoggedIn', { detail: result.session }));
       }
 
       // Login succeeded - proceed with redirect logic
