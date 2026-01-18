@@ -19,7 +19,7 @@
       description: 'Short-term collaboration for executing specific tasks, deliverables, or providing expert consultation.',
       applicability: ['B2B', 'B2P', 'P2B', 'P2P'],
       supportedIntentTypes: ['REQUEST_SERVICE', 'OFFER_SERVICE', 'BOTH'],
-      supportedPaymentModes: ['Cash', 'Barter', 'Hybrid'],
+      supportedPaymentModes: ['Cash', 'Equity', 'ProfitSharing', 'Barter', 'Hybrid'],
       attributes: [
         // Note: intentType removed - intent is already selected in Step 0 (Intent Selection)
         // Note: paymentMode, paymentTerms, barterOffer, barterSettlementRule removed - handled in Step 3 (Payment)
@@ -1886,7 +1886,7 @@
 
     // Add paymentMode support (default: all modes)
     if (!model.supportedPaymentModes) {
-      model.supportedPaymentModes = ['Cash', 'Barter', 'Hybrid'];
+      model.supportedPaymentModes = ['Cash', 'Equity', 'ProfitSharing', 'Barter', 'Hybrid'];
     }
 
     // Add intentType attribute if not present

@@ -25,7 +25,7 @@
     const html = `
       <div class="payment-mode-selector">
         <label class="form-label">Payment Mode *</label>
-        <div class="payment-mode-options" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-top: 0.5rem;">
+        <div class="payment-mode-options" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 1rem; margin-top: 0.5rem;">
           <label class="payment-mode-option ${selected === 'Cash' ? 'selected' : ''}" 
                  style="cursor: pointer; padding: 1rem; border: 2px solid ${selected === 'Cash' ? 'var(--primary-color)' : 'var(--border-color)'}; border-radius: var(--radius-md); transition: all 0.2s; background: ${selected === 'Cash' ? 'var(--primary-light)' : 'transparent'};"
                  onclick="selectPaymentMode('Cash', '${containerId}')">
@@ -35,6 +35,28 @@
               <strong>Cash</strong>
             </div>
             ${showDescriptions ? '<p style="font-size: 0.875rem; color: var(--text-secondary); margin: 0;">Traditional cash payment</p>' : ''}
+          </label>
+          
+          <label class="payment-mode-option ${selected === 'Equity' ? 'selected' : ''}" 
+                 style="cursor: pointer; padding: 1rem; border: 2px solid ${selected === 'Equity' ? 'var(--primary-color)' : 'var(--border-color)'}; border-radius: var(--radius-md); transition: all 0.2s; background: ${selected === 'Equity' ? 'var(--primary-light)' : 'transparent'};"
+                 onclick="selectPaymentMode('Equity', '${containerId}')">
+            <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem;">
+              <input type="radio" name="paymentMode_${containerId}" value="Equity" ${selected === 'Equity' ? 'checked' : ''} 
+                     onchange="if(window.PaymentModeSelector) PaymentModeSelector.onChange('Equity', '${containerId}')">
+              <strong>Equity</strong>
+            </div>
+            ${showDescriptions ? '<p style="font-size: 0.875rem; color: var(--text-secondary); margin: 0;">Equity stake with vesting</p>' : ''}
+          </label>
+          
+          <label class="payment-mode-option ${selected === 'ProfitSharing' ? 'selected' : ''}" 
+                 style="cursor: pointer; padding: 1rem; border: 2px solid ${selected === 'ProfitSharing' ? 'var(--primary-color)' : 'var(--border-color)'}; border-radius: var(--radius-md); transition: all 0.2s; background: ${selected === 'ProfitSharing' ? 'var(--primary-light)' : 'transparent'};"
+                 onclick="selectPaymentMode('ProfitSharing', '${containerId}')">
+            <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem;">
+              <input type="radio" name="paymentMode_${containerId}" value="ProfitSharing" ${selected === 'ProfitSharing' ? 'checked' : ''} 
+                     onchange="if(window.PaymentModeSelector) PaymentModeSelector.onChange('ProfitSharing', '${containerId}')">
+              <strong>Profit-Sharing</strong>
+            </div>
+            ${showDescriptions ? '<p style="font-size: 0.875rem; color: var(--text-secondary); margin: 0;">Share of profits</p>' : ''}
           </label>
           
           <label class="payment-mode-option ${selected === 'Barter' ? 'selected' : ''}" 

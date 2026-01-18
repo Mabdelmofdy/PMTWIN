@@ -5197,6 +5197,10 @@
           } else if (opportunityData.exchangeType === 'Mixed' || 
                      (opportunityData.cashComponent && opportunityData.serviceComponents)) {
             mode = 'HYBRID';
+          } else if (opportunityData.equityDetails) {
+            mode = 'EQUITY';
+          } else if (opportunityData.profitSharingDetails) {
+            mode = 'PROFIT_SHARING';
           } else {
             mode = 'CASH';
           }
@@ -5221,6 +5225,14 @@
             preferredPaymentTerms.acknowledgedDifference = true;
           }
         }
+      }
+      
+      // Add equityDetails or profitSharingDetails if provided
+      if (opportunityData.equityDetails) {
+        preferredPaymentTerms.equityDetails = opportunityData.equityDetails;
+      }
+      if (opportunityData.profitSharingDetails) {
+        preferredPaymentTerms.profitSharingDetails = opportunityData.profitSharingDetails;
       }
       
       // Keep paymentTerms for backward compatibility (deprecated)
@@ -5289,6 +5301,12 @@
         intentType: intent,
         paymentMode: paymentTerms.mode,
         barterSettlementRule: paymentTerms.barterRule,
+        // Payment mode specific details
+        equityDetails: opportunityData.equityDetails || preferredPaymentTerms.equityDetails || null,
+        profitSharingDetails: opportunityData.profitSharingDetails || preferredPaymentTerms.profitSharingDetails || null,
+        // Deal linking
+        linkedOffers: opportunityData.linkedOffers || [],
+        matchingModel: opportunityData.matchingModel || null,
         // Metadata
         views: opportunityData.views || 0,
         matchesGenerated: opportunityData.matchesGenerated || 0,

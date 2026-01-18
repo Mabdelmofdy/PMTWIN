@@ -12,60 +12,91 @@
   // Main Golden Seed Data Loader
   // ============================================
   function loadGoldenSeedData(forceReload = false) {
-    // Skip audit logs during seed data loading to prevent localStorage quota issues
-    if (typeof PMTwinData !== 'undefined' && PMTwinData.setSkipAuditLogs) {
-      PMTwinData.setSkipAuditLogs(true);
-    }
-    if (typeof PMTwinData === 'undefined') {
-      console.error('PMTwinData not available');
-      return;
-    }
+    try {
+      // Skip audit logs during seed data loading to prevent localStorage quota issues
+      if (typeof PMTwinData !== 'undefined' && PMTwinData.setSkipAuditLogs) {
+        PMTwinData.setSkipAuditLogs(true);
+      }
+      if (typeof PMTwinData === 'undefined') {
+        console.error('PMTwinData not available');
+        return;
+      }
 
-    console.log('🌱 Loading Golden Seed Data...');
+      console.log('🌱 Loading Golden Seed Data...');
 
-    // Check if golden data already exists (merge-safe approach)
-    const existingUsers = PMTwinData.Users.getAll();
-    const goldenUserExists = existingUsers.some(u => 
-      u.email === 'beneficiary@pmtwin.com' || 
-      u.email === 'vendor.alpha@pmtwin.com'
-    );
+      // Check if golden data already exists (merge-safe approach)
+      const existingUsers = PMTwinData.Users.getAll();
+      const goldenUserExists = existingUsers.some(u => 
+        u.email === 'beneficiary@pmtwin.com' || 
+        u.email === 'vendor.alpha@pmtwin.com'
+      );
 
-    // Always update existing users with enhanced profile data (unless forceReload)
-    // This ensures profiles are always up to date
-    if (goldenUserExists && !forceReload) {
-      console.log('✅ Golden seed data exists. Updating existing users with enhanced profiles...');
-      // Continue to create/update users with enhanced data
+      // Always update existing users with enhanced profile data (unless forceReload)
+      // This ensures profiles are always up to date
+      if (goldenUserExists && !forceReload) {
+        console.log('✅ Golden seed data exists. Updating existing users with enhanced profiles...');
+        // Continue to create/update users with enhanced data
+      }
+
+      // Create data in correct order (dependencies first)
+      // SEED v2 - KSA Opportunity Workflow Only
+      const seedResults = {
+        users: createGoldenUsers(forceReload),
+        opportunityWorkflow: SeedNewOpportunityWorkflow(forceReload), // NEW: Comprehensive KSA-only workflow
+        // Legacy seed functions disabled - using SeedNewOpportunityWorkflow instead
+        // opportunities: createGoldenOpportunities(forceReload), // DEPRECATED
+        // proposals: createGoldenProposals(forceReload), // DEPRECATED
+        // contracts: createGoldenContracts(forceReload), // DEPRECATED
+        engagements: createGoldenEngagements(forceReload),
+        milestones: createGoldenMilestones(forceReload),
+        serviceProviderProfiles: createGoldenServiceProviderProfiles(forceReload),
+        beneficiaries: createGoldenBeneficiaries(forceReload),
+        collaborationOpportunities: createCollaborationOpportunitiesForAllModels(forceReload), // NEW: All 13 collaboration models
+        collaborationApplications: createCollaborationApplications(forceReload), // NEW: Applications for collaboration opportunities
+        matchingResults: createMatchingResults(forceReload), // NEW: Matching algorithm results
+        notifications: createNotifications(forceReload), // NEW: User notifications
+        adminTestData: createAdminTestData(forceReload) // NEW: Admin portal test data
+        // REMOVED: projects, serviceRequests, serviceOffers (legacy - use opportunities instead)
+      };
+      
+      // Remove legacy storage keys after seeding
+      if (typeof UnifiedStorage !== 'undefined') {
+        UnifiedStorage.removeLegacyKeys();
+      }
+
+      console.log('✅ Golden Seed Data Loaded:', seedResults);
+      
+      // Re-enable audit logs after seed data loading
+      if (typeof PMTwinData !== 'undefined' && PMTwinData.setSkipAuditLogs) {
+        PMTwinData.setSkipAuditLogs(false);
+      }
+      
+      return seedResults;
+    } catch (error) {
+      console.error('❌ Error loading Golden Seed Data:', error);
+      console.error('Error stack:', error.stack);
+      
+      // Re-enable audit logs even on error
+      if (typeof PMTwinData !== 'undefined' && PMTwinData.setSkipAuditLogs) {
+        PMTwinData.setSkipAuditLogs(false);
+      }
+      
+      // Return empty results so page can still load
+      return {
+        users: { created: 0, skipped: 0 },
+        opportunityWorkflow: { created: 0, skipped: 0 },
+        engagements: { created: 0, skipped: 0 },
+        milestones: { created: 0, skipped: 0 },
+        serviceProviderProfiles: { created: 0, skipped: 0 },
+        beneficiaries: { created: 0, skipped: 0 },
+        collaborationOpportunities: { created: 0, skipped: 0 },
+        collaborationApplications: { created: 0, skipped: 0 },
+        matchingResults: { created: 0, skipped: 0 },
+        notifications: { created: 0, skipped: 0 },
+        adminTestData: { created: 0, skipped: 0 },
+        error: error.message
+      };
     }
-
-    // Create data in correct order (dependencies first)
-    // SEED v2 - KSA Opportunity Workflow Only
-    const seedResults = {
-      users: createGoldenUsers(forceReload),
-      opportunityWorkflow: SeedNewOpportunityWorkflow(forceReload), // NEW: Comprehensive KSA-only workflow
-      // Legacy seed functions disabled - using SeedNewOpportunityWorkflow instead
-      // opportunities: createGoldenOpportunities(forceReload), // DEPRECATED
-      // proposals: createGoldenProposals(forceReload), // DEPRECATED
-      // contracts: createGoldenContracts(forceReload), // DEPRECATED
-      engagements: createGoldenEngagements(forceReload),
-      milestones: createGoldenMilestones(forceReload),
-      serviceProviderProfiles: createGoldenServiceProviderProfiles(forceReload),
-      beneficiaries: createGoldenBeneficiaries(forceReload)
-      // REMOVED: projects, serviceRequests, serviceOffers (legacy - use opportunities instead)
-    };
-    
-    // Remove legacy storage keys after seeding
-    if (typeof UnifiedStorage !== 'undefined') {
-      UnifiedStorage.removeLegacyKeys();
-    }
-
-    console.log('✅ Golden Seed Data Loaded:', seedResults);
-    
-    // Re-enable audit logs after seed data loading
-    if (typeof PMTwinData !== 'undefined' && PMTwinData.setSkipAuditLogs) {
-      PMTwinData.setSkipAuditLogs(false);
-    }
-    
-    return seedResults;
   }
 
   // ============================================
@@ -2273,6 +2304,13 @@
     const now = new Date();
     const baseDate = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
 
+    // Tracking arrays for created/updated items
+    const createdOpps = [];
+    const updatedOpps = [];
+    const createdProps = [];
+    const updatedProps = [];
+    const createdContracts = [];
+
     // Helper to create or get user
     function getOrCreateUser(userData) {
       let user = users.find(u => u.email === userData.email);
@@ -2285,28 +2323,113 @@
       return user;
     }
 
-    // Helper to create opportunity
+    // Helper to create opportunity - always create if not exists, update if exists
     function createOpportunityIfNotExists(opportunityData) {
-      const exists = opportunities.some(o => o.id === opportunityData.id);
+      // Refresh opportunities list to get latest
+      const currentOpps = PMTwinData.Opportunities.getAll();
+      const exists = currentOpps.some(o => o.id === opportunityData.id);
+      
       if (exists && !forceReload) {
-        return null;
+        // Update existing opportunity with latest data
+        console.log(`[SeedData] Updating existing opportunity: ${opportunityData.id}`);
+        const updated = PMTwinData.Opportunities.update(opportunityData.id, opportunityData);
+        if (updated) {
+          if (!updatedOpps.includes(opportunityData.id)) {
+            updatedOpps.push(opportunityData.id);
+          }
+          
+          // Also update in OpportunityStore if available
+          if (typeof window.OpportunityStore !== 'undefined' && window.OpportunityStore.updateOpportunity) {
+            try {
+              const storeOppData = {
+                title: updated.title,
+                description: updated.description,
+                intent: updated.intent || updated.intentType,
+                status: updated.status,
+                skillsTags: updated.skillsTags || updated.skills || [],
+                serviceItems: updated.serviceItems || [],
+                paymentTerms: updated.paymentTerms || updated.preferredPaymentTerms || { type: 'CASH' },
+                location: updated.location || {}
+              };
+              window.OpportunityStore.updateOpportunity(opportunityData.id, storeOppData);
+            } catch (e) {
+              console.warn(`[SeedData] Could not update in OpportunityStore:`, e);
+            }
+          }
+          
+          return updated;
+        }
+        return currentOpps.find(o => o.id === opportunityData.id);
       }
       if (exists && forceReload) {
         PMTwinData.Opportunities.delete(opportunityData.id);
       }
-      return PMTwinData.Opportunities.create(opportunityData);
+      console.log(`[SeedData] Creating new opportunity: ${opportunityData.id}`);
+      const created = PMTwinData.Opportunities.create(opportunityData);
+      if (created) {
+        if (!createdOpps.includes(created.id)) {
+          createdOpps.push(created.id);
+        }
+        console.log(`[SeedData] ✅ Created opportunity: ${created.id} - ${created.title}`);
+        
+        // Also add to OpportunityStore if available (for backward compatibility)
+        if (typeof window.OpportunityStore !== 'undefined' && window.OpportunityStore.createOpportunity) {
+          try {
+            // Convert PMTwinData format to OpportunityStore format
+            const storeOppData = {
+              id: created.id,
+              title: created.title,
+              description: created.description,
+              intent: created.intent || created.intentType,
+              model: created.model || created.modelId,
+              subModel: created.subModel || created.modelId,
+              skillsTags: created.skillsTags || created.skills || [],
+              serviceItems: created.serviceItems || [],
+              paymentTerms: created.paymentTerms || created.preferredPaymentTerms || { type: 'CASH' },
+              location: created.location || {},
+              status: created.status || 'PUBLISHED',
+              createdByUserId: created.createdBy || created.creatorId,
+              createdAt: created.createdAt
+            };
+            window.OpportunityStore.createOpportunity(storeOppData);
+            console.log(`[SeedData] ✅ Also added to OpportunityStore: ${created.id}`);
+          } catch (e) {
+            console.warn(`[SeedData] Could not add to OpportunityStore:`, e);
+          }
+        }
+      } else {
+        console.error(`[SeedData] ❌ Failed to create opportunity: ${opportunityData.id}`);
+      }
+      return created;
     }
 
-    // Helper to create proposal
+    // Helper to create proposal - always create if not exists, update if exists
     function createProposalIfNotExists(proposalData) {
-      const exists = proposals.some(p => p.id === proposalData.id);
+      // Refresh proposals list to get latest
+      const currentProps = PMTwinData.Proposals.getAll();
+      const exists = currentProps.some(p => p.id === proposalData.id);
+      
       if (exists && !forceReload) {
-        return null;
+        // Update existing proposal with latest data
+        const updated = PMTwinData.Proposals.update(proposalData.id, proposalData);
+        if (updated) {
+          if (!updatedProps.includes(proposalData.id)) {
+            updatedProps.push(proposalData.id);
+          }
+          return updated;
+        }
+        return currentProps.find(p => p.id === proposalData.id);
       }
       if (exists && forceReload) {
         PMTwinData.Proposals.delete(proposalData.id);
       }
-      return PMTwinData.Proposals.create(proposalData);
+      const created = PMTwinData.Proposals.create(proposalData);
+      if (created) {
+        if (!createdProps.includes(created.id)) {
+          createdProps.push(created.id);
+        }
+      }
+      return created;
     }
 
     // Helper to create contract
@@ -2447,6 +2570,13 @@
       },
       createdAt: baseDate.toISOString()
     });
+
+    // Beneficiary A (Riyadh) - find existing or use projectLeadA as fallback
+    let beneficiaryA = users.find(u => u.email === 'beneficiary@pmtwin.com');
+    if (!beneficiaryA) {
+      // Use projectLeadA as beneficiaryA since they're both beneficiaries
+      beneficiaryA = projectLeadA;
+    }
 
     const providerCorp1 = getOrCreateUser({
       email: 'provider.riyadh@pmtwin.com',
@@ -2610,11 +2740,66 @@
       createdAt: baseDate.toISOString()
     });
 
-    const createdOpps = [];
-    const createdProps = [];
-    const createdContracts = [];
+    // 7. Mentor
+    const mentor1 = getOrCreateUser({
+      email: 'mentor@pmtwin.com',
+      password: btoa('Mentor123'),
+      role: 'mentor',
+      userType: 'mentor',
+      onboardingStage: 'approved',
+      emailVerified: true,
+      mobile: '+966508901234',
+      mobileVerified: true,
+      identity: {
+        fullLegalName: 'Mohammed Al-Rashid',
+        nationalId: '2222222222',
+        nationalIdVerified: true
+      },
+      profile: {
+        name: 'Mohammed Al-Rashid',
+        status: 'approved',
+        location: {
+          city: 'Riyadh',
+          area: 'Al Olaya',
+          region: 'Riyadh Province',
+          country: 'Saudi Arabia'
+        },
+        createdAt: baseDate.toISOString()
+      },
+      createdAt: baseDate.toISOString()
+    });
+
+    // 8. Auditor
+    const auditor1 = getOrCreateUser({
+      email: 'auditor@pmtwin.com',
+      password: btoa('Auditor123'),
+      role: 'auditor',
+      userType: 'auditor',
+      onboardingStage: 'approved',
+      emailVerified: true,
+      mobile: '+966509012345',
+      mobileVerified: true,
+      identity: {
+        fullLegalName: 'Compliance Auditor',
+        nationalId: '3333333333',
+        nationalIdVerified: true
+      },
+      profile: {
+        name: 'Compliance Auditor',
+        status: 'approved',
+        location: {
+          city: 'Riyadh',
+          area: 'Al Malaz',
+          region: 'Riyadh Province',
+          country: 'Saudi Arabia'
+        },
+        createdAt: baseDate.toISOString()
+      },
+      createdAt: baseDate.toISOString()
+    });
 
     // Step 3: Create 7+ Opportunities (ALL KSA)
+    // Note: Tracking arrays (createdOpps, updatedOpps, etc.) are defined above with helper functions
     
     // 1. REQUEST_SERVICE - Riyadh, Olaya, not remote - HVAC/MEP
     const opp1 = createOpportunityIfNotExists({
@@ -2645,7 +2830,7 @@
       createdAt: baseDate.toISOString(),
       updatedAt: baseDate.toISOString()
     });
-    if (opp1) createdOpps.push(opp1.id);
+    // Note: opp1 is already tracked in createOpportunityIfNotExists
 
     // 2. REQUEST_SERVICE - Jeddah, Al Hamra, remote allowed - BIM/Design review
     const opp2 = createOpportunityIfNotExists({
@@ -2676,7 +2861,7 @@
       createdAt: new Date(baseDate.getTime() + 2 * 24 * 60 * 60 * 1000).toISOString(),
       updatedAt: new Date(baseDate.getTime() + 2 * 24 * 60 * 60 * 1000).toISOString()
     });
-    if (opp2) createdOpps.push(opp2.id);
+    // Note: Tracking handled by createOpportunityIfNotExists helper
 
     // 3. OFFER_SERVICE - Riyadh, Al Nakheel - Concrete supply
     const opp3 = createOpportunityIfNotExists({
@@ -2706,7 +2891,7 @@
       createdAt: new Date(baseDate.getTime() + 4 * 24 * 60 * 60 * 1000).toISOString(),
       updatedAt: new Date(baseDate.getTime() + 4 * 24 * 60 * 60 * 1000).toISOString()
     });
-    if (opp3) createdOpps.push(opp3.id);
+    // Note: Tracking handled by createOpportunityIfNotExists helper
 
     // 4. OFFER_SERVICE - Dammam, Al Faisaliyah, remote allowed - Quantity surveying
     const opp4 = createOpportunityIfNotExists({
@@ -2737,7 +2922,7 @@
       createdAt: new Date(baseDate.getTime() + 6 * 24 * 60 * 60 * 1000).toISOString(),
       updatedAt: new Date(baseDate.getTime() + 6 * 24 * 60 * 60 * 1000).toISOString()
     });
-    if (opp4) createdOpps.push(opp4.id);
+    // Note: Tracking handled by createOpportunityIfNotExists helper
 
     // 5. OFFER_SERVICE - Khobar, Al Ulaya, remote allowed - Sustainability consulting
     const opp5 = createOpportunityIfNotExists({
@@ -2765,11 +2950,11 @@
         geo: { lat: 26.2172, lng: 50.1971 },
         isRemoteAllowed: true
       },
-      createdBy: individual1.id,
+      createdBy: professional1.id,
       createdAt: new Date(baseDate.getTime() + 8 * 24 * 60 * 60 * 1000).toISOString(),
       updatedAt: new Date(baseDate.getTime() + 8 * 24 * 60 * 60 * 1000).toISOString()
     });
-    if (opp5) createdOpps.push(opp5.id);
+    // Note: Tracking handled by createOpportunityIfNotExists helper
 
     // 6. REQUEST_SERVICE - Makkah, Al Aziziyah, not remote - Logistics
     const opp6 = createOpportunityIfNotExists({
@@ -2800,7 +2985,7 @@
       createdAt: new Date(baseDate.getTime() + 10 * 24 * 60 * 60 * 1000).toISOString(),
       updatedAt: new Date(baseDate.getTime() + 10 * 24 * 60 * 60 * 1000).toISOString()
     });
-    if (opp6) createdOpps.push(opp6.id);
+    // Note: Tracking handled by createOpportunityIfNotExists helper
 
     // 7. MEGA - NEOM/Tabuk region, not remote - SPV with work packages
     const opp7 = createOpportunityIfNotExists({
@@ -2875,7 +3060,7 @@
       createdAt: new Date(baseDate.getTime() + 12 * 24 * 60 * 60 * 1000).toISOString(),
       updatedAt: new Date(baseDate.getTime() + 12 * 24 * 60 * 60 * 1000).toISOString()
     });
-    if (opp8) createdOpps.push(opp8.id);
+    // Note: Tracking handled by createOpportunityIfNotExists helper
 
     // 9. REQUEST_SERVICE - Egypt, Cairo, not remote (cross-border example)
     const opp9 = createOpportunityIfNotExists({
@@ -2906,7 +3091,7 @@
       createdAt: new Date(baseDate.getTime() + 14 * 24 * 60 * 60 * 1000).toISOString(),
       updatedAt: new Date(baseDate.getTime() + 14 * 24 * 60 * 60 * 1000).toISOString()
     });
-    if (opp9) createdOpps.push(opp9.id);
+    // Note: Tracking handled by createOpportunityIfNotExists helper
 
     // Step 4: Create Proposals with Versioning
     
@@ -2920,7 +3105,7 @@
         receiverId: projectLeadA.id,
         providerId: providerCorp1.id,
         bidderCompanyId: providerCorp1.id,
-        ownerCompanyId: beneficiaryA.id,
+        ownerCompanyId: projectLeadA.id, // opp1 is owned by projectLeadA
         targetType: 'OPPORTUNITY',
         targetId: opp1.id,
         status: 'SUBMITTED',
@@ -3137,10 +3322,210 @@
       if (contract2) createdContracts.push(contract2.id);
     }
 
+    // Step 6: Add More Diverse Opportunities
+    // Add opportunities with different payment modes, locations, and statuses
+    
+    // BARTER opportunity
+    const oppBarter = createOpportunityIfNotExists({
+      id: 'opp_ksa_010',
+      title: 'Architectural Design Services - Barter Exchange',
+      description: 'Seeking architectural design services. Open to barter exchange - can offer construction materials or equipment in return.',
+      intent: 'REQUEST_SERVICE',
+      model: '1',
+      subModel: '1.1',
+      modelName: 'Task-Based Engagement',
+      category: 'Project-Based Collaboration',
+      status: 'published',
+      skills: ['Architectural Design', '3D Visualization', 'Building Design'],
+      serviceItems: [
+        { id: 'item_19', name: 'Conceptual Design', description: 'Initial design concepts', unit: 'phase', qty: 1, unitPriceRef: 100000, totalRef: 100000, currency: 'SAR' },
+        { id: 'item_20', name: 'Detailed Drawings', description: 'Complete architectural drawings', unit: 'drawing_set', qty: 1, unitPriceRef: 150000, totalRef: 150000, currency: 'SAR' }
+      ],
+      paymentTerms: { mode: 'BARTER', barterRule: 'ALLOW_DIFFERENCE_CASH', cashSettlement: 0, acknowledgedDifference: false },
+      location: {
+        country: 'Saudi Arabia',
+        city: 'Jeddah',
+        area: 'Al Hamra',
+        address: 'Al Hamra District',
+        geo: { lat: 21.5433, lng: 39.1728 },
+        isRemoteAllowed: true
+      },
+      createdBy: projectLeadB.id,
+      createdAt: new Date(baseDate.getTime() + 16 * 24 * 60 * 60 * 1000).toISOString(),
+      updatedAt: new Date(baseDate.getTime() + 16 * 24 * 60 * 60 * 1000).toISOString()
+    });
+    if (oppBarter) createdOpps.push(oppBarter.id);
+
+    // DRAFT opportunity
+    const oppDraft = createOpportunityIfNotExists({
+      id: 'opp_ksa_011',
+      title: 'Site Surveying Services - Draft',
+      description: 'Draft opportunity for site surveying services. Not yet published.',
+      intent: 'REQUEST_SERVICE',
+      model: '1',
+      subModel: '1.1',
+      modelName: 'Task-Based Engagement',
+      category: 'Project-Based Collaboration',
+      status: 'draft',
+      skills: ['Surveying', 'Land Surveying', 'Topographic Survey'],
+      serviceItems: [
+        { id: 'item_21', name: 'Site Survey', description: 'Complete site survey', unit: 'survey', qty: 1, unitPriceRef: 30000, totalRef: 30000, currency: 'SAR' }
+      ],
+      paymentTerms: { mode: 'CASH', barterRule: null, cashSettlement: 0, acknowledgedDifference: false },
+      location: {
+        country: 'Saudi Arabia',
+        city: 'Riyadh',
+        area: 'Al Nakheel',
+        isRemoteAllowed: false
+      },
+      createdBy: projectLeadA.id,
+      createdAt: new Date(baseDate.getTime() + 18 * 24 * 60 * 60 * 1000).toISOString(),
+      updatedAt: new Date(baseDate.getTime() + 18 * 24 * 60 * 60 * 1000).toISOString()
+    });
+    if (oppDraft) createdOpps.push(oppDraft.id);
+
+    // CLOSED opportunity
+    const oppClosed = createOpportunityIfNotExists({
+      id: 'opp_ksa_012',
+      title: 'Completed Project - Interior Design',
+      description: 'Interior design project that has been completed. Closed opportunity.',
+      intent: 'REQUEST_SERVICE',
+      model: '1',
+      subModel: '1.1',
+      modelName: 'Task-Based Engagement',
+      category: 'Project-Based Collaboration',
+      status: 'closed',
+      skills: ['Interior Design', 'Space Planning', '3D Rendering'],
+      serviceItems: [
+        { id: 'item_22', name: 'Interior Design', description: 'Complete interior design', unit: 'project', qty: 1, unitPriceRef: 200000, totalRef: 200000, currency: 'SAR' }
+      ],
+      paymentTerms: { mode: 'CASH', barterRule: null, cashSettlement: 0, acknowledgedDifference: false },
+      location: {
+        country: 'Saudi Arabia',
+        city: 'Riyadh',
+        area: 'Olaya',
+        isRemoteAllowed: false
+      },
+      createdBy: projectLeadA.id,
+      createdAt: new Date(baseDate.getTime() - 60 * 24 * 60 * 60 * 1000).toISOString(),
+      updatedAt: new Date(baseDate.getTime() - 10 * 24 * 60 * 60 * 1000).toISOString(),
+      closedAt: new Date(baseDate.getTime() - 10 * 24 * 60 * 60 * 1000).toISOString()
+    });
+    if (oppClosed) createdOpps.push(oppClosed.id);
+
+    // Step 7: Add More Proposals with Various Statuses
+    if (oppBarter && providerCorp1) {
+      const propBarter = createProposalIfNotExists({
+        id: 'prop_ksa_003',
+        proposalType: 'SERVICE_OFFER',
+        opportunityId: oppBarter.id,
+        initiatorId: providerCorp1.id,
+        receiverId: projectLeadB.id,
+        providerId: providerCorp1.id,
+        bidderCompanyId: providerCorp1.id,
+        ownerCompanyId: projectLeadB.id,
+        targetType: 'OPPORTUNITY',
+        targetId: oppBarter.id,
+        status: 'SUBMITTED',
+        total: 250000,
+        currency: 'SAR',
+        serviceDescription: 'Barter proposal: Architectural design services in exchange for construction materials',
+        paymentTerms: { mode: 'BARTER', barterRule: 'ALLOW_DIFFERENCE_CASH', cashSettlement: 50000, acknowledgedDifference: true },
+        comment: 'Proposing barter exchange with small cash difference',
+        timeline: { startDate: '2024-05-01', duration: 90, endDate: '2024-07-30' },
+        submittedAt: new Date(baseDate.getTime() + 17 * 24 * 60 * 60 * 1000).toISOString(),
+        createdAt: new Date(baseDate.getTime() + 17 * 24 * 60 * 60 * 1000).toISOString(),
+        versions: [{
+          version: 1,
+          paymentTerms: { mode: 'BARTER', barterRule: 'ALLOW_DIFFERENCE_CASH', cashSettlement: 50000, acknowledgedDifference: true },
+          comment: 'Proposing barter exchange with small cash difference',
+          proposalData: { total: 250000, serviceDescription: 'Barter proposal' },
+          createdAt: new Date(baseDate.getTime() + 17 * 24 * 60 * 60 * 1000).toISOString(),
+          createdBy: providerCorp1.id,
+          status: 'SUBMITTED'
+        }],
+        currentVersion: 1
+      });
+      // Note: Tracking handled by createProposalIfNotExists helper
+    }
+
+    if (opp2 && providerCorp2) {
+      const propRejected = createProposalIfNotExists({
+        id: 'prop_ksa_004',
+        proposalType: 'SERVICE_OFFER',
+        opportunityId: opp2.id,
+        initiatorId: providerCorp2.id,
+        receiverId: projectLeadB.id,
+        providerId: providerCorp2.id,
+        bidderCompanyId: providerCorp2.id,
+        ownerCompanyId: projectLeadB.id,
+        targetType: 'OPPORTUNITY',
+        targetId: opp2.id,
+        status: 'REJECTED',
+        total: 150000,
+        currency: 'SAR',
+        serviceDescription: 'Proposal that was rejected',
+        paymentTerms: { mode: 'CASH', barterRule: null, cashSettlement: 0, acknowledgedDifference: false },
+        comment: 'This proposal was rejected',
+        timeline: { startDate: '2024-04-01', duration: 45, endDate: '2024-05-15' },
+        submittedAt: new Date(baseDate.getTime() + 14 * 24 * 60 * 60 * 1000).toISOString(),
+        createdAt: new Date(baseDate.getTime() + 14 * 24 * 60 * 60 * 1000).toISOString(),
+        rejectedAt: new Date(baseDate.getTime() + 15 * 24 * 60 * 60 * 1000).toISOString(),
+        rejectedBy: projectLeadB.id,
+        rejectionReason: 'Proposal does not meet requirements',
+        versions: [{
+          version: 1,
+          paymentTerms: { mode: 'CASH', barterRule: null, cashSettlement: 0, acknowledgedDifference: false },
+          comment: 'This proposal was rejected',
+          proposalData: { total: 150000 },
+          createdAt: new Date(baseDate.getTime() + 14 * 24 * 60 * 60 * 1000).toISOString(),
+          createdBy: providerCorp2.id,
+          status: 'REJECTED'
+        }],
+        currentVersion: 1
+      });
+      if (propRejected) createdProps.push(propRejected.id);
+    }
+
+    if (opp3 && consultant1) {
+      const propUnderReview = createProposalIfNotExists({
+        id: 'prop_ksa_005',
+        proposalType: 'SERVICE_OFFER',
+        opportunityId: opp3.id,
+        initiatorId: consultant1.id,
+        receiverId: providerCorp1.id,
+        providerId: consultant1.id,
+        bidderCompanyId: consultant1.id,
+        ownerCompanyId: providerCorp1.id,
+        targetType: 'OPPORTUNITY',
+        targetId: opp3.id,
+        status: 'UNDER_REVIEW',
+        total: 340000,
+        currency: 'SAR',
+        serviceDescription: 'Proposal currently under review',
+        paymentTerms: { mode: 'CASH', barterRule: null, cashSettlement: 0, acknowledgedDifference: false },
+        comment: 'Awaiting review',
+        timeline: { startDate: '2024-06-01', duration: 60, endDate: '2024-07-30' },
+        submittedAt: new Date(baseDate.getTime() + 19 * 24 * 60 * 60 * 1000).toISOString(),
+        createdAt: new Date(baseDate.getTime() + 19 * 24 * 60 * 60 * 1000).toISOString(),
+        versions: [{
+          version: 1,
+          paymentTerms: { mode: 'CASH', barterRule: null, cashSettlement: 0, acknowledgedDifference: false },
+          comment: 'Awaiting review',
+          proposalData: { total: 340000 },
+          createdAt: new Date(baseDate.getTime() + 19 * 24 * 60 * 60 * 1000).toISOString(),
+          createdBy: consultant1.id,
+          status: 'UNDER_REVIEW'
+        }],
+        currentVersion: 1
+      });
+      // Note: Tracking handled by createProposalIfNotExists helper
+    }
+
     console.log(`✅ Seed v2 Complete:`);
     console.log(`   - Users: All 8 roles created (project_lead, supplier, service_provider, consultant, professional, mentor, platform_admin, auditor)`);
-    console.log(`   - Opportunities: ${createdOpps.length} (REQUEST_SERVICE, OFFER_SERVICE, MEGA)`);
-    console.log(`   - Proposals: ${createdProps.length} (with versioning V1→V2→V3, FINAL_ACCEPTED, REJECTED)`);
+    console.log(`   - Opportunities: ${createdOpps.length} created, ${updatedOpps.length} updated (REQUEST_SERVICE, OFFER_SERVICE, MEGA, BARTER, DRAFT, CLOSED)`);
+    console.log(`   - Proposals: ${createdProps.length} created, ${updatedProps.length} updated (with versioning V1→V2→V3, FINAL_ACCEPTED, REJECTED, UNDER_REVIEW, SUBMITTED)`);
     console.log(`   - Contracts: ${createdContracts.length} (auto-generated from FINAL_ACCEPTED proposals)`);
     console.log(`   - Locations: Config-driven (Saudi Arabia, UAE, Egypt)`);
     console.log(`   - RBAC: Sidebar items configured per role`);
@@ -3156,8 +3541,8 @@
         platform_admin: [platformAdmin.id],
         auditor: [auditor1.id]
       },
-      opportunities: { created: createdOpps.length, ids: createdOpps },
-      proposals: { created: createdProps.length, ids: createdProps },
+      opportunities: { created: createdOpps.length, updated: updatedOpps.length, createdIds: createdOpps, updatedIds: updatedOpps },
+      proposals: { created: createdProps.length, updated: updatedProps.length, createdIds: createdProps, updatedIds: updatedProps },
       contracts: { created: createdContracts.length, ids: createdContracts }
     };
   }
@@ -4705,6 +5090,800 @@
     };
   }
 
+  // ============================================
+  // J) Collaboration Opportunities for All 13 Models
+  // ============================================
+  function createCollaborationOpportunitiesForAllModels(forceReload = false) {
+    console.log('🌱 Creating collaboration opportunities for all 13 models...');
+    
+    if (typeof PMTwinData === 'undefined' || !PMTwinData.CollaborationOpportunities) {
+      console.warn('CollaborationOpportunities not available');
+      return { created: 0, skipped: 0 };
+    }
+
+    const users = PMTwinData.Users.getAll();
+    const opportunities = PMTwinData.CollaborationOpportunities.getAll();
+    
+    const projectLeadA = users.find(u => u.email === 'project.lead.riyadh@pmtwin.com') || users.find(u => u.role === 'project_lead');
+    const projectLeadB = users.find(u => u.email === 'project.lead.jeddah@pmtwin.com') || users.find(u => u.email === 'entity2@pmtwin.com');
+    const supplier1 = users.find(u => u.email === 'supplier.riyadh@pmtwin.com') || users.find(u => u.role === 'supplier');
+    const serviceProvider1 = users.find(u => u.email === 'provider.riyadh@pmtwin.com') || users.find(u => u.role === 'service_provider');
+    const consultant1 = users.find(u => u.email === 'consultant.jeddah@pmtwin.com') || users.find(u => u.role === 'consultant');
+    const professional1 = users.find(u => u.email === 'professional.khobar@pmtwin.com') || users.find(u => u.role === 'professional');
+    const mentor1 = users.find(u => u.email === 'mentor@pmtwin.com') || users.find(u => u.role === 'mentor');
+
+    if (!projectLeadA) {
+      console.warn('Project lead users not found, skipping collaboration opportunities');
+      return { created: 0, skipped: 0 };
+    }
+
+    const created = [];
+    const skipped = [];
+    const now = new Date();
+    const baseDate = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+
+    function createCollabOppIfNotExists(oppData) {
+      const exists = opportunities.some(o => o.id === oppData.id);
+      if (exists && !forceReload) {
+        skipped.push(oppData.id);
+        return null;
+      }
+      if (exists && forceReload) {
+        PMTwinData.CollaborationOpportunities.delete(oppData.id);
+      }
+      const opp = PMTwinData.CollaborationOpportunities.create(oppData);
+      if (opp) created.push(opp.id);
+      return opp;
+    }
+
+    // Model 1.1: Task-Based Engagement (already exists in SeedNewOpportunityWorkflow, add more)
+    createCollabOppIfNotExists({
+      id: 'collab_1_1_001',
+      modelId: '1.1',
+      modelName: 'Task-Based Engagement',
+      category: 'Project-Based Collaboration',
+      creatorId: projectLeadA.id,
+      title: 'Structural Engineering Review for High-Rise Building',
+      description: 'Seeking experienced structural engineer for comprehensive review of high-rise building design. Task includes analysis of load-bearing structures, seismic considerations, and compliance with Saudi Building Code.',
+      status: 'active',
+      intent: 'REQUEST_SERVICE',
+      location: {
+        country: 'Saudi Arabia',
+        city: 'Riyadh',
+        area: 'Olaya',
+        isRemoteAllowed: true
+      },
+      attributes: {
+        taskTitle: 'Structural Engineering Review',
+        taskType: 'Engineering Review',
+        detailedScope: 'Comprehensive structural analysis and review',
+        requiredSkills: ['Structural Engineering', 'Seismic Analysis', 'SBC Compliance'],
+        budgetRange: { min: 50000, max: 100000, currency: 'SAR' },
+        duration: 30,
+        startDate: new Date(baseDate.getTime() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]
+      },
+      createdAt: new Date(baseDate.getTime() + 1 * 24 * 60 * 60 * 1000).toISOString()
+    });
+
+    // Model 1.2: Consortium
+    createCollabOppIfNotExists({
+      id: 'collab_1_2_001',
+      modelId: '1.2',
+      modelName: 'Consortium',
+      category: 'Project-Based Collaboration',
+      creatorId: projectLeadA.id,
+      title: 'NEOM Infrastructure Development Consortium',
+      description: 'Forming a temporary consortium for NEOM infrastructure development project. Seeking partners with expertise in civil engineering, MEP systems, and project management. Consortium will work together for the duration of this mega-project.',
+      status: 'active',
+      intent: 'REQUEST_SERVICE',
+      location: {
+        country: 'Saudi Arabia',
+        city: 'Tabuk (NEOM)',
+        area: 'NEOM Development Zone',
+        isRemoteAllowed: false
+      },
+      attributes: {
+        projectTitle: 'NEOM Infrastructure Development',
+        projectValue: 500000000,
+        duration: 36,
+        requiredPartners: ['Civil Engineering', 'MEP Systems', 'Project Management'],
+        consortiumStructure: 'Equal partnership',
+        budgetRange: { min: 100000000, max: 500000000, currency: 'SAR' }
+      },
+      createdAt: new Date(baseDate.getTime() + 2 * 24 * 60 * 60 * 1000).toISOString()
+    });
+
+    // Model 1.3: Project-Specific Joint Venture
+    createCollabOppIfNotExists({
+      id: 'collab_1_3_001',
+      modelId: '1.3',
+      modelName: 'Project-Specific Joint Venture',
+      category: 'Project-Based Collaboration',
+      creatorId: projectLeadA.id,
+      title: 'Commercial Complex Development JV',
+      description: 'Seeking partner for joint venture to develop a large commercial complex in Riyadh. Shared management and expertise required. JV will be formed specifically for this project.',
+      status: 'active',
+      intent: 'REQUEST_SERVICE',
+      location: {
+        country: 'Saudi Arabia',
+        city: 'Riyadh',
+        area: 'King Fahd Road',
+        isRemoteAllowed: false
+      },
+      attributes: {
+        projectTitle: 'Commercial Complex Development',
+        projectValue: 200000000,
+        duration: 24,
+        jvStructure: '50-50 partnership',
+        requiredExpertise: ['Commercial Development', 'Retail Management', 'Property Management'],
+        budgetRange: { min: 100000000, max: 200000000, currency: 'SAR' }
+      },
+      createdAt: new Date(baseDate.getTime() + 3 * 24 * 60 * 60 * 1000).toISOString()
+    });
+
+    // Model 1.4: SPV (already exists, add another)
+    createCollabOppIfNotExists({
+      id: 'collab_1_4_002',
+      modelId: '1.4',
+      modelName: 'Special Purpose Vehicle (SPV)',
+      category: 'Project-Based Collaboration',
+      creatorId: projectLeadA.id,
+      title: 'Red Sea Development SPV - Phase 2',
+      description: 'Forming SPV for Phase 2 of Red Sea development project. Risk-isolated entity for mega-project exceeding 50M SAR. Seeking partners for design, procurement, and execution work packages.',
+      status: 'active',
+      intent: 'REQUEST_SERVICE',
+      location: {
+        country: 'Saudi Arabia',
+        city: 'Tabuk',
+        area: 'Red Sea Coast',
+        isRemoteAllowed: false
+      },
+      attributes: {
+        projectTitle: 'Red Sea Development Phase 2',
+        projectValue: 750000000,
+        spvValue: 750000000,
+        duration: 48,
+        workPackages: [
+          { packageId: 'wp_design_phase2', title: 'Design Package Phase 2', assignedPartyId: null, value: 150000000 },
+          { packageId: 'wp_procurement_phase2', title: 'Procurement Package Phase 2', assignedPartyId: null, value: 250000000 },
+          { packageId: 'wp_execution_phase2', title: 'Execution Package Phase 2', assignedPartyId: null, value: 350000000 }
+        ],
+        jvStructure: '60-40',
+        spvStructure: 'SPV'
+      },
+      createdAt: new Date(baseDate.getTime() + 4 * 24 * 60 * 60 * 1000).toISOString()
+    });
+
+    // Model 2.1: Strategic Joint Venture
+    createCollabOppIfNotExists({
+      id: 'collab_2_1_001',
+      modelId: '2.1',
+      modelName: 'Strategic Joint Venture',
+      category: 'Strategic Partnerships',
+      creatorId: projectLeadA.id,
+      title: 'Long-Term Construction Services JV',
+      description: 'Seeking strategic partner for long-term joint venture (10+ years) to establish permanent business entity for construction services in Saudi Arabia. Focus on sustainable development and green building projects.',
+      status: 'active',
+      intent: 'REQUEST_SERVICE',
+      location: {
+        country: 'Saudi Arabia',
+        city: 'Riyadh',
+        area: 'Multiple locations',
+        isRemoteAllowed: false
+      },
+      attributes: {
+        partnershipDuration: 120, // 10 years in months
+        partnershipType: 'Permanent Business Entity',
+        focusAreas: ['Sustainable Development', 'Green Building', 'Infrastructure'],
+        jvStructure: 'Equal partnership',
+        investmentRequired: 50000000,
+        budgetRange: { min: 50000000, max: 100000000, currency: 'SAR' }
+      },
+      createdAt: new Date(baseDate.getTime() + 5 * 24 * 60 * 60 * 1000).toISOString()
+    });
+
+    // Model 2.2: Strategic Alliance
+    createCollabOppIfNotExists({
+      id: 'collab_2_2_001',
+      modelId: '2.2',
+      modelName: 'Strategic Alliance',
+      category: 'Strategic Partnerships',
+      creatorId: supplier1?.id || projectLeadA.id,
+      title: 'Materials Supply Strategic Alliance',
+      description: 'Forming strategic alliance for ongoing materials supply partnership. Long-term contractual relationship without forming new entity. Focus on bulk purchasing and supply chain optimization.',
+      status: 'active',
+      intent: 'REQUEST_SERVICE',
+      location: {
+        country: 'Saudi Arabia',
+        city: 'Riyadh',
+        area: 'Multiple regions',
+        isRemoteAllowed: false
+      },
+      attributes: {
+        allianceDuration: 120, // 10 years in months
+        allianceType: 'Supply Chain Partnership',
+        focusAreas: ['Bulk Purchasing', 'Materials Supply', 'Supply Chain Optimization'],
+        contractType: 'Long-term supply agreement',
+        budgetRange: { min: 10000000, max: 50000000, currency: 'SAR' }
+      },
+      createdAt: new Date(baseDate.getTime() + 6 * 24 * 60 * 60 * 1000).toISOString()
+    });
+
+    // Model 2.3: Mentorship
+    createCollabOppIfNotExists({
+      id: 'collab_2_3_001',
+      modelId: '2.3',
+      modelName: 'Mentorship',
+      category: 'Strategic Partnerships',
+      creatorId: mentor1?.id || professional1?.id || projectLeadA.id,
+      title: 'Construction Project Management Mentorship Program',
+      description: 'Mentorship program for junior construction professionals. Experienced mentors will guide mentees through project management best practices, career development, and industry knowledge transfer.',
+      status: 'active',
+      intent: 'REQUEST_SERVICE',
+      location: {
+        country: 'Saudi Arabia',
+        city: 'Riyadh',
+        area: 'Various',
+        isRemoteAllowed: true
+      },
+      attributes: {
+        mentorshipDuration: 12, // months
+        mentorshipType: 'Professional Development',
+        focusAreas: ['Project Management', 'Career Development', 'Industry Best Practices'],
+        menteeLevel: 'junior',
+        mentorRequirements: ['10+ years experience', 'PMP certification', 'Mentoring experience'],
+        budgetRange: { min: 0, max: 0, currency: 'SAR' } // Usually no cost
+      },
+      createdAt: new Date(baseDate.getTime() + 7 * 24 * 60 * 60 * 1000).toISOString()
+    });
+
+    // Model 3.1: Bulk Purchasing
+    createCollabOppIfNotExists({
+      id: 'collab_3_1_001',
+      modelId: '3.1',
+      modelName: 'Bulk Purchasing',
+      category: 'Resource Pooling & Sharing',
+      creatorId: supplier1?.id || projectLeadA.id,
+      title: 'Steel Reinforcement Bulk Purchase Initiative',
+      description: 'Group buying initiative for steel reinforcement materials. Multiple contractors joining together to achieve volume discounts. Minimum order quantity required for participation.',
+      status: 'active',
+      intent: 'REQUEST_SERVICE',
+      location: {
+        country: 'Saudi Arabia',
+        city: 'Riyadh',
+        area: 'Industrial Area',
+        isRemoteAllowed: false
+      },
+      attributes: {
+        purchaseType: 'Group Buying',
+        materialType: 'Steel Reinforcement',
+        minimumQuantity: 1000, // tons
+        targetDiscount: 15, // percentage
+        estimatedSavings: 5000000,
+        budgetRange: { min: 20000000, max: 50000000, currency: 'SAR' },
+        deadline: new Date(baseDate.getTime() + 30 * 24 * 60 * 60 * 1000).toISOString()
+      },
+      createdAt: new Date(baseDate.getTime() + 8 * 24 * 60 * 60 * 1000).toISOString()
+    });
+
+    // Model 3.2: Co-Ownership
+    createCollabOppIfNotExists({
+      id: 'collab_3_2_001',
+      modelId: '3.2',
+      modelName: 'Co-Ownership',
+      category: 'Resource Pooling & Sharing',
+      creatorId: projectLeadA.id,
+      title: 'Heavy Machinery Co-Ownership - Tower Cranes',
+      description: 'Seeking partners for joint ownership of high-value tower cranes. Multiple parties will share ownership and usage rights. Ideal for contractors with overlapping project timelines.',
+      status: 'active',
+      intent: 'REQUEST_SERVICE',
+      location: {
+        country: 'Saudi Arabia',
+        city: 'Riyadh',
+        area: 'Multiple sites',
+        isRemoteAllowed: false
+      },
+      attributes: {
+        assetType: 'Tower Cranes',
+        assetValue: 5000000,
+        ownershipStructure: 'Equal shares',
+        numberOfPartners: 3,
+        usageAllocation: 'Time-shared',
+        budgetRange: { min: 1500000, max: 2000000, currency: 'SAR' } // Per partner
+      },
+      createdAt: new Date(baseDate.getTime() + 9 * 24 * 60 * 60 * 1000).toISOString()
+    });
+
+    // Model 3.3: Resource Exchange/Barter
+    createCollabOppIfNotExists({
+      id: 'collab_3_3_001',
+      modelId: '3.3',
+      modelName: 'Resource Exchange/Barter',
+      category: 'Resource Pooling & Sharing',
+      creatorId: supplier1?.id || projectLeadA.id,
+      title: 'Surplus Materials Exchange Marketplace',
+      description: 'Marketplace for trading surplus construction materials and equipment. Exchange services, materials, or equipment without cash transactions. Value equivalence calculated for fair trades.',
+      status: 'active',
+      intent: 'BOTH',
+      location: {
+        country: 'Saudi Arabia',
+        city: 'Riyadh',
+        area: 'Various',
+        isRemoteAllowed: false
+      },
+      attributes: {
+        exchangeType: 'Materials & Equipment',
+        barterRule: 'ALLOW_DIFFERENCE_CASH',
+        itemsOffered: ['Surplus Steel', 'Excess Concrete', 'Used Equipment'],
+        itemsRequested: ['Cement', 'Electrical Materials', 'Plumbing Supplies'],
+        estimatedValue: 500000,
+        budgetRange: { min: 0, max: 0, currency: 'SAR' } // Barter, no cash
+      },
+      createdAt: new Date(baseDate.getTime() + 10 * 24 * 60 * 60 * 1000).toISOString()
+    });
+
+    // Model 4.1: Professional Hiring
+    createCollabOppIfNotExists({
+      id: 'collab_4_1_001',
+      modelId: '4.1',
+      modelName: 'Professional Hiring',
+      category: 'Hiring a Resource',
+      creatorId: projectLeadA.id,
+      title: 'Senior Project Manager - Full-Time Position',
+      description: 'Seeking experienced Senior Project Manager for full-time employment. Must have 10+ years experience in construction project management, PMP certification, and experience with mega-projects.',
+      status: 'active',
+      intent: 'REQUEST_SERVICE',
+      location: {
+        country: 'Saudi Arabia',
+        city: 'Riyadh',
+        area: 'Head Office',
+        isRemoteAllowed: false
+      },
+      attributes: {
+        positionType: 'Full-Time',
+        positionTitle: 'Senior Project Manager',
+        requiredExperience: '10+ years',
+        requiredSkills: ['Project Management', 'Mega-Projects', 'Team Leadership'],
+        salaryRange: { min: 25000, max: 35000, currency: 'SAR' }, // Monthly
+        benefits: ['Health Insurance', 'Transportation', 'Annual Bonus'],
+        startDate: new Date(baseDate.getTime() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]
+      },
+      createdAt: new Date(baseDate.getTime() + 11 * 24 * 60 * 60 * 1000).toISOString()
+    });
+
+    // Model 4.2: Consultant Hiring
+    createCollabOppIfNotExists({
+      id: 'collab_4_2_001',
+      modelId: '4.2',
+      modelName: 'Consultant Hiring',
+      category: 'Hiring a Resource',
+      creatorId: projectLeadA.id,
+      title: 'Sustainability Consultant - Advisory Services',
+      description: 'Seeking expert sustainability consultant for advisory services on green building certification. Consultant will provide guidance on LEED certification, energy efficiency, and sustainable design practices.',
+      status: 'active',
+      intent: 'REQUEST_SERVICE',
+      location: {
+        country: 'Saudi Arabia',
+        city: 'Riyadh',
+        area: 'Project Site',
+        isRemoteAllowed: true
+      },
+      attributes: {
+        consultantType: 'Advisory Services',
+        expertiseArea: 'Sustainability & Green Building',
+        requiredCertifications: ['LEED AP', 'Sustainability Expert'],
+        projectDuration: 6, // months
+        consultingFee: { min: 80000, max: 120000, currency: 'SAR' },
+        deliverables: ['LEED Certification Support', 'Sustainability Assessment', 'Energy Audit Report']
+      },
+      createdAt: new Date(baseDate.getTime() + 12 * 24 * 60 * 60 * 1000).toISOString()
+    });
+
+    // Model 5.1: Competition/RFP
+    createCollabOppIfNotExists({
+      id: 'collab_5_1_001',
+      modelId: '5.1',
+      modelName: 'Competition/RFP',
+      category: 'Call for Competition',
+      creatorId: projectLeadA.id,
+      title: 'Innovative Building Design Competition',
+      description: 'Open design competition for innovative commercial building design. Seeking creative and sustainable design solutions. Prize money for top 3 designs. Winning design may be selected for implementation.',
+      status: 'active',
+      intent: 'REQUEST_SERVICE',
+      location: {
+        country: 'Saudi Arabia',
+        city: 'Riyadh',
+        area: 'Design Competition',
+        isRemoteAllowed: true
+      },
+      attributes: {
+        competitionType: 'design',
+        prizeAmount: 500000,
+        submissionDeadline: new Date(baseDate.getTime() + 60 * 24 * 60 * 60 * 1000).toISOString(),
+        evaluationCriteria: ['Innovation', 'Sustainability', 'Feasibility', 'Aesthetics'],
+        numberOfWinners: 3,
+        prizes: [
+          { rank: 1, amount: 250000, currency: 'SAR' },
+          { rank: 2, amount: 150000, currency: 'SAR' },
+          { rank: 3, amount: 100000, currency: 'SAR' }
+        ]
+      },
+      createdAt: new Date(baseDate.getTime() + 13 * 24 * 60 * 60 * 1000).toISOString()
+    });
+
+    console.log(`✅ Created ${created.length} collaboration opportunities, skipped ${skipped.length}`);
+    return { created: created.length, skipped: skipped.length, ids: created };
+  }
+
+  // ============================================
+  // K) Collaboration Applications
+  // ============================================
+  function createCollaborationApplications(forceReload = false) {
+    console.log('🌱 Creating collaboration applications...');
+    
+    if (typeof PMTwinData === 'undefined' || !PMTwinData.CollaborationApplications) {
+      console.warn('CollaborationApplications not available');
+      return { created: 0, skipped: 0 };
+    }
+
+    const users = PMTwinData.Users.getAll();
+    const opportunities = PMTwinData.CollaborationOpportunities.getAll();
+    const applications = PMTwinData.CollaborationApplications.getAll();
+
+    const projectLeadA = users.find(u => u.email === 'project.lead.riyadh@pmtwin.com') || users.find(u => u.role === 'project_lead');
+    const serviceProvider1 = users.find(u => u.email === 'provider.riyadh@pmtwin.com') || users.find(u => u.role === 'service_provider');
+    const consultant1 = users.find(u => u.email === 'consultant.jeddah@pmtwin.com') || users.find(u => u.role === 'consultant');
+    const professional1 = users.find(u => u.email === 'professional.khobar@pmtwin.com') || users.find(u => u.role === 'professional');
+    const supplier1 = users.find(u => u.email === 'supplier.riyadh@pmtwin.com') || users.find(u => u.role === 'supplier');
+
+    if (!opportunities || opportunities.length === 0) {
+      console.warn('No collaboration opportunities found, skipping applications');
+      return { created: 0, skipped: 0 };
+    }
+
+    const created = [];
+    const skipped = [];
+    const baseDate = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
+
+    function createAppIfNotExists(appData) {
+      const exists = applications.some(a => a.id === appData.id);
+      if (exists && !forceReload) {
+        skipped.push(appData.id);
+        return null;
+      }
+      if (exists && forceReload) {
+        PMTwinData.CollaborationApplications.delete(appData.id);
+      }
+      const app = PMTwinData.CollaborationApplications.create(appData);
+      if (app) created.push(app.id);
+      return app;
+    }
+
+    // Get collaboration opportunities
+    const collabOpps = opportunities.filter(o => o.modelId && o.modelId !== '1.1'); // Exclude regular opportunities
+    
+    // Create applications for various opportunities
+    collabOpps.forEach((opp, index) => {
+      // Skip if creator is applying to their own opportunity
+      const applicants = [serviceProvider1, consultant1, professional1, supplier1].filter(u => u && u.id !== opp.creatorId);
+      
+      if (applicants.length === 0) return;
+
+      // Create 1-3 applications per opportunity
+      const numApps = Math.min(applicants.length, Math.floor(Math.random() * 3) + 1);
+      
+      for (let i = 0; i < numApps; i++) {
+        const applicant = applicants[i % applicants.length];
+        if (!applicant) continue;
+
+        const statuses = ['pending', 'under_review', 'approved', 'rejected'];
+        const weights = [0.4, 0.3, 0.2, 0.1]; // More pending/reviewing than approved/rejected
+        const rand = Math.random();
+        let status = 'pending';
+        let cumulative = 0;
+        for (let j = 0; j < statuses.length; j++) {
+          cumulative += weights[j];
+          if (rand < cumulative) {
+            status = statuses[j];
+            break;
+          }
+        }
+
+        const appId = `collab_app_${opp.id}_${applicant.id}_${i}`;
+        createAppIfNotExists({
+          id: appId,
+          opportunityId: opp.id,
+          applicantId: applicant.id,
+          applicantType: applicant.userType === 'beneficiary' || applicant.userType === 'vendor_corporate' ? 'entity' : 'individual',
+          status: status,
+          applicationData: {
+            proposal: `Application for ${opp.title}. We have extensive experience in this area and are excited about the opportunity to collaborate.`,
+            qualifications: ['Relevant Experience', 'Certifications', 'Portfolio'],
+            timeline: `${opp.attributes?.duration || 30} days`,
+            budget: opp.attributes?.budgetRange || { min: 0, max: 0, currency: 'SAR' },
+            deliverables: ['Quality deliverables', 'Timely completion', 'Professional service']
+          },
+          submittedAt: new Date(baseDate.getTime() + (index * 2 + i) * 24 * 60 * 60 * 1000).toISOString(),
+          reviewedAt: status !== 'pending' ? new Date(baseDate.getTime() + (index * 2 + i + 1) * 24 * 60 * 60 * 1000).toISOString() : null,
+          reviewedBy: status !== 'pending' ? opp.creatorId : null,
+          reviewNotes: status === 'approved' ? 'Application approved. Looking forward to collaboration.' : status === 'rejected' ? 'Application does not meet requirements.' : null,
+          rejectionReason: status === 'rejected' ? 'Does not meet minimum requirements' : null
+        });
+      }
+    });
+
+    console.log(`✅ Created ${created.length} collaboration applications, skipped ${skipped.length}`);
+    return { created: created.length, skipped: skipped.length, ids: created };
+  }
+
+  // ============================================
+  // L) Matching Results
+  // ============================================
+  function createMatchingResults(forceReload = false) {
+    console.log('🌱 Creating matching results...');
+    
+    if (typeof PMTwinData === 'undefined' || !PMTwinData.Matches) {
+      console.warn('Matches service not available');
+      return { created: 0, skipped: 0 };
+    }
+
+    const opportunities = PMTwinData.Opportunities.getAll();
+    const users = PMTwinData.Users.getAll();
+    const matches = PMTwinData.Matches.getAll();
+
+    const serviceProvider1 = users.find(u => u.email === 'provider.riyadh@pmtwin.com') || users.find(u => u.role === 'service_provider');
+    const consultant1 = users.find(u => u.email === 'consultant.jeddah@pmtwin.com') || users.find(u => u.role === 'consultant');
+    const professional1 = users.find(u => u.email === 'professional.khobar@pmtwin.com') || users.find(u => u.role === 'professional');
+
+    if (!opportunities || opportunities.length === 0) {
+      console.warn('No opportunities found, skipping matches');
+      return { created: 0, skipped: 0 };
+    }
+
+    const created = [];
+    const skipped = [];
+    const baseDate = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
+
+    function createMatchIfNotExists(matchData) {
+      const exists = matches.some(m => m.id === matchData.id);
+      if (exists && !forceReload) {
+        skipped.push(matchData.id);
+        return null;
+      }
+      if (exists && forceReload) {
+        PMTwinData.Matches.delete(matchData.id);
+      }
+      const match = PMTwinData.Matches.create(matchData);
+      if (match) created.push(match.id);
+      return match;
+    }
+
+    // Create matches for REQUEST_SERVICE opportunities
+    const requestOpps = opportunities.filter(o => o.intent === 'REQUEST_SERVICE' && o.status === 'published');
+    const providers = [serviceProvider1, consultant1, professional1].filter(u => u);
+
+    requestOpps.forEach((opp, index) => {
+      providers.forEach((provider, pIndex) => {
+        if (!provider || provider.id === opp.createdBy) return;
+
+        // Generate match score >80% (threshold)
+        const baseScore = 80 + Math.floor(Math.random() * 20); // 80-100%
+        
+        const matchId = `match_${opp.id}_${provider.id}`;
+        createMatchIfNotExists({
+          id: matchId,
+          projectId: opp.id,
+          opportunityId: opp.id,
+          providerId: provider.id,
+          score: baseScore,
+          criteria: {
+            categoryMatch: 90 + Math.floor(Math.random() * 10),
+            skillsMatch: 85 + Math.floor(Math.random() * 15),
+            experienceMatch: 80 + Math.floor(Math.random() * 20),
+            locationMatch: opp.location?.isRemoteAllowed ? 100 : 70 + Math.floor(Math.random() * 30)
+          },
+          weights: {
+            category: 0.30,
+            skills: 0.40,
+            experience: 0.20,
+            location: 0.10
+          },
+          meetsThreshold: baseScore >= 80,
+          notified: Math.random() > 0.5, // Some notified, some not
+          createdAt: new Date(baseDate.getTime() + (index * 3 + pIndex) * 24 * 60 * 60 * 1000).toISOString()
+        });
+      });
+    });
+
+    console.log(`✅ Created ${created.length} matching results, skipped ${skipped.length}`);
+    return { created: created.length, skipped: skipped.length, ids: created };
+  }
+
+  // ============================================
+  // M) Notifications
+  // ============================================
+  function createNotifications(forceReload = false) {
+    console.log('🌱 Creating notifications...');
+    
+    if (typeof PMTwinData === 'undefined' || !PMTwinData.Notifications) {
+      console.warn('Notifications service not available');
+      return { created: 0, skipped: 0 };
+    }
+
+    const users = PMTwinData.Users.getAll();
+    const opportunities = PMTwinData.Opportunities.getAll();
+    const proposals = PMTwinData.Proposals.getAll();
+    const matches = PMTwinData.Matches?.getAll() || [];
+    const notifications = PMTwinData.Notifications.getAll();
+
+    if (!users || users.length === 0) {
+      console.warn('No users found, skipping notifications');
+      return { created: 0, skipped: 0 };
+    }
+
+    const created = [];
+    const skipped = [];
+    const baseDate = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
+
+    function createNotifIfNotExists(notifData) {
+      const exists = notifications.some(n => n.id === notifData.id);
+      if (exists && !forceReload) {
+        skipped.push(notifData.id);
+        return null;
+      }
+      if (exists && forceReload) {
+        PMTwinData.Notifications.delete(notifData.id);
+      }
+      const notif = PMTwinData.Notifications.create(notifData);
+      if (notif) created.push(notif.id);
+      return notif;
+    }
+
+    // Create notifications for various events
+    users.forEach((user, uIndex) => {
+      // New opportunity matches
+      matches.filter(m => m.providerId === user.id && m.meetsThreshold && !m.notified).forEach((match, mIndex) => {
+        const opp = opportunities.find(o => o.id === match.opportunityId);
+        if (opp) {
+          createNotifIfNotExists({
+            id: `notif_match_${user.id}_${match.id}`,
+            userId: user.id,
+            type: 'opportunity_match',
+            title: 'New Opportunity Match',
+            message: `You have a ${match.score}% match for opportunity: ${opp.title}`,
+            relatedEntityType: 'opportunity',
+            relatedEntityId: opp.id,
+            read: false,
+            createdAt: new Date(baseDate.getTime() + (uIndex * 10 + mIndex) * 24 * 60 * 60 * 1000).toISOString()
+          });
+        }
+      });
+
+      // Proposal status updates
+      proposals.filter(p => p.providerId === user.id || p.receiverId === user.id).forEach((proposal, pIndex) => {
+        if (proposal.status === 'ACCEPTED' || proposal.status === 'FINAL_ACCEPTED') {
+          createNotifIfNotExists({
+            id: `notif_proposal_${user.id}_${proposal.id}`,
+            userId: user.id,
+            type: 'proposal_accepted',
+            title: 'Proposal Accepted',
+            message: `Your proposal has been accepted for opportunity: ${proposal.opportunityId}`,
+            relatedEntityType: 'proposal',
+            relatedEntityId: proposal.id,
+            read: false,
+            createdAt: new Date(baseDate.getTime() + (uIndex * 10 + pIndex + 5) * 24 * 60 * 60 * 1000).toISOString()
+          });
+        }
+      });
+
+      // New opportunities (for project leads)
+      if (user.role === 'project_lead' || user.role === 'beneficiary') {
+        opportunities.filter(o => o.createdBy === user.id && o.status === 'published').slice(0, 2).forEach((opp, oIndex) => {
+          createNotifIfNotExists({
+            id: `notif_opp_created_${user.id}_${opp.id}`,
+            userId: user.id,
+            type: 'opportunity_published',
+            title: 'Opportunity Published',
+            message: `Your opportunity "${opp.title}" has been published successfully`,
+            relatedEntityType: 'opportunity',
+            relatedEntityId: opp.id,
+            read: false,
+            createdAt: new Date(baseDate.getTime() + (uIndex * 10 + oIndex) * 24 * 60 * 60 * 1000).toISOString()
+          });
+        });
+      }
+    });
+
+    console.log(`✅ Created ${created.length} notifications, skipped ${skipped.length}`);
+    return { created: created.length, skipped: skipped.length, ids: created };
+  }
+
+  // ============================================
+  // N) Admin Test Data
+  // ============================================
+  function createAdminTestData(forceReload = false) {
+    console.log('🌱 Creating admin test data...');
+    
+    if (typeof PMTwinData === 'undefined') {
+      console.warn('PMTwinData not available');
+      return { created: 0, skipped: 0 };
+    }
+
+    const users = PMTwinData.Users.getAll();
+    const opportunities = PMTwinData.Opportunities.getAll();
+    const baseDate = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
+
+    // Create pending users for vetting
+    const pendingUsers = [];
+    const userRoles = ['project_lead', 'supplier', 'service_provider', 'consultant', 'professional'];
+    
+    userRoles.forEach((role, index) => {
+      const pendingUser = PMTwinData.Users.create({
+        email: `pending.${role}@pmtwin.com`,
+        password: btoa('Pending123'),
+        role: role,
+        userType: role === 'project_lead' ? 'beneficiary' : role === 'professional' ? 'sub_contractor' : 'vendor_corporate',
+        onboardingStage: 'pending',
+        emailVerified: false,
+        mobile: `+96650${1000000 + index}`,
+        mobileVerified: false,
+        identity: role === 'project_lead' ? {
+          legalEntityName: `Pending ${role} Company`,
+          crNumber: `CR-PENDING-${index}`,
+          crVerified: false
+        } : {
+          fullLegalName: `Pending ${role} User`,
+          nationalId: `${1000000000 + index}`,
+          nationalIdVerified: false
+        },
+        profile: {
+          name: `Pending ${role}`,
+          status: 'pending',
+          createdAt: new Date(baseDate.getTime() + index * 24 * 60 * 60 * 1000).toISOString()
+        },
+        createdAt: new Date(baseDate.getTime() + index * 24 * 60 * 60 * 1000).toISOString()
+      });
+      if (pendingUser) pendingUsers.push(pendingUser.id);
+    });
+
+    // Create draft/pending opportunities for moderation
+    const pendingOpps = [];
+    const projectLeadA = users.find(u => u.email === 'project.lead.riyadh@pmtwin.com') || users.find(u => u.role === 'project_lead');
+    
+    if (projectLeadA) {
+      ['draft', 'pending'].forEach((status, index) => {
+        const opp = PMTwinData.Opportunities.create({
+          id: `opp_pending_${status}_${index}`,
+          title: `Pending Opportunity ${index + 1} - ${status}`,
+          description: `This is a ${status} opportunity awaiting moderation`,
+          intent: 'REQUEST_SERVICE',
+          model: '1',
+          subModel: '1.1',
+          modelName: 'Task-Based Engagement',
+          category: 'Project-Based Collaboration',
+          status: status,
+          skills: ['Test Skill'],
+          location: {
+            country: 'Saudi Arabia',
+            city: 'Riyadh',
+            isRemoteAllowed: false
+          },
+          createdBy: projectLeadA.id,
+          createdAt: new Date(baseDate.getTime() + (10 + index) * 24 * 60 * 60 * 1000).toISOString()
+        });
+        if (opp) pendingOpps.push(opp.id);
+      });
+    }
+
+    console.log(`✅ Created ${pendingUsers.length} pending users, ${pendingOpps.length} pending opportunities`);
+    return { 
+      created: pendingUsers.length + pendingOpps.length, 
+      skipped: 0,
+      pendingUsers: pendingUsers.length,
+      pendingOpportunities: pendingOpps.length
+    };
+  }
+
   // Export
   if (typeof window !== 'undefined') {
     window.GoldenSeedData = {
@@ -4718,7 +5897,12 @@
       createEngagements: createGoldenEngagements,
       createMilestones: createGoldenMilestones,
       createServiceProviderProfiles: createGoldenServiceProviderProfiles,
-      createBeneficiaries: createGoldenBeneficiaries
+      createBeneficiaries: createGoldenBeneficiaries,
+      createCollaborationOpportunities: createCollaborationOpportunitiesForAllModels,
+      createCollaborationApplications: createCollaborationApplications,
+      createMatchingResults: createMatchingResults,
+      createNotifications: createNotifications,
+      createAdminTestData: createAdminTestData
     };
   }
 

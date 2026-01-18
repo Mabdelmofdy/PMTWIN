@@ -843,6 +843,10 @@
     const isBarter = paymentMode === 'BARTER';
     const isHybrid = paymentMode === 'HYBRID';
     const isCash = paymentMode === 'CASH';
+    const isEquity = paymentMode === 'EQUITY';
+    const isProfitSharing = paymentMode === 'PROFIT_SHARING';
+    const isEquity = paymentMode === 'EQUITY';
+    const isProfitSharing = paymentMode === 'PROFIT_SHARING';
     
     return `
       <div class="wizard-panel">
@@ -900,6 +904,48 @@
                 </div>
               </label>
               
+              <!-- Equity Option -->
+              <label class="payment-mode-card ${isEquity ? 'selected' : ''}" 
+                     style="border: 2px solid ${isEquity ? 'var(--color-primary)' : 'var(--border-color)'}; 
+                            border-radius: 12px; padding: 1.5rem; cursor: pointer; 
+                            background: ${isEquity ? 'var(--color-primary-light, #eff6ff)' : 'var(--bg-primary, #ffffff)'};
+                            transition: all 0.3s ease; position: relative;">
+                <input type="radio" name="paymentMode" value="EQUITY" ${isEquity ? 'checked' : ''} 
+                       onchange="opportunityCreate.updatePaymentMode('EQUITY')"
+                       style="position: absolute; opacity: 0; width: 0; height: 0;">
+                <div style="text-align: center;">
+                  <div style="font-size: 2.5rem; margin-bottom: 0.75rem; color: ${isEquity ? 'var(--color-primary)' : 'var(--text-secondary)'};">
+                    <i class="ph ph-chart-line-up"></i>
+                  </div>
+                  <div style="font-weight: 600; font-size: 1.1rem; margin-bottom: 0.5rem; color: var(--text-primary);">Equity</div>
+                  <div style="font-size: 0.875rem; color: var(--text-secondary); line-height: 1.4;">
+                    Equity stake with vesting
+                  </div>
+                  ${isEquity ? '<div style="position: absolute; top: 0.75rem; right: 0.75rem; color: var(--color-primary);"><i class="ph ph-check-circle" style="font-size: 1.25rem;"></i></div>' : ''}
+                </div>
+              </label>
+              
+              <!-- Profit-Sharing Option -->
+              <label class="payment-mode-card ${isProfitSharing ? 'selected' : ''}" 
+                     style="border: 2px solid ${isProfitSharing ? 'var(--color-primary)' : 'var(--border-color)'}; 
+                            border-radius: 12px; padding: 1.5rem; cursor: pointer; 
+                            background: ${isProfitSharing ? 'var(--color-primary-light, #eff6ff)' : 'var(--bg-primary, #ffffff)'};
+                            transition: all 0.3s ease; position: relative;">
+                <input type="radio" name="paymentMode" value="PROFIT_SHARING" ${isProfitSharing ? 'checked' : ''} 
+                       onchange="opportunityCreate.updatePaymentMode('PROFIT_SHARING')"
+                       style="position: absolute; opacity: 0; width: 0; height: 0;">
+                <div style="text-align: center;">
+                  <div style="font-size: 2.5rem; margin-bottom: 0.75rem; color: ${isProfitSharing ? 'var(--color-primary)' : 'var(--text-secondary)'};">
+                    <i class="ph ph-share-network"></i>
+                  </div>
+                  <div style="font-weight: 600; font-size: 1.1rem; margin-bottom: 0.5rem; color: var(--text-primary);">Profit-Sharing</div>
+                  <div style="font-size: 0.875rem; color: var(--text-secondary); line-height: 1.4;">
+                    Share of profits
+                  </div>
+                  ${isProfitSharing ? '<div style="position: absolute; top: 0.75rem; right: 0.75rem; color: var(--color-primary);"><i class="ph ph-check-circle" style="font-size: 1.25rem;"></i></div>' : ''}
+                </div>
+              </label>
+              
               <!-- Hybrid Option -->
               <label class="payment-mode-card ${isHybrid ? 'selected' : ''}" 
                      style="border: 2px solid ${isHybrid ? 'var(--color-primary)' : 'var(--border-color)'}; 
@@ -924,6 +970,82 @@
           </div>
           
           <!-- Dynamic Fields Section - Enhanced with Animation -->
+          ${isEquity ? `
+            <div id="equityDetailsSection" class="equity-details-section" 
+                 style="border-top: 2px solid var(--border-color); padding-top: 2rem; margin-top: 2rem; 
+                        animation: slideDown 0.3s ease;">
+              <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 1.5rem;">
+                <i class="ph ph-chart-line-up" style="font-size: 1.5rem; color: var(--color-primary);"></i>
+                <h3 class="subsection-title" style="margin: 0;">Equity Details</h3>
+              </div>
+              
+              <div class="form-group" style="margin-bottom: 1.5rem;">
+                <label for="equityPercentage" class="form-label">Equity Percentage (%) *</label>
+                <input type="number" id="equityPercentage" class="form-control" 
+                       min="0" max="100" step="0.01"
+                       value="${formData.equityDetails?.percentage || 0}"
+                       onchange="opportunityCreate.updateEquityDetails('percentage', this.value)">
+              </div>
+              
+              <div class="form-group" style="margin-bottom: 1.5rem;">
+                <label for="equityValuation" class="form-label">Company Valuation (SAR)</label>
+                <input type="number" id="equityValuation" class="form-control" 
+                       min="0" step="1000"
+                       value="${formData.equityDetails?.valuation || 0}"
+                       onchange="opportunityCreate.updateEquityDetails('valuation', this.value)">
+              </div>
+              
+              <div class="form-group" style="margin-bottom: 1.5rem;">
+                <label for="vestingType" class="form-label">Vesting Schedule</label>
+                <select id="vestingType" class="form-control" 
+                        onchange="opportunityCreate.updateEquityDetails('vestingType', this.value)">
+                  <option value="Immediate" ${formData.equityDetails?.vestingSchedule?.type === 'Immediate' ? 'selected' : ''}>Immediate</option>
+                  <option value="Cliff" ${formData.equityDetails?.vestingSchedule?.type === 'Cliff' ? 'selected' : ''}>Cliff</option>
+                  <option value="Gradual" ${formData.equityDetails?.vestingSchedule?.type === 'Gradual' ? 'selected' : ''}>Gradual</option>
+                  <option value="Milestone" ${formData.equityDetails?.vestingSchedule?.type === 'Milestone' ? 'selected' : ''}>Milestone-Based</option>
+                </select>
+              </div>
+            </div>
+          ` : ''}
+          
+          ${isProfitSharing ? `
+            <div id="profitSharingDetailsSection" class="profit-sharing-details-section" 
+                 style="border-top: 2px solid var(--border-color); padding-top: 2rem; margin-top: 2rem; 
+                        animation: slideDown 0.3s ease;">
+              <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 1.5rem;">
+                <i class="ph ph-share-network" style="font-size: 1.5rem; color: var(--color-primary);"></i>
+                <h3 class="subsection-title" style="margin: 0;">Profit-Sharing Details</h3>
+              </div>
+              
+              <div class="form-group" style="margin-bottom: 1.5rem;">
+                <label for="profitSharingMethod" class="form-label">Calculation Method *</label>
+                <select id="profitSharingMethod" class="form-control" 
+                        onchange="opportunityCreate.updateProfitSharingDetails('method', this.value)">
+                  <option value="Percentage" ${formData.profitSharingDetails?.calculationMethod === 'Percentage' ? 'selected' : ''}>Percentage</option>
+                  <option value="Fixed" ${formData.profitSharingDetails?.calculationMethod === 'Fixed' ? 'selected' : ''}>Fixed Amount</option>
+                  <option value="Tiered" ${formData.profitSharingDetails?.calculationMethod === 'Tiered' ? 'selected' : ''}>Tiered</option>
+                  <option value="Performance" ${formData.profitSharingDetails?.calculationMethod === 'Performance' ? 'selected' : ''}>Performance-Based</option>
+                </select>
+              </div>
+              
+              <div class="form-group" style="margin-bottom: 1.5rem;">
+                <label for="profitSharingFrequency" class="form-label">Distribution Frequency</label>
+                <select id="profitSharingFrequency" class="form-control" 
+                        onchange="opportunityCreate.updateProfitSharingDetails('frequency', this.value)">
+                  <option value="Monthly" ${formData.profitSharingDetails?.distributionFrequency === 'Monthly' ? 'selected' : ''}>Monthly</option>
+                  <option value="Quarterly" ${formData.profitSharingDetails?.distributionFrequency === 'Quarterly' ? 'selected' : ''}>Quarterly</option>
+                  <option value="Annually" ${formData.profitSharingDetails?.distributionFrequency === 'Annually' ? 'selected' : ''}>Annually</option>
+                </select>
+              </div>
+              
+              <div class="alert alert-info" style="margin-top: 1rem;">
+                <p style="margin: 0; font-size: 0.875rem;">
+                  <i class="ph ph-info"></i> Profit-sharing shares will be configured during negotiation.
+                </p>
+              </div>
+            </div>
+          ` : ''}
+          
           ${isBarter || isHybrid ? `
             <div id="barterDetailsSection" class="barter-details-section" 
                  style="border-top: 2px solid var(--border-color); padding-top: 2rem; margin-top: 2rem; 
@@ -1186,6 +1308,17 @@
 
     const getPaymentModeLabel = (mode) => {
       const labels = {
+        'CASH': 'Cash',
+        'EQUITY': 'Equity',
+        'PROFIT_SHARING': 'Profit-Sharing',
+        'BARTER': 'Barter',
+        'HYBRID': 'Hybrid'
+      };
+      return labels[mode] || mode;
+    };
+    
+    const getPaymentModeLabelOld = (mode) => {
+      const labels = {
         'CASH': 'Cash Payment',
         'BARTER': 'Barter Exchange',
         'HYBRID': 'Hybrid (Barter + Cash)'
@@ -1390,6 +1523,11 @@
               <div>
                 <p style="margin-bottom: 0.25rem; font-size: 0.875rem; color: var(--text-secondary);">Payment Mode</p>
                 <p><span class="badge badge-success" style="font-size: 0.875rem; padding: 0.5rem 0.75rem;">${getPaymentModeLabel(formData.paymentTerms.mode)}</span></p>
+                ${formData.paymentTerms.mode === 'BARTER' && formData.intent === 'REQUEST_SERVICE' ? `
+                  <p style="margin-top: 0.5rem; font-size: 0.875rem; color: var(--text-secondary);">
+                    <i class="ph ph-info"></i> After creating this need, you can use the Offer Register to link compatible offers.
+                  </p>
+                ` : ''}
               </div>
               ${formData.paymentTerms.barterRule ? `
                 <div>
@@ -1552,8 +1690,49 @@
       formData.paymentTerms.barterRule = null;
       formData.paymentTerms.cashSettlement = 0;
       formData.paymentTerms.acknowledgedDifference = false;
-    } else if (!formData.paymentTerms.barterRule) {
-      formData.paymentTerms.barterRule = 'ALLOW_DIFFERENCE_CASH';
+      formData.equityDetails = null;
+      formData.profitSharingDetails = null;
+    } else if (mode === 'EQUITY') {
+      formData.paymentTerms.barterRule = null;
+      formData.paymentTerms.cashSettlement = 0;
+      formData.paymentTerms.acknowledgedDifference = false;
+      formData.profitSharingDetails = null;
+      // Initialize equity details if not present
+      if (!formData.equityDetails) {
+        formData.equityDetails = {
+          percentage: 0,
+          valuation: 0,
+          currency: 'SAR',
+          vestingSchedule: { type: 'Immediate' }
+        };
+      }
+    } else if (mode === 'PROFIT_SHARING') {
+      formData.paymentTerms.barterRule = null;
+      formData.paymentTerms.cashSettlement = 0;
+      formData.paymentTerms.acknowledgedDifference = false;
+      formData.equityDetails = null;
+      // Initialize profit-sharing details if not present
+      if (!formData.profitSharingDetails) {
+        formData.profitSharingDetails = {
+          calculationMethod: 'Percentage',
+          shares: [],
+          currency: 'SAR',
+          distributionFrequency: 'Annually'
+        };
+      }
+    } else if (mode === 'BARTER' || mode === 'HYBRID') {
+      if (!formData.paymentTerms.barterRule) {
+        formData.paymentTerms.barterRule = 'ALLOW_DIFFERENCE_CASH';
+      }
+      formData.equityDetails = null;
+      formData.profitSharingDetails = null;
+      
+      // BRD Section 14.3: Offer Register opens when Barter is selected
+      // Show option to open Offer Register after opportunity is created
+      if (mode === 'BARTER' && formData.intent === 'REQUEST_SERVICE') {
+        // Note: Offer Register will be accessible after opportunity creation
+        // We'll add a button/link in the review step or after creation
+      }
     }
     renderWizard();
   }
@@ -1584,6 +1763,39 @@
   // ============================================
   function updateAcknowledgedDifference(acknowledged) {
     formData.paymentTerms.acknowledgedDifference = acknowledged;
+  }
+
+  // ============================================
+  // Equity Details Update
+  // ============================================
+  function updateEquityDetails(field, value) {
+    if (!formData.equityDetails) {
+      formData.equityDetails = {};
+    }
+    if (field === 'percentage') {
+      formData.equityDetails.percentage = parseFloat(value) || 0;
+    } else if (field === 'valuation') {
+      formData.equityDetails.valuation = parseFloat(value) || 0;
+    } else if (field === 'vestingType') {
+      if (!formData.equityDetails.vestingSchedule) {
+        formData.equityDetails.vestingSchedule = {};
+      }
+      formData.equityDetails.vestingSchedule.type = value;
+    }
+  }
+
+  // ============================================
+  // Profit-Sharing Details Update
+  // ============================================
+  function updateProfitSharingDetails(field, value) {
+    if (!formData.profitSharingDetails) {
+      formData.profitSharingDetails = {};
+    }
+    if (field === 'method') {
+      formData.profitSharingDetails.calculationMethod = value;
+    } else if (field === 'frequency') {
+      formData.profitSharingDetails.distributionFrequency = value;
+    }
   }
 
   // ============================================
@@ -2755,25 +2967,77 @@
 
       let opportunity = null;
 
-      // Use OpportunityStore if available, otherwise fallback to PMTwinData
-      if (typeof window.OpportunityStore !== 'undefined') {
+      // Save to PMTwinData first (persistent storage), then sync to OpportunityStore
+      if (typeof PMTwinData !== 'undefined' && PMTwinData.Opportunities) {
+        // Ensure proper field mapping for PMTwinData
+        const pmtwinData = {
+          ...opportunityData,
+          createdBy: opportunityData.createdByUserId || opportunityData.createdBy,
+          creatorId: opportunityData.createdByUserId || opportunityData.createdBy,
+          skillsTags: opportunityData.skillsTags || [],
+          paymentTerms: opportunityData.paymentTerms || { mode: 'CASH', type: 'CASH' },
+          equityDetails: formData.equityDetails || null,
+          profitSharingDetails: formData.profitSharingDetails || null,
+          linkedOffers: [],
+          matchingModel: null
+        };
+        opportunity = PMTwinData.Opportunities.create(pmtwinData);
+        console.log('[OpportunityCreate] Created in PMTwinData:', opportunity?.id);
+        
+        // Also sync to OpportunityStore for backward compatibility
+        if (opportunity && typeof window.OpportunityStore !== 'undefined') {
+          try {
+            const storeOpp = window.OpportunityStore.createOpportunity({
+              ...opportunityData,
+              id: opportunity.id // Use same ID
+            });
+            console.log('[OpportunityCreate] Synced to OpportunityStore:', storeOpp?.id);
+          } catch (e) {
+            console.warn('[OpportunityCreate] Could not sync to OpportunityStore:', e);
+          }
+        }
+      } else if (typeof window.OpportunityStore !== 'undefined') {
+        // Fallback to OpportunityStore if PMTwinData not available
         opportunity = window.OpportunityStore.createOpportunity(opportunityData);
-      } else if (typeof PMTwinData !== 'undefined' && PMTwinData.Opportunities) {
-        opportunity = PMTwinData.Opportunities.create(opportunityData);
+        console.warn('[OpportunityCreate] Using OpportunityStore (not persistent)');
       } else {
         alert('Opportunities service not available');
         return;
       }
       
       if (opportunity) {
-        // If status is PUBLISHED, publish it
+        // BRD Section 14.3: If Barter mode selected for Need, offer to open Offer Register
+        const isBarterNeed = (formData.paymentTerms.mode === 'BARTER' || formData.paymentTerms.mode === 'Barter') && 
+                            formData.intent === 'REQUEST_SERVICE';
+        
+        // If status is PUBLISHED, publish it in both stores
         if (status === 'published' || status === 'PUBLISHED') {
+          if (typeof PMTwinData !== 'undefined' && PMTwinData.Opportunities) {
+            PMTwinData.Opportunities.update(opportunity.id, { status: 'PUBLISHED' });
+          }
           if (typeof window.OpportunityStore !== 'undefined') {
             window.OpportunityStore.publishOpportunity(opportunity.id);
           }
         }
 
-        alert('Opportunity created successfully!');
+        // BRD Section 14.3: Offer Register opens when Barter is selected
+        if (isBarterNeed) {
+          const openRegister = confirm('Opportunity created successfully!\n\nWould you like to open the Offer Register to link compatible offers?');
+          if (openRegister) {
+            // Redirect to Offer Register
+            if (typeof window.UrlHelper !== 'undefined') {
+              const registerUrl = window.UrlHelper.buildUrlWithQuery('pages/barter/offer-register/index.html', { needId: opportunity.id });
+              window.location.href = registerUrl;
+            } else {
+              const basePath = getBasePath();
+              window.location.href = `${basePath}pages/barter/offer-register/index.html?needId=${opportunity.id}`;
+            }
+            return;
+          }
+        } else {
+          alert('Opportunity created successfully!');
+        }
+        
         // Redirect to opportunity details
         if (typeof window.UrlHelper !== 'undefined') {
           const detailsUrl = window.UrlHelper.buildUrlWithQuery('pages/opportunities/details.html', { id: opportunity.id });
@@ -2947,6 +3211,8 @@
     updateBarterRule,
     updateCashSettlement,
     updateAcknowledgedDifference,
+    updateEquityDetails,
+    updateProfitSharingDetails,
     updateBasicInfo,
     updateLocation,
     onCountryChange,

@@ -341,6 +341,38 @@
       "destination": "/pages/admin-reports/index.html"
     },
     {
+      "source": "/admin/models-management",
+      "destination": "/pages/admin/models-management/index.html"
+    },
+    {
+      "source": "/admin/models-management/",
+      "destination": "/pages/admin/models-management/index.html"
+    },
+    {
+      "source": "/admin/users-management",
+      "destination": "/pages/admin/users-management/index.html"
+    },
+    {
+      "source": "/admin/users-management/",
+      "destination": "/pages/admin/users-management/index.html"
+    },
+    {
+      "source": "/admin-users-management",
+      "destination": "/pages/admin/users-management/index.html"
+    },
+    {
+      "source": "/admin-users-management/",
+      "destination": "/pages/admin/users-management/index.html"
+    },
+    {
+      "source": "/admin/settings",
+      "destination": "/pages/admin/settings/index.html"
+    },
+    {
+      "source": "/admin/settings/",
+      "destination": "/pages/admin/settings/index.html"
+    },
+    {
       "source": "/service-providers",
       "destination": "/pages/service-providers/index.html"
     },

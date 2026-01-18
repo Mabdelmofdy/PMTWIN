@@ -6,7 +6,7 @@
     <!-- Very permissive CSP for local development - MUST be first to prevent CSP errors -->
     <meta http-equiv="Content-Security-Policy" content="default-src * 'unsafe-inline' 'unsafe-eval' data: blob:; connect-src * 'unsafe-inline' 'unsafe-eval' ws: wss: http://127.0.0.1:* http://localhost:*; script-src * 'unsafe-inline' 'unsafe-eval'; style-src * 'unsafe-inline'; font-src * data:; img-src * data: blob:; frame-src *; object-src *; media-src *;">
     <title>User Management - PMTwin Admin</title>
-    <link rel="stylesheet" href="../../../assets/css/main.css">
+    <link rel="stylesheet" href="../../assets/css/main.css">
     <script>
         // CRITICAL: Set CSP via meta tag immediately to prevent browser default CSP
         (function() {
@@ -223,31 +223,31 @@
     </main>
 
     <!-- Configuration (must load first) -->
-    <script src="../../../src/config/config.js"></script>
+    <script src="../../src/config/config.js"></script>
     
     <!-- API Layer (for future Java backend integration) -->
-    <script src="../../../src/core/api/api-client.js"></script>
-    <script src="../../../src/core/api/api-service.js"></script>
+    <script src="../../src/core/api/api-client.js"></script>
+    <script src="../../src/core/api/api-service.js"></script>
     
     <!-- Core Scripts -->
-    <script src="../../../src/core/data/golden-seed-data.js"></script>
-    <script src="../../../src/core/data/data.js"></script>
-    <script src="../../../src/core/auth/auth.js"></script>
-    <script src="../../../src/core/auth/auth-check.js"></script>
-    <script src="../../../src/utils/demo-credentials.js"></script>
-    <script src="../../../src/services/services-loader.js"></script>
-    <script src="../../../data/data-loader.js"></script>
+    <script src="../../src/core/data/golden-seed-data.js"></script>
+    <script src="../../src/core/data/data.js"></script>
+    <script src="../../src/core/auth/auth.js"></script>
+    <script src="../../src/core/auth/auth-check.js"></script>
+    <script src="../../src/utils/demo-credentials.js"></script>
+    <script src="../../src/services/services-loader.js"></script>
+    <script src="../../data/data-loader.js"></script>
     
     <!-- Layout System (automatically includes sidebar and navbar) -->
-    <script src="../../../src/core/layout/layout.js"></script>
-    <script src="../../../src/core/layout/navigation.js"></script>
-    <script src="../../../src/core/init/app-init.js"></script>
+    <script src="../../src/core/layout/layout.js"></script>
+    <script src="../../src/core/layout/navigation.js"></script>
+    <script src="../../src/core/init/app-init.js"></script>
     
     <!-- Admin Services -->
-    <script src="../../../src/services/admin/admin-service.js"></script>
+    <script src="../../src/services/admin/admin-service.js"></script>
     
     <!-- Component Scripts -->
-    <script src="../../../features/admin/admin-users-management.js"></script>
+    <script src="../../features/admin/admin-users-management.js"></script>
     
     <!-- Initialize Component -->
     <script>
@@ -265,4 +265,3 @@
     </script>
 </body>
 </html>
-

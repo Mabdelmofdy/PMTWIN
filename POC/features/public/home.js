@@ -26,51 +26,55 @@
   }
 
   function loadHomeContent() {
-    // Load about content
-    if (typeof Renderer !== 'undefined' && Renderer.renderAbout) {
-      Renderer.renderAbout();
-    } else {
+    try {
+      // Load about content
       const aboutContent = document.getElementById('aboutContent');
-      if (aboutContent) {
-        aboutContent.innerHTML = `
-          <p style="text-align: center; max-width: 800px; margin: 0 auto;">
-            PMTwin is a comprehensive platform designed to digitize the lifecycle of construction 
-            collaboration in the MENA region. We facilitate data-driven matching and flexible 
-            resource exchange.
-          </p>
-        `;
+      if (aboutContent && (!aboutContent.innerHTML.trim() || aboutContent.innerHTML.includes('will be loaded dynamically'))) {
+        if (typeof Renderer !== 'undefined' && Renderer.renderAbout) {
+          Renderer.renderAbout();
+        } else {
+          aboutContent.innerHTML = `
+            <p style="text-align: center; max-width: 800px; margin: 0 auto;">
+              PMTwin is a comprehensive platform designed to digitize the lifecycle of construction 
+              collaboration in the MENA region. We facilitate data-driven matching and flexible 
+              resource exchange.
+            </p>
+          `;
+        }
       }
-    }
 
-    // Load services content
-    if (typeof Renderer !== 'undefined' && Renderer.renderServices) {
-      Renderer.renderServices();
-    } else {
+      // Load services content
       const servicesContent = document.getElementById('servicesContent');
-      if (servicesContent) {
-        servicesContent.innerHTML = `
-          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 2rem;">
-            <div class="card">
-              <div class="card-body">
-                <h3>Project Discovery</h3>
-                <p>Browse active mega-projects and find opportunities</p>
+      if (servicesContent && (!servicesContent.innerHTML.trim() || servicesContent.innerHTML.includes('will be loaded dynamically'))) {
+        if (typeof Renderer !== 'undefined' && Renderer.renderServices) {
+          Renderer.renderServices();
+        } else {
+          servicesContent.innerHTML = `
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 2rem;">
+              <div class="card">
+                <div class="card-body">
+                  <h3>Project Discovery</h3>
+                  <p>Browse active mega-projects and find opportunities</p>
+                </div>
+              </div>
+              <div class="card">
+                <div class="card-body">
+                  <h3>Smart Matching</h3>
+                  <p>AI-powered matching algorithm connects you with the right partners</p>
+                </div>
+              </div>
+              <div class="card">
+                <div class="card-body">
+                  <h3>Collaboration Models</h3>
+                  <p>Choose from various collaboration models including SPVs and barter</p>
+                </div>
               </div>
             </div>
-            <div class="card">
-              <div class="card-body">
-                <h3>Smart Matching</h3>
-                <p>AI-powered matching algorithm connects you with the right partners</p>
-              </div>
-            </div>
-            <div class="card">
-              <div class="card-body">
-                <h3>Collaboration Models</h3>
-                <p>Choose from various collaboration models including SPVs and barter</p>
-              </div>
-            </div>
-          </div>
-        `;
+          `;
+        }
       }
+    } catch (e) {
+      console.error('Error loading home content:', e);
     }
 
     // Load statistics
@@ -105,12 +109,20 @@
     };
 
     // Try to get real data if available
-    if (typeof PMTwinData !== 'undefined') {
+    if (typeof PMTwinData !== 'undefined' && PMTwinData.Projects && PMTwinData.Users) {
       try {
-        stats.activeProjects = PMTwinData.Projects.getActive().length;
-        stats.totalUsers = PMTwinData.Users.getAll().length;
-        stats.totalProposals = PMTwinData.Proposals.getAll().length;
-        stats.activeCollaborations = PMTwinData.CollaborationOpportunities.getAll().filter(o => o.status === 'active').length;
+        if (PMTwinData.Projects && typeof PMTwinData.Projects.getActive === 'function') {
+          stats.activeProjects = PMTwinData.Projects.getActive().length;
+        }
+        if (PMTwinData.Users && typeof PMTwinData.Users.getAll === 'function') {
+          stats.totalUsers = PMTwinData.Users.getAll().length;
+        }
+        if (PMTwinData.Proposals && typeof PMTwinData.Proposals.getAll === 'function') {
+          stats.totalProposals = PMTwinData.Proposals.getAll().length;
+        }
+        if (PMTwinData.CollaborationOpportunities && typeof PMTwinData.CollaborationOpportunities.getAll === 'function') {
+          stats.activeCollaborations = PMTwinData.CollaborationOpportunities.getAll().filter(o => o.status === 'active').length;
+        }
       } catch (e) {
         console.warn('Error loading statistics:', e);
       }
@@ -302,10 +314,18 @@
     const container = document.getElementById('projectsPreview');
     if (!container) return;
 
-    // Check if user is authenticated
-    const isAuthenticated = typeof PMTwinData !== 'undefined' && 
-                           typeof PMTwinData.Sessions !== 'undefined' && 
-                           PMTwinData.Sessions.getCurrentUser() !== null;
+    // Check if user is authenticated (with error handling)
+    let isAuthenticated = false;
+    try {
+      isAuthenticated = typeof PMTwinData !== 'undefined' && 
+                       typeof PMTwinData.Sessions !== 'undefined' && 
+                       PMTwinData.Sessions && 
+                       typeof PMTwinData.Sessions.getCurrentUser === 'function' &&
+                       PMTwinData.Sessions.getCurrentUser() !== null;
+    } catch (e) {
+      console.warn('Error checking authentication:', e);
+      isAuthenticated = false;
+    }
 
     // For public users, show featured projects from portfolio data
     if (!isAuthenticated || typeof PMTwinData === 'undefined') {
@@ -388,6 +408,9 @@
     }
 
     try {
+      if (!PMTwinData || !PMTwinData.Projects || typeof PMTwinData.Projects.getActive !== 'function') {
+        throw new Error('Projects service not available');
+      }
       const projects = PMTwinData.Projects.getActive().slice(0, 6);
       
       if (projects.length === 0) {

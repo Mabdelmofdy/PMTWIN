@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Offer Register - PMTwin</title>
+  <link rel="stylesheet" href="../../../assets/css/app.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/phosphor-icons@1.4.2/src/css/phosphor.css">
+</head>
+<body>
+  <div id="app-layout">
+    <!-- Layout will be injected here -->
+  </div>
+
+  <main class="main-content" style="padding: 2rem;">
+    <div class="container">
+      <div class="page-header" style="margin-bottom: 2rem;">
+        <h1><i class="ph ph-list-bullets"></i> Offer Register</h1>
+        <p style="color: var(--text-secondary); margin-top: 0.5rem;">
+          Link offers to your need for barter transactions. Barter deals require bidirectional matching.
+        </p>
+      </div>
+
+      <div id="offerRegister">
+        <!-- Offer Register will be rendered here -->
+      </div>
+    </div>
+  </main>
+
+  <!-- Scripts -->
+  <script src="../../../src/core/data/data.js"></script>
+  <script src="../../../src/business-logic/payment/barter-settlement.js"></script>
+  <script src="../../../src/core/matching/semantic-mirroring.js"></script>
+  <script src="../../../src/services/opportunities/deal-linking-service.js"></script>
+  <script src="../../../src/services/barter/offer-register-service.js"></script>
+  <script src="../../../features/barter/offer-register.js"></script>
+  
+  <script>
+    // Initialize Offer Register
+    (function() {
+      // Get need ID from URL
+      const urlParams = new URLSearchParams(window.location.search);
+      const needId = urlParams.get('needId');
+      
+      if (!needId) {
+        document.getElementById('offerRegister').innerHTML = `
+          <div class="alert alert-error">
+            <p><strong>Error:</strong> Need ID is required.</p>
+            <p style="margin-top: 0.5rem;">
+              <a href="../../opportunities/" class="btn btn-secondary">Back to Opportunities</a>
+            </p>
+          </div>
+        `;
+        return;
+      }
+
+      // Load layout
+      if (typeof window.loadLayout !== 'undefined') {
+        window.loadLayout();
+      }
+
+      // Initialize Offer Register
+      if (typeof window.offerRegister !== 'undefined') {
+        window.offerRegister.init(needId);
+      } else {
+        console.error('Offer Register component not loaded');
+      }
+    })();
+  </script>
+</body>
+</html>

@@ -52,6 +52,15 @@
                 </div>
             </div>
 
+            <!-- Linked Offers Section -->
+            <div class="content-section" id="linkedOffersSection" style="display: none;">
+                <div class="card enhanced-card">
+                    <div class="card-body">
+                        <!-- Linked offers will be rendered here by opportunity-details.js -->
+                    </div>
+                </div>
+            </div>
+
             <!-- Proposals Section -->
             <div class="content-section">
                 <div class="card enhanced-card">
@@ -126,6 +135,25 @@
     <script src="../../src/core/renderer/renderer.js"></script>
     
     <!-- Feature Scripts -->
+    <!-- Payment Engines -->
+    <script src="../../src/business-logic/payment/barter-settlement.js"></script>
+    <script src="../../src/business-logic/payment/hybrid-payment.js"></script>
+    <script src="../../src/business-logic/payment/equity-payment.js"></script>
+    <script src="../../src/business-logic/payment/profit-sharing-payment.js"></script>
+    
+    <!-- Matching & Reputation -->
+    <script src="../../src/business-logic/reputation/reputation-service.js"></script>
+    <script src="../../src/core/matching/semantic-mirroring.js"></script>
+    <script src="../../src/business-logic/matching/matching-models.js"></script>
+    <script src="../../src/core/matching/matching-model-router.js"></script>
+    
+    <!-- Services -->
+    <script src="../../src/services/opportunities/deal-linking-service.js"></script>
+    <script src="../../src/services/barter/offer-register-service.js"></script>
+    
+    <!-- RABC -->
+    <script src="../../src/business-logic/rbac/rabc-service.js"></script>
+    
     <script src="../../features/opportunities/opportunity-details.js"></script>
     
     <!-- Initialize Component -->

@@ -14,6 +14,8 @@ RewriteRule ^admin-vetting/?$ pages/admin-vetting/index.html [L]
 RewriteRule ^admin-moderation/?$ pages/admin-moderation/index.html [L]
 RewriteRule ^admin-audit/?$ pages/admin-audit/index.html [L]
 RewriteRule ^admin-reports/?$ pages/admin-reports/index.html [L]
+RewriteRule ^admin-users-management/?$ pages/admin/users-management/index.html [L]
+RewriteRule ^admin/users-management/?$ pages/admin/users-management/index.html [L]
 
 # Home route
 RewriteRule ^$ pages/home/index.html [L]

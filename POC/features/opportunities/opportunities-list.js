@@ -136,50 +136,66 @@
     const container = document.getElementById('opportunitiesList');
     if (!container) return;
 
-    // Use OpportunityStore if available, otherwise fallback to PMTwinData
+    // Merge opportunities from both OpportunityStore and PMTwinData
     let opportunities = [];
     let userId = null;
+    const opportunityMap = new Map(); // Use Map to deduplicate by ID
 
-    if (typeof window.OpportunityStore !== 'undefined') {
-      // Use new OpportunityStore
-      opportunities = window.OpportunityStore.getAllOpportunities();
-      console.log('[OpportunitiesList] Loaded opportunities from OpportunityStore:', opportunities.length);
-      
-      // Get current user - try multiple methods
-      try {
-        // Method 1: Check localStorage session
-        const sessionStr = localStorage.getItem('pmtwin_current_user') || localStorage.getItem('pmtwin_session');
-        if (sessionStr) {
-          const session = JSON.parse(sessionStr);
-          userId = session.userId || session.id;
-        }
-        
-        // Method 2: Check window.currentUser
-        if (!userId && typeof window.currentUser !== 'undefined' && window.currentUser) {
-          userId = window.currentUser.userId || window.currentUser.id;
-        }
-        
-        // Method 3: Check PMTwinData if available
-        if (!userId && typeof PMTwinData !== 'undefined' && PMTwinData.Sessions) {
-          const currentUser = PMTwinData.Sessions.getCurrentUser();
-          if (currentUser) {
-            userId = currentUser.id;
-          }
-        }
-        
-        console.log('[OpportunitiesList] Current userId:', userId);
-      } catch (e) {
-        console.error('Error getting current user:', e);
+    // Get current user - try multiple methods
+    try {
+      // Method 1: Check localStorage session
+      const sessionStr = localStorage.getItem('pmtwin_current_user') || localStorage.getItem('pmtwin_session');
+      if (sessionStr) {
+        const session = JSON.parse(sessionStr);
+        userId = session.userId || session.id;
       }
-    } else if (typeof PMTwinData !== 'undefined' && PMTwinData.Opportunities) {
-      // Fallback to PMTwinData
-      const currentUser = PMTwinData.Sessions.getCurrentUser();
-      userId = currentUser?.id;
-      opportunities = PMTwinData.Opportunities.getWithFilters ? 
-        PMTwinData.Opportunities.getWithFilters(currentFilters) : 
-        PMTwinData.Opportunities.getAll();
-    } else {
-      container.innerHTML = '<p class="alert alert-error">Opportunities service not available</p>';
+      
+      // Method 2: Check window.currentUser
+      if (!userId && typeof window.currentUser !== 'undefined' && window.currentUser) {
+        userId = window.currentUser.userId || window.currentUser.id;
+      }
+      
+      // Method 3: Check PMTwinData if available
+      if (!userId && typeof PMTwinData !== 'undefined' && PMTwinData.Sessions) {
+        const currentUser = PMTwinData.Sessions.getCurrentUser();
+        if (currentUser) {
+          userId = currentUser.id;
+        }
+      }
+      
+      console.log('[OpportunitiesList] Current userId:', userId);
+    } catch (e) {
+      console.error('Error getting current user:', e);
+    }
+
+    // Load from PMTwinData first (persistent storage - seed data)
+    if (typeof PMTwinData !== 'undefined' && PMTwinData.Opportunities) {
+      const pmtwinOpps = PMTwinData.Opportunities.getAll();
+      console.log('[OpportunitiesList] Loaded opportunities from PMTwinData:', pmtwinOpps.length);
+      pmtwinOpps.forEach(opp => {
+        if (!opportunityMap.has(opp.id)) {
+          opportunityMap.set(opp.id, opp);
+        }
+      });
+    }
+
+    // Also load from OpportunityStore (in-memory - demo data)
+    if (typeof window.OpportunityStore !== 'undefined') {
+      const storeOpps = window.OpportunityStore.getAllOpportunities();
+      console.log('[OpportunitiesList] Loaded opportunities from OpportunityStore:', storeOpps.length);
+      storeOpps.forEach(opp => {
+        if (!opportunityMap.has(opp.id)) {
+          opportunityMap.set(opp.id, opp);
+        }
+      });
+    }
+
+    // Convert Map to array
+    opportunities = Array.from(opportunityMap.values());
+    console.log('[OpportunitiesList] Total unique opportunities after merge:', opportunities.length);
+
+    if (opportunities.length === 0) {
+      container.innerHTML = '<p class="alert alert-error">Opportunities service not available or no opportunities found</p>';
       return;
     }
 

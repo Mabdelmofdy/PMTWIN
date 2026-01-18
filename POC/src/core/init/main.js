@@ -51,7 +51,23 @@
    */
   function renderHero(data) {
     const container = document.getElementById('hero');
-    if (!container || !data) return;
+    if (!container || !data) {
+      // Don't overwrite existing hero content if no data
+      return;
+    }
+    
+    // Check if hero already has static content - don't overwrite it
+    const existingContent = container.querySelector('.container');
+    if (existingContent && existingContent.innerHTML.trim()) {
+      // Check if it's static content (has h1 with text, not just hero-title class)
+      const hasStaticContent = existingContent.querySelector('h1') && 
+                               !existingContent.querySelector('h1.hero-title');
+      if (hasStaticContent) {
+        // Static content exists, don't overwrite
+        console.log('[Main] Hero section already has static content, skipping dynamic render');
+        return;
+      }
+    }
 
     // Set background image on container if provided
     if (data.backgroundImage) {
@@ -81,8 +97,45 @@
    */
   function renderAbout(data) {
     const container = document.getElementById('about');
-    if (!container || !data) return;
+    if (!container || !data) {
+      // Don't overwrite existing content if no data
+      return;
+    }
+    
+    // Only render if container has placeholder content
+    const existingContent = container.querySelector('#aboutContent');
+    if (existingContent) {
+      // Only update if it's a placeholder
+      if (existingContent.innerHTML.trim() && !existingContent.innerHTML.includes('will be loaded dynamically')) {
+        // Content already exists, don't overwrite
+        return;
+      }
+      // Update only the placeholder content
+      const featuresHTML = data.features ? data.features.map(feature => `
+        <div class="card" style="height: 100%;">
+          <div class="card-body">
+            <h3 class="card-title">${feature.title || ''}</h3>
+            <p class="card-text">${feature.description || ''}</p>
+          </div>
+        </div>
+      `).join('') : '';
+      
+      existingContent.innerHTML = `
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: var(--spacing-8); align-items: center; margin-bottom: var(--spacing-12);">
+          <div>
+            <h2 style="margin-bottom: var(--spacing-4); font-size: 2.5rem;">${data.heading || ''}</h2>
+            <p style="font-size: 1.1rem; line-height: 1.8; color: var(--text-secondary);">${data.description || ''}</p>
+          </div>
+          ${data.image ? `<div><img src="${data.image}" alt="${data.heading || 'About PMTwin'}" style="width: 100%; border-radius: var(--radius-lg); box-shadow: 0 4px 6px rgba(0,0,0,0.1);"></div>` : ''}
+        </div>
+        <div class="grid grid-cols-1 grid-cols-md-2 grid-cols-lg-4 gap-6">
+          ${featuresHTML}
+        </div>
+      `;
+      return;
+    }
 
+    // No existing content container, render full section
     const featuresHTML = data.features ? data.features.map(feature => `
       <div class="card" style="height: 100%;">
         <div class="card-body">
@@ -115,6 +168,7 @@
     const container = document.getElementById('services');
     if (!container || !data || !Array.isArray(data)) return;
 
+    // No existing content container, render full section
     const servicesHTML = data.map((service, index) => `
       <div class="card" style="text-align: center; height: 100%; transition: transform 0.3s ease;">
         <div class="card-body">
@@ -481,8 +535,18 @@
    * Render Footer Section
    */
   function renderFooter(data) {
-    const container = document.getElementById('footer');
-    if (!container || !data) return;
+    // Try both footer IDs
+    const container = document.getElementById('footer') || document.getElementById('publicFooter');
+    if (!container || !data) {
+      // Don't overwrite existing content if no data
+      return;
+    }
+    
+    // Only render if container is empty or has placeholder content
+    if (container.innerHTML.trim() && !container.innerHTML.includes('will be loaded dynamically')) {
+      // Content already exists, don't overwrite
+      return;
+    }
 
     const linksHTML = data.links ? data.links.map(category => `
       <div>
@@ -533,6 +597,9 @@
 
   // Start initialization
   initialize();
+
+  // Export initLandingPage for manual initialization if needed
+  window.initLandingPage = initLandingPage;
 
 })();
 

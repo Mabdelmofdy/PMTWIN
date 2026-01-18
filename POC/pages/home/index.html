@@ -5,6 +5,14 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>PMTwin - Digitize Construction Collaboration in MENA</title>
     <link rel="stylesheet" href="../../assets/css/main.css">
+    <style>
+        /* Ensure page is visible by default */
+        body, main {
+            display: block !important;
+            visibility: visible !important;
+            opacity: 1 !important;
+        }
+    </style>
 </head>
 <body>
     <!-- Navigation -->
@@ -193,6 +201,9 @@
     <!-- Configuration (must load first) -->
     <script src="../../src/config/config.js"></script>
     
+    <!-- Unified Storage Adapter (must load before data.js) -->
+    <script src="../../src/core/storage/storage-adapter.js"></script>
+    
     <!-- API Layer (for future Java backend integration) -->
     <script src="../../src/core/api/api-client.js"></script>
     <script src="../../src/core/api/api-service.js"></script>
@@ -200,8 +211,10 @@
     <!-- Core Scripts -->
     <script src="../../src/core/data/golden-seed-data.js"></script>
     <script src="../../src/core/data/data.js"></script>
+    <script src="../../src/core/auth/user-manager.js"></script>
     <script src="../../src/core/auth/auth.js"></script>
     <script src="../../src/utils/demo-credentials.js"></script>
+    <script src="../../src/services/services-loader.js"></script>
     <script src="../../data/data-loader.js"></script>
     
     <!-- Load renderer -->
@@ -216,9 +229,20 @@
     
     <!-- Initialize Component -->
     <script>
+        // Global error handler to prevent blank page
+        window.addEventListener('error', function(e) {
+            console.error('Global error:', e.error);
+            // Don't let errors prevent page from showing
+        }, true);
+        
         document.addEventListener('DOMContentLoaded', function() {
-            // CRITICAL: Check if admin user is logged in and redirect to admin portal
+            console.log('[Home] DOMContentLoaded - Starting initialization');
+            
+            // Wait for all scripts to load
             setTimeout(() => {
+                console.log('[Home] Initialization timeout - checking dependencies');
+                
+                // CRITICAL: Check if admin user is logged in and redirect to admin portal
                 try {
                     if (typeof PMTwinAuth !== 'undefined' && PMTwinAuth.isAuthenticated()) {
                         const currentUser = PMTwinData?.Sessions?.getCurrentUser();
@@ -244,18 +268,52 @@
                 } catch (e) {
                     console.error('Error checking admin status:', e);
                 }
+                
+                // Initialize landing page renderer (if available) - but don't overwrite existing content
+                if (typeof initLandingPage === 'function') {
+                    try {
+                        console.log('[Home] Calling initLandingPage');
+                        initLandingPage();
+                    } catch (e) {
+                        console.warn('Error initializing landing page:', e);
+                    }
+                } else {
+                    console.warn('[Home] initLandingPage function not available');
+                }
+                
+                // Initialize home component
+                if (window.public && window.public.home) {
+                    try {
+                        console.log('[Home] Initializing home component');
+                        window.public.home.init();
+                    } catch (e) {
+                        console.warn('Error initializing home component:', e);
+                    }
+                } else {
+                    console.warn('[Home] Home component not available');
+                }
+                
+                // Ensure page is visible even if scripts fail
+                document.body.style.display = 'block';
+                const main = document.querySelector('main');
+                if (main) {
+                    main.style.display = 'block';
+                }
+                
+                console.log('[Home] Initialization complete');
             }, 500);
-            
-            // Initialize landing page renderer
-            if (typeof initLandingPage === 'function') {
-                initLandingPage();
-            }
-            
-            // Initialize home component
-            if (window.public && window.public.home) {
-                window.public.home.init();
-            }
         });
+        
+        // Fallback: Ensure page renders even if DOMContentLoaded already fired
+        if (document.readyState !== 'loading') {
+            setTimeout(() => {
+                document.body.style.display = 'block';
+                const main = document.querySelector('main');
+                if (main) {
+                    main.style.display = 'block';
+                }
+            }, 100);
+        }
     </script>
 </body>
 </html>

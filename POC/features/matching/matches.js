@@ -380,10 +380,12 @@
         <div>
           <h4>Criteria Breakdown:</h4>
           <ul>
-            <li>Category Match: ${match.criteria?.categoryMatch || 'N/A'}%</li>
-            <li>Skills Match: ${match.criteria?.skillsMatch || 'N/A'}%</li>
-            <li>Experience Match: ${match.criteria?.experienceMatch || 'N/A'}%</li>
-            <li>Location Match: ${match.criteria?.locationMatch || 'N/A'}%</li>
+            <!-- BRD-Compliant Match Score Breakdown -->
+            <li><strong>Attribute Overlap (40%):</strong> ${match.criteria?.attributeOverlap || match.criteria?.skillsMatch || 'N/A'}%</li>
+            <li><strong>Budget/Value Fit (30%):</strong> ${match.criteria?.budgetValueFit || 'N/A'}%</li>
+            <li><strong>Timeline Compatibility (15%):</strong> ${match.criteria?.timelineCompatibility || 'N/A'}%</li>
+            <li><strong>Location Fit (10%):</strong> ${match.criteria?.locationFit || match.criteria?.locationMatch || 'N/A'}%</li>
+            <li><strong>Reputation (5%):</strong> ${match.criteria?.reputation || 'N/A'}%</li>
           </ul>
         </div>
       `;

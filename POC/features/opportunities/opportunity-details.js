@@ -25,18 +25,71 @@
       console.error('Error getting current user:', e);
     }
 
-    // Load opportunity
-    if (!window.OpportunityStore) {
-      console.error('OpportunityStore not available');
-      return;
+    // Load opportunity - try PMTwinData first, then OpportunityStore as fallback
+    console.log('[OpportunityDetails] Loading opportunity:', opportunityId);
+    
+    if (typeof PMTwinData !== 'undefined' && PMTwinData.Opportunities) {
+      const allOpps = PMTwinData.Opportunities.getAll();
+      console.log('[OpportunityDetails] Total opportunities in PMTwinData:', allOpps.length);
+      console.log('[OpportunityDetails] Sample opportunity IDs:', allOpps.slice(0, 5).map(o => o.id));
+      currentOpportunity = PMTwinData.Opportunities.getById(opportunityId);
+      if (currentOpportunity) {
+        console.log('[OpportunityDetails] Found opportunity in PMTwinData:', currentOpportunity.id);
+      }
     }
-
-    currentOpportunity = window.OpportunityStore.getOpportunityById(opportunityId);
+    
+    // Fallback to OpportunityStore if not found in PMTwinData
+    if (!currentOpportunity && window.OpportunityStore) {
+      const storeOpps = window.OpportunityStore.getAllOpportunities();
+      console.log('[OpportunityDetails] Total opportunities in OpportunityStore:', storeOpps.length);
+      console.log('[OpportunityDetails] Sample opportunity IDs:', storeOpps.slice(0, 5).map(o => o.id));
+      currentOpportunity = window.OpportunityStore.getOpportunityById(opportunityId);
+      if (currentOpportunity) {
+        console.log('[OpportunityDetails] Found opportunity in OpportunityStore:', currentOpportunity.id);
+      }
+    }
+    
     if (!currentOpportunity) {
-      document.getElementById('opportunityDetails').innerHTML = 
-        '<p class="alert alert-error">Opportunity not found.</p>';
+      console.error('[OpportunityDetails] Opportunity not found in either store. ID:', opportunityId);
+      
+      // Get available opportunity IDs for debugging
+      let availableIds = [];
+      if (typeof PMTwinData !== 'undefined' && PMTwinData.Opportunities) {
+        const allOpps = PMTwinData.Opportunities.getAll();
+        availableIds = allOpps.slice(0, 10).map(o => o.id);
+      }
+      if (window.OpportunityStore) {
+        const storeOpps = window.OpportunityStore.getAllOpportunities();
+        availableIds = [...availableIds, ...storeOpps.slice(0, 10).map(o => o.id)];
+      }
+      
+      const container = document.getElementById('opportunityDetails');
+      if (container) {
+        container.innerHTML = `
+          <div class="alert alert-error">
+            <p><strong>Opportunity not found.</strong></p>
+            <p style="font-size: 0.9rem; margin-top: 0.5rem; color: var(--text-secondary);">
+              <strong>Requested ID:</strong> ${opportunityId}
+            </p>
+            ${availableIds.length > 0 ? `
+              <p style="font-size: 0.9rem; margin-top: 0.5rem; color: var(--text-secondary);">
+                <strong>Available opportunity IDs (sample):</strong><br>
+                ${availableIds.slice(0, 5).map(id => `<code style="font-size: 0.85rem;">${id}</code>`).join('<br>')}
+                ${availableIds.length > 5 ? `<br><em>... and ${availableIds.length - 5} more</em>` : ''}
+              </p>
+            ` : ''}
+            <p style="font-size: 0.9rem; margin-top: 1rem;">
+              <a href="../opportunities/" class="btn btn-secondary">
+                <i class="ph ph-arrow-left"></i> Back to Opportunities
+              </a>
+            </p>
+          </div>
+        `;
+      }
       return;
     }
+    
+    console.log('[OpportunityDetails] Successfully loaded opportunity:', currentOpportunity.title);
 
     renderOpportunity();
     renderActions();
@@ -77,7 +130,7 @@
           <div>
             <strong style="color: var(--text-secondary); font-size: 0.875rem;">Intent:</strong>
             <div style="margin-top: 0.25rem;">
-              ${opp.intent === 'REQUEST_SERVICE' ? '<span class="badge badge-info"><i class="ph ph-hand"></i> Request Service</span>' : '<span class="badge badge-success"><i class="ph ph-handshake"></i> Offer Service</span>'}
+              ${(opp.intent || opp.intentType) === 'REQUEST_SERVICE' ? '<span class="badge badge-info"><i class="ph ph-hand"></i> Request Service</span>' : '<span class="badge badge-success"><i class="ph ph-handshake"></i> Offer Service</span>'}
             </div>
           </div>
           <div>
@@ -88,7 +141,7 @@
           </div>
           <div>
             <strong style="color: var(--text-secondary); font-size: 0.875rem;">Model:</strong>
-            <div style="margin-top: 0.25rem;">${opp.model}.${opp.subModel}</div>
+            <div style="margin-top: 0.25rem;">${opp.model || opp.modelId || 'N/A'}.${opp.subModel || opp.modelId || ''}</div>
           </div>
           <div>
             <strong style="color: var(--text-secondary); font-size: 0.875rem;">Created:</strong>
@@ -96,13 +149,16 @@
           </div>
         </div>
 
+        ${(opp.skillsTags || opp.skills || []).length > 0 ? `
         <div style="margin-bottom: 2rem;">
           <h3 style="margin-bottom: 1rem;">Required Skills</h3>
           <div style="display: flex; flex-wrap: wrap; gap: 0.5rem;">
-            ${opp.skillsTags.map(skill => `<span class="badge badge-primary">${escapeHtml(skill)}</span>`).join('')}
+            ${(opp.skillsTags || opp.skills || []).map(skill => `<span class="badge badge-primary">${escapeHtml(skill)}</span>`).join('')}
           </div>
         </div>
+        ` : ''}
 
+        ${(opp.serviceItems || []).length > 0 ? `
         <div style="margin-bottom: 2rem;">
           <h3>Service Items</h3>
           <table class="table">
@@ -115,32 +171,37 @@
               </tr>
             </thead>
             <tbody>
-              ${opp.serviceItems.map(item => `
+              ${(opp.serviceItems || []).map(item => `
                 <tr>
                   <td>${escapeHtml(item.name)}</td>
-                  <td>${item.qty}</td>
-                  <td>${escapeHtml(item.unit)}</td>
-                  <td>${escapeHtml(item.priceRef || 'N/A')}</td>
+                  <td>${item.qty || 'N/A'}</td>
+                  <td>${escapeHtml(item.unit || 'N/A')}</td>
+                  <td>${escapeHtml(item.priceRef || item.unitPriceRef || item.totalRef || 'N/A')}</td>
                 </tr>
               `).join('')}
             </tbody>
           </table>
         </div>
+        ` : ''}
 
+        ${opp.paymentTerms || opp.preferredPaymentTerms ? `
         <div style="margin-bottom: 2rem;">
           <h3>Payment Terms</h3>
-          <p><strong>Type:</strong> ${opp.paymentTerms.type}</p>
-          ${opp.paymentTerms.barterRule ? `<p><strong>Barter Rule:</strong> ${escapeHtml(opp.paymentTerms.barterRule)}</p>` : ''}
+          <p><strong>Type:</strong> ${(opp.paymentTerms || opp.preferredPaymentTerms || {}).mode || (opp.paymentTerms || opp.preferredPaymentTerms || {}).type || 'N/A'}</p>
+          ${(opp.paymentTerms || opp.preferredPaymentTerms || {}).barterRule ? `<p><strong>Barter Rule:</strong> ${escapeHtml((opp.paymentTerms || opp.preferredPaymentTerms).barterRule)}</p>` : ''}
         </div>
+        ` : ''}
 
+        ${opp.location ? `
         <div style="margin-bottom: 2rem;">
           <h3>Location</h3>
           <p>
-            ${opp.location.city}, ${opp.location.country}
+            ${opp.location.city || ''}, ${opp.location.country || ''}
             ${opp.location.area ? `, ${opp.location.area}` : ''}
           </p>
           <p><strong>Remote Allowed:</strong> ${opp.location.isRemoteAllowed ? 'Yes' : 'No'}</p>
         </div>
+        ` : ''}
       </div>
     `;
   }
@@ -153,7 +214,11 @@
     if (!container || !currentOpportunity) return;
 
     const opp = currentOpportunity;
-    const isOwner = currentUserId === opp.createdByUserId;
+    // Support both createdByUserId (OpportunityStore) and createdBy/creatorId (PMTwinData)
+    const oppCreatorId = opp.createdByUserId || opp.createdBy || opp.creatorId;
+    const isOwner = currentUserId === oppCreatorId;
+    const intentType = opp.intentType || opp.intent;
+    const isNeed = intentType === 'REQUEST_SERVICE';
 
     let actionsHTML = '';
 
@@ -175,7 +240,218 @@
       `;
     }
 
+    // Link Offers button (if need and owner)
+    if (isOwner && isNeed && (opp.status === 'PUBLISHED' || opp.status === 'active')) {
+      actionsHTML += `
+        <button class="btn btn-outline" onclick="opportunityDetails.showLinkOffersModal()">
+          <i class="ph ph-link"></i> Link Offers
+        </button>
+      `;
+    }
+
     container.innerHTML = actionsHTML;
+    
+    // Render linked offers section if applicable
+    if (isNeed && opp.linkedOffers && opp.linkedOffers.length > 0) {
+      renderLinkedOffers();
+    }
+  }
+
+  /**
+   * Render linked offers section
+   */
+  function renderLinkedOffers() {
+    let linkedOffersSection = document.getElementById('linkedOffersSection');
+    if (!linkedOffersSection) {
+      // Create section if it doesn't exist
+      const detailsContainer = document.getElementById('opportunityDetails');
+      if (detailsContainer) {
+        linkedOffersSection = document.createElement('div');
+        linkedOffersSection.id = 'linkedOffersSection';
+        linkedOffersSection.className = 'card enhanced-card';
+        linkedOffersSection.style.marginTop = '1.5rem';
+        detailsContainer.appendChild(linkedOffersSection);
+      } else {
+        return;
+      }
+    }
+
+    if (!currentOpportunity || !currentOpportunity.linkedOffers || currentOpportunity.linkedOffers.length === 0) {
+      linkedOffersSection.style.display = 'none';
+      return;
+    }
+
+    const linkedOffers = [];
+    if (typeof PMTwinData !== 'undefined' && PMTwinData.Opportunities) {
+      currentOpportunity.linkedOffers.forEach(id => {
+        const offer = PMTwinData.Opportunities.getById(id);
+        if (offer) linkedOffers.push(offer);
+      });
+    }
+
+    linkedOffersSection.innerHTML = `
+      <div class="card-body">
+        <h3 style="margin: 0 0 1rem 0;">
+          <i class="ph ph-link"></i> Linked Offers (${linkedOffers.length})
+        </h3>
+        ${linkedOffers.length > 0 ? `
+          <div style="display: grid; gap: 1rem;">
+            ${linkedOffers.map(offer => `
+              <div style="padding: 1rem; background: var(--bg-secondary); border-radius: var(--border-radius);">
+                <div style="display: flex; justify-content: space-between; align-items: start;">
+                  <div style="flex: 1;">
+                    <h4 style="margin: 0 0 0.5rem 0;">${escapeHtml(offer.title || 'Untitled Offer')}</h4>
+                    <p style="margin: 0; color: var(--text-secondary); font-size: 0.9rem;">
+                      ${escapeHtml(offer.description || '').substring(0, 150)}${offer.description && offer.description.length > 150 ? '...' : ''}
+                    </p>
+                  </div>
+                  <button class="btn btn-sm btn-outline-danger" onclick="opportunityDetails.unlinkOffer('${offer.id}')" style="margin-left: 1rem;">
+                    <i class="ph ph-x"></i> Unlink
+                  </button>
+                </div>
+              </div>
+            `).join('')}
+          </div>
+        ` : '<p style="color: var(--text-secondary);">No linked offers.</p>'}
+      </div>
+    `;
+    linkedOffersSection.style.display = 'block';
+  }
+
+  /**
+   * Show link offers modal
+   */
+  function showLinkOffersModal() {
+    if (!currentOpportunity) return;
+
+    // Get all available offers
+    let allOffers = [];
+    if (typeof PMTwinData !== 'undefined' && PMTwinData.Opportunities) {
+      allOffers = PMTwinData.Opportunities.getAll().filter(opp => {
+        const intent = opp.intentType || opp.intent;
+        return intent === 'OFFER_SERVICE' && opp.status === 'PUBLISHED' || opp.status === 'active';
+      });
+    }
+
+    // Filter out already linked offers
+    const linkedIds = currentOpportunity.linkedOffers || [];
+    const availableOffers = allOffers.filter(offer => !linkedIds.includes(offer.id));
+
+    // Create modal
+    const modal = document.createElement('div');
+    modal.className = 'modal';
+    modal.id = 'linkOffersModal';
+    modal.style.display = 'block';
+    modal.innerHTML = `
+      <div class="modal-content" style="max-width: 600px;">
+        <div class="modal-header">
+          <h2>Link Offers to Need</h2>
+          <button class="modal-close" onclick="document.getElementById('linkOffersModal').remove()">&times;</button>
+        </div>
+        <div class="modal-body">
+          <p style="margin-bottom: 1rem; color: var(--text-secondary);">
+            Select one or more offers to link to this need. Linked offers can form groups or circular exchanges.
+          </p>
+          ${availableOffers.length === 0 ? `
+            <div class="alert alert-info">
+              <p>No available offers found. All offers may already be linked.</p>
+            </div>
+          ` : `
+            <div style="max-height: 400px; overflow-y: auto;">
+              ${availableOffers.map(offer => `
+                <label style="display: block; padding: 1rem; margin-bottom: 0.5rem; border: 1px solid var(--border-color); border-radius: var(--border-radius); cursor: pointer; transition: background 0.2s;" 
+                       onmouseover="this.style.background='var(--bg-secondary)'" 
+                       onmouseout="this.style.background='transparent'">
+                  <input type="checkbox" value="${offer.id}" class="offer-checkbox" style="margin-right: 0.75rem;">
+                  <strong>${escapeHtml(offer.title || 'Untitled Offer')}</strong>
+                  <p style="margin: 0.5rem 0 0 0; color: var(--text-secondary); font-size: 0.9rem;">
+                    ${escapeHtml(offer.description || '').substring(0, 100)}${offer.description && offer.description.length > 100 ? '...' : ''}
+                  </p>
+                </label>
+              `).join('')}
+            </div>
+          `}
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-secondary" onclick="document.getElementById('linkOffersModal').remove()">Cancel</button>
+          ${availableOffers.length > 0 ? `
+            <button class="btn btn-primary" onclick="opportunityDetails.linkSelectedOffers()">
+              <i class="ph ph-link"></i> Link Selected Offers
+            </button>
+          ` : ''}
+        </div>
+      </div>
+    `;
+    document.body.appendChild(modal);
+  }
+
+  /**
+   * Link selected offers
+   */
+  function linkSelectedOffers() {
+    if (!currentOpportunity || typeof DealLinkingService === 'undefined') {
+      alert('Deal linking service not available');
+      return;
+    }
+
+    const checkboxes = document.querySelectorAll('.offer-checkbox:checked');
+    const selectedIds = Array.from(checkboxes).map(cb => cb.value);
+
+    if (selectedIds.length === 0) {
+      alert('Please select at least one offer to link');
+      return;
+    }
+
+    const result = DealLinkingService.link(currentOpportunity.id, selectedIds);
+    
+    if (result.success) {
+      // Reload opportunity
+      if (typeof PMTwinData !== 'undefined' && PMTwinData.Opportunities) {
+        currentOpportunity = PMTwinData.Opportunities.getById(currentOpportunity.id);
+      }
+      
+      // Close modal
+      const modal = document.getElementById('linkOffersModal');
+      if (modal) modal.remove();
+      
+      // Refresh UI
+      renderActions();
+      renderOpportunity();
+      
+      alert(`Successfully linked ${selectedIds.length} offer(s)!`);
+    } else {
+      alert('Failed to link offers: ' + result.errors.join(', '));
+    }
+  }
+
+  /**
+   * Unlink an offer
+   */
+  function unlinkOffer(offerId) {
+    if (!currentOpportunity || typeof DealLinkingService === 'undefined') {
+      return;
+    }
+
+    if (!confirm('Are you sure you want to unlink this offer?')) {
+      return;
+    }
+
+    const result = DealLinkingService.unlink(currentOpportunity.id, [offerId]);
+    
+    if (result.success) {
+      // Reload opportunity
+      if (typeof PMTwinData !== 'undefined' && PMTwinData.Opportunities) {
+        currentOpportunity = PMTwinData.Opportunities.getById(currentOpportunity.id);
+      }
+      
+      // Refresh UI
+      renderActions();
+      renderOpportunity();
+      
+      alert('Offer unlinked successfully!');
+    } else {
+      alert('Failed to unlink offer: ' + result.errors.join(', '));
+    }
   }
 
   /**
@@ -287,10 +563,19 @@
    */
   function renderProposals() {
     const container = document.getElementById('proposalsList');
-    if (!container || !currentOpportunity || !window.OpportunityStore) return;
+    if (!container || !currentOpportunity) return;
 
-    const proposals = window.OpportunityStore.getProposalsByOpportunityId(currentOpportunity.id);
-    const isOwner = currentUserId === currentOpportunity.createdByUserId;
+    // Try PMTwinData first, then OpportunityStore as fallback
+    let proposals = [];
+    if (typeof PMTwinData !== 'undefined' && PMTwinData.Proposals) {
+      proposals = PMTwinData.Proposals.getByOpportunityId(currentOpportunity.id) || [];
+    }
+    if (proposals.length === 0 && window.OpportunityStore) {
+      proposals = window.OpportunityStore.getProposalsByOpportunityId(currentOpportunity.id) || [];
+    }
+    
+    const oppCreatorId = currentOpportunity.createdByUserId || currentOpportunity.createdBy || currentOpportunity.creatorId;
+    const isOwner = currentUserId === oppCreatorId;
 
     if (proposals.length === 0) {
       container.innerHTML = `
@@ -308,8 +593,21 @@
     }
 
     container.innerHTML = proposals.map(proposal => {
-      const provider = window.OpportunityStore.getUserById(proposal.providerUserId);
-      const providerName = provider ? provider.name : 'Unknown Provider';
+      // Get provider name - support both OpportunityStore and PMTwinData
+      let provider = null;
+      let providerName = 'Unknown Provider';
+      const providerId = proposal.providerUserId || proposal.providerId || proposal.initiatorId;
+      
+      if (window.OpportunityStore && proposal.providerUserId) {
+        provider = window.OpportunityStore.getUserById(proposal.providerUserId);
+      }
+      if (!provider && typeof PMTwinData !== 'undefined' && PMTwinData.Users && providerId) {
+        provider = PMTwinData.Users.getById(providerId);
+      }
+      
+      if (provider) {
+        providerName = provider.profile?.name || provider.profile?.companyName || provider.name || provider.email || 'Unknown Provider';
+      }
 
       let actionsHTML = '';
       if (isOwner && proposal.status === 'SUBMITTED' || proposal.status === 'RESUBMITTED') {
@@ -333,12 +631,12 @@
                   <div>
                     <strong style="font-size: 0.875rem; color: var(--text-secondary);">Price:</strong>
                     <div style="font-size: 1.125rem; font-weight: 600; color: var(--color-primary);">
-                      ${proposal.priceTotal.toLocaleString()} ${proposal.currency}
+                      ${(proposal.priceTotal || proposal.total || 0).toLocaleString()} ${proposal.currency || 'SAR'}
                     </div>
                   </div>
                   <div>
                     <strong style="font-size: 0.875rem; color: var(--text-secondary);">Timeline:</strong>
-                    <div>${escapeHtml(proposal.deliveryTimeline)}</div>
+                    <div>${escapeHtml(proposal.deliveryTimeline || proposal.timeline?.duration + ' days' || 'N/A')}</div>
                   </div>
                 </div>
                 ${proposal.breakdown && proposal.breakdown.length > 0 ? `
@@ -357,19 +655,26 @@
                     <p style="margin: 0.5rem 0 0 0; line-height: 1.6;">${escapeHtml(proposal.notes)}</p>
                   </div>
                 ` : ''}
-                ${proposal.messages.length > 0 ? `
+                ${(proposal.messages || []).length > 0 ? `
                   <div style="margin-top: 1rem; padding-top: 1rem; border-top: 1px solid var(--border-color);">
                     <strong style="font-size: 0.875rem; color: var(--text-secondary); margin-bottom: 0.75rem; display: block;">Messages:</strong>
-                    ${proposal.messages.map(msg => {
-                      const msgUser = window.OpportunityStore.getUserById(msg.fromUserId);
-                      const msgUserName = msgUser ? msgUser.name : 'Unknown';
+                    ${(proposal.messages || []).map(msg => {
+                      let msgUser = null;
+                      const msgUserId = msg.fromUserId || msg.userId;
+                      if (window.OpportunityStore && msg.fromUserId) {
+                        msgUser = window.OpportunityStore.getUserById(msg.fromUserId);
+                      }
+                      if (!msgUser && typeof PMTwinData !== 'undefined' && PMTwinData.Users && msgUserId) {
+                        msgUser = PMTwinData.Users.getById(msgUserId);
+                      }
+                      const msgUserName = msgUser ? (msgUser.profile?.name || msgUser.name || 'Unknown') : 'Unknown';
                       return `
                         <div style="margin-bottom: 0.75rem; padding: 0.75rem; background: var(--bg-secondary); border-radius: var(--border-radius); border-left: 3px solid var(--color-primary);">
                           <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 0.5rem;">
                             <strong>${escapeHtml(msgUserName)}</strong>
-                            <span style="font-size: 0.85rem; color: var(--text-secondary);">${formatDate(msg.at)}</span>
+                            <span style="font-size: 0.85rem; color: var(--text-secondary);">${formatDate(msg.at || msg.createdAt)}</span>
                           </div>
-                          <p style="margin: 0; line-height: 1.6;">${escapeHtml(msg.text)}</p>
+                          <p style="margin: 0; line-height: 1.6;">${escapeHtml(msg.text || msg.message || '')}</p>
                         </div>
                       `;
                     }).join('')}
@@ -451,7 +756,10 @@
     publishOpportunity: publishOpportunity,
     findMatches: findMatches,
     submitProposal: submitProposal,
-    requestChanges: requestChanges
+    requestChanges: requestChanges,
+    showLinkOffersModal: showLinkOffersModal,
+    linkSelectedOffers: linkSelectedOffers,
+    unlinkOffer: unlinkOffer
   };
 
 })();

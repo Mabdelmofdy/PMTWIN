@@ -6,13 +6,14 @@
 (function() {
   'use strict';
 
-  // Matching weights (must sum to 1.0)
-  // Updated for service offerings: skills weighted higher since offerings are explicit
+  // BRD-Compliant Matching Weights (must sum to 1.0)
+  // BRD Section 7: Attribute Overlap 40%, Budget/Value Fit 30%, Timeline 15%, Location 10%, Reputation 5%
   const WEIGHTS = {
-    category: 0.30,
-    skills: 0.45,  // Increased from 0.40 - offerings have explicit skills
-    experience: 0.15,  // Decreased from 0.20 - provider-level
-    location: 0.10
+    attributeOverlap: 0.40,  // Skills, requirements matching
+    budgetValueFit: 0.30,     // Budget ↔ Rate compatibility
+    timelineCompatibility: 0.15, // Timeline ↔ Availability
+    locationFit: 0.10,        // Location ↔ Preferred Location
+    reputation: 0.05          // User reputation score
   };
 
   const MATCH_THRESHOLD = 80; // Minimum score to trigger auto-inquiry
@@ -171,25 +172,182 @@
   }
 
   // ============================================
-  // Calculate Final Match Score (for offerings)
+  // Budget/Value Fit Calculation (BRD: 30% weight)
+  // ============================================
+  function calculateBudgetValueFit(need, offer) {
+    // Extract budget from need (opportunity)
+    const needBudget = need.attributes?.budgetRange || need.budgetRange || {};
+    const needBudgetMin = needBudget.min || 0;
+    const needBudgetMax = needBudget.max || needBudgetMin || 0;
+
+    // Extract rate from offer (opportunity or service offering)
+    const offerRate = offer.attributes?.budgetRange || offer.budgetRange || 
+                     (offer.price_min && offer.price_max ? { min: offer.price_min, max: offer.price_max } : null) ||
+                     (offer.price_min ? { min: offer.price_min, max: offer.price_min } : null);
+    
+    if (!offerRate || (!offerRate.min && !offerRate.max)) {
+      return 50; // Neutral score if rate not specified
+    }
+
+    const offerRateMin = offerRate.min || 0;
+    const offerRateMax = offerRate.max || offerRateMin || 0;
+
+    // Check if offer rate fits within need budget
+    if (needBudgetMax > 0) {
+      // Perfect match: offer rate is within budget range
+      if (offerRateMax <= needBudgetMax && offerRateMin >= needBudgetMin) {
+        return 100;
+      }
+      
+      // Good match: offer rate overlaps with budget range
+      if (offerRateMin <= needBudgetMax && offerRateMax >= needBudgetMin) {
+        const overlap = Math.min(offerRateMax, needBudgetMax) - Math.max(offerRateMin, needBudgetMin);
+        const needRange = needBudgetMax - needBudgetMin;
+        if (needRange > 0) {
+          return Math.round((overlap / needRange) * 100);
+        }
+        return 80;
+      }
+
+      // Partial match: offer is close to budget
+      const budgetCenter = (needBudgetMin + needBudgetMax) / 2;
+      const offerCenter = (offerRateMin + offerRateMax) / 2;
+      const difference = Math.abs(budgetCenter - offerCenter);
+      const budgetRange = needBudgetMax - needBudgetMin || budgetCenter;
+      const percentageDiff = (difference / budgetRange) * 100;
+      
+      if (percentageDiff <= 20) {
+        return Math.max(50, 100 - percentageDiff * 2);
+      }
+      
+      return Math.max(0, 50 - (percentageDiff - 20));
+    }
+
+    return 50; // Neutral if no budget specified
+  }
+
+  // ============================================
+  // Timeline Compatibility Calculation (BRD: 15% weight)
+  // ============================================
+  function calculateTimelineCompatibility(need, offer) {
+    // Extract timeline from need
+    const needStartDate = need.attributes?.startDate || need.startDate || need.timeline?.startDate;
+    const needDuration = need.attributes?.expectedDuration || need.attributes?.duration || 
+                        need.timeline?.duration || need.duration || 0;
+    const needEndDate = needStartDate && needDuration ? 
+      new Date(new Date(needStartDate).getTime() + needDuration * 24 * 60 * 60 * 1000) : null;
+
+    // Extract availability from offer
+    const offerStartDate = offer.availability?.start_date || offer.attributes?.availability?.start_date;
+    const offerEndDate = offer.availability?.end_date || offer.attributes?.availability?.end_date;
+    const offerAvailability = offer.availability || offer.attributes?.availability || {};
+
+    if (!needStartDate && !offerStartDate) {
+      return 50; // Neutral if neither specified
+    }
+
+    let score = 0;
+
+    // Check start date compatibility
+    if (needStartDate && offerStartDate) {
+      const needStart = new Date(needStartDate);
+      const offerStart = new Date(offerStartDate);
+      
+      if (offerStart <= needStart) {
+        // Offer available before or on need start date - perfect
+        score += 50;
+      } else {
+        // Check how close (within 30 days is acceptable)
+        const daysDiff = Math.floor((offerStart - needStart) / (1000 * 60 * 60 * 24));
+        if (daysDiff <= 30) {
+          score += Math.max(30, 50 - daysDiff);
+        } else {
+          score += Math.max(0, 30 - (daysDiff - 30) * 0.5);
+        }
+      }
+    } else {
+      score += 25; // Partial credit if one is missing
+    }
+
+    // Check duration/end date compatibility
+    if (needDuration > 0 && offerEndDate) {
+      const needEnd = needEndDate || new Date(new Date(needStartDate).getTime() + needDuration * 24 * 60 * 60 * 1000);
+      const offerEnd = new Date(offerEndDate);
+      
+      if (offerEnd >= needEnd) {
+        // Offer available for entire duration - perfect
+        score += 50;
+      } else {
+        // Partial availability
+        const overlapDays = Math.floor((offerEnd - new Date(needStartDate)) / (1000 * 60 * 60 * 24));
+        const overlapPercentage = (overlapDays / needDuration) * 100;
+        score += Math.max(0, overlapPercentage * 0.5);
+      }
+    } else if (offerAvailability.lead_time) {
+      // Check lead time compatibility
+      const leadTimeMatch = 30; // Base score for having lead time info
+      score += leadTimeMatch;
+    } else {
+      score += 25; // Partial credit
+    }
+
+    return Math.min(100, Math.round(score));
+  }
+
+  // ============================================
+  // Calculate Final Match Score (BRD-Compliant)
   // ============================================
   function calculateMatchScore(project, offering, provider) {
-    const categoryScore = calculateCategoryMatch(project, offering);
-    const skillsScore = calculateSkillsMatch(project, offering);
-    const experienceScore = calculateExperienceMatch(project, offering, provider);
-    const locationScore = calculateLocationMatch(project, offering);
+    // Apply semantic mirroring if available
+    let semanticMirror = null;
+    if (typeof SemanticMirroring !== 'undefined') {
+      semanticMirror = SemanticMirroring.applyAll(project, offering);
+    }
 
-    // Weighted average
+    // 1. Attribute Overlap (40%) - Skills, requirements matching
+    const skillsScore = calculateSkillsMatch(project, offering);
+    const categoryScore = calculateCategoryMatch(project, offering);
+    const experienceScore = calculateExperienceMatch(project, offering, provider);
+    // Use semantic mirroring if available, otherwise use calculated scores
+    const attributeOverlapScore = semanticMirror && semanticMirror.skills
+      ? semanticMirror.skills.score
+      : Math.round((skillsScore * 0.6) + (categoryScore * 0.25) + (experienceScore * 0.15));
+
+    // 2. Budget/Value Fit (30%)
+    const budgetValueScore = semanticMirror && semanticMirror.budget
+      ? semanticMirror.budget.score
+      : calculateBudgetValueFit(project, offering);
+
+    // 3. Timeline Compatibility (15%)
+    const timelineScore = semanticMirror && semanticMirror.timeline
+      ? semanticMirror.timeline.score
+      : calculateTimelineCompatibility(project, offering);
+
+    // 4. Location Fit (10%)
+    const locationScore = semanticMirror && semanticMirror.location
+      ? semanticMirror.location.score
+      : calculateLocationMatch(project, offering);
+
+    // 5. Reputation (5%)
+    let reputationScore = 50; // Default neutral
+    if (typeof ReputationService !== 'undefined' && provider && provider.id) {
+      reputationScore = ReputationService.getScore(provider.id);
+    } else if (provider && provider.profile && provider.profile.reputationScore !== undefined) {
+      reputationScore = provider.profile.reputationScore;
+    }
+
+    // BRD-Compliant weighted average
     const finalScore = Math.round(
-      (categoryScore * WEIGHTS.category) +
-      (skillsScore * WEIGHTS.skills) +
-      (experienceScore * WEIGHTS.experience) +
-      (locationScore * WEIGHTS.location)
+      (attributeOverlapScore * WEIGHTS.attributeOverlap) +
+      (budgetValueScore * WEIGHTS.budgetValueFit) +
+      (timelineScore * WEIGHTS.timelineCompatibility) +
+      (locationScore * WEIGHTS.locationFit) +
+      (reputationScore * WEIGHTS.reputation)
     );
 
     // Get matched and unmatched skills for explanation
-    const requiredSkills = project.scope?.skillRequirements || [];
-    const offeringSkills = offering.skills || [];
+    const requiredSkills = project.scope?.skillRequirements || project.attributes?.requiredSkills || [];
+    const offeringSkills = offering.skills || offering.attributes?.requiredSkills || [];
     const matchedSkills = requiredSkills.filter(reqSkill => {
       const reqSkillLower = reqSkill.toLowerCase();
       return offeringSkills.some(offSkill => {
@@ -203,10 +361,11 @@
       finalScore: finalScore,
       best_offering_id: offering.id,
       criteria: {
-        categoryMatch: categoryScore,
-        skillsMatch: skillsScore,
-        experienceMatch: experienceScore,
-        locationMatch: locationScore
+        attributeOverlap: attributeOverlapScore,
+        budgetValueFit: budgetValueScore,
+        timelineCompatibility: timelineScore,
+        locationFit: locationScore,
+        reputation: reputationScore
       },
       weights: WEIGHTS,
       meetsThreshold: finalScore >= MATCH_THRESHOLD,
