@@ -948,7 +948,7 @@
           if (typeof window.NavRoutes !== 'undefined' && window.NavRoutes.NAV_ROUTES['collaboration']) {
             cancelUrl = window.NavRoutes.getRoute('collaboration', { useLiveServer: true });
           } else {
-            cancelUrl = '/POC/pages/collaboration/index.html';
+            cancelUrl = '/pages/collaboration/index.html';
             // Normalize if NavRoutes available
             if (typeof window.NavRoutes !== 'undefined' && window.NavRoutes.toHtmlUrl) {
               cancelUrl = window.NavRoutes.toHtmlUrl(cancelUrl);

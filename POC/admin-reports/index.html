@@ -41,7 +41,8 @@
             if (isLiveServer) {
                 redirectPath = 'http://127.0.0.1:5503/POC/pages/admin-reports/index.html';
             } else {
-                // For other servers, use relative paths
+                // For production, use absolute path without /POC/
+                redirectPath = '/pages/admin-reports/index.html';
                 if (currentPath === '/admin-reports/' || currentPath === '/admin-reports' || currentPath.endsWith('/admin-reports/') || currentPath.endsWith('/admin-reports')) {
                     if (currentPath.includes('/POC/')) {
                         redirectPath = '/POC/pages/admin-reports/index.html';

@@ -127,15 +127,21 @@
     }
 
     // Check service evaluations
-    if (PMTwinData.ServiceEvaluations) {
-      const evaluations = PMTwinData.ServiceEvaluations.getAll();
-      const userEvaluations = evaluations.filter(e => e.providerId === userId);
-      userEvaluations.forEach(eval => {
-        if (eval.rating) {
-          totalRating += eval.rating;
-          ratingCount++;
+    if (PMTwinData.ServiceEvaluations && typeof PMTwinData.ServiceEvaluations.getAll === 'function') {
+      try {
+        const evaluations = PMTwinData.ServiceEvaluations.getAll();
+        if (Array.isArray(evaluations)) {
+          const userEvaluations = evaluations.filter(e => e.providerId === userId);
+          userEvaluations.forEach(eval => {
+            if (eval.rating) {
+              totalRating += eval.rating;
+              ratingCount++;
+            }
+          });
         }
-      });
+      } catch (error) {
+        console.warn('[ReputationService] Error getting service evaluations:', error);
+      }
     }
 
     if (ratingCount === 0) {

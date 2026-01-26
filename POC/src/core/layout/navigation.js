@@ -1986,7 +1986,7 @@
       PMTwinAuth.logout();
     }
     // Use centralized route for login
-    let loginUrl = '/POC/pages/auth/login/index.html';
+    let loginUrl = '/pages/auth/login/index.html';
     if (typeof window.NavRoutes !== 'undefined' && window.NavRoutes.NAV_ROUTES['login']) {
       loginUrl = window.NavRoutes.getRoute('login', { useLiveServer: true });
     } else {

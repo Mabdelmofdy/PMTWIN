@@ -1135,11 +1135,8 @@
       if (isLiveServer && routeKey && routeKey !== '#' && !routeKey.startsWith('http')) {
         const cleanPath = routeKey.replace(/^\.\.\//g, '').replace(/\/$/, '').replace(/\.html$/, '');
         if (cleanPath && cleanPath !== 'index') {
-          if (cleanPath.includes('/')) {
-            return `http://127.0.0.1:5503/POC/pages/${cleanPath}/index.html`;
-          } else {
-            return `http://127.0.0.1:5503/POC/pages/${cleanPath}/index.html`;
-          }
+          // For Live Server, use /POC/ prefix for local dev
+          return `http://127.0.0.1:5503/POC/pages/${cleanPath}/index.html`;
         }
       }
       
@@ -1199,7 +1196,11 @@
               // Try to construct a proper path from the route key
               const isLiveServer = window.location.port === '5503' || (window.location.hostname === '127.0.0.1' && window.location.port === '5503');
               if (isLiveServer && item.route && item.route !== '#') {
+                // For Live Server, use /POC/ prefix for local dev
                 routeUrl = `http://127.0.0.1:5503/POC/pages/${item.route}/index.html`;
+              } else if (item.route && item.route !== '#') {
+                // For production, use path without /POC/
+                routeUrl = `/pages/${item.route}/index.html`;
               } else {
                 routeUrl = '#'; // Safe fallback
               }
@@ -1257,7 +1258,7 @@
     // Role-specific menu items
     if (userRoleId === 'project_lead') {
       coreMenuItems.push(
-        { id: 'opportunities', label: 'Opportunities', route: getRouteForMenu('opportunities', `${basePath}pages/opportunities/index.html`), feature: 'matches_view', icon: '<i class="ph ph-sparkle"></i>' },
+        { id: 'opportunities', label: 'Opportunities', route: getRouteForMenu('opportunities', `${basePath}pages/opportunities/my/index.html`), feature: 'matches_view', icon: '<i class="ph ph-sparkle"></i>' },
         { id: 'opportunities-create', label: 'Create Opportunity', route: getRouteForMenu('opportunities/create', `${basePath}pages/opportunities/create/index.html`), feature: 'project_creation', icon: '<i class="ph ph-plus-circle"></i>' },
         { id: 'matches', label: 'Matches', route: getRouteForMenu('matches', `${basePath}pages/matches/index.html`), feature: 'view_matches', icon: '<i class="ph ph-link"></i>' },
         { id: 'proposals', label: 'Proposals', route: getRouteForMenu('proposals', `${basePath}pages/proposals/index.html`), feature: 'proposal_management', icon: '<i class="ph ph-file-text"></i>' },
@@ -1286,7 +1287,7 @@
       );
     } else if (userRoleId === 'professional') {
       coreMenuItems.push(
-        { id: 'opportunities', label: 'Opportunities', route: getRouteForMenu('opportunities', `${basePath}pages/opportunities/index.html`), feature: 'matches_view', icon: '<i class="ph ph-sparkle"></i>' },
+        { id: 'opportunities', label: 'Opportunities', route: getRouteForMenu('opportunities', `${basePath}pages/opportunities/my/index.html`), feature: 'matches_view', icon: '<i class="ph ph-sparkle"></i>' },
         { id: 'proposals', label: 'Proposals', route: getRouteForMenu('proposals', `${basePath}pages/proposals/index.html`), feature: 'proposal_management', icon: '<i class="ph ph-file-text"></i>', conditional: true },
         { id: 'contracts', label: 'Contracts', route: getRouteForMenu('contracts', `${basePath}pages/contracts/index.html`), feature: 'contract_management', icon: '<i class="ph ph-file-doc"></i>', filter: 'own' }
       );

@@ -258,7 +258,7 @@
                                 const isLiveServer = currentPort === '5503' || window.location.host.includes(':5503');
                                 const adminPath = isLiveServer 
                                     ? 'http://127.0.0.1:5503/POC/pages/admin/index.html'
-                                    : '../admin/';
+                                    : '/pages/admin/index.html';
                                 console.log('🔄 Redirecting admin to:', adminPath);
                                 window.location.replace(adminPath);
                                 return; // Stop execution

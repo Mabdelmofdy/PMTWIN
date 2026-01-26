@@ -12,54 +12,52 @@
     // If NavRoutes is available, use it
     if (typeof window.NavRoutes !== 'undefined' && window.NavRoutes.NAV_ROUTES) {
       const navRoutes = window.NavRoutes.NAV_ROUTES;
-      // Convert NAV_ROUTES to routeMap format (without /POC prefix for relative paths)
+      // Convert NAV_ROUTES to routeMap format (routes already don't have /POC prefix)
       const routeMap = {};
       Object.keys(navRoutes).forEach(key => {
-        // Remove /POC prefix and convert to relative path
-        const path = navRoutes[key].replace('/POC/', '');
-        routeMap[key] = path;
+        routeMap[key] = navRoutes[key];
       });
       return routeMap;
     }
     
     // Fallback route map (absolute paths ending with .html)
     return {
-      'home': '/POC/pages/home/index.html',
-      'discovery': '/POC/pages/discovery/index.html',
-      'wizard': '/POC/pages/wizard/index.html',
-      'knowledge': '/POC/pages/knowledge/index.html',
-      'login': '/POC/pages/auth/login/index.html',
-      'signup': '/POC/pages/auth/signup/index.html',
-      'dashboard': '/POC/pages/dashboard/index.html',
-      'merchant-portal': '/POC/pages/merchant-portal/index.html',
-      'projects': '/POC/pages/opportunities/index.html', // Redirect to opportunities
-      'project': '/POC/pages/opportunities/index.html', // Redirect to opportunities (legacy)
-      'opportunities': '/POC/pages/opportunities/index.html',
-      'matches': '/POC/pages/matches/index.html',
-      'proposals': '/POC/pages/proposals/index.html',
-      'create-proposal': '/POC/pages/proposals/create/index.html',
-      'collaboration': '/POC/pages/collaboration/index.html',
-      'collab-task-based': '/POC/pages/collaboration/task-based/index.html',
-      'collab-consortium': '/POC/pages/collaboration/consortium/index.html',
-      'collab-jv': '/POC/pages/collaboration/joint-venture/index.html',
-      'collab-spv': '/POC/pages/collaboration/spv/index.html',
-      'collab-strategic-jv': '/POC/pages/collaboration/strategic-jv/index.html',
-      'collab-strategic-alliance': '/POC/pages/collaboration/strategic-alliance/index.html',
-      'collab-mentorship': '/POC/pages/collaboration/mentorship/index.html',
-      'collab-bulk-purchasing': '/POC/pages/collaboration/bulk-purchasing/index.html',
-      'collab-co-ownership': '/POC/pages/collaboration/co-ownership/index.html',
-      'collab-resource-exchange': '/POC/pages/collaboration/resource-exchange/index.html',
-      'collab-professional-hiring': '/POC/pages/collaboration/professional-hiring/index.html',
-      'collab-consultant-hiring': '/POC/pages/collaboration/consultant-hiring/index.html',
-      'collab-competition': '/POC/pages/collaboration/competition/index.html',
-      'profile': '/POC/pages/profile/index.html',
-      'onboarding': '/POC/pages/onboarding/index.html',
-      'notifications': '/POC/pages/notifications/index.html',
-      'admin': '/POC/pages/admin/index.html',
-      'admin-vetting': '/POC/pages/admin-vetting/index.html',
-      'admin-moderation': '/POC/pages/admin-moderation/index.html',
-      'admin-audit': '/POC/pages/admin-audit/index.html',
-      'admin-reports': '/POC/pages/admin-reports/index.html'
+      'home': '/pages/home/index.html',
+      'discovery': '/pages/discovery/index.html',
+      'wizard': '/pages/wizard/index.html',
+      'knowledge': '/pages/knowledge/index.html',
+      'login': '/pages/auth/login/index.html',
+      'signup': '/pages/auth/signup/index.html',
+      'dashboard': '/pages/dashboard/index.html',
+      'merchant-portal': '/pages/merchant-portal/index.html',
+      'projects': '/pages/opportunities/index.html', // Redirect to opportunities
+      'project': '/pages/opportunities/index.html', // Redirect to opportunities (legacy)
+      'opportunities': '/pages/opportunities/my/index.html',
+      'matches': '/pages/matches/index.html',
+      'proposals': '/pages/proposals/index.html',
+      'create-proposal': '/pages/proposals/create/index.html',
+      'collaboration': '/pages/collaboration/index.html',
+      'collab-task-based': '/pages/collaboration/task-based/index.html',
+      'collab-consortium': '/pages/collaboration/consortium/index.html',
+      'collab-jv': '/pages/collaboration/joint-venture/index.html',
+      'collab-spv': '/pages/collaboration/spv/index.html',
+      'collab-strategic-jv': '/pages/collaboration/strategic-jv/index.html',
+      'collab-strategic-alliance': '/pages/collaboration/strategic-alliance/index.html',
+      'collab-mentorship': '/pages/collaboration/mentorship/index.html',
+      'collab-bulk-purchasing': '/pages/collaboration/bulk-purchasing/index.html',
+      'collab-co-ownership': '/pages/collaboration/co-ownership/index.html',
+      'collab-resource-exchange': '/pages/collaboration/resource-exchange/index.html',
+      'collab-professional-hiring': '/pages/collaboration/professional-hiring/index.html',
+      'collab-consultant-hiring': '/pages/collaboration/consultant-hiring/index.html',
+      'collab-competition': '/pages/collaboration/competition/index.html',
+      'profile': '/pages/profile/index.html',
+      'onboarding': '/pages/onboarding/index.html',
+      'notifications': '/pages/notifications/index.html',
+      'admin': '/pages/admin/index.html',
+      'admin-vetting': '/pages/admin-vetting/index.html',
+      'admin-moderation': '/pages/admin-moderation/index.html',
+      'admin-audit': '/pages/admin-audit/index.html',
+      'admin-reports': '/pages/admin-reports/index.html'
     };
   }
 
@@ -93,7 +91,7 @@
         if (typeof window.NavRoutes !== 'undefined' && window.NavRoutes.NAV_ROUTES['opportunities']) {
           targetFile = window.NavRoutes.NAV_ROUTES['opportunities'];
         } else {
-          targetFile = '/POC/pages/opportunities/index.html';
+          targetFile = '/pages/opportunities/my/index.html';
         }
         queryParams = `?id=${id}`;
       } else if (routeMap[baseRoute]) {

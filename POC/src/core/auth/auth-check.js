@@ -141,12 +141,18 @@
           const basePath = depth > 0 ? '../'.repeat(depth) : '';
           
           if (isUserAdmin) {
-            // Platform admin ALWAYS redirects to full Live Server URL
-            const adminPath = 'http://127.0.0.1:5503/POC/pages/admin/index.html';
+            // Platform admin redirects to admin portal
+            let adminPath = '/pages/admin/index.html';
+            if (typeof window.NavRoutes !== 'undefined' && window.NavRoutes.NAV_ROUTES['admin']) {
+              adminPath = window.NavRoutes.getRoute('admin', { useLiveServer: true });
+            } else {
+              const isLiveServer = window.location.port === '5503' || (window.location.hostname === '127.0.0.1' && window.location.port === '5503');
+              adminPath = isLiveServer ? 'http://127.0.0.1:5503/POC/pages/admin/index.html' : '/pages/admin/index.html';
+            }
             console.log('🔄 Admin user accessing wrong page, redirecting to admin dashboard:', adminPath);
             window.location.href = adminPath;
           } else if (currentUser.role === 'entity' || currentUser.role === 'individual') {
-            let dashboardPath = '/POC/pages/dashboard/index.html';
+            let dashboardPath = '/pages/dashboard/index.html';
             if (typeof window.NavRoutes !== 'undefined' && window.NavRoutes.NAV_ROUTES['dashboard']) {
               dashboardPath = window.NavRoutes.getRoute('dashboard', { useLiveServer: true });
             } else {
@@ -154,7 +160,7 @@
             }
             window.location.href = dashboardPath;
           } else {
-            let homePath = '/POC/pages/home/index.html';
+            let homePath = '/pages/home/index.html';
             if (typeof window.NavRoutes !== 'undefined' && window.NavRoutes.NAV_ROUTES['home']) {
               homePath = window.NavRoutes.getRoute('home', { useLiveServer: true });
             } else {

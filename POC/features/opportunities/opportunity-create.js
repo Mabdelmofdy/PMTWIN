@@ -845,8 +845,6 @@
     const isCash = paymentMode === 'CASH';
     const isEquity = paymentMode === 'EQUITY';
     const isProfitSharing = paymentMode === 'PROFIT_SHARING';
-    const isEquity = paymentMode === 'EQUITY';
-    const isProfitSharing = paymentMode === 'PROFIT_SHARING';
     
     return `
       <div class="wizard-panel">
@@ -3046,7 +3044,7 @@
           const viewUrl = window.NavRoutes.getRouteWithQuery('opportunities/details', { id: opportunity.id });
           window.location.href = viewUrl;
         } else {
-          window.location.href = `/POC/pages/opportunities/details.html?id=${opportunity.id}`;
+          window.location.href = `/pages/opportunities/details.html?id=${opportunity.id}`;
         }
       } else {
         alert('Failed to create opportunity');

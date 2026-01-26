@@ -643,20 +643,20 @@
             }
             // If routeKey not found, try toHtmlUrl
             if (window.NavRoutes.toHtmlUrl) {
-              return window.NavRoutes.toHtmlUrl(`/POC/pages/${routeKey}/index.html`);
+              return window.NavRoutes.toHtmlUrl(`/pages/${routeKey}/index.html`);
             }
           }
           // Final fallback: construct from NAV_ROUTES if available
           if (typeof window.NavRoutes !== 'undefined' && window.NavRoutes.NAV_ROUTES) {
-            const baseRoute = window.NavRoutes.NAV_ROUTES[routeKey] || `/POC/pages/${routeKey}/index.html`;
+            const baseRoute = window.NavRoutes.NAV_ROUTES[routeKey] || `/pages/${routeKey}/index.html`;
             // Convert to Live Server URL if needed
             if (window.location.port === '5503' || window.location.hostname === '127.0.0.1') {
-              return `http://127.0.0.1:5503${baseRoute}`;
+              return `http://127.0.0.1:5503/POC${baseRoute}`;
             }
             return baseRoute;
           }
           // Absolute last fallback
-          return `/POC/pages/${routeKey}/index.html`;
+          return `/pages/${routeKey}/index.html`;
         }
         
         // Check for admin roles (case-insensitive)
@@ -750,7 +750,12 @@
           }
         } else if ((resultIsAdmin || isAdmin) && !redirectPath.includes('admin')) {
           console.warn('⚠️ Admin detected (role) but redirect path incorrect, forcing admin redirect...');
-          redirectPath = 'http://127.0.0.1:5503/POC/pages/admin/index.html';
+          if (typeof window.NavRoutes !== 'undefined' && window.NavRoutes.NAV_ROUTES['admin']) {
+            redirectPath = window.NavRoutes.getRoute('admin', { useLiveServer: true });
+          } else {
+            const isLiveServer = window.location.port === '5503' || (window.location.hostname === '127.0.0.1' && window.location.port === '5503');
+            redirectPath = isLiveServer ? 'http://127.0.0.1:5503/POC/pages/admin/index.html' : '/pages/admin/index.html';
+          }
           console.log('🔄 Forced admin redirect path:', redirectPath);
           isAdmin = true;
         }

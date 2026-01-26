@@ -723,7 +723,7 @@
               const viewUrl = window.NavRoutes.getRouteWithQuery('proposals/view', { id: proposal.id });
               window.location.href = viewUrl;
             } else {
-              window.location.href = `/POC/pages/proposals/view/index.html?id=${proposal.id}`;
+              window.location.href = `/pages/proposals/view/index.html?id=${proposal.id}`;
             }
           }, 1500);
           return false;

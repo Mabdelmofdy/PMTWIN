@@ -489,7 +489,7 @@
         // Redirect to dashboard or reload page
         const dashboardUrl = window.UrlHelper ? 
           window.UrlHelper.buildUrl('pages/dashboard/index.html') : 
-          '/POC/pages/dashboard/index.html';
+          '/pages/dashboard/index.html';
         window.location.href = dashboardUrl;
       }
     }

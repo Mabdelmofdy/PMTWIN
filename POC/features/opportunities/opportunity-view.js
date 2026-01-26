@@ -312,7 +312,7 @@
     if (typeof window.NavRoutes !== 'undefined') {
       return window.NavRoutes.getRoute('opportunities');
     }
-    return '/POC/pages/opportunities/index.html';
+    return '/pages/opportunities/my/index.html';
   }
 
   // ============================================
@@ -322,7 +322,7 @@
     if (typeof window.NavRoutes !== 'undefined') {
       return window.NavRoutes.getRouteWithQuery('create-opportunity', { edit: opportunityId });
     }
-    return `/POC/pages/opportunities/create/index.html?edit=${opportunityId}`;
+    return `/pages/opportunities/create/index.html?edit=${opportunityId}`;
   }
 
   // ============================================
@@ -332,7 +332,7 @@
     if (typeof window.NavRoutes !== 'undefined') {
       return window.NavRoutes.getRouteWithQuery('create-proposal', { opportunityId: opportunityId });
     }
-    return `/POC/pages/proposals/create/index.html?opportunityId=${opportunityId}`;
+    return `/pages/proposals/create/index.html?opportunityId=${opportunityId}`;
   }
 
   // ============================================
@@ -342,7 +342,7 @@
     if (typeof window.NavRoutes !== 'undefined') {
       return window.NavRoutes.getRouteWithQuery('proposals', { opportunityId: opportunityId });
     }
-    return `/POC/pages/proposals/index.html?opportunityId=${opportunityId}`;
+    return `/pages/proposals/index.html?opportunityId=${opportunityId}`;
   }
 
   // ============================================
@@ -352,7 +352,7 @@
     if (typeof window.NavRoutes !== 'undefined') {
       return window.NavRoutes.getRouteWithQuery('matches', { opportunityId: opportunityId });
     }
-    return `/POC/pages/matches/index.html?opportunityId=${opportunityId}`;
+    return `/pages/matches/index.html?opportunityId=${opportunityId}`;
   }
 
   // ============================================

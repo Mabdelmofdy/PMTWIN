@@ -20,14 +20,14 @@
             const isLiveServer = currentPort === '5503' || window.location.host.includes(':5503');
             let redirectPath = isLiveServer 
                 ? 'http://127.0.0.1:5503/POC/pages/admin-vetting/index.html'
-                : (currentPath.includes('/POC/') ? '/POC/pages/admin-vetting/index.html' : 'pages/admin-vetting/index.html');
+                : '/pages/admin-vetting/index.html';
             console.log('Redirecting to:', redirectPath);
             try {
                 window.location.replace(redirectPath);
             } catch (e) {
                 const alternatives = isLiveServer 
                     ? ['http://127.0.0.1:5503/POC/pages/admin-vetting/index.html']
-                    : ['../pages/admin-vetting/index.html', '/POC/pages/admin-vetting/index.html'];
+                    : ['/pages/admin-vetting/index.html', '../pages/admin-vetting/index.html'];
                 let altIndex = 0;
                 function tryAlternative() {
                     if (altIndex < alternatives.length) {
@@ -48,7 +48,7 @@
 <body style="font-family: system-ui, -apple-system, sans-serif; padding: 2rem; text-align: center; background: #f5f5f5;">
     <div style="max-width: 600px; margin: 4rem auto; background: white; padding: 2rem; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
         <h1 style="color: #0066CC; margin-bottom: 1rem;">Redirecting to Admin Vetting...</h1>
-        <p style="color: #666; margin-bottom: 2rem;">If you're not redirected automatically, <a href="http://127.0.0.1:5503/POC/pages/admin-vetting/index.html" style="color: #0066CC;">click here</a>.</p>
+        <p style="color: #666; margin-bottom: 2rem;">If you're not redirected automatically, <a href="/pages/admin-vetting/index.html" style="color: #0066CC;">click here</a>.</p>
     </div>
 </body>
 </html>

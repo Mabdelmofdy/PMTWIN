@@ -9,84 +9,84 @@
   // Route mapping: route key -> absolute path
   const NAV_ROUTES = {
     // Public Routes
-    'home': '/POC/pages/home/index.html',
-    'discovery': '/POC/pages/discovery/index.html',
-    'wizard': '/POC/pages/wizard/index.html',
-    'knowledge': '/POC/pages/knowledge/index.html',
+    'home': '/pages/home/index.html',
+    'discovery': '/pages/discovery/index.html',
+    'wizard': '/pages/wizard/index.html',
+    'knowledge': '/pages/knowledge/index.html',
     
     // Auth Routes
-    'login': '/POC/pages/auth/login/index.html',
-    'signup': '/POC/pages/auth/signup/index.html',
+    'login': '/pages/auth/login/index.html',
+    'signup': '/pages/auth/signup/index.html',
     
     // Dashboard
-    'dashboard': '/POC/pages/dashboard/index.html',
+    'dashboard': '/pages/dashboard/index.html',
     
     // Opportunities (New Workflow)
-    'opportunities': '/POC/pages/opportunities/index.html',
-    'opportunities/create': '/POC/pages/opportunities/create/index.html',
-    'opportunities/view': '/POC/pages/opportunities/view/index.html',
-    'opportunities/details': '/POC/pages/opportunities/details.html',
-    'opportunities/my': '/POC/pages/opportunities/my/index.html',
-    'my-opportunities': '/POC/pages/opportunities/my/index.html', // Alias
+    'opportunities': '/pages/opportunities/my/index.html',
+    'opportunities/create': '/pages/opportunities/create/index.html',
+    'opportunities/view': '/pages/opportunities/view/index.html',
+    'opportunities/details': '/pages/opportunities/details.html',
+    'opportunities/my': '/pages/opportunities/my/index.html',
+    'my-opportunities': '/pages/opportunities/my/index.html', // Alias
     
     // Matches
-    'matches': '/POC/pages/matches/index.html',
+    'matches': '/pages/matches/index.html',
     
     // Proposals
-    'proposals': '/POC/pages/proposals/index.html',
-    'proposals/create': '/POC/pages/proposals/create/index.html',
-    'proposals/submit': '/POC/pages/proposals/submit.html',
-    'proposals/view': '/POC/pages/proposals/view/index.html',
-    'create-proposal': '/POC/pages/proposals/create/index.html', // Alias
+    'proposals': '/pages/proposals/index.html',
+    'proposals/create': '/pages/proposals/create/index.html',
+    'proposals/submit': '/pages/proposals/submit.html',
+    'proposals/view': '/pages/proposals/view/index.html',
+    'create-proposal': '/pages/proposals/create/index.html', // Alias
     
     // Pipeline
-    'pipeline': '/POC/pages/pipeline/index.html',
+    'pipeline': '/pages/pipeline/index.html',
     
     // Auth
-    'demo-login': '/POC/pages/auth/demo-login.html',
+    'demo-login': '/pages/auth/demo-login.html',
     
     // Contracts
-    'contracts': '/POC/pages/contracts/index.html',
-    'contracts/view': '/POC/pages/contracts/view/index.html',
+    'contracts': '/pages/contracts/index.html',
+    'contracts/view': '/pages/contracts/view/index.html',
     
     // Collaboration Models
-    'collaboration': '/POC/pages/collaboration/index.html',
-    'collab-task-based': '/POC/pages/collaboration/task-based/index.html',
-    'collab-consortium': '/POC/pages/collaboration/consortium/index.html',
-    'collab-jv': '/POC/pages/collaboration/joint-venture/index.html',
-    'collab-spv': '/POC/pages/collaboration/spv/index.html',
-    'collab-strategic-jv': '/POC/pages/collaboration/strategic-jv/index.html',
-    'collab-strategic-alliance': '/POC/pages/collaboration/strategic-alliance/index.html',
-    'collab-mentorship': '/POC/pages/collaboration/mentorship/index.html',
-    'collab-bulk-purchasing': '/POC/pages/collaboration/bulk-purchasing/index.html',
-    'collab-co-ownership': '/POC/pages/collaboration/co-ownership/index.html',
-    'collab-resource-exchange': '/POC/pages/collaboration/resource-exchange/index.html',
-    'collab-professional-hiring': '/POC/pages/collaboration/professional-hiring/index.html',
-    'collab-consultant-hiring': '/POC/pages/collaboration/consultant-hiring/index.html',
-    'collab-competition': '/POC/pages/collaboration/competition/index.html',
+    'collaboration': '/pages/collaboration/index.html',
+    'collab-task-based': '/pages/collaboration/task-based/index.html',
+    'collab-consortium': '/pages/collaboration/consortium/index.html',
+    'collab-jv': '/pages/collaboration/joint-venture/index.html',
+    'collab-spv': '/pages/collaboration/spv/index.html',
+    'collab-strategic-jv': '/pages/collaboration/strategic-jv/index.html',
+    'collab-strategic-alliance': '/pages/collaboration/strategic-alliance/index.html',
+    'collab-mentorship': '/pages/collaboration/mentorship/index.html',
+    'collab-bulk-purchasing': '/pages/collaboration/bulk-purchasing/index.html',
+    'collab-co-ownership': '/pages/collaboration/co-ownership/index.html',
+    'collab-resource-exchange': '/pages/collaboration/resource-exchange/index.html',
+    'collab-professional-hiring': '/pages/collaboration/professional-hiring/index.html',
+    'collab-consultant-hiring': '/pages/collaboration/consultant-hiring/index.html',
+    'collab-competition': '/pages/collaboration/competition/index.html',
     
     // Profile & Settings
-    'profile': '/POC/pages/profile/index.html',
-    'onboarding': '/POC/pages/onboarding/index.html',
-    'notifications': '/POC/pages/notifications/index.html',
+    'profile': '/pages/profile/index.html',
+    'onboarding': '/pages/onboarding/index.html',
+    'notifications': '/pages/notifications/index.html',
     
     // Admin Routes
-    'admin': '/POC/pages/admin/index.html',
-    'admin-vetting': '/POC/pages/admin-vetting/index.html',
-    'admin-moderation': '/POC/pages/admin-moderation/index.html',
-    'admin-audit': '/POC/pages/admin-audit/index.html',
-    'admin-reports': '/POC/pages/admin-reports/index.html',
-    'admin-directory': '/POC/pages/admin/directory/index.html',
-    'admin-users-management': '/POC/pages/admin/users-management/index.html',
+    'admin': '/pages/admin/index.html',
+    'admin-vetting': '/pages/admin-vetting/index.html',
+    'admin-moderation': '/pages/admin-moderation/index.html',
+    'admin-audit': '/pages/admin-audit/index.html',
+    'admin-reports': '/pages/admin-reports/index.html',
+    'admin-directory': '/pages/admin/directory/index.html',
+    'admin-users-management': '/pages/admin/users-management/index.html',
     
     // Legacy Routes (redirect to opportunities)
-    'projects': '/POC/pages/opportunities/index.html',
-    'project': '/POC/pages/opportunities/index.html',
-    'create-project': '/POC/pages/opportunities/create/index.html',
-    'my-projects': '/POC/pages/opportunities/my/index.html',
+    'projects': '/pages/opportunities/my/index.html',
+    'project': '/pages/opportunities/my/index.html',
+    'create-project': '/pages/opportunities/create/index.html',
+    'my-projects': '/pages/opportunities/my/index.html',
     
     // Audit (alias for admin-audit)
-    'audit': '/POC/pages/admin-audit/index.html'
+    'audit': '/pages/admin-audit/index.html'
   };
 
   /**
@@ -106,8 +106,9 @@
     if (options.useLiveServer) {
       const isLiveServer = window.location.port === '5503' || 
                           (window.location.hostname === '127.0.0.1' && window.location.port === '5503');
-      if (isLiveServer && route.startsWith('/POC/')) {
-        return `http://127.0.0.1:5503${route}`;
+      if (isLiveServer) {
+        // For local Live Server, add /POC prefix
+        return `http://127.0.0.1:5503/POC${route}`;
       }
     }
     
@@ -163,7 +164,7 @@
       if (isLiveServer) {
         return `http://127.0.0.1:5503/POC/pages/${cleanPath}`;
       }
-      return `/POC/pages/${cleanPath}`;
+      return `/pages/${cleanPath}`;
     }
     
     // Assume it's a page directory
@@ -172,7 +173,7 @@
     if (isLiveServer) {
       return `http://127.0.0.1:5503/POC/pages/${cleanPath}/index.html`;
     }
-    return `/POC/pages/${cleanPath}/index.html`;
+    return `/pages/${cleanPath}/index.html`;
   }
 
   // Export

@@ -437,7 +437,7 @@
       return window.NavRoutes.getRouteWithQuery('opportunities/details', { id: opportunityId });
     }
     // Final fallback
-    return `/POC/pages/opportunities/details.html?id=${opportunityId}`;
+    return `/pages/opportunities/details.html?id=${opportunityId}`;
   }
 
   // ============================================
@@ -457,7 +457,7 @@
     if (typeof window.NavRoutes !== 'undefined') {
       return window.NavRoutes.getRouteWithQuery('create-proposal', { opportunityId: opportunityId });
     }
-    return `/POC/pages/proposals/create/index.html?opportunityId=${opportunityId}`;
+    return `/pages/proposals/create/index.html?opportunityId=${opportunityId}`;
   }
 
   // ============================================
@@ -467,7 +467,7 @@
     if (typeof window.NavRoutes !== 'undefined') {
       return window.NavRoutes.getRouteWithQuery('create-proposal', { opportunityId: opportunityId });
     }
-    return `/POC/pages/proposals/create/index.html?opportunityId=${opportunityId}`;
+    return `/pages/proposals/create/index.html?opportunityId=${opportunityId}`;
   }
 
   // ============================================

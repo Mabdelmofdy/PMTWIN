@@ -31,12 +31,13 @@ function initCollaborationPage(modelId) {
                 // Check authentication
                 if (!PMTwinAuth.isAuthenticated()) {
                     // Use NAV_ROUTES if available, otherwise use full URL
-                    let loginUrl = '/POC/pages/auth/login/index.html';
+                    let loginUrl = '/pages/auth/login/index.html';
                     if (typeof window.NavRoutes !== 'undefined' && window.NavRoutes.NAV_ROUTES['login']) {
                         loginUrl = window.NavRoutes.getRoute('login', { useLiveServer: true });
                     } else {
-                        // Fallback: normalize to full URL
-                        loginUrl = 'http://127.0.0.1:5503/POC/pages/auth/login/index.html';
+                        // Fallback: normalize to full URL for Live Server
+                        const isLiveServer = window.location.port === '5503' || (window.location.hostname === '127.0.0.1' && window.location.port === '5503');
+                        loginUrl = isLiveServer ? 'http://127.0.0.1:5503/POC/pages/auth/login/index.html' : '/pages/auth/login/index.html';
                     }
                     window.location.href = loginUrl;
                     return;
@@ -46,12 +47,13 @@ function initCollaborationPage(modelId) {
                 const currentUser = PMTwinData.Sessions.getCurrentUser();
                 if (!currentUser) {
                     // Use NAV_ROUTES if available, otherwise use full URL
-                    let loginUrl = '/POC/pages/auth/login/index.html';
+                    let loginUrl = '/pages/auth/login/index.html';
                     if (typeof window.NavRoutes !== 'undefined' && window.NavRoutes.NAV_ROUTES['login']) {
                         loginUrl = window.NavRoutes.getRoute('login', { useLiveServer: true });
                     } else {
-                        // Fallback: normalize to full URL
-                        loginUrl = 'http://127.0.0.1:5503/POC/pages/auth/login/index.html';
+                        // Fallback: normalize to full URL for Live Server
+                        const isLiveServer = window.location.port === '5503' || (window.location.hostname === '127.0.0.1' && window.location.port === '5503');
+                        loginUrl = isLiveServer ? 'http://127.0.0.1:5503/POC/pages/auth/login/index.html' : '/pages/auth/login/index.html';
                     }
                     window.location.href = loginUrl;
                     return;

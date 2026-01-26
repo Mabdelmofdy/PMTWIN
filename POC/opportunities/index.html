@@ -37,8 +37,9 @@
                 if (currentPath.includes('/POC/')) {
                     redirectPath = '/POC/pages/opportunities/index.html';
                 } else {
-                    // Live Server root is POC folder
-                    redirectPath = 'pages/opportunities/index.html';
+                    // Production or Live Server from POC root
+                    const isLiveServer = window.location.port === '5503' || (window.location.hostname === '127.0.0.1' && window.location.port === '5503');
+                    redirectPath = isLiveServer ? 'pages/opportunities/index.html' : '/pages/opportunities/index.html';
                 }
             }
             // Check if path includes /POC/ (Live Server from workspace root)
@@ -47,14 +48,13 @@
             }
             // Check if path starts with /opportunities (absolute path)
             else if (currentPath.startsWith('/opportunities')) {
-                // Try both possibilities
-                redirectPath = window.location.href.includes('/POC/') 
-                    ? '/POC/pages/opportunities/index.html' 
-                    : 'pages/opportunities/index.html';
+                // For production, use path without /POC/
+                redirectPath = '/pages/opportunities/index.html';
             }
-            // Default: assume relative path from POC root
+            // Default: assume relative path from POC root or absolute for production
             else {
-                redirectPath = 'pages/opportunities/index.html';
+                const isLiveServer = window.location.port === '5503' || (window.location.hostname === '127.0.0.1' && window.location.port === '5503');
+                redirectPath = isLiveServer ? 'pages/opportunities/index.html' : '/pages/opportunities/index.html';
             }
             
             console.log('Redirecting to:', redirectPath);
@@ -66,10 +66,10 @@
                 console.error('Redirect error:', e);
                 // Fallback: try alternative paths
                 const alternatives = [
+                    '/pages/opportunities/index.html',
                     '../pages/opportunities/index.html',
                     '../../pages/opportunities/index.html',
-                    '/POC/pages/opportunities/index.html',
-                    '/pages/opportunities/index.html'
+                    '/POC/pages/opportunities/index.html'
                 ];
                 
                 let altIndex = 0;
@@ -98,7 +98,7 @@
         <div style="display: flex; flex-direction: column; gap: 1rem; margin-bottom: 2rem;">
             <a href="pages/opportunities/index.html" style="display: block; padding: 0.75rem 1.5rem; background: #0066CC; color: white; text-decoration: none; border-radius: 4px; text-align: center;">pages/opportunities/index.html</a>
             <a href="../pages/opportunities/index.html" style="display: block; padding: 0.75rem 1.5rem; background: #0066CC; color: white; text-decoration: none; border-radius: 4px; text-align: center;">../pages/opportunities/index.html</a>
-            <a href="/POC/pages/opportunities/index.html" style="display: block; padding: 0.75rem 1.5rem; background: #0066CC; color: white; text-decoration: none; border-radius: 4px; text-align: center;">/POC/pages/opportunities/index.html</a>
+            <a href="/pages/opportunities/index.html" style="display: block; padding: 0.75rem 1.5rem; background: #0066CC; color: white; text-decoration: none; border-radius: 4px; text-align: center;">/pages/opportunities/index.html</a>
         </div>
         <div style="padding: 1rem; background: #fff3cd; border-left: 4px solid #ffc107; border-radius: 4px; margin-top: 2rem;">
             <p style="margin: 0; color: #856404; font-size: 0.9rem;">

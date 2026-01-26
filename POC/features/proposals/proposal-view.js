@@ -430,7 +430,7 @@
     
     if (updates === null) {
       // Redirect to proposal edit/create page with current proposal data
-      const editUrl = `/POC/pages/proposals/create/index.html?proposalId=${currentProposal.id}&createVersion=true`;
+      const editUrl = `/pages/proposals/create/index.html?proposalId=${currentProposal.id}&createVersion=true`;
       window.location.href = editUrl;
       return;
     }
@@ -638,7 +638,7 @@
           const viewUrl = window.NavRoutes.getRouteWithQuery('contracts/view', { id: contract.id });
           window.location.href = viewUrl;
         } else {
-          window.location.href = `/POC/pages/contracts/view/index.html?id=${contract.id}`;
+          window.location.href = `/pages/contracts/view/index.html?id=${contract.id}`;
         }
       } else {
         alert('Failed to generate contract');
