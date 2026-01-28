@@ -32,7 +32,7 @@
       'merchant-portal': '/pages/merchant-portal/index.html',
       'projects': '/pages/opportunities/index.html', // Redirect to opportunities
       'project': '/pages/opportunities/index.html', // Redirect to opportunities (legacy)
-      'opportunities': '/pages/opportunities/my/index.html',
+      'opportunities': '/pages/opportunities/index.html',
       'matches': '/pages/matches/index.html',
       'proposals': '/pages/proposals/index.html',
       'create-proposal': '/pages/proposals/create/index.html',
@@ -91,7 +91,7 @@
         if (typeof window.NavRoutes !== 'undefined' && window.NavRoutes.NAV_ROUTES['opportunities']) {
           targetFile = window.NavRoutes.NAV_ROUTES['opportunities'];
         } else {
-          targetFile = '/pages/opportunities/my/index.html';
+          targetFile = '/pages/opportunities/index.html';
         }
         queryParams = `?id=${id}`;
       } else if (routeMap[baseRoute]) {

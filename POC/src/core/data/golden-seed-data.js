@@ -4505,7 +4505,7 @@
   function createGoldenEngagements(forceReload = false) {
     const engagements = PMTwinData.Engagements.getAll();
     const contracts = PMTwinData.Contracts.getAll();
-    const projects = PMTwinData.Projects.getAll();
+    const opportunities = PMTwinData.Opportunities.getAll();
 
     const megaContract = contracts.find(c => c.id === 'contract_mega_001');
     const serviceContract1 = contracts.find(c => c.id === 'contract_service_bim_001');
@@ -4513,7 +4513,7 @@
     const advisoryContract = contracts.find(c => c.id === 'contract_advisory_001');
     const subContract1 = contracts.find(c => c.id === 'contract_sub_mep_001');
     const subContract2 = contracts.find(c => c.id === 'contract_sub_steel_001');
-    const megaProject = projects.find(p => p.id === 'megaproject_neom_001');
+    const megaProject = opportunities.find(p => p.id === 'megaproject_neom_001');
 
     if (!megaContract || !serviceContract1 || !serviceContract2 || !advisoryContract || !subContract1 || !subContract2 || !megaProject) {
       console.warn('Required contracts not found, skipping engagements');
@@ -4992,12 +4992,12 @@
   function createGoldenBeneficiaries(forceReload = false) {
     const beneficiaries = PMTwinData.Beneficiaries.getAll();
     const users = PMTwinData.Users.getAll();
-    const projects = PMTwinData.Projects.getAll();
+    const opportunities = PMTwinData.Opportunities.getAll();
 
     const beneficiaryA = users.find(u => u.email === 'beneficiary@pmtwin.com');
     const beneficiaryB = users.find(u => u.email === 'entity2@pmtwin.com');
-    const megaProject = projects.find(p => p.id === 'megaproject_neom_001');
-    const standaloneProject = projects.find(p => p.id === 'project_residential_001');
+    const megaProject = opportunities.find(p => p.id === 'megaproject_neom_001');
+    const standaloneProject = opportunities.find(p => p.id === 'project_residential_001');
 
     if (!beneficiaryA || !beneficiaryB) {
       console.warn('Beneficiaries not found, skipping beneficiaries index');

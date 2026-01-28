@@ -1585,6 +1585,263 @@ select.form-control {
 }
 
 /* ============================================
+   Edit Opportunity Modal (dark-themed pop-up)
+   ============================================ */
+.edit-opportunity-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(6px);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 10000;
+  padding: 1.5rem;
+  animation: editModalFadeIn 0.2s ease-out;
+}
+
+@keyframes editModalFadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.edit-opportunity-modal {
+  background: #374151;
+  border-radius: 10px;
+  max-width: 560px;
+  width: 100%;
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  box-shadow: 0 25px 50px rgba(0, 0, 0, 0.35), 0 0 0 1px rgba(255, 255, 255, 0.06);
+  animation: editModalSlideIn 0.25s ease-out;
+}
+
+@keyframes editModalSlideIn {
+  from {
+    opacity: 0;
+    transform: scale(0.96) translateY(-12px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+/* Header bar - light grey */
+.edit-opportunity-modal .edit-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem 1.25rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  background: #4b5563;
+}
+
+.edit-opportunity-modal .edit-modal-header h2 {
+  margin: 0;
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #f9fafb;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.edit-opportunity-modal .edit-modal-header h2 .ph {
+  color: #3b82f6;
+  font-size: 1.2rem;
+  font-weight: 400;
+}
+
+.edit-opportunity-modal .edit-modal-close {
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: none;
+  border-radius: 6px;
+  color: #d1d5db;
+  cursor: pointer;
+  font-size: 1.25rem;
+  transition: background 0.15s, color 0.15s;
+}
+
+.edit-opportunity-modal .edit-modal-close:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: #f9fafb;
+}
+
+/* Content area - dark grey, scrollable */
+.edit-opportunity-modal .edit-modal-body {
+  padding: 1.25rem 1.5rem;
+  overflow-y: auto;
+  flex: 1;
+  background: #374151;
+}
+
+.edit-opportunity-modal .edit-form-section {
+  margin-bottom: 1.5rem;
+}
+
+.edit-opportunity-modal .edit-form-section:last-child {
+  margin-bottom: 0;
+}
+
+/* Section headers - light grey, uppercase */
+.edit-opportunity-modal .edit-form-section-title {
+  font-size: 0.6875rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #9ca3af;
+  margin-bottom: 0.75rem;
+  padding-bottom: 0.25rem;
+}
+
+.edit-opportunity-modal .edit-form-group {
+  margin-bottom: 1rem;
+}
+
+.edit-opportunity-modal .edit-form-group:last-child {
+  margin-bottom: 0;
+}
+
+/* Labels - light text on dark */
+.edit-opportunity-modal .edit-form-label {
+  display: block;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #e5e7eb;
+  margin-bottom: 0.35rem;
+}
+
+.edit-opportunity-modal .edit-form-label.required::after {
+  content: ' *';
+  color: #ef4444;
+}
+
+/* Inputs - white background, dark text, light grey border */
+.edit-opportunity-modal .edit-form-control {
+  width: 100%;
+  padding: 0.6rem 0.85rem;
+  font-size: 0.9375rem;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  background: #ffffff;
+  color: #111827;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+.edit-opportunity-modal .edit-form-control:focus {
+  outline: none;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+}
+
+.edit-opportunity-modal .edit-form-control::placeholder {
+  color: #6b7280;
+}
+
+.edit-opportunity-modal select.edit-form-control {
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23374151' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 0.75rem center;
+  padding-right: 2rem;
+}
+
+.edit-opportunity-modal textarea.edit-form-control {
+  resize: vertical;
+  min-height: 100px;
+}
+
+.edit-opportunity-modal .edit-form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+.edit-opportunity-modal .edit-form-checkbox {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  cursor: pointer;
+  font-size: 0.9375rem;
+  color: #e5e7eb;
+}
+
+.edit-opportunity-modal .edit-form-checkbox input {
+  width: 18px;
+  height: 18px;
+  accent-color: #3b82f6;
+  cursor: pointer;
+}
+
+/* Footer bar - lighter grey */
+.edit-opportunity-modal .edit-modal-footer {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.75rem;
+  padding: 1rem 1.5rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  background: #4b5563;
+}
+
+.edit-opportunity-modal .edit-modal-footer .btn-secondary {
+  background: #ffffff;
+  color: #374151;
+  border: 1px solid #d1d5db;
+}
+
+.edit-opportunity-modal .edit-modal-footer .btn-secondary:hover {
+  background: #f9fafb;
+  border-color: #9ca3af;
+}
+
+.edit-opportunity-modal .edit-modal-footer .btn-primary {
+  background: #3b82f6;
+  color: #ffffff;
+  border: none;
+}
+
+.edit-opportunity-modal .edit-modal-footer .btn-primary:hover {
+  background: #2563eb;
+}
+
+/* Scrollbar styling for dark modal body */
+.edit-opportunity-modal .edit-modal-body::-webkit-scrollbar {
+  width: 8px;
+}
+
+.edit-opportunity-modal .edit-modal-body::-webkit-scrollbar-track {
+  background: #4b5563;
+  border-radius: 4px;
+}
+
+.edit-opportunity-modal .edit-modal-body::-webkit-scrollbar-thumb {
+  background: #6b7280;
+  border-radius: 4px;
+}
+
+.edit-opportunity-modal .edit-modal-body::-webkit-scrollbar-thumb:hover {
+  background: #9ca3af;
+}
+
+@media (max-width: 540px) {
+  .edit-opportunity-modal .edit-form-row {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ============================================
    Navigation
    ============================================ */
 .navbar {

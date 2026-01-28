@@ -109,10 +109,10 @@
     };
 
     // Try to get real data if available
-    if (typeof PMTwinData !== 'undefined' && PMTwinData.Projects && PMTwinData.Users) {
+    if (typeof PMTwinData !== 'undefined' && PMTwinData.Opportunities && PMTwinData.Users) {
       try {
-        if (PMTwinData.Projects && typeof PMTwinData.Projects.getActive === 'function') {
-          stats.activeProjects = PMTwinData.Projects.getActive().length;
+        if (PMTwinData.Opportunities && typeof PMTwinData.Opportunities.getActive === 'function') {
+          stats.activeProjects = PMTwinData.Opportunities.getActive().length;
         }
         if (PMTwinData.Users && typeof PMTwinData.Users.getAll === 'function') {
           stats.totalUsers = PMTwinData.Users.getAll().length;
@@ -408,10 +408,21 @@
     }
 
     try {
-      if (!PMTwinData || !PMTwinData.Projects || typeof PMTwinData.Projects.getActive !== 'function') {
-        throw new Error('Projects service not available');
+      if (!PMTwinData || !PMTwinData.Opportunities || typeof PMTwinData.Opportunities.getActive !== 'function') {
+        throw new Error('Opportunities service not available');
       }
-      const projects = PMTwinData.Projects.getActive().slice(0, 6);
+      const opportunities = PMTwinData.Opportunities.getActive().slice(0, 6);
+      
+      // Convert opportunities to project format for display
+      const projects = opportunities.map(opp => ({
+        id: opp.id,
+        title: opp.title,
+        name: opp.title,
+        description: opp.description,
+        category: opp.category,
+        status: opp.status === 'published' ? 'active' : opp.status,
+        location: opp.location
+      }));
       
       if (projects.length === 0) {
         container.innerHTML = `

@@ -228,46 +228,14 @@
     if (currentFilters.model) {
       opportunities = opportunities.filter(opp => opp.model === currentFilters.model);
     }
-    
-    // Filter out own opportunities (only if userId is set and matches)
-    if (userId) {
-      const beforeOwnFilter = opportunities.length;
-      opportunities = opportunities.filter(opp => {
-        const createdBy = opp.createdByUserId || opp.createdBy || opp.creatorId;
-        const shouldShow = createdBy !== userId;
-        if (!shouldShow) {
-          console.log('[OpportunitiesList] Filtering out own opportunity:', opp.id, 'createdBy:', createdBy, 'userId:', userId);
-        }
-        return shouldShow;
-      });
-      console.log('[OpportunitiesList] After filtering own opportunities:', opportunities.length, 'out of', beforeOwnFilter);
-    }
 
-    // Filter by status (only show PUBLISHED/ACTIVE, but be lenient)
+    // RBAC-aligned: only show PUBLISHED opportunities from ALL companies (browse list shows all published)
     const beforeStatusFilter = opportunities.length;
     opportunities = opportunities.filter(opp => {
       const status = (opp.status || '').toUpperCase();
-      // Accept PUBLISHED, ACTIVE, or if status is empty/null, show it (might be from store)
-      return status === 'PUBLISHED' || status === 'ACTIVE' || status === '' || !opp.status;
+      return status === 'PUBLISHED';
     });
-    console.log('[OpportunitiesList] After status filter:', opportunities.length, 'out of', beforeStatusFilter);
-    
-    // If no opportunities after status filter, but we had some before, show all (for debugging)
-    if (opportunities.length === 0 && beforeStatusFilter > 0) {
-      console.warn('[OpportunitiesList] All opportunities filtered out by status. Showing all for debugging.');
-      opportunities = typeof window.OpportunityStore !== 'undefined' ? 
-        window.OpportunityStore.getAllOpportunities() : [];
-      // Re-apply other filters but skip status
-      if (currentFilters.intent) {
-        opportunities = opportunities.filter(opp => opp.intent === currentFilters.intent);
-      }
-    if (userId) {
-      opportunities = opportunities.filter(opp => {
-          const createdBy = opp.createdByUserId || opp.createdBy || opp.creatorId;
-        return createdBy !== userId;
-      });
-    }
-    }
+    console.log('[OpportunitiesList] After status filter (published only):', opportunities.length, 'out of', beforeStatusFilter);
 
     console.log('[OpportunitiesList] Final opportunities count:', opportunities.length);
     console.log('[OpportunitiesList] Sample opportunity:', opportunities[0]);
@@ -303,79 +271,106 @@
       return;
     }
 
-    // Render opportunities
-    let html = '<div style="display: grid; gap: 1.5rem;">';
-    
+    // Render opportunities as accordion-style sections (one section per project)
+    let html = '';
     opportunities.forEach(opportunity => {
-      const totalValue = opportunity.serviceItems && opportunity.serviceItems.length > 0
-        ? opportunity.serviceItems.reduce((sum, item) => sum + (item.totalRef || 0), 0)
-        : 0;
-      
-      const intentBadge = getIntentBadge(opportunity.intent || opportunity.intentType);
-      const paymentType = opportunity.paymentTerms?.type || opportunity.paymentTerms?.mode || opportunity.paymentMode;
-      const paymentBadge = getPaymentBadge(paymentType);
-      const statusBadge = getStatusBadge(opportunity.status);
-      // Display location as "City, Country" format
-      const oppCity = opportunity.location?.city || 'TBD';
-      const oppCountry = opportunity.location?.country || 'Not specified';
-      const locationText = `${oppCity}, ${oppCountry}`;
-      const isRemoteAllowed = opportunity.location?.isRemoteAllowed || false;
-      const skillsTags = opportunity.skillsTags || opportunity.skills || [];
-      
-      html += `
-        <div class="card enhanced-card">
-          <div class="card-body">
-            <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 1rem;">
-              <div style="flex: 1;">
-                <div style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.5rem;">
-                  <h3 style="margin: 0; flex: 1;">${opportunity.title || 'Untitled Opportunity'}</h3>
-                  ${statusBadge}
-                </div>
-                <div style="display: flex; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 0.75rem;">
-                  ${intentBadge}
-                  ${paymentBadge}
-                  ${isRemoteAllowed ? '<span class="badge badge-success"><i class="ph ph-globe"></i> Remote</span>' : '<span class="badge badge-secondary"><i class="ph ph-map-pin"></i> On-Site</span>'}
-                </div>
-                <p style="margin: 0 0 0.75rem 0; color: var(--text-secondary);">
-                  <i class="ph ph-map-pin"></i> ${locationText}
-                </p>
-            
-            <p style="margin-bottom: 1rem;">${(opportunity.description || '').substring(0, 200)}${opportunity.description && opportunity.description.length > 200 ? '...' : ''}</p>
-            
-            ${skillsTags.length > 0 ? `
-              <div style="margin-bottom: 1rem;">
-                <strong style="font-size: 0.875rem; color: var(--text-secondary); margin-bottom: 0.5rem; display: block;">Required Skills:</strong>
-                <div style="display: flex; flex-wrap: wrap; gap: 0.5rem;">
-                  ${skillsTags.slice(0, 6).map(skill => `<span class="badge badge-primary">${escapeHtml(skill)}</span>`).join('')}
-                  ${skillsTags.length > 6 ? `<span class="badge badge-secondary">+${skillsTags.length - 6} more</span>` : ''}
-                </div>
-              </div>
-            ` : ''}
-            
-            ${opportunity.serviceItems && opportunity.serviceItems.length > 0 ? `
-              <div style="margin-bottom: 1rem; padding: 1rem; background: var(--bg-secondary); border-radius: var(--border-radius);">
-                <strong style="display: block; margin-bottom: 0.5rem;">Service Items (${opportunity.serviceItems.length}):</strong>
-                <ul style="margin: 0; padding-left: 1.5rem; list-style: disc;">
-                  ${opportunity.serviceItems.slice(0, 3).map(item => `
-                    <li style="margin-bottom: 0.25rem;">${escapeHtml(item.name || 'Service')} - ${item.qty || 1} ${escapeHtml(item.unit || 'unit')} (${escapeHtml(item.priceRef || 'negotiable')})</li>
-                  `).join('')}
-                  ${opportunity.serviceItems.length > 3 ? `<li style="color: var(--text-secondary);"><em>+${opportunity.serviceItems.length - 3} more items</em></li>` : ''}
-                </ul>
-              </div>
-            ` : ''}
-            
-            <div style="display: flex; gap: 0.75rem; flex-wrap: wrap; padding-top: 1rem; border-top: 1px solid var(--border-color);">
-              <a href="${getOpportunityViewUrl(opportunity.id)}" class="btn btn-primary">
-                <i class="ph ph-eye"></i> View Details
-              </a>
+      html += renderOpportunitySection(opportunity);
+    });
+    container.innerHTML = html;
+  }
+
+  // ============================================
+  // Render single opportunity section (accordion)
+  // ============================================
+  function renderOpportunitySection(opportunity) {
+    const intentBadge = getIntentBadge(opportunity.intent || opportunity.intentType);
+    const paymentType = opportunity.paymentTerms?.type || opportunity.paymentTerms?.mode || opportunity.paymentMode;
+    const paymentBadge = getPaymentBadge(paymentType);
+    const statusBadge = getStatusBadge(opportunity.status);
+    // Display location as "City, Country" format
+    const oppCity = opportunity.location?.city || 'TBD';
+    const oppCountry = opportunity.location?.country || 'Not specified';
+    const locationText = `${oppCity}, ${oppCountry}`;
+    const isRemoteAllowed = opportunity.location?.isRemoteAllowed || false;
+    const skillsTags = opportunity.skillsTags || opportunity.skills || [];
+
+    const description = (opportunity.description || '');
+    const shortDescription = description.substring(0, 160) + (description.length > 160 ? '...' : '');
+
+    const viewUrl = getOpportunityViewUrl(opportunity.id);
+
+    return `
+      <details class="opportunity-section" open
+        style="border: 1px solid var(--border-color); border-radius: var(--border-radius-lg, 12px); margin-bottom: 1.5rem; background: var(--bg-card, #fff); overflow: hidden;">
+        <summary
+          style="padding: 1rem 1.5rem; cursor: pointer; list-style: none; display: flex; justify-content: space-between; align-items: center; gap: 1rem;">
+          <div style="flex: 1; min-width: 0;">
+            <div style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.35rem;">
+              <h3 style="margin: 0; font-size: 1.1rem; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                ${escapeHtml(opportunity.title || 'Untitled Opportunity')}
+              </h3>
+              ${statusBadge}
             </div>
+            <div style="display: flex; flex-wrap: wrap; gap: 0.35rem; margin-bottom: 0.35rem;">
+              ${intentBadge}
+              ${paymentBadge}
+              ${isRemoteAllowed
+                ? '<span class="badge badge-success"><i class="ph ph-globe"></i> Remote</span>'
+                : '<span class="badge badge-secondary"><i class="ph ph-map-pin"></i> On-Site</span>'}
+            </div>
+            <p style="margin: 0; font-size: 0.85rem; color: var(--text-secondary);">
+              <i class="ph ph-map-pin"></i> ${escapeHtml(locationText)}
+            </p>
+          </div>
+          <div style="flex-shrink: 0; display: flex; align-items: center; gap: 0.5rem;">
+            <span style="font-size: 0.8rem; color: var(--text-secondary); max-width: 260px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+              ${escapeHtml(shortDescription)}
+            </span>
+            <span style="font-size: 1.1rem; color: var(--text-secondary); transform: rotate(90deg);">
+              ❯
+            </span>
+          </div>
+        </summary>
+        <div style="padding: 1rem 1.5rem; border-top: 1px solid var(--border-color);">
+          ${description ? `
+            <p style="margin-bottom: 1rem; color: var(--text-secondary); line-height: 1.6;">
+              ${escapeHtml(description)}
+            </p>
+          ` : ''}
+
+          ${skillsTags.length > 0 ? `
+            <div style="margin-bottom: 1rem;">
+              <strong style="font-size: 0.875rem; color: var(--text-secondary); margin-bottom: 0.5rem; display: block;">Required Skills:</strong>
+              <div style="display: flex; flex-wrap: wrap; gap: 0.5rem;">
+                ${skillsTags.slice(0, 8).map(skill => `<span class="badge badge-primary">${escapeHtml(skill)}</span>`).join('')}
+                ${skillsTags.length > 8 ? `<span class="badge badge-secondary">+${skillsTags.length - 8} more</span>` : ''}
+              </div>
+            </div>
+          ` : ''}
+
+          ${opportunity.serviceItems && opportunity.serviceItems.length > 0 ? `
+            <div style="margin-bottom: 1rem; padding: 1rem; background: var(--bg-secondary); border-radius: var(--border-radius);">
+              <strong style="display: block; margin-bottom: 0.5rem;">Service Items (${opportunity.serviceItems.length}):</strong>
+              <ul style="margin: 0; padding-left: 1.5rem; list-style: disc;">
+                ${opportunity.serviceItems.slice(0, 4).map(item => `
+                  <li style="margin-bottom: 0.25rem;">
+                    ${escapeHtml(item.name || 'Service')} - ${item.qty || 1} ${escapeHtml(item.unit || 'unit')}
+                    (${escapeHtml(item.priceRef || 'negotiable')})
+                  </li>
+                `).join('')}
+                ${opportunity.serviceItems.length > 4 ? `<li style="color: var(--text-secondary);"><em>+${opportunity.serviceItems.length - 4} more items</em></li>` : ''}
+              </ul>
+            </div>
+          ` : ''}
+
+          <div style="display: flex; gap: 0.75rem; flex-wrap: wrap; padding-top: 1rem; border-top: 1px solid var(--border-color);">
+            <a href="${viewUrl}" class="btn btn-primary">
+              <i class="ph ph-eye"></i> View Details
+            </a>
           </div>
         </div>
-      `;
-    });
-    
-    html += '</div>';
-    container.innerHTML = html;
+      </details>
+    `;
   }
 
   // ============================================

@@ -946,7 +946,8 @@
         let cancelUrl = '#collaboration-models';
         if (isIndividualPage) {
           if (typeof window.NavRoutes !== 'undefined' && window.NavRoutes.NAV_ROUTES['collaboration']) {
-            cancelUrl = window.NavRoutes.getRoute('collaboration', { useLiveServer: true });
+            // getRoute() now auto-detects Live Server
+            cancelUrl = window.NavRoutes.getRoute('collaboration');
           } else {
             cancelUrl = '/pages/collaboration/index.html';
             // Normalize if NavRoutes available

@@ -1110,7 +1110,8 @@
       if (typeof window.NavRoutes !== 'undefined') {
         // Check if routeKey exists in NAV_ROUTES
         if (window.NavRoutes.NAV_ROUTES && window.NavRoutes.NAV_ROUTES[routeKey]) {
-          const route = window.NavRoutes.getRoute(routeKey, { useLiveServer: true });
+          // getRoute() now auto-detects Live Server, but we can still pass useLiveServer: true for explicit behavior
+          const route = window.NavRoutes.getRoute(routeKey);
           if (route && route !== routeKey) {
             return route;
           }

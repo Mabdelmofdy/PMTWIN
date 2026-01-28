@@ -25,27 +25,46 @@
       console.error('Error getting current user:', e);
     }
 
-    // Load opportunity - try PMTwinData first, then OpportunityStore as fallback
+    // Load opportunity - try OpportunityStore first (used by My Opportunities / create flow), then PMTwinData
     console.log('[OpportunityDetails] Loading opportunity:', opportunityId);
     
-    if (typeof PMTwinData !== 'undefined' && PMTwinData.Opportunities) {
-      const allOpps = PMTwinData.Opportunities.getAll();
-      console.log('[OpportunityDetails] Total opportunities in PMTwinData:', allOpps.length);
-      console.log('[OpportunityDetails] Sample opportunity IDs:', allOpps.slice(0, 5).map(o => o.id));
+    if (window.OpportunityStore) {
+      currentOpportunity = window.OpportunityStore.getOpportunityById(opportunityId);
+      if (currentOpportunity) {
+        console.log('[OpportunityDetails] Found opportunity in OpportunityStore:', currentOpportunity.id);
+      }
+    }
+    
+    if (!currentOpportunity && typeof PMTwinData !== 'undefined' && PMTwinData.Opportunities) {
       currentOpportunity = PMTwinData.Opportunities.getById(opportunityId);
       if (currentOpportunity) {
         console.log('[OpportunityDetails] Found opportunity in PMTwinData:', currentOpportunity.id);
       }
     }
     
-    // Fallback to OpportunityStore if not found in PMTwinData
-    if (!currentOpportunity && window.OpportunityStore) {
-      const storeOpps = window.OpportunityStore.getAllOpportunities();
-      console.log('[OpportunityDetails] Total opportunities in OpportunityStore:', storeOpps.length);
-      console.log('[OpportunityDetails] Sample opportunity IDs:', storeOpps.slice(0, 5).map(o => o.id));
-      currentOpportunity = window.OpportunityStore.getOpportunityById(opportunityId);
-      if (currentOpportunity) {
-        console.log('[OpportunityDetails] Found opportunity in OpportunityStore:', currentOpportunity.id);
+    if (!currentOpportunity && typeof PMTwinData !== 'undefined' && PMTwinData.Opportunities) {
+      const allOpps = PMTwinData.Opportunities.getAll();
+      if (Array.isArray(allOpps) && allOpps.length > 0) {
+        currentOpportunity = allOpps.find(o => o.id === opportunityId) || null;
+        if (currentOpportunity) {
+          console.log('[OpportunityDetails] Found opportunity in PMTwinData.getAll():', currentOpportunity.id);
+        }
+      }
+    }
+    
+    if (!currentOpportunity) {
+      try {
+        const stored = localStorage.getItem('pmtwin_opportunities');
+        if (stored) {
+          const parsed = JSON.parse(stored);
+          const arr = Array.isArray(parsed) ? parsed : [];
+          currentOpportunity = arr.find(o => o.id === opportunityId) || null;
+          if (currentOpportunity) {
+            console.log('[OpportunityDetails] Found in localStorage pmtwin_opportunities:', currentOpportunity.id);
+          }
+        }
+      } catch (e) {
+        console.error('[OpportunityDetails] Error checking localStorage:', e);
       }
     }
     
@@ -56,11 +75,11 @@
       let availableIds = [];
       if (typeof PMTwinData !== 'undefined' && PMTwinData.Opportunities) {
         const allOpps = PMTwinData.Opportunities.getAll();
-        availableIds = allOpps.slice(0, 10).map(o => o.id);
+        if (Array.isArray(allOpps)) availableIds = allOpps.slice(0, 10).map(o => o.id);
       }
       if (window.OpportunityStore) {
         const storeOpps = window.OpportunityStore.getAllOpportunities();
-        availableIds = [...availableIds, ...storeOpps.slice(0, 10).map(o => o.id)];
+        availableIds = [...availableIds, ...(storeOpps || []).slice(0, 10).map(o => o.id)];
       }
       
       const container = document.getElementById('opportunityDetails');
@@ -69,18 +88,18 @@
           <div class="alert alert-error">
             <p><strong>Opportunity not found.</strong></p>
             <p style="font-size: 0.9rem; margin-top: 0.5rem; color: var(--text-secondary);">
-              <strong>Requested ID:</strong> ${opportunityId}
+              <strong>Requested ID:</strong> ${escapeHtml(opportunityId)}
             </p>
             ${availableIds.length > 0 ? `
               <p style="font-size: 0.9rem; margin-top: 0.5rem; color: var(--text-secondary);">
                 <strong>Available opportunity IDs (sample):</strong><br>
-                ${availableIds.slice(0, 5).map(id => `<code style="font-size: 0.85rem;">${id}</code>`).join('<br>')}
+                ${availableIds.slice(0, 5).map(id => `<code style="font-size: 0.85rem;">${escapeHtml(id)}</code>`).join('<br>')}
                 ${availableIds.length > 5 ? `<br><em>... and ${availableIds.length - 5} more</em>` : ''}
               </p>
             ` : ''}
             <p style="font-size: 0.9rem; margin-top: 1rem;">
-              <a href="../opportunities/" class="btn btn-secondary">
-                <i class="ph ph-arrow-left"></i> Back to Opportunities
+              <a href="../my/" class="btn btn-secondary">
+                <i class="ph ph-arrow-left"></i> Back to My Opportunities
               </a>
             </p>
           </div>
@@ -89,11 +108,33 @@
       return;
     }
     
-    console.log('[OpportunityDetails] Successfully loaded opportunity:', currentOpportunity.title);
+    // Normalize so both OpportunityStore and PMTwinData shapes work
+    currentOpportunity = normalizeOpportunity(currentOpportunity);
+    console.log('[OpportunityDetails] Successfully loaded opportunity:', currentOpportunity.title || currentOpportunity.id);
 
     renderOpportunity();
     renderActions();
     renderProposals();
+  }
+
+  /**
+   * Normalize opportunity from either OpportunityStore or PMTwinData so render works
+   */
+  function normalizeOpportunity(opp) {
+    if (!opp) return opp;
+    const status = (opp.status || '').toString().toUpperCase();
+    return {
+      ...opp,
+      title: opp.title || opp.name || '',
+      description: opp.description || '',
+      createdByUserId: opp.createdByUserId || opp.createdBy || opp.creatorId,
+      status: status === 'DRAFT' || status === 'PUBLISHED' || status === 'CLOSED' ? status : (opp.status || 'DRAFT'),
+      intent: opp.intent || opp.intentType,
+      skillsTags: Array.isArray(opp.skillsTags) ? opp.skillsTags : (Array.isArray(opp.skills) ? opp.skills : []),
+      serviceItems: Array.isArray(opp.serviceItems) ? opp.serviceItems : [],
+      location: opp.location && typeof opp.location === 'object' ? opp.location : {},
+      paymentTerms: opp.paymentTerms || opp.preferredPaymentTerms || null
+    };
   }
 
   /**
@@ -104,7 +145,7 @@
     if (!container || !currentOpportunity) return;
 
     const opp = currentOpportunity;
-    const isOwner = currentUserId === opp.createdByUserId;
+    const isOwner = currentUserId === (opp.createdByUserId || opp.createdBy || opp.creatorId);
 
     // Status badge
     const statusBadge = document.getElementById('opportunityStatusBadge');
@@ -118,12 +159,15 @@
       statusBadge.innerHTML = `<span class="badge ${colorClass}">${opp.status}</span>`;
     }
 
+    const title = (opp.title || opp.name || '').toString();
+    const description = (opp.description || '').toString();
+
     // Render details
     container.innerHTML = `
       <div class="opportunity-details">
         <div style="margin-bottom: 2rem;">
-          <h2 style="margin-bottom: 0.5rem;">${escapeHtml(opp.title)}</h2>
-          <p style="color: var(--text-secondary); line-height: 1.6;">${escapeHtml(opp.description)}</p>
+          <h2 style="margin-bottom: 0.5rem;">${escapeHtml(title) || 'Untitled Opportunity'}</h2>
+          <p style="color: var(--text-secondary); line-height: 1.6;">${description ? escapeHtml(description) : '<em style="color: var(--text-secondary);">No description provided.</em>'}</p>
         </div>
         
         <div class="content-grid-2" style="margin-bottom: 2rem; padding: 1.5rem; background: var(--bg-secondary); border-radius: var(--border-radius);">
@@ -141,7 +185,7 @@
           </div>
           <div>
             <strong style="color: var(--text-secondary); font-size: 0.875rem;">Model:</strong>
-            <div style="margin-top: 0.25rem;">${opp.model || opp.modelId || 'N/A'}.${opp.subModel || opp.modelId || ''}</div>
+            <div style="margin-top: 0.25rem;">${escapeHtml((opp.model || opp.modelId || 'N/A') + '.' + (opp.subModel || opp.modelId || ''))}</div>
           </div>
           <div>
             <strong style="color: var(--text-secondary); font-size: 0.875rem;">Created:</strong>
@@ -221,6 +265,15 @@
     const isNeed = intentType === 'REQUEST_SERVICE';
 
     let actionsHTML = '';
+
+    // Edit button (if owner - can edit draft, published, or closed)
+    if (isOwner) {
+      actionsHTML += `
+        <button class="btn btn-secondary" onclick="opportunityDetails.showEditModal()">
+          <i class="ph ph-pencil-simple"></i> Edit
+        </button>
+      `;
+    }
 
     // Publish button (if owner and draft)
     if (isOwner && opp.status === 'DRAFT') {
@@ -750,6 +803,198 @@
     }
   }
 
+  /**
+   * Show edit modal for opportunity
+   */
+  function showEditModal() {
+    if (!currentOpportunity) return;
+
+    const opp = currentOpportunity;
+    const skillsStr = (opp.skillsTags || opp.skills || []).join(', ');
+
+    // Remove existing modal if any
+    const existingModal = document.getElementById('editOpportunityModal');
+    if (existingModal) existingModal.remove();
+
+    const modal = document.createElement('div');
+    modal.className = 'edit-opportunity-overlay';
+    modal.id = 'editOpportunityModal';
+    modal.innerHTML = `
+      <div class="edit-opportunity-modal">
+        <div class="edit-modal-header">
+          <h2><i class="ph ph-pencil-simple"></i> Edit Opportunity</h2>
+          <button type="button" class="edit-modal-close" onclick="document.getElementById('editOpportunityModal').remove()" aria-label="Close">
+            <i class="ph ph-x"></i>
+          </button>
+        </div>
+        <div class="edit-modal-body">
+          <form id="editOpportunityForm">
+            <div class="edit-form-section">
+              <div class="edit-form-section-title">Basic info</div>
+              <div class="edit-form-group">
+                <label class="edit-form-label required" for="editOppTitle">Title</label>
+                <input type="text" id="editOppTitle" class="edit-form-control" value="${escapeHtml(opp.title || '')}" required placeholder="Opportunity title">
+              </div>
+              <div class="edit-form-group">
+                <label class="edit-form-label required" for="editOppDescription">Description</label>
+                <textarea id="editOppDescription" class="edit-form-control" rows="4" required placeholder="Describe the opportunity">${escapeHtml(opp.description || '')}</textarea>
+              </div>
+            </div>
+            <div class="edit-form-section">
+              <div class="edit-form-row">
+                <div class="edit-form-group">
+                  <label class="edit-form-label" for="editOppIntent">Intent</label>
+                  <select id="editOppIntent" class="edit-form-control">
+                    <option value="REQUEST_SERVICE" ${(opp.intent || opp.intentType) === 'REQUEST_SERVICE' ? 'selected' : ''}>Request Service</option>
+                    <option value="OFFER_SERVICE" ${(opp.intent || opp.intentType) === 'OFFER_SERVICE' ? 'selected' : ''}>Offer Service</option>
+                  </select>
+                </div>
+                <div class="edit-form-group">
+                  <label class="edit-form-label" for="editOppStatus">Status</label>
+                  <select id="editOppStatus" class="edit-form-control">
+                    <option value="DRAFT" ${(opp.status || '').toUpperCase() === 'DRAFT' ? 'selected' : ''}>Draft</option>
+                    <option value="PUBLISHED" ${(opp.status || '').toUpperCase() === 'PUBLISHED' ? 'selected' : ''}>Published</option>
+                    <option value="CLOSED" ${(opp.status || '').toUpperCase() === 'CLOSED' ? 'selected' : ''}>Closed</option>
+                  </select>
+                </div>
+              </div>
+              <div class="edit-form-group">
+                <label class="edit-form-label" for="editOppSkills">Skills</label>
+                <input type="text" id="editOppSkills" class="edit-form-control" value="${escapeHtml(skillsStr)}" placeholder="e.g. civil, steel, hse, site-management">
+              </div>
+            </div>
+            <div class="edit-form-section">
+              <div class="edit-form-section-title">Location</div>
+              <div class="edit-form-row">
+                <div class="edit-form-group">
+                  <label class="edit-form-label" for="editOppCountry">Country</label>
+                  <input type="text" id="editOppCountry" class="edit-form-control" value="${escapeHtml(opp.location?.country || '')}" placeholder="Country">
+                </div>
+                <div class="edit-form-group">
+                  <label class="edit-form-label" for="editOppCity">City</label>
+                  <input type="text" id="editOppCity" class="edit-form-control" value="${escapeHtml(opp.location?.city || '')}" placeholder="City">
+                </div>
+              </div>
+              <label class="edit-form-checkbox">
+                <input type="checkbox" id="editOppRemote" ${opp.location?.isRemoteAllowed ? 'checked' : ''}>
+                <span>Remote work allowed</span>
+              </label>
+            </div>
+            <div class="edit-form-section">
+              <div class="edit-form-section-title">Payment</div>
+              <div class="edit-form-group">
+                <label class="edit-form-label" for="editOppPaymentType">Payment type</label>
+                <select id="editOppPaymentType" class="edit-form-control">
+                  <option value="CASH" ${(opp.paymentTerms?.type || opp.paymentTerms?.mode || 'CASH') === 'CASH' ? 'selected' : ''}>Cash</option>
+                  <option value="BARTER" ${(opp.paymentTerms?.type || opp.paymentTerms?.mode) === 'BARTER' ? 'selected' : ''}>Barter</option>
+                  <option value="HYBRID" ${(opp.paymentTerms?.type || opp.paymentTerms?.mode) === 'HYBRID' ? 'selected' : ''}>Hybrid</option>
+                </select>
+              </div>
+            </div>
+          </form>
+        </div>
+        <div class="edit-modal-footer">
+          <button type="button" class="btn btn-secondary" onclick="document.getElementById('editOpportunityModal').remove()">Cancel</button>
+          <button type="button" class="btn btn-primary" onclick="opportunityDetails.saveOpportunityChanges()">
+            <i class="ph ph-check"></i> Save Changes
+          </button>
+        </div>
+      </div>
+    `;
+
+    document.body.appendChild(modal);
+
+    // Close on backdrop click
+    modal.addEventListener('click', (e) => {
+      if (e.target === modal) modal.remove();
+    });
+  }
+
+  /**
+   * Save opportunity changes from edit modal
+   */
+  function saveOpportunityChanges() {
+    if (!currentOpportunity) return;
+
+    const title = document.getElementById('editOppTitle')?.value?.trim();
+    const description = document.getElementById('editOppDescription')?.value?.trim();
+    const intent = document.getElementById('editOppIntent')?.value;
+    const status = document.getElementById('editOppStatus')?.value;
+    const country = document.getElementById('editOppCountry')?.value?.trim();
+    const city = document.getElementById('editOppCity')?.value?.trim();
+    const skillsStr = document.getElementById('editOppSkills')?.value?.trim();
+    const paymentType = document.getElementById('editOppPaymentType')?.value;
+    const isRemoteAllowed = document.getElementById('editOppRemote')?.checked || false;
+
+    // Validation
+    if (!title) {
+      alert('Title is required');
+      return;
+    }
+    if (!description) {
+      alert('Description is required');
+      return;
+    }
+
+    // Parse skills
+    const skillsTags = skillsStr ? skillsStr.split(',').map(s => s.trim()).filter(s => s) : [];
+
+    // Build updates object
+    const updates = {
+      title: title,
+      description: description,
+      intent: intent,
+      intentType: intent,
+      status: status,
+      skillsTags: skillsTags,
+      skills: skillsTags,
+      location: {
+        ...currentOpportunity.location,
+        country: country,
+        city: city,
+        isRemoteAllowed: isRemoteAllowed
+      },
+      paymentTerms: {
+        type: paymentType,
+        mode: paymentType,
+        barterRule: currentOpportunity.paymentTerms?.barterRule || null
+      }
+    };
+
+    // Save to OpportunityStore
+    let saved = false;
+    if (window.OpportunityStore) {
+      const updated = window.OpportunityStore.updateOpportunity(currentOpportunity.id, updates);
+      if (updated) {
+        saved = true;
+        currentOpportunity = normalizeOpportunity(updated);
+      }
+    }
+
+    // Also save to PMTwinData if available
+    if (typeof PMTwinData !== 'undefined' && PMTwinData.Opportunities) {
+      const updated = PMTwinData.Opportunities.update(currentOpportunity.id, updates);
+      if (updated) {
+        saved = true;
+        currentOpportunity = normalizeOpportunity(updated);
+      }
+    }
+
+    if (saved) {
+      // Close modal
+      const modal = document.getElementById('editOpportunityModal');
+      if (modal) modal.remove();
+
+      // Re-render the page
+      renderOpportunity();
+      renderActions();
+
+      alert('Opportunity updated successfully!');
+    } else {
+      alert('Failed to save changes. Please try again.');
+    }
+  }
+
   // Export
   window.opportunityDetails = {
     init: init,
@@ -759,7 +1004,9 @@
     requestChanges: requestChanges,
     showLinkOffersModal: showLinkOffersModal,
     linkSelectedOffers: linkSelectedOffers,
-    unlinkOffer: unlinkOffer
+    unlinkOffer: unlinkOffer,
+    showEditModal: showEditModal,
+    saveOpportunityChanges: saveOpportunityChanges
   };
 
 })();

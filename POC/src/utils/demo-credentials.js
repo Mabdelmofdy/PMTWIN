@@ -637,7 +637,8 @@
         function getNormalizedRoute(routeKey) {
           if (typeof window.NavRoutes !== 'undefined') {
             // Use NavRoutes.getRoute which handles Live Server URLs automatically
-            const route = window.NavRoutes.getRoute(routeKey, { useLiveServer: true });
+            // getRoute() now auto-detects Live Server
+            const route = window.NavRoutes.getRoute(routeKey);
             if (route && route !== routeKey) {
               return route; // Valid route returned
             }
@@ -649,14 +650,16 @@
           // Final fallback: construct from NAV_ROUTES if available
           if (typeof window.NavRoutes !== 'undefined' && window.NavRoutes.NAV_ROUTES) {
             const baseRoute = window.NavRoutes.NAV_ROUTES[routeKey] || `/pages/${routeKey}/index.html`;
-            // Convert to Live Server URL if needed
-            if (window.location.port === '5503' || window.location.hostname === '127.0.0.1') {
+            // Convert to Live Server URL if needed - check port specifically
+            const isLiveServer = window.location.port === '5503' || (window.location.hostname === '127.0.0.1' && window.location.port === '5503');
+            if (isLiveServer) {
               return `http://127.0.0.1:5503/POC${baseRoute}`;
             }
             return baseRoute;
           }
-          // Absolute last fallback
-          return `/pages/${routeKey}/index.html`;
+          // Absolute last fallback - must also check for Live Server
+          const isLiveServer = window.location.port === '5503' || (window.location.hostname === '127.0.0.1' && window.location.port === '5503');
+          return isLiveServer ? `http://127.0.0.1:5503/POC/pages/${routeKey}/index.html` : `/pages/${routeKey}/index.html`;
         }
         
         // Check for admin roles (case-insensitive)
@@ -751,7 +754,8 @@
         } else if ((resultIsAdmin || isAdmin) && !redirectPath.includes('admin')) {
           console.warn('⚠️ Admin detected (role) but redirect path incorrect, forcing admin redirect...');
           if (typeof window.NavRoutes !== 'undefined' && window.NavRoutes.NAV_ROUTES['admin']) {
-            redirectPath = window.NavRoutes.getRoute('admin', { useLiveServer: true });
+            // getRoute() now auto-detects Live Server
+            redirectPath = window.NavRoutes.getRoute('admin');
           } else {
             const isLiveServer = window.location.port === '5503' || (window.location.hostname === '127.0.0.1' && window.location.port === '5503');
             redirectPath = isLiveServer ? 'http://127.0.0.1:5503/POC/pages/admin/index.html' : '/pages/admin/index.html';

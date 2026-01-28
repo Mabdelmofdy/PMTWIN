@@ -110,9 +110,21 @@
           const basePath = depth > 0 ? '../'.repeat(depth) : '';
           
           if (roleDef && roleDef.portals.includes('user_portal')) {
-            window.location.href = basePath + 'dashboard/';
+            // Use NavRoutes if available, otherwise use proper URL for Live Server
+            if (typeof window.NavRoutes !== 'undefined') {
+              window.location.href = window.NavRoutes.getRoute('dashboard');
+            } else {
+              const isLiveServer = window.location.port === '5503' || (window.location.hostname === '127.0.0.1' && window.location.port === '5503');
+              window.location.href = isLiveServer ? 'http://127.0.0.1:5503/POC/pages/dashboard/index.html' : '/pages/dashboard/index.html';
+            }
           } else {
-            window.location.href = basePath + 'home/';
+            // Use NavRoutes if available, otherwise use proper URL for Live Server
+            if (typeof window.NavRoutes !== 'undefined') {
+              window.location.href = window.NavRoutes.getRoute('home');
+            } else {
+              const isLiveServer = window.location.port === '5503' || (window.location.hostname === '127.0.0.1' && window.location.port === '5503');
+              window.location.href = isLiveServer ? 'http://127.0.0.1:5503/POC/pages/home/index.html' : '/pages/home/index.html';
+            }
           }
           return false;
         }
@@ -144,7 +156,8 @@
             // Platform admin redirects to admin portal
             let adminPath = '/pages/admin/index.html';
             if (typeof window.NavRoutes !== 'undefined' && window.NavRoutes.NAV_ROUTES['admin']) {
-              adminPath = window.NavRoutes.getRoute('admin', { useLiveServer: true });
+              // getRoute() now auto-detects Live Server and adds /POC/ prefix when needed
+              adminPath = window.NavRoutes.getRoute('admin');
             } else {
               const isLiveServer = window.location.port === '5503' || (window.location.hostname === '127.0.0.1' && window.location.port === '5503');
               adminPath = isLiveServer ? 'http://127.0.0.1:5503/POC/pages/admin/index.html' : '/pages/admin/index.html';
@@ -154,17 +167,23 @@
           } else if (currentUser.role === 'entity' || currentUser.role === 'individual') {
             let dashboardPath = '/pages/dashboard/index.html';
             if (typeof window.NavRoutes !== 'undefined' && window.NavRoutes.NAV_ROUTES['dashboard']) {
-              dashboardPath = window.NavRoutes.getRoute('dashboard', { useLiveServer: true });
+              // getRoute() now auto-detects Live Server and adds /POC/ prefix when needed
+              dashboardPath = window.NavRoutes.getRoute('dashboard');
             } else {
-              dashboardPath = basePath + 'dashboard/';
+              // Fallback: check for Live Server and add /POC/ prefix
+              const isLiveServer = window.location.port === '5503' || (window.location.hostname === '127.0.0.1' && window.location.port === '5503');
+              dashboardPath = isLiveServer ? 'http://127.0.0.1:5503/POC/pages/dashboard/index.html' : '/pages/dashboard/index.html';
             }
             window.location.href = dashboardPath;
           } else {
             let homePath = '/pages/home/index.html';
             if (typeof window.NavRoutes !== 'undefined' && window.NavRoutes.NAV_ROUTES['home']) {
-              homePath = window.NavRoutes.getRoute('home', { useLiveServer: true });
+              // getRoute() now auto-detects Live Server and adds /POC/ prefix when needed
+              homePath = window.NavRoutes.getRoute('home');
             } else {
-              homePath = basePath + 'home/';
+              // Fallback: check for Live Server and add /POC/ prefix
+              const isLiveServer = window.location.port === '5503' || (window.location.hostname === '127.0.0.1' && window.location.port === '5503');
+              homePath = isLiveServer ? 'http://127.0.0.1:5503/POC/pages/home/index.html' : '/pages/home/index.html';
             }
             window.location.href = homePath;
           }
@@ -200,9 +219,21 @@
         const basePath = depth > 0 ? '../'.repeat(depth) : '';
         
         if (roleDef && roleDef.portals.includes('user_portal')) {
-          window.location.href = basePath + 'dashboard/';
+          // Use NavRoutes if available, otherwise use proper URL for Live Server
+          if (typeof window.NavRoutes !== 'undefined') {
+            window.location.href = window.NavRoutes.getRoute('dashboard');
+          } else {
+            const isLiveServer = window.location.port === '5503' || (window.location.hostname === '127.0.0.1' && window.location.port === '5503');
+            window.location.href = isLiveServer ? 'http://127.0.0.1:5503/POC/pages/dashboard/index.html' : '/pages/dashboard/index.html';
+          }
         } else {
-          window.location.href = basePath + 'home/';
+          // Use NavRoutes if available, otherwise use proper URL for Live Server
+          if (typeof window.NavRoutes !== 'undefined') {
+            window.location.href = window.NavRoutes.getRoute('home');
+          } else {
+            const isLiveServer = window.location.port === '5503' || (window.location.hostname === '127.0.0.1' && window.location.port === '5503');
+            window.location.href = isLiveServer ? 'http://127.0.0.1:5503/POC/pages/home/index.html' : '/pages/home/index.html';
+          }
         }
       } else {
         const currentPath = window.location.pathname;
@@ -232,10 +263,22 @@
       if (redirect && !redirect.startsWith('http://') && !redirect.startsWith('https://')) {
         const isLiveServer = window.location.port === '5503' || 
                             (window.location.hostname === '127.0.0.1' && window.location.port === '5503');
-        if (isLiveServer && redirect.startsWith('/POC/')) {
-          return `http://127.0.0.1:5503${redirect}`;
+        if (isLiveServer) {
+          // For Live Server, ensure /POC/ prefix is included
+          if (redirect.startsWith('/POC/')) {
+            return `http://127.0.0.1:5503${redirect}`;
+          } else if (redirect.startsWith('/pages/')) {
+            // Path like /pages/dashboard/ needs /POC/ prefix
+            return `http://127.0.0.1:5503/POC${redirect}`;
+          } else if (redirect.startsWith('/')) {
+            // Other absolute paths, add /POC/ prefix
+            return `http://127.0.0.1:5503/POC${redirect}`;
+          } else {
+            // Relative path, add full prefix
+            return `http://127.0.0.1:5503/POC/${redirect}`;
+          }
         }
-        // If it's an absolute path, ensure it's used correctly
+        // Production: return as-is for absolute paths
         if (redirect.startsWith('/')) {
           return redirect;
         }

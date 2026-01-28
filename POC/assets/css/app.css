@@ -488,6 +488,14 @@ main::before {
   height: 1px;
   background: linear-gradient(90deg, transparent 0%, var(--border-color) 50%, transparent 100%);
   opacity: 0.5;
+  z-index: 0;
+}
+
+/* Fix: Remove any vertical grid lines or debug overlays */
+main::after,
+.container::after {
+  display: none !important;
+  content: none !important;
 }
 
 /* Page wrapper for better spacing */
@@ -8164,6 +8172,51 @@ textarea:disabled {
   .show-desktop {
     display: block !important;
   }
+}
+
+/* Fix: Remove any grid debug overlays or vertical lines */
+.container::before,
+.container::after,
+main::after,
+.page-wrapper::before,
+.page-wrapper::after,
+.content-section::before,
+.content-section::after {
+  display: none !important;
+  content: none !important;
+}
+
+/* Remove any grid column overlays or vertical lines */
+.container *::before,
+.container *::after {
+  background: none !important;
+  border: none !important;
+  outline: none !important;
+}
+
+/* Ensure no grid debug borders or vertical lines */
+[class*="grid"]:not([class*="card"]) {
+  outline: none !important;
+  border-left: none !important;
+  border-right: none !important;
+}
+
+/* Remove any background patterns that create vertical lines */
+main,
+.page-wrapper,
+.container,
+.content-section {
+  background-image: none !important;
+  background: linear-gradient(180deg, var(--bg-primary) 0%, var(--bg-secondary) 100%) !important;
+}
+
+/* Remove any pseudo-elements that might create vertical lines */
+body::before,
+body::after,
+html::before,
+html::after {
+  display: none !important;
+  content: none !important;
 }
 
 /* Print styles */

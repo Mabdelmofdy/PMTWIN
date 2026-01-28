@@ -109,7 +109,7 @@
             <button onclick="this.closest('.modal').remove(); window.history.back();" class="btn btn-secondary">
               Go Back
             </button>
-            <a href="${typeof window.NavRoutes !== 'undefined' ? window.NavRoutes.getRoute('dashboard') : '/POC/pages/dashboard/index.html'}" class="btn btn-primary">
+            <a href="${typeof window.NavRoutes !== 'undefined' ? window.NavRoutes.getRoute('dashboard') : (window.location.port === '5503' || (window.location.hostname === '127.0.0.1' && window.location.port === '5503') ? 'http://127.0.0.1:5503/POC/pages/dashboard/index.html' : '/pages/dashboard/index.html')}" class="btn btn-primary">
               Go to Dashboard
             </a>
           </div>
@@ -122,7 +122,9 @@
         if (typeof window.NavRoutes !== 'undefined') {
           window.location.href = window.NavRoutes.getRoute('dashboard');
         } else {
-          window.location.href = '/POC/pages/dashboard/index.html';
+          // Fallback: check for Live Server and add /POC/ prefix
+          const isLiveServer = window.location.port === '5503' || (window.location.hostname === '127.0.0.1' && window.location.port === '5503');
+          window.location.href = isLiveServer ? 'http://127.0.0.1:5503/POC/pages/dashboard/index.html' : '/pages/dashboard/index.html';
         }
       }, 5000);
       

@@ -244,23 +244,23 @@
       let serviceRequestsUpdated = 0;
       
       // Migrate Projects and MegaProjects
-      const projects = Projects.getAll();
-      projects.forEach(project => {
-        if (!project.ownerCompanyId && project.creatorId) {
-          // Users represent companies, so ownerCompanyId = creatorId
-          project.ownerCompanyId = project.creatorId;
-          Projects.update(project.id, { ownerCompanyId: project.ownerCompanyId });
+      const opportunities = Opportunities.getAll();
+      opportunities.forEach(opp => {
+        if (!opp.ownerCompanyId && (opp.createdBy || opp.creatorId)) {
+          // Users represent companies, so ownerCompanyId = createdBy/creatorId
+          const ownerCompanyId = opp.createdBy || opp.creatorId;
+          Opportunities.update(opp.id, { ownerCompanyId });
           projectsUpdated++;
         }
       });
       
-      // Migrate ServiceRequests
-      const serviceRequests = ServiceRequests.getAll();
+      // Migrate ServiceRequests (now Opportunities with REQUEST_SERVICE intent)
+      const serviceRequests = Opportunities.getByIntent('REQUEST_SERVICE');
       serviceRequests.forEach(request => {
-        if (!request.ownerCompanyId && request.requesterId) {
-          // requesterId is the company owner
-          request.ownerCompanyId = request.requesterId;
-          ServiceRequests.update(request.id, { ownerCompanyId: request.ownerCompanyId });
+        if (!request.ownerCompanyId && (request.createdBy || request.creatorId)) {
+          // createdBy/creatorId is the company owner
+          const ownerCompanyId = request.createdBy || request.creatorId;
+          Opportunities.update(request.id, { ownerCompanyId });
           serviceRequestsUpdated++;
         }
       });
@@ -373,10 +373,14 @@
         
         // Add targetType and targetId if missing
         if (!proposal.targetType || !proposal.targetId) {
-          if (proposal.projectId) {
-            const project = Projects.getById(proposal.projectId);
-            updates.targetType = project && project.projectType === 'mega' ? 'MEGA_PROJECT' : 'PROJECT';
-            updates.targetId = proposal.projectId;
+          if (proposal.projectId || proposal.opportunityId) {
+            const oppId = proposal.opportunityId || proposal.projectId;
+            const opportunity = Opportunities.getById(oppId);
+            if (opportunity) {
+              updates.targetType = opportunity.subModel === '1.4' ? 'MEGA_PROJECT' : 'PROJECT';
+              updates.targetId = oppId;
+              updates.opportunityId = oppId;
+            }
           } else if (proposal.serviceRequestId) {
             updates.targetType = 'SERVICE_REQUEST';
             updates.targetId = proposal.serviceRequestId;
@@ -400,15 +404,16 @@
           }
           if (!updates.ownerCompanyId && proposal.targetId && proposal.targetType) {
             if (proposal.targetType === 'PROJECT' || proposal.targetType === 'MEGA_PROJECT') {
-              const project = Projects.getById(proposal.targetId);
-              updates.ownerCompanyId = project?.ownerCompanyId || project?.creatorId;
+              const opportunity = Opportunities.getById(proposal.targetId);
+              updates.ownerCompanyId = opportunity?.ownerCompanyId || opportunity?.createdBy || opportunity?.creatorId;
             } else if (proposal.targetType === 'SERVICE_REQUEST') {
-              const serviceRequest = ServiceRequests.getById(proposal.targetId);
-              updates.ownerCompanyId = serviceRequest?.ownerCompanyId || serviceRequest?.requesterId;
+              const opportunity = Opportunities.getById(proposal.targetId);
+              updates.ownerCompanyId = opportunity?.ownerCompanyId || opportunity?.createdBy || opportunity?.creatorId;
             }
-          } else if (!updates.ownerCompanyId && proposal.projectId) {
-            const project = Projects.getById(proposal.projectId);
-            updates.ownerCompanyId = project?.ownerCompanyId || project?.creatorId;
+          } else if (!updates.ownerCompanyId && (proposal.projectId || proposal.opportunityId)) {
+            const oppId = proposal.opportunityId || proposal.projectId;
+            const opportunity = Opportunities.getById(oppId);
+            updates.ownerCompanyId = opportunity?.ownerCompanyId || opportunity?.createdBy || opportunity?.creatorId;
           }
           if (updates.ownerCompanyId) {
             needsUpdate = true;
@@ -440,14 +445,13 @@
   // ============================================
   function migrateGoldenSeedProjectsVisibility() {
     try {
-      const projects = PMTwinData.Projects.getAll();
+      const opportunities = Opportunities.getAll();
       const goldenProjectIds = ['megaproject_neom_001', 'project_residential_001'];
       let updated = 0;
       
-      projects.forEach(project => {
-        if (goldenProjectIds.includes(project.id) && project.visibility !== 'public') {
-          project.visibility = 'public';
-          PMTwinData.Projects.update(project.id, project);
+      opportunities.forEach(opp => {
+        if (goldenProjectIds.includes(opp.id) && opp.status !== 'published') {
+          Opportunities.update(opp.id, { status: 'published' });
           updated++;
         }
       });
@@ -3902,22 +3906,17 @@
             ownerCompanyId = opportunity.createdBy || opportunity.creatorId;
           }
         }
-        // Fallback to Projects/ServiceRequests for backward compatibility
-        if (!ownerCompanyId && proposalData.targetType) {
-          if (proposalData.targetType === 'PROJECT' || proposalData.targetType === 'MEGA_PROJECT') {
-            const project = Projects.getById(opportunityId);
-            ownerCompanyId = project?.ownerCompanyId || project?.creatorId;
-          } else if (proposalData.targetType === 'SERVICE_REQUEST') {
-            const serviceRequest = ServiceRequests.getById(opportunityId);
-            ownerCompanyId = serviceRequest?.ownerCompanyId || serviceRequest?.requesterId;
-          }
+        // Fallback to Opportunities for backward compatibility
+        if (!ownerCompanyId && proposalData.targetType && opportunityId) {
+          const opportunity = Opportunities.getById(opportunityId);
+          ownerCompanyId = opportunity?.ownerCompanyId || opportunity?.createdBy || opportunity?.creatorId;
         }
       }
       
       // Fallback: use projectId for backward compatibility
       if (!ownerCompanyId && proposalData.projectId) {
-        const project = Projects.getById(proposalData.projectId);
-        ownerCompanyId = project?.ownerCompanyId || project?.creatorId;
+        const opportunity = Opportunities.getById(proposalData.projectId);
+        ownerCompanyId = opportunity?.ownerCompanyId || opportunity?.createdBy || opportunity?.creatorId;
         if (!opportunityId) opportunityId = proposalData.projectId;
       }
       
@@ -4042,12 +4041,7 @@
               Opportunities.update(opportunityId, { applicationsReceived: currentCount + 1 });
             }
           }
-          // Backward compatibility with Projects
-          const project = Projects.getById(opportunityId);
-          if (project) {
-            project.proposalsReceived = (project.proposalsReceived || 0) + 1;
-            Projects.update(opportunityId, { proposalsReceived: project.proposalsReceived });
-          }
+          // Backward compatibility - already handled above with Opportunities.update()
         }
         this.createAuditLog('proposal_submission', proposal.id, {
           description: `Proposal submitted: ${proposal.proposalType} for ${proposal.targetType}`,
@@ -4873,10 +4867,12 @@
             CollaborationOpportunities.update(match.opportunityId, { matchesGenerated: opportunity.matchesGenerated });
           }
         } else {
-          const project = Projects.getById(match.projectId);
-          if (project) {
-            project.matchesGenerated = (project.matchesGenerated || 0) + 1;
-            Projects.update(match.projectId, { matchesGenerated: project.matchesGenerated });
+          // Use opportunityId if available, otherwise treat projectId as opportunityId
+          const oppId = match.opportunityId || match.projectId;
+          const opportunity = Opportunities.getById(oppId);
+          if (opportunity) {
+            const currentCount = opportunity.matchesGenerated || 0;
+            Opportunities.update(oppId, { matchesGenerated: currentCount + 1 });
           }
         }
         return match;
@@ -5317,7 +5313,8 @@
       };
       
       opportunities.push(opportunity);
-      if (set(STORAGE_KEYS.OPPORTUNITIES || STORAGE_KEYS.COLLABORATION_OPPORTUNITIES, opportunities)) {
+      const storageKey = STORAGE_KEYS.OPPORTUNITIES || 'pmtwin_opportunities';
+      if (set(storageKey, opportunities)) {
         this.createAuditLog('opportunity_creation', opportunity.id, {
           description: `Opportunity created: ${opportunity.title || opportunity.modelName}`,
           creatorId: opportunity.createdBy,
@@ -5583,7 +5580,8 @@
     delete(id) {
       const opportunities = this.getAll();
       const filtered = opportunities.filter(o => o.id !== id);
-      return set(STORAGE_KEYS.OPPORTUNITIES || STORAGE_KEYS.COLLABORATION_OPPORTUNITIES, filtered);
+      const storageKey = STORAGE_KEYS.OPPORTUNITIES || 'pmtwin_opportunities';
+      return set(storageKey, filtered);
     },
 
     incrementViews(id) {
@@ -8941,8 +8939,8 @@
         }
       });
       
-      // 3. Migrate ServiceRequests to Opportunities
-      const serviceRequests = ServiceRequests.getAll();
+      // 3. Migrate ServiceRequests to Opportunities (already migrated, just ensure they exist)
+      const serviceRequests = Opportunities.getByIntent('REQUEST_SERVICE');
       serviceRequests.forEach(request => {
         const existingOpp = Opportunities.getById(request.id);
         if (!existingOpp) {

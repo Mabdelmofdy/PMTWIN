@@ -487,9 +487,15 @@
         window.location.href = this.redirectUrl;
       } else {
         // Redirect to dashboard or reload page
-        const dashboardUrl = window.UrlHelper ? 
-          window.UrlHelper.buildUrl('pages/dashboard/index.html') : 
-          '/pages/dashboard/index.html';
+        let dashboardUrl;
+        if (window.UrlHelper) {
+          dashboardUrl = window.UrlHelper.buildUrl('pages/dashboard/index.html');
+        } else if (typeof window.NavRoutes !== 'undefined') {
+          dashboardUrl = window.NavRoutes.getRoute('dashboard');
+        } else {
+          const isLiveServer = window.location.port === '5503' || (window.location.hostname === '127.0.0.1' && window.location.port === '5503');
+          dashboardUrl = isLiveServer ? 'http://127.0.0.1:5503/POC/pages/dashboard/index.html' : '/pages/dashboard/index.html';
+        }
         window.location.href = dashboardUrl;
       }
     }

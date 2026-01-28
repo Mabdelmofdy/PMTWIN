@@ -517,7 +517,8 @@
       // Helper to get route from NAV_ROUTES or fallback
       function getRouteForAction(routeKey, fallbackPath) {
         if (typeof window.NavRoutes !== 'undefined' && window.NavRoutes.NAV_ROUTES[routeKey]) {
-          return window.NavRoutes.getRoute(routeKey, { useLiveServer: true });
+          // getRoute() now auto-detects Live Server
+          return window.NavRoutes.getRoute(routeKey);
         }
         const basePath = getBasePath();
         return `${basePath}${fallbackPath}`;

@@ -44,7 +44,8 @@
     if (typeof window.NavRoutes !== 'undefined') {
       // Check if routePath is a route key (e.g., 'dashboard', 'admin-reports')
       if (window.NavRoutes.NAV_ROUTES[routePath]) {
-        const route = window.NavRoutes.getRoute(routePath, { useLiveServer: true });
+        // getRoute() now auto-detects Live Server
+        const route = window.NavRoutes.getRoute(routePath);
         return route;
       }
       
@@ -128,7 +129,8 @@
     // Helper to get route - use NAV_ROUTES if available, otherwise use getRoute()
     function getRouteForMenu(routeKey, fallbackPath) {
       if (typeof window.NavRoutes !== 'undefined' && window.NavRoutes.NAV_ROUTES[routeKey]) {
-        return window.NavRoutes.getRoute(routeKey, { useLiveServer: true });
+        // getRoute() now auto-detects Live Server and adds /POC/ prefix when needed
+        return window.NavRoutes.getRoute(routeKey);
       }
       return getRoute(`${basePath}${fallbackPath}`);
     }
@@ -530,7 +532,8 @@
     // Helper to get route
     function getRouteForNav(routeKey, fallbackPath) {
       if (typeof window.NavRoutes !== 'undefined' && window.NavRoutes.NAV_ROUTES[routeKey]) {
-        return window.NavRoutes.getRoute(routeKey, { useLiveServer: true });
+        // getRoute() now auto-detects Live Server
+        return window.NavRoutes.getRoute(routeKey);
       }
       return getRoute(`${basePath}${fallbackPath}`);
     }
@@ -1988,7 +1991,8 @@
     // Use centralized route for login
     let loginUrl = '/pages/auth/login/index.html';
     if (typeof window.NavRoutes !== 'undefined' && window.NavRoutes.NAV_ROUTES['login']) {
-      loginUrl = window.NavRoutes.getRoute('login', { useLiveServer: true });
+      // getRoute() now auto-detects Live Server
+      loginUrl = window.NavRoutes.getRoute('login');
     } else {
       const basePath = getBasePath();
       loginUrl = getRoute(`${basePath}login/`);

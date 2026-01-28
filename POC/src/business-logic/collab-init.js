@@ -33,7 +33,8 @@ function initCollaborationPage(modelId) {
                     // Use NAV_ROUTES if available, otherwise use full URL
                     let loginUrl = '/pages/auth/login/index.html';
                     if (typeof window.NavRoutes !== 'undefined' && window.NavRoutes.NAV_ROUTES['login']) {
-                        loginUrl = window.NavRoutes.getRoute('login', { useLiveServer: true });
+                        // getRoute() now auto-detects Live Server
+                        loginUrl = window.NavRoutes.getRoute('login');
                     } else {
                         // Fallback: normalize to full URL for Live Server
                         const isLiveServer = window.location.port === '5503' || (window.location.hostname === '127.0.0.1' && window.location.port === '5503');
@@ -49,7 +50,8 @@ function initCollaborationPage(modelId) {
                     // Use NAV_ROUTES if available, otherwise use full URL
                     let loginUrl = '/pages/auth/login/index.html';
                     if (typeof window.NavRoutes !== 'undefined' && window.NavRoutes.NAV_ROUTES['login']) {
-                        loginUrl = window.NavRoutes.getRoute('login', { useLiveServer: true });
+                        // getRoute() now auto-detects Live Server
+                        loginUrl = window.NavRoutes.getRoute('login');
                     } else {
                         // Fallback: normalize to full URL for Live Server
                         const isLiveServer = window.location.port === '5503' || (window.location.hostname === '127.0.0.1' && window.location.port === '5503');

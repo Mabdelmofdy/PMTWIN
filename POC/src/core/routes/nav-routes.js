@@ -22,12 +22,12 @@
     'dashboard': '/pages/dashboard/index.html',
     
     // Opportunities (New Workflow)
-    'opportunities': '/pages/opportunities/my/index.html',
+    'opportunities': '/pages/opportunities/index.html',       // Browse all published (all companies)
     'opportunities/create': '/pages/opportunities/create/index.html',
     'opportunities/view': '/pages/opportunities/view/index.html',
     'opportunities/details': '/pages/opportunities/details.html',
-    'opportunities/my': '/pages/opportunities/my/index.html',
-    'my-opportunities': '/pages/opportunities/my/index.html', // Alias
+    'opportunities/my': '/pages/opportunities/my/index.html',   // My created opportunities
+    'my-opportunities': '/pages/opportunities/my/index.html',   // Alias
     
     // Matches
     'matches': '/pages/matches/index.html',
@@ -90,10 +90,19 @@
   };
 
   /**
+   * Detect if running on Live Server
+   * @returns {boolean} True if running on Live Server (port 5503)
+   */
+  function isLiveServer() {
+    return window.location.port === '5503' || 
+           (window.location.hostname === '127.0.0.1' && window.location.port === '5503');
+  }
+
+  /**
    * Get route URL by key
    * @param {string} routeKey - Route key (e.g., 'dashboard', 'opportunities')
    * @param {Object} options - Options
-   * @param {boolean} options.useLiveServer - Use Live Server URL format
+   * @param {boolean} options.useLiveServer - Force Live Server URL format (auto-detected if not specified)
    * @returns {string} Route URL
    */
   function getRoute(routeKey, options = {}) {
@@ -103,13 +112,12 @@
       return '#';
     }
     
-    if (options.useLiveServer) {
-      const isLiveServer = window.location.port === '5503' || 
-                          (window.location.hostname === '127.0.0.1' && window.location.port === '5503');
-      if (isLiveServer) {
-        // For local Live Server, add /POC prefix
-        return `http://127.0.0.1:5503/POC${route}`;
-      }
+    // Auto-detect Live Server if useLiveServer option is not explicitly set to false
+    const shouldUseLiveServer = options.useLiveServer !== false && isLiveServer();
+    
+    if (shouldUseLiveServer) {
+      // For local Live Server, add /POC prefix
+      return `http://127.0.0.1:5503/POC${route}`;
     }
     
     return route;
@@ -154,23 +162,19 @@
     
     // Check if it's a route key
     if (NAV_ROUTES[cleanPath]) {
-      return getRoute(cleanPath, { useLiveServer: true });
+      return getRoute(cleanPath);
     }
     
     // Check if it ends with .html
     if (cleanPath.endsWith('.html')) {
-      const isLiveServer = window.location.port === '5503' || 
-                          (window.location.hostname === '127.0.0.1' && window.location.port === '5503');
-      if (isLiveServer) {
+      if (isLiveServer()) {
         return `http://127.0.0.1:5503/POC/pages/${cleanPath}`;
       }
       return `/pages/${cleanPath}`;
     }
     
     // Assume it's a page directory
-    const isLiveServer = window.location.port === '5503' || 
-                        (window.location.hostname === '127.0.0.1' && window.location.port === '5503');
-    if (isLiveServer) {
+    if (isLiveServer()) {
       return `http://127.0.0.1:5503/POC/pages/${cleanPath}/index.html`;
     }
     return `/pages/${cleanPath}/index.html`;

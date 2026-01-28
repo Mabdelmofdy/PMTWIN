@@ -255,10 +255,22 @@
           if (!redirectUrl.startsWith('http://') && !redirectUrl.startsWith('https://')) {
             const isLiveServer = window.location.port === '5503' || 
                                 (window.location.hostname === '127.0.0.1' && window.location.port === '5503');
-            if (isLiveServer && redirectUrl.startsWith('/POC/')) {
-              redirectUrl = `http://127.0.0.1:5503${redirectUrl}`;
+            if (isLiveServer) {
+              // For Live Server, ensure /POC/ prefix is included
+              if (redirectUrl.startsWith('/POC/')) {
+                redirectUrl = `http://127.0.0.1:5503${redirectUrl}`;
+              } else if (redirectUrl.startsWith('/pages/')) {
+                // Path like /pages/dashboard/ needs /POC/ prefix
+                redirectUrl = `http://127.0.0.1:5503/POC${redirectUrl}`;
+              } else if (redirectUrl.startsWith('/')) {
+                // Other absolute paths, add /POC/ prefix
+                redirectUrl = `http://127.0.0.1:5503/POC${redirectUrl}`;
+              } else {
+                // Relative path, add full prefix
+                redirectUrl = `http://127.0.0.1:5503/POC/${redirectUrl}`;
+              }
             } else if (!redirectUrl.startsWith('/')) {
-              // If it's a relative path, convert to absolute
+              // Production: relative path, convert to absolute
               redirectUrl = window.location.origin + '/' + redirectUrl.replace(/^\/+/, '');
             }
           }
@@ -295,10 +307,14 @@
         });
         
         // Determine redirect path based on user role
-        // Use NAV_ROUTES if available, otherwise fallback to basePath
-        let redirectPath = typeof window.NavRoutes !== 'undefined' && window.NavRoutes.NAV_ROUTES['dashboard']
-          ? window.NavRoutes.getRoute('dashboard', { useLiveServer: true })
-          : `${basePath}dashboard/`; // Default to dashboard
+        // Use NAV_ROUTES if available, otherwise use proper URL for Live Server
+        let redirectPath;
+        if (typeof window.NavRoutes !== 'undefined' && window.NavRoutes.NAV_ROUTES['dashboard']) {
+          redirectPath = window.NavRoutes.getRoute('dashboard');
+        } else {
+          const isLiveServer = window.location.port === '5503' || (window.location.hostname === '127.0.0.1' && window.location.port === '5503');
+          redirectPath = isLiveServer ? 'http://127.0.0.1:5503/POC/pages/dashboard/index.html' : '/pages/dashboard/index.html';
+        }
         
         // Simple role-based redirect (more reliable than RBAC for now)
         // Check for admin roles (case-insensitive check)
@@ -322,7 +338,8 @@
         if (isAdmin) {
           // Platform admin redirects to admin portal
           if (typeof window.NavRoutes !== 'undefined' && window.NavRoutes.NAV_ROUTES['admin']) {
-            redirectPath = window.NavRoutes.getRoute('admin', { useLiveServer: true });
+            // getRoute() now auto-detects Live Server
+            redirectPath = window.NavRoutes.getRoute('admin');
           } else {
             const isLiveServer = window.location.port === '5503' || (window.location.hostname === '127.0.0.1' && window.location.port === '5503');
             redirectPath = isLiveServer ? 'http://127.0.0.1:5503/POC/pages/admin/index.html' : '/pages/admin/index.html';
@@ -332,7 +349,8 @@
           // Email-based admin detection (fallback if role detection fails)
           console.warn('⚠️ Admin detected by email but not by role, forcing admin redirect');
           if (typeof window.NavRoutes !== 'undefined' && window.NavRoutes.NAV_ROUTES['admin']) {
-            redirectPath = window.NavRoutes.getRoute('admin', { useLiveServer: true });
+            // getRoute() now auto-detects Live Server
+            redirectPath = window.NavRoutes.getRoute('admin');
           } else {
             const isLiveServer = window.location.port === '5503' || (window.location.hostname === '127.0.0.1' && window.location.port === '5503');
             redirectPath = isLiveServer ? 'http://127.0.0.1:5503/POC/pages/admin/index.html' : '/pages/admin/index.html';
@@ -345,14 +363,20 @@
                    role === 'vendor' || role === 'sub_contractor' || userType === 'beneficiary' ||
                    userType === 'vendor_corporate' || userType === 'vendor_individual' ||
                    userType === 'service_provider' || userType === 'consultant' || userType === 'sub_contractor') {
-          redirectPath = typeof window.NavRoutes !== 'undefined' && window.NavRoutes.NAV_ROUTES['dashboard']
-            ? window.NavRoutes.getRoute('dashboard', { useLiveServer: true })
-            : `${basePath}dashboard/`;
+          if (typeof window.NavRoutes !== 'undefined' && window.NavRoutes.NAV_ROUTES['dashboard']) {
+            redirectPath = window.NavRoutes.getRoute('dashboard');
+          } else {
+            const isLiveServer = window.location.port === '5503' || (window.location.hostname === '127.0.0.1' && window.location.port === '5503');
+            redirectPath = isLiveServer ? 'http://127.0.0.1:5503/POC/pages/dashboard/index.html' : '/pages/dashboard/index.html';
+          }
           console.log('👤 User detected, redirecting to user portal (dashboard)');
         } else {
-          redirectPath = typeof window.NavRoutes !== 'undefined' && window.NavRoutes.NAV_ROUTES['home']
-            ? window.NavRoutes.getRoute('home', { useLiveServer: true })
-            : `${basePath}home/`;
+          if (typeof window.NavRoutes !== 'undefined' && window.NavRoutes.NAV_ROUTES['home']) {
+            redirectPath = window.NavRoutes.getRoute('home');
+          } else {
+            const isLiveServer = window.location.port === '5503' || (window.location.hostname === '127.0.0.1' && window.location.port === '5503');
+            redirectPath = isLiveServer ? 'http://127.0.0.1:5503/POC/pages/home/index.html' : '/pages/home/index.html';
+          }
           console.log('🏠 Unknown role "' + role + '", redirecting to home');
         }
         
@@ -368,15 +392,16 @@
           const currentPort = window.location.port || (window.location.protocol === 'https:' ? '443' : '80');
           // Use NAV_ROUTES if available
           if (typeof window.NavRoutes !== 'undefined' && window.NavRoutes.NAV_ROUTES) {
+            // getRoute() now auto-detects Live Server
             redirectPath = isAdmin 
-              ? window.NavRoutes.getRoute('admin', { useLiveServer: true })
-              : window.NavRoutes.getRoute('dashboard', { useLiveServer: true });
+              ? window.NavRoutes.getRoute('admin')
+              : window.NavRoutes.getRoute('dashboard');
           } else {
             const currentPort = window.location.port || (window.location.protocol === 'https:' ? '443' : '80');
             const isLiveServer = currentPort === '5503' || window.location.host.includes(':5503');
             redirectPath = isAdmin 
               ? (isLiveServer ? 'http://127.0.0.1:5503/POC/pages/admin/index.html' : '/pages/admin/index.html')
-              : `${basePath}dashboard/`;
+              : (isLiveServer ? 'http://127.0.0.1:5503/POC/pages/dashboard/index.html' : '/pages/dashboard/index.html');
           }
           console.log('🔄 Using fallback redirect path:', redirectPath);
         }
@@ -385,7 +410,8 @@
         if (isAdminEmail && !redirectPath.includes('admin')) {
           console.warn('⚠️ Admin email detected but redirect path incorrect, forcing admin redirect...');
           if (typeof window.NavRoutes !== 'undefined' && window.NavRoutes.NAV_ROUTES['admin']) {
-            redirectPath = window.NavRoutes.getRoute('admin', { useLiveServer: true });
+            // getRoute() now auto-detects Live Server
+            redirectPath = window.NavRoutes.getRoute('admin');
           } else {
             const isLiveServer = window.location.port === '5503' || (window.location.hostname === '127.0.0.1' && window.location.port === '5503');
             redirectPath = isLiveServer ? 'http://127.0.0.1:5503/POC/pages/admin/index.html' : '/pages/admin/index.html';
@@ -397,7 +423,8 @@
         // Ensure admin redirects use correct URL
         if (isAdmin && !redirectPath.includes('admin')) {
           if (typeof window.NavRoutes !== 'undefined' && window.NavRoutes.NAV_ROUTES['admin']) {
-            redirectPath = window.NavRoutes.getRoute('admin', { useLiveServer: true });
+            // getRoute() now auto-detects Live Server
+            redirectPath = window.NavRoutes.getRoute('admin');
           } else {
             const isLiveServer = window.location.port === '5503' || (window.location.hostname === '127.0.0.1' && window.location.port === '5503');
             redirectPath = isLiveServer ? 'http://127.0.0.1:5503/POC/pages/admin/index.html' : '/pages/admin/index.html';

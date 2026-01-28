@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>My Opportunities - PMTwin</title>
+    <title>Opportunities - PMTwin</title>
     <link rel="stylesheet" href="../../../assets/css/main.css">
 </head>
 <body>
@@ -15,7 +15,7 @@
                 <div class="page-header-content">
                     <div>
                         <h1>My Opportunities</h1>
-                        <p>Manage opportunities you've created</p>
+                        <p>Manage opportunities you've created and discover matches for your skills</p>
                     </div>
                     <div class="page-actions">
                         <a href="../create/" class="btn btn-primary">
@@ -31,6 +31,14 @@
                     <div class="card-body">
                         <h2 class="section-title spacing-section">Filters</h2>
                         <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">
+                            <div class="form-group">
+                                <label for="filterScope" class="form-label">Scope</label>
+                                <select id="filterScope" class="form-control" onchange="myOpportunities.updateFilter('scope', this.value)">
+                                    <option value="mine" selected>Created by Me</option>
+                                    <option value="all">All Opportunities</option>
+                                    <option value="matches">Matches My Skills</option>
+                                </select>
+                            </div>
                             <div class="form-group">
                                 <label for="filterIntent" class="form-label">Intent</label>
                                 <select id="filterIntent" class="form-control" onchange="myOpportunities.updateFilter('intent', this.value)">
@@ -58,10 +66,23 @@
                 </div>
             </div>
 
-            <!-- Opportunities List -->
+            <!-- Draft Section -->
             <div class="content-section">
-                <div id="myOpportunitiesList">
-                    <!-- Opportunities will be loaded here -->
+                <h2 class="section-title">
+                    <i class="ph ph-file-dashed"></i> Draft
+                </h2>
+                <div id="myOpportunitiesDraftList">
+                    <!-- Draft opportunities will be loaded here -->
+                </div>
+            </div>
+
+            <!-- Published Section -->
+            <div class="content-section">
+                <h2 class="section-title">
+                    <i class="ph ph-paper-plane-tilt"></i> Published
+                </h2>
+                <div id="myOpportunitiesPublishedList">
+                    <!-- Published opportunities will be loaded here -->
                 </div>
             </div>
         </div>

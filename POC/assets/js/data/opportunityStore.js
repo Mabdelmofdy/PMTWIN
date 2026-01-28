@@ -11,11 +11,81 @@
   'use strict';
 
   // ============================================
-  // Data Storage (in-memory)
+  // Storage Keys
+  // ============================================
+  const STORAGE_KEYS = {
+    OPPORTUNITIES: 'opportunityStore_opportunities',
+    PROPOSALS: 'opportunityStore_proposals',
+    USERS: 'opportunityStore_users'
+  };
+
+  // ============================================
+  // Data Storage (in-memory with localStorage persistence)
   // ============================================
   let opportunities = [];
   let proposals = [];
   let users = [];
+
+  // ============================================
+  // LocalStorage Persistence Helpers
+  // ============================================
+  function saveOpportunities() {
+    try {
+      localStorage.setItem(STORAGE_KEYS.OPPORTUNITIES, JSON.stringify(opportunities));
+    } catch (e) {
+      console.warn('[OpportunityStore] Failed to save opportunities to localStorage:', e);
+    }
+  }
+
+  function saveProposals() {
+    try {
+      localStorage.setItem(STORAGE_KEYS.PROPOSALS, JSON.stringify(proposals));
+    } catch (e) {
+      console.warn('[OpportunityStore] Failed to save proposals to localStorage:', e);
+    }
+  }
+
+  function saveUsers() {
+    try {
+      localStorage.setItem(STORAGE_KEYS.USERS, JSON.stringify(users));
+    } catch (e) {
+      console.warn('[OpportunityStore] Failed to save users to localStorage:', e);
+    }
+  }
+
+  function loadFromStorage() {
+    try {
+      const storedOpps = localStorage.getItem(STORAGE_KEYS.OPPORTUNITIES);
+      const storedProposals = localStorage.getItem(STORAGE_KEYS.PROPOSALS);
+      const storedUsers = localStorage.getItem(STORAGE_KEYS.USERS);
+      
+      if (storedOpps) {
+        const parsed = JSON.parse(storedOpps);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          opportunities = parsed;
+          console.log('[OpportunityStore] Loaded', opportunities.length, 'opportunities from localStorage');
+        }
+      }
+      if (storedProposals) {
+        const parsed = JSON.parse(storedProposals);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          proposals = parsed;
+          console.log('[OpportunityStore] Loaded', proposals.length, 'proposals from localStorage');
+        }
+      }
+      if (storedUsers) {
+        const parsed = JSON.parse(storedUsers);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          users = parsed;
+          console.log('[OpportunityStore] Loaded', users.length, 'users from localStorage');
+        }
+      }
+      return opportunities.length > 0 || proposals.length > 0 || users.length > 0;
+    } catch (e) {
+      console.warn('[OpportunityStore] Failed to load from localStorage:', e);
+      return false;
+    }
+  }
 
   // ============================================
   // ID Generation
@@ -53,12 +123,13 @@
           geo: data.location?.geo || null,
           isRemoteAllowed: data.location?.isRemoteAllowed || false
         },
-        status: 'DRAFT', // DRAFT | PUBLISHED | CLOSED
+        status: data.status || 'DRAFT', // DRAFT | PUBLISHED | CLOSED
         createdByUserId: data.createdByUserId || null,
         createdAt: data.createdAt || new Date().toISOString()
       };
 
       opportunities.push(opportunity);
+      saveOpportunities(); // Persist to localStorage
       return opportunity;
     },
 
@@ -76,6 +147,7 @@
         return opportunity;
       }
       opportunity.status = 'PUBLISHED';
+      saveOpportunities(); // Persist to localStorage
       return opportunity;
     },
 
@@ -100,6 +172,7 @@
       const opportunity = this.getOpportunityById(id);
       if (!opportunity) return null;
       Object.assign(opportunity, updates);
+      saveOpportunities(); // Persist to localStorage
       return opportunity;
     },
 
@@ -149,6 +222,7 @@
       };
 
       proposals.push(proposal);
+      saveProposals(); // Persist to localStorage
       return proposal;
     },
 
@@ -168,6 +242,7 @@
         at: new Date().toISOString()
       });
       proposal.updatedAt = new Date().toISOString();
+      saveProposals(); // Persist to localStorage
       return proposal;
     },
 
@@ -201,6 +276,7 @@
         });
       }
       proposal.updatedAt = new Date().toISOString();
+      saveProposals(); // Persist to localStorage
       return proposal;
     },
 
@@ -240,6 +316,7 @@
       if (!proposal) return null;
       proposal.status = status;
       proposal.updatedAt = new Date().toISOString();
+      saveProposals(); // Persist to localStorage
       return proposal;
     }
   };
@@ -1270,8 +1347,16 @@
   // ============================================
   // Initialize
   // ============================================
-  // Seed demo data on load
-  seedDemoData();
+  // Try loading from localStorage first, only seed demo data if empty
+  const loadedFromStorage = loadFromStorage();
+  if (!loadedFromStorage) {
+    console.log('[OpportunityStore] No data in localStorage, seeding demo data...');
+    seedDemoData();
+    // Save seeded data to localStorage
+    saveOpportunities();
+    saveProposals();
+    saveUsers();
+  }
   
   // Log initialization
   console.log('[OpportunityStore] Initialized with', opportunities.length, 'opportunities,', proposals.length, 'proposals,', users.length, 'users');
@@ -1318,8 +1403,31 @@
       users: users
     }),
 
-    // Re-seed data (for testing)
-    reseed: seedDemoData
+    // Re-seed data (for testing) - clears localStorage and re-seeds
+    reseed: () => {
+      localStorage.removeItem(STORAGE_KEYS.OPPORTUNITIES);
+      localStorage.removeItem(STORAGE_KEYS.PROPOSALS);
+      localStorage.removeItem(STORAGE_KEYS.USERS);
+      opportunities = [];
+      proposals = [];
+      users = [];
+      seedDemoData();
+      saveOpportunities();
+      saveProposals();
+      saveUsers();
+      console.log('[OpportunityStore] Data reseeded and persisted');
+    },
+
+    // Clear all stored data
+    clearStorage: () => {
+      localStorage.removeItem(STORAGE_KEYS.OPPORTUNITIES);
+      localStorage.removeItem(STORAGE_KEYS.PROPOSALS);
+      localStorage.removeItem(STORAGE_KEYS.USERS);
+      opportunities = [];
+      proposals = [];
+      users = [];
+      console.log('[OpportunityStore] All data cleared');
+    }
   };
 
 })();
